@@ -1,34 +1,34 @@
-use quote::{quote, ToTokens, TokenStreamExt};
-use proc_macro2::{TokenStream as TokenStream2, Ident};
+use proc_macro2::{Ident, TokenStream as TokenStream2};
+use quote::{quote, ToTokens};
 
+#[derive(Debug)]
 pub enum StringSanitizer {
     Trim,
     Lowecase,
     Uppercase,
 }
 
+#[derive(Debug)]
 pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
-    // Present (aka NotEmpty)
+    Present,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeName(String);
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InnerType {
-    String
+    String,
 }
 
 impl ToTokens for InnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream2) {
-
         match self {
             InnerType::String => {
                 quote!(String).to_tokens(token_stream);
-            },
+            }
         };
     }
 }
@@ -39,17 +39,19 @@ pub struct TypeNameAndInnerType {
     pub inner_type: InnerType,
 }
 
-pub struct NewtypeDefinition {
-    pub name: String,
-    pub meta: NewtypeMeta,
-}
+// #[derive(Debug)]
+// pub struct NewtypeDefinition {
+//     pub name: String,
+//     pub meta: NewtypeMeta,
+// }
+//
+// #[derive(Debug)]
+// pub enum NewtypeMeta {
+//     String(NewtypeStringMeta)
+// }
 
-pub enum NewtypeMeta {
-    String(NewtypeStringMeta)
-}
-
+#[derive(Debug)]
 pub struct NewtypeStringMeta {
     pub sanitizers: Vec<StringSanitizer>,
     pub validators: Vec<StringValidator>,
 }
-
