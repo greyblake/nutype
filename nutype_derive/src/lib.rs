@@ -2,8 +2,7 @@ mod gen;
 mod models;
 mod parser;
 
-use proc_macro::TokenStream;
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::TokenStream;
 use quote::quote;
 
 use gen::{gen_error_type_name, gen_module_name_for_type, gen_string_implementation};
@@ -11,11 +10,11 @@ use models::{TypeNameAndInnerType, InnerType};
 use parser::{parse_attributes, parse_type_name_and_inner_type};
 
 #[proc_macro_attribute]
-pub fn nutype(attrs: TokenStream, type_definition: TokenStream) -> TokenStream {
-    inner_nutype(attrs.into(), type_definition.into()).into()
+pub fn nutype(attrs: proc_macro::TokenStream, type_definition: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    expand_nutype(attrs.into(), type_definition.into()).into()
 }
 
-fn inner_nutype(attrs: TokenStream2, type_definition: TokenStream2) -> TokenStream2 {
+fn expand_nutype(attrs: TokenStream, type_definition: TokenStream) -> TokenStream {
     let TypeNameAndInnerType {
         type_name,
         inner_type,
