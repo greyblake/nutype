@@ -2,52 +2,75 @@ use std::{fmt::Debug, str::FromStr};
 
 use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
 use quote::ToTokens;
-use syn::DeriveInput;
+use syn::{spanned::Spanned, DeriveInput};
 
 use crate::models::{
     InnerType, NewtypeStringMeta, StringSanitizer, StringValidator, TypeNameAndInnerType,
 };
 
 // TODO: Parse visibility as well
-pub fn parse_type_name_and_inner_type(token_stream: TokenStream2) -> TypeNameAndInnerType {
+pub fn parse_type_name_and_inner_type(
+    token_stream: TokenStream2,
+) -> Result<TypeNameAndInnerType, Vec<syn::Error>> {
     let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
 
-    let type_name = input.ident;
+    let type_name = input.ident.clone();
 
     let data_struct = match &input.data {
         syn::Data::Struct(v) => v.clone(),
-        _ => panic!("Expected syn::Data::Struct, got: {:?}", input.data),
+        _ => {
+            let error = syn::Error::new(
+                input.span(),
+                "#[nutype] can be used only with tuple structs.",
+            );
+            return Err(vec![error]);
+        }
     };
 
     let fields_unnamed = match data_struct.fields {
         syn::Fields::Unnamed(fu) => fu,
-        _ => panic!(
-            "Expected syn::Fields::Unnamed, got: {:?}",
-            &data_struct.fields
-        ),
+        _ => {
+            let error = syn::Error::new(
+                input.span(),
+                "#[nutype] can be used only with tuple structs.",
+            );
+            return Err(vec![error]);
+        }
     };
 
     let seg = fields_unnamed.unnamed.iter().next().unwrap();
 
     let type_path = match seg.ty.clone() {
         syn::Type::Path(tp) => tp,
-        _ => panic!("Expected syn::Type::Path, got: {:?}", &seg.ty),
+        _ => {
+            let error = syn::Error::new(
+                seg.span(),
+                "#[nutype] requires a simple inner type (e.g. String, i32, etc.)",
+            );
+            return Err(vec![error]);
+        }
     };
 
     let type_path_str = type_path.into_token_stream().to_string();
 
     let inner_type = match type_path_str.as_ref() {
         "String" => InnerType::String,
-        tp => panic!("Unsupported inner type: {}", tp),
+        tp => {
+            let error = syn::Error::new(
+                seg.span(),
+                format!("#[nutype] does not support `{tp}` as inner type"),
+            );
+            return Err(vec![error]);
+        }
     };
 
-    TypeNameAndInnerType {
+    Ok(TypeNameAndInnerType {
         type_name,
         inner_type,
-    }
+    })
 }
 
-pub fn parse_attributes(input: TokenStream2) -> NewtypeStringMeta {
+pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
     let mut output = NewtypeStringMeta {
         sanitizers: vec![],
         validators: vec![],
@@ -59,32 +82,36 @@ pub fn parse_attributes(input: TokenStream2) -> NewtypeStringMeta {
         let token = match iter.next() {
             Some(t) => t,
             None => {
-                return output;
+                return Ok(output);
             }
         };
 
-        let ident = unwrap_ident(token);
+        let ident = try_unwrap_ident(token)?;
 
         match ident.to_string().as_ref() {
             "sanitize" => {
                 let token = iter.next().unwrap();
-                let group = unwrap_group(token);
+                let group = try_unwrap_group(token)?;
 
                 let sanitize_stream = group.stream();
-                output.sanitizers = parse_sanitize_attrs(sanitize_stream);
+                output.sanitizers = parse_sanitize_attrs(sanitize_stream)?;
             }
             "validate" => {
                 let token = iter.next().unwrap();
-                let group = unwrap_group(token);
+                let group = try_unwrap_group(token)?;
                 let validate_stream = group.stream();
-                output.validators = parse_validate_attrs(validate_stream);
+                output.validators = parse_validate_attrs(validate_stream)?;
             }
-            unknown => panic!("Unknown nutype option: {unknown}"),
+            unknown => {
+                let msg = format!("Unknown #[nutype] option: `{unknown}`");
+                let error = syn::Error::new(ident.span(), msg);
+                return Err(vec![error]);
+            }
         }
     }
 }
 
-fn parse_sanitize_attrs(stream: TokenStream2) -> Vec<StringSanitizer> {
+fn parse_sanitize_attrs(stream: TokenStream2) -> Result<Vec<StringSanitizer>, Vec<syn::Error>> {
     let mut output = vec![];
     for token in stream.into_iter() {
         match token {
@@ -92,21 +119,25 @@ fn parse_sanitize_attrs(stream: TokenStream2) -> Vec<StringSanitizer> {
                 "trim" => output.push(StringSanitizer::Trim),
                 "lowercase" => output.push(StringSanitizer::Lowecase),
                 "uppercase" => output.push(StringSanitizer::Uppercase),
-                unknown_sanitizer => panic!("Unkonwn sanitizer: {unknown_sanitizer}"),
+                unknown_sanitizer => {
+                    let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
+                    let error = syn::Error::new(ident.span(), msg);
+                    return Err(vec![error]);
+                }
             },
             _ => (),
         }
     }
 
-    output
+    Ok(output)
 }
 
-fn parse_validate_attrs(stream: TokenStream2) -> Vec<StringValidator> {
+fn parse_validate_attrs(stream: TokenStream2) -> Result<Vec<StringValidator>, Vec<syn::Error>> {
     let mut output = vec![];
 
     let mut token_iter = stream.into_iter();
     loop {
-        match parse_validation_rule(token_iter) {
+        match parse_validation_rule(token_iter)? {
             Some((validator, rest_iter)) => {
                 token_iter = rest_iter;
                 output.push(validator);
@@ -117,12 +148,12 @@ fn parse_validate_attrs(stream: TokenStream2) -> Vec<StringValidator> {
         }
     }
 
-    output
+    Ok(output)
 }
 
 fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
     mut iter: ITER,
-) -> Option<(StringValidator, ITER)> {
+) -> Result<Option<(StringValidator, ITER)>, Vec<syn::Error>> {
     match iter.next() {
         Some(mut token) => {
             // Skip punctuations between validators
@@ -130,21 +161,25 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
                 token = iter.next().unwrap();
             }
 
-            let ident = unwrap_ident(token);
+            let ident = try_unwrap_ident(token)?;
             match ident.to_string().as_ref() {
                 "max_len" => {
                     let (value, iter) = parse_value_as(iter);
-                    Some((StringValidator::MaxLen(value), iter))
+                    Ok(Some((StringValidator::MaxLen(value), iter)))
                 }
                 "min_len" => {
                     let (value, iter) = parse_value_as(iter);
-                    Some((StringValidator::MinLen(value), iter))
+                    Ok(Some((StringValidator::MinLen(value), iter)))
                 }
-                "present" => Some((StringValidator::Present, iter)),
-                validator => panic!("Unexpected validator rule `{validator}`"),
+                "present" => Ok(Some((StringValidator::Present, iter))),
+                validator => {
+                    let msg = format!("Unknown validation rule `{validator}`");
+                    let error = syn::Error::new(ident.span(), msg);
+                    return Err(vec![error]);
+                }
             }
         }
-        None => None,
+        None => Ok(None),
     }
 }
 
@@ -170,16 +205,22 @@ where
     (value, iter)
 }
 
-fn unwrap_ident(token: TokenTree) -> Ident {
+fn try_unwrap_ident(token: TokenTree) -> Result<Ident, Vec<syn::Error>> {
     match token {
-        TokenTree::Ident(ident) => ident,
-        t => panic!("nutype: expected ident, got: {t}"),
+        TokenTree::Ident(ident) => Ok(ident),
+        _ => {
+            let error = syn::Error::new(token.span(), "#[nutype] expected ident");
+            Err(vec![error])
+        }
     }
 }
 
-fn unwrap_group(token: TokenTree) -> Group {
+fn try_unwrap_group(token: TokenTree) -> Result<Group, Vec<syn::Error>> {
     match token {
-        TokenTree::Group(group) => group,
-        t => panic!("nutype: expected group, got: {t}"),
+        TokenTree::Group(group) => Ok(group),
+        _ => {
+            let error = syn::Error::new(token.span(), "#[nutype] expected ident");
+            Err(vec![error])
+        }
     }
 }

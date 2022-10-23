@@ -13,7 +13,8 @@ use nutype_derive::nutype;
     sanitize(trim, lowercase)
     validate(present, min_len = 6)
 )]
-pub struct Email(String);
+// pub struct Email(String);
+struct Email(String);
 
 /*
 #[derive(nutype::TryFrom)]
