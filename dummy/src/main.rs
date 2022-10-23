@@ -10,13 +10,20 @@ use nutype_derive::nutype;
 // * xtype
 
 #[nutype(
-    validate(present, min_len = 6, max_len = 255)
-    sanitize(trim, uppercase)
+    sanitize(trim, lowercase)
+    validate(present, min_len = 6)
 )]
 pub struct Email(String);
 
+/*
+#[derive(nutype::TryFrom)]
+#[sanitize(trim, lowercase)]
+#[validate(present, min_len=6, max_len=255)]
+pub struct Email(String);
+*/
+
+
 fn main() {
-    let raw_email = "\tBlake13@gmail.COM  \n";
-    let email = Email::try_from(raw_email.to_string()).unwrap();
+    let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
     println!("\n\nemail = {:?}\n\n", email);
 }

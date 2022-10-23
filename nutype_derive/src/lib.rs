@@ -7,7 +7,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 
 use gen::{gen_error_type_name, gen_module_name_for_type, gen_string_implementation};
-use models::TypeNameAndInnerType;
+use models::{TypeNameAndInnerType, InnerType};
 use parser::{parse_attributes, parse_type_name_and_inner_type};
 
 #[proc_macro_attribute]
@@ -33,7 +33,11 @@ fn inner_nutype(attrs: TokenStream2, type_definition: TokenStream2) -> TokenStre
         )
     };
 
-    let implementation = gen_string_implementation(&type_name, inner_type, &meta);
+    let implementation = match inner_type {
+        InnerType::String => {
+            gen_string_implementation(&type_name, &meta)
+        }
+    };
 
     // TODO: respect visiblity!
     quote!(

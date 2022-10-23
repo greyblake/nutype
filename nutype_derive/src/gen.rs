@@ -1,19 +1,17 @@
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
 
-use crate::models::{InnerType, NewtypeStringMeta, StringSanitizer, StringValidator};
+use crate::models::{NewtypeStringMeta, StringSanitizer, StringValidator};
 
 pub fn gen_string_implementation(
     type_name: &Ident,
-    inner_type: InnerType,
     meta: &NewtypeStringMeta,
 ) -> TokenStream2 {
     if meta.validators.is_empty() {
-        gen_string_from_implementation(type_name, inner_type, &meta.sanitizers)
+        gen_string_from_implementation(type_name, &meta.sanitizers)
     } else {
         gen_string_try_from_implementation(
             type_name,
-            inner_type,
             &meta.sanitizers,
             &meta.validators,
         )
@@ -22,7 +20,6 @@ pub fn gen_string_implementation(
 
 fn gen_string_from_implementation(
     type_name: &Ident,
-    inner_type: InnerType,
     sanitizers: &[StringSanitizer],
 ) -> TokenStream2 {
     let sanitize = gen_string_sanitize_fn(sanitizers);
@@ -30,8 +27,16 @@ fn gen_string_from_implementation(
     quote!(
         #sanitize
 
-        impl ::core::convert::From<#inner_type> for #type_name {
-            fn from(raw_value: #inner_type) -> #type_name {
+        impl ::core::convert::From<String> for #type_name {
+            fn from(raw_value: String) -> #type_name {
+                #type_name(sanitize(raw_value))
+            }
+        }
+
+        impl ::core::convert::From<&str> for #type_name {
+
+            fn from(raw_value: &str) -> #type_name {
+                let raw_value = raw_value.to_string();
                 #type_name(sanitize(raw_value))
             }
         }
@@ -40,7 +45,6 @@ fn gen_string_from_implementation(
 
 fn gen_string_try_from_implementation(
     type_name: &Ident,
-    inner_type: InnerType,
     sanitizers: &[StringSanitizer],
     validators: &[StringValidator],
 ) -> TokenStream2 {
@@ -54,10 +58,21 @@ fn gen_string_try_from_implementation(
         #validation_error
         #validate
 
-        impl ::core::convert::TryFrom<#inner_type> for #type_name {
+        impl ::core::convert::TryFrom<String> for #type_name {
             type Error = #error_type_name;
 
-            fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
+            fn try_from(raw_value: String) -> Result<#type_name, Self::Error> {
+                let sanitized_value = sanitize(raw_value);
+                validate(&sanitized_value)?;
+                Ok(#type_name(sanitized_value))
+            }
+        }
+
+        impl ::core::convert::TryFrom<&str> for #type_name {
+            type Error = #error_type_name;
+
+            fn try_from(raw_value: &str) -> Result<#type_name, Self::Error> {
+                let raw_value = raw_value.to_string();
                 let sanitized_value = sanitize(raw_value);
                 validate(&sanitized_value)?;
                 Ok(#type_name(sanitized_value))
