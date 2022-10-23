@@ -3,18 +3,38 @@ use quote::quote;
 
 use crate::models::{NewtypeStringMeta, StringSanitizer, StringValidator};
 
-pub fn gen_string_implementation(
-    type_name: &Ident,
-    meta: &NewtypeStringMeta,
-) -> TokenStream {
+pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> TokenStream {
+    let module_name = gen_module_name_for_type(&type_name);
+    let implementation = gen_string_implementation(type_name, &meta);
+
+    // TODO: refactor!
+    let error_type_import = if meta.validators.is_empty() {
+        quote!()
+    } else {
+        let error_type_name = gen_error_type_name(&type_name);
+        quote! (
+            pub use #module_name::#error_type_name;
+        )
+    };
+
+    quote!(
+        mod #module_name {
+            #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+            // TODO: respect visiblity!
+            pub struct #type_name(String);
+
+            #implementation
+        }
+        pub use #module_name::#type_name;
+        #error_type_import
+    )
+}
+
+pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) -> TokenStream {
     if meta.validators.is_empty() {
         gen_string_from_implementation(type_name, &meta.sanitizers)
     } else {
-        gen_string_try_from_implementation(
-            type_name,
-            &meta.sanitizers,
-            &meta.validators,
-        )
+        gen_string_try_from_implementation(type_name, &meta.sanitizers, &meta.validators)
     }
 }
 
@@ -159,10 +179,7 @@ pub fn gen_string_validate_fn(type_name: &Ident, validators: &[StringValidator])
     )
 }
 
-pub fn gen_validation_error_type(
-    type_name: &Ident,
-    validators: &[StringValidator],
-) -> TokenStream {
+pub fn gen_validation_error_type(type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
     let error_name = gen_error_type_name(type_name);
 
     let error_variants: TokenStream = validators

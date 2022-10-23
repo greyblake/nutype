@@ -22,7 +22,6 @@ pub struct Email(String);
 pub struct Email(String);
 */
 
-
 fn main() {
     let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
     println!("\n\nemail = {:?}\n\n", email);
