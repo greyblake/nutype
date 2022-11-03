@@ -1,77 +1,26 @@
-use std::{fmt::Debug, str::FromStr};
-
-use proc_macro2::{Group, Ident, TokenStream as TokenStream2, TokenTree};
-use quote::ToTokens;
-use syn::{spanned::Spanned, DeriveInput};
-
-use crate::models::{
-    InnerType, NewtypeStringMeta, StringSanitizer, StringValidator, TypeNameAndInnerType,
-};
-
-// TODO: Parse visibility as well
-pub fn parse_type_name_and_inner_type(
-    token_stream: TokenStream2,
-) -> Result<TypeNameAndInnerType, Vec<syn::Error>> {
-    let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
-
-    let type_name = input.ident.clone();
-
-    let data_struct = match &input.data {
-        syn::Data::Struct(v) => v.clone(),
-        _ => {
-            let error = syn::Error::new(
-                input.span(),
-                "#[nutype] can be used only with tuple structs.",
-            );
-            return Err(vec![error]);
-        }
-    };
-
-    let fields_unnamed = match data_struct.fields {
-        syn::Fields::Unnamed(fu) => fu,
-        _ => {
-            let error = syn::Error::new(
-                input.span(),
-                "#[nutype] can be used only with tuple structs.",
-            );
-            return Err(vec![error]);
-        }
-    };
-
-    let seg = fields_unnamed.unnamed.iter().next().unwrap();
-
-    let type_path = match seg.ty.clone() {
-        syn::Type::Path(tp) => tp,
-        _ => {
-            let error = syn::Error::new(
-                seg.span(),
-                "#[nutype] requires a simple inner type (e.g. String, i32, etc.)",
-            );
-            return Err(vec![error]);
-        }
-    };
-
-    let type_path_str = type_path.into_token_stream().to_string();
-
-    let inner_type = match type_path_str.as_ref() {
-        "String" => InnerType::String,
-        tp => {
-            let error = syn::Error::new(
-                seg.span(),
-                format!("#[nutype] does not support `{tp}` as inner type"),
-            );
-            return Err(vec![error]);
-        }
-    };
-
-    Ok(TypeNameAndInnerType {
-        type_name,
-        inner_type,
-    })
-}
+use crate::common::parse::{parse_value_as, try_unwrap_group, try_unwrap_ident};
+use crate::models::{StringSanitizer, StringValidator};
+use crate::string::models::NewtypeStringMeta;
+use crate::string::models::RawNewtypeStringMeta;
+use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
 pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
-    let mut output = NewtypeStringMeta {
+    let RawNewtypeStringMeta {
+        sanitizers,
+        validators,
+    } = parse_raw_attributes(input)?;
+    if validators.is_empty() {
+        Ok(NewtypeStringMeta::From { sanitizers })
+    } else {
+        Ok(NewtypeStringMeta::TryFrom {
+            sanitizers,
+            validators,
+        })
+    }
+}
+
+fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, Vec<syn::Error>> {
+    let mut output = RawNewtypeStringMeta {
         sanitizers: vec![],
         validators: vec![],
     };
@@ -164,11 +113,11 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
             let ident = try_unwrap_ident(token)?;
             match ident.to_string().as_ref() {
                 "max_len" => {
-                    let (value, iter) = parse_value_as(iter);
+                    let (value, iter) = parse_value_as(iter)?;
                     Ok(Some((StringValidator::MaxLen(value), iter)))
                 }
                 "min_len" => {
-                    let (value, iter) = parse_value_as(iter);
+                    let (value, iter) = parse_value_as(iter)?;
                     Ok(Some((StringValidator::MinLen(value), iter)))
                 }
                 "present" => Ok(Some((StringValidator::Present, iter))),
@@ -183,44 +132,31 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
     }
 }
 
-/// ## Example
-/// Input (token stream):
-///     = 123
-/// Output (parsed value):
-///    123
-fn parse_value_as<T, ITER>(mut iter: ITER) -> (T, ITER)
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-    ITER: Iterator<Item = TokenTree>,
-{
-    let token_eq = iter.next().expect("Expected token `=`");
-    assert_eq!(token_eq.to_string(), "=", "Expected token `=`");
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::quote;
 
-    let token_value = iter.next().expect("Expected number");
-    let str_value = token_value.to_string();
-    let value: T = str_value
-        .parse()
-        .expect("Unexpected type of value for a validator");
-    (value, iter)
-}
-
-fn try_unwrap_ident(token: TokenTree) -> Result<Ident, Vec<syn::Error>> {
-    match token {
-        TokenTree::Ident(ident) => Ok(ident),
-        _ => {
-            let error = syn::Error::new(token.span(), "#[nutype] expected ident");
-            Err(vec![error])
-        }
+    #[test]
+    fn test_validate_attrs() {
+        let tokens = quote!(max_len = 13, min_len = 7, present);
+        let validators = parse_validate_attrs(tokens).unwrap();
+        assert_eq!(
+            validators,
+            vec![
+                StringValidator::MaxLen(13),
+                StringValidator::MinLen(7),
+                StringValidator::Present,
+            ]
+        );
     }
-}
 
-fn try_unwrap_group(token: TokenTree) -> Result<Group, Vec<syn::Error>> {
-    match token {
-        TokenTree::Group(group) => Ok(group),
-        _ => {
-            let error = syn::Error::new(token.span(), "#[nutype] expected ident");
-            Err(vec![error])
-        }
+    #[test]
+    fn test_validate_attrs_with_errors() {
+        let tokens = quote!(max_len = -1);
+        assert!(parse_validate_attrs(tokens).is_err());
+
+        let tokens = quote!(present = 3);
+        assert!(parse_validate_attrs(tokens).is_err());
     }
 }

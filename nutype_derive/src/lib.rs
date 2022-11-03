@@ -1,12 +1,14 @@
-mod gen;
+mod common;
 mod models;
-mod parser;
+mod number;
+mod parse;
+mod string;
 
-use gen::gen_nutype_for_string;
 use models::{InnerType, TypeNameAndInnerType};
-use parser::{parse_attributes, parse_type_name_and_inner_type};
+use parse::parse_type_name_and_inner_type;
 use proc_macro2::TokenStream;
 use quote::quote;
+use string::gen::gen_nutype_for_string;
 
 #[proc_macro_attribute]
 pub fn nutype(
@@ -35,7 +37,7 @@ fn expand_nutype(
     match inner_type {
         InnerType::String => {
             // TODO: rename to parse_string_attributes
-            let meta = parse_attributes(attrs)?;
+            let meta = string::parse::parse_attributes(attrs)?;
             Ok(gen_nutype_for_string(&type_name, meta))
         }
     }

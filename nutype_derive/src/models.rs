@@ -1,19 +1,7 @@
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use quote::{quote, ToTokens};
 
-#[derive(Debug)]
-pub enum StringSanitizer {
-    Trim,
-    Lowecase,
-    Uppercase,
-}
-
-#[derive(Debug)]
-pub enum StringValidator {
-    MinLen(usize),
-    MaxLen(usize),
-    Present,
-}
+pub use crate::string::models::{StringSanitizer, StringValidator};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeName(String);
@@ -39,19 +27,21 @@ pub struct TypeNameAndInnerType {
     pub inner_type: InnerType,
 }
 
-// #[derive(Debug)]
-// pub struct NewtypeDefinition {
-//     pub name: String,
-//     pub meta: NewtypeMeta,
-// }
-//
-// #[derive(Debug)]
-// pub enum NewtypeMeta {
-//     String(NewtypeStringMeta)
-// }
-
+/// Validated model, that represents precisly what needs to be generated.
 #[derive(Debug)]
-pub struct NewtypeStringMeta {
-    pub sanitizers: Vec<StringSanitizer>,
-    pub validators: Vec<StringValidator>,
+pub enum NewtypeMeta<Sanitizer, Validator> {
+    From {
+        sanitizers: Vec<Sanitizer>,
+    },
+    TryFrom {
+        sanitizers: Vec<Sanitizer>,
+        validators: Vec<Validator>,
+    },
+}
+
+/// Parsed by not yet validated
+#[derive(Debug)]
+pub struct RawNewtypeMeta<Sanitizer, Validator> {
+    pub sanitizers: Vec<Sanitizer>,
+    pub validators: Vec<Validator>,
 }

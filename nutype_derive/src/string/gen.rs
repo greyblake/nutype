@@ -1,20 +1,22 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
-use crate::models::{NewtypeStringMeta, StringSanitizer, StringValidator};
+use crate::models::{StringSanitizer, StringValidator};
+
+use super::models::NewtypeStringMeta;
 
 pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> TokenStream {
     let module_name = gen_module_name_for_type(&type_name);
     let implementation = gen_string_implementation(type_name, &meta);
 
-    // TODO: refactor!
-    let error_type_import = if meta.validators.is_empty() {
-        quote!()
-    } else {
-        let error_type_name = gen_error_type_name(&type_name);
-        quote! (
-            pub use #module_name::#error_type_name;
-        )
+    let error_type_import = match meta {
+        NewtypeStringMeta::From { .. } => quote!(),
+        NewtypeStringMeta::TryFrom { .. } => {
+            let error_type_name = gen_error_type_name(&type_name);
+            quote! (
+                pub use #module_name::#error_type_name;
+            )
+        }
     };
 
     quote!(
@@ -31,10 +33,14 @@ pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> Toke
 }
 
 pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) -> TokenStream {
-    if meta.validators.is_empty() {
-        gen_string_from_implementation(type_name, &meta.sanitizers)
-    } else {
-        gen_string_try_from_implementation(type_name, &meta.sanitizers, &meta.validators)
+    match meta {
+        NewtypeStringMeta::From { sanitizers } => {
+            gen_string_from_implementation(type_name, sanitizers)
+        }
+        NewtypeStringMeta::TryFrom {
+            sanitizers,
+            validators,
+        } => gen_string_try_from_implementation(type_name, sanitizers, validators),
     }
 }
 

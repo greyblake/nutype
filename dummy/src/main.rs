@@ -11,10 +11,13 @@ use nutype_derive::nutype;
 
 #[nutype(
     sanitize(trim, lowercase)
-    validate(present, min_len = 6)
+    validate(present, min_len = 12)
 )]
 // pub struct Email(String);
 struct Email(String);
+
+// #[nutype(sanitize(trim, lowercase))]
+// struct Email(String);
 
 /*
 #[derive(nutype::TryFrom)]
