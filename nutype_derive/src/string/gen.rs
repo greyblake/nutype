@@ -121,7 +121,7 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
                     let value: String = value.trim().to_string();
                 )
             }
-            StringSanitizer::Lowecase => {
+            StringSanitizer::Lowercase => {
                 quote!(
                     let value: String = value.to_lowercase();
                 )

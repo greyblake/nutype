@@ -2,13 +2,21 @@ use crate::common::parse::{parse_value_as, try_unwrap_group, try_unwrap_ident};
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
-use proc_macro2::{TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Span, TokenStream as TokenStream2, TokenTree};
+
+use super::models::{ParsedStringSanitizer, StringSanitizerKind};
 
 pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
     let RawNewtypeStringMeta {
         sanitizers,
         validators,
     } = parse_raw_attributes(input)?;
+
+    validate_validators(&validators)?;
+    validate_sanitizers(&sanitizers)?;
+
+    let sanitizers = sanitizers.into_iter().map(|s| s.sanitizer).collect();
+
     if validators.is_empty() {
         Ok(NewtypeStringMeta::From { sanitizers })
     } else {
@@ -17,6 +25,40 @@ pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<sy
             validators,
         })
     }
+}
+
+fn validate_validators(validators: &[StringValidator]) -> Result<(), Vec<syn::Error>> {
+    Ok(())
+}
+
+fn validate_sanitizers(sanitizers: &[ParsedStringSanitizer]) -> Result<(), Vec<syn::Error>> {
+    // Check duplicates
+    for (i1, san1) in sanitizers.iter().enumerate() {
+        for (i2, san2) in sanitizers.iter().enumerate() {
+            if i1 != i2 && san1.kind() == san2.kind() {
+                let msg = format!("Duplicated sanitizer `{}`.\nYou're doing well, just don't forget to call your mom!", san1.kind());
+                let span = san1.span.join(san2.span).unwrap();
+                let err = syn::Error::new(span, &msg);
+                return Err(vec![err]);
+            }
+        }
+    }
+
+    // Validate lowercase VS uppercase
+    let lowercase = sanitizers
+        .iter()
+        .find(|&s| s.kind() == StringSanitizerKind::Lowercase);
+    let uppercase = sanitizers
+        .iter()
+        .find(|&s| s.kind() == StringSanitizerKind::Uppercase);
+    if let (Some(lowercase), Some(uppercase)) = (lowercase, uppercase) {
+        let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
+        let span = lowercase.span.join(uppercase.span).unwrap();
+        let err = syn::Error::new(span, &msg);
+        return Err(vec![err]);
+    }
+
+    Ok(())
 }
 
 fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, Vec<syn::Error>> {
@@ -60,20 +102,28 @@ fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, Vec
     }
 }
 
-fn parse_sanitize_attrs(stream: TokenStream2) -> Result<Vec<StringSanitizer>, Vec<syn::Error>> {
+fn parse_sanitize_attrs(
+    stream: TokenStream2,
+) -> Result<Vec<ParsedStringSanitizer>, Vec<syn::Error>> {
     let mut output = vec![];
     for token in stream.into_iter() {
         match token {
-            TokenTree::Ident(ident) => match ident.to_string().as_ref() {
-                "trim" => output.push(StringSanitizer::Trim),
-                "lowercase" => output.push(StringSanitizer::Lowecase),
-                "uppercase" => output.push(StringSanitizer::Uppercase),
-                unknown_sanitizer => {
-                    let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                    let error = syn::Error::new(ident.span(), msg);
-                    return Err(vec![error]);
-                }
-            },
+            TokenTree::Ident(ident) => {
+                let san = match ident.to_string().as_ref() {
+                    "trim" => StringSanitizer::Trim,
+                    "lowercase" => StringSanitizer::Lowercase,
+                    "uppercase" => StringSanitizer::Uppercase,
+                    unknown_sanitizer => {
+                        let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
+                        let error = syn::Error::new(ident.span(), msg);
+                        return Err(vec![error]);
+                    }
+                };
+                output.push(ParsedStringSanitizer {
+                    span: ident.span(),
+                    sanitizer: san,
+                });
+            }
             _ => (),
         }
     }
