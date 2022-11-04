@@ -2,9 +2,11 @@ use crate::common::parse::{parse_value_as, try_unwrap_group, try_unwrap_ident};
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
-use proc_macro2::{Span, TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
-use super::models::{ParsedStringSanitizer, StringSanitizerKind};
+use super::models::{
+    ParsedStringSanitizer, ParsedStringValidator, StringSanitizerKind, StringValidatorKind,
+};
 
 pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
     let RawNewtypeStringMeta {
@@ -15,7 +17,8 @@ pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<sy
     validate_validators(&validators)?;
     validate_sanitizers(&sanitizers)?;
 
-    let sanitizers = sanitizers.into_iter().map(|s| s.sanitizer).collect();
+    let sanitizers: Vec<StringSanitizer> = sanitizers.into_iter().map(|s| s.sanitizer).collect();
+    let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.validator).collect();
 
     if validators.is_empty() {
         Ok(NewtypeStringMeta::From { sanitizers })
@@ -27,7 +30,49 @@ pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<sy
     }
 }
 
-fn validate_validators(validators: &[StringValidator]) -> Result<(), Vec<syn::Error>> {
+fn validate_validators(validators: &[ParsedStringValidator]) -> Result<(), Vec<syn::Error>> {
+    // Check duplicates
+    for (i1, v1) in validators.iter().enumerate() {
+        for (i2, v2) in validators.iter().enumerate() {
+            if i1 != i2 && v1.kind() == v2.kind() {
+                let msg = format!(
+                    "Duplicated validators `{}`.\nDon't worry, you still remain ingenious!",
+                    v1.kind()
+                );
+                let span = v1.span.join(v2.span).unwrap();
+                let err = syn::Error::new(span, &msg);
+                return Err(vec![err]);
+            }
+        }
+    }
+
+    // max_len VS min_len
+    let maybe_min_len = validators
+        .iter()
+        .flat_map(|v| match v.validator {
+            StringValidator::MinLen(len) => Some((v.span, len)),
+            _ => None,
+        })
+        .next();
+    let maybe_max_len = validators
+        .iter()
+        .flat_map(|v| match v.validator {
+            StringValidator::MaxLen(len) => Some((v.span, len)),
+            _ => None,
+        })
+        .next();
+    if let (Some((min_len_span, min_len)), Some((max_len_span, max_len))) =
+        (maybe_min_len, maybe_max_len)
+    {
+        if min_len > max_len {
+            let msg =
+                format!("min_len cannot be greater than max_len.\nDon't you find this obvious?");
+            let span = min_len_span.join(max_len_span).unwrap();
+            let err = syn::Error::new(span, &msg);
+            return Err(vec![err]);
+        }
+    }
+
     Ok(())
 }
 
@@ -131,7 +176,9 @@ fn parse_sanitize_attrs(
     Ok(output)
 }
 
-fn parse_validate_attrs(stream: TokenStream2) -> Result<Vec<StringValidator>, Vec<syn::Error>> {
+fn parse_validate_attrs(
+    stream: TokenStream2,
+) -> Result<Vec<ParsedStringValidator>, Vec<syn::Error>> {
     let mut output = vec![];
 
     let mut token_iter = stream.into_iter();
@@ -152,7 +199,7 @@ fn parse_validate_attrs(stream: TokenStream2) -> Result<Vec<StringValidator>, Ve
 
 fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
     mut iter: ITER,
-) -> Result<Option<(StringValidator, ITER)>, Vec<syn::Error>> {
+) -> Result<Option<(ParsedStringValidator, ITER)>, Vec<syn::Error>> {
     match iter.next() {
         Some(mut token) => {
             // Skip punctuations between validators
@@ -164,13 +211,30 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
             match ident.to_string().as_ref() {
                 "max_len" => {
                     let (value, iter) = parse_value_as(iter)?;
-                    Ok(Some((StringValidator::MaxLen(value), iter)))
+                    let validator = StringValidator::MaxLen(value);
+                    let parsed_validator = ParsedStringValidator {
+                        span: ident.span(),
+                        validator,
+                    };
+                    Ok(Some((parsed_validator, iter)))
                 }
                 "min_len" => {
                     let (value, iter) = parse_value_as(iter)?;
-                    Ok(Some((StringValidator::MinLen(value), iter)))
+                    let validator = StringValidator::MinLen(value);
+                    let parsed_validator = ParsedStringValidator {
+                        span: ident.span(),
+                        validator,
+                    };
+                    Ok(Some((parsed_validator, iter)))
                 }
-                "present" => Ok(Some((StringValidator::Present, iter))),
+                "present" => {
+                    let validator = StringValidator::Present;
+                    let parsed_validator = ParsedStringValidator {
+                        span: ident.span(),
+                        validator,
+                    };
+                    Ok(Some((parsed_validator, iter)))
+                }
                 validator => {
                     let msg = format!("Unknown validation rule `{validator}`");
                     let error = syn::Error::new(ident.span(), msg);
@@ -191,6 +255,7 @@ mod tests {
     fn test_validate_attrs() {
         let tokens = quote!(max_len = 13, min_len = 7, present);
         let validators = parse_validate_attrs(tokens).unwrap();
+        let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.validator).collect();
         assert_eq!(
             validators,
             vec![

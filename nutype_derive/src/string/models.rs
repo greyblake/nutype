@@ -26,9 +26,9 @@ pub enum StringSanitizer {
 impl StringSanitizer {
     pub fn kind(&self) -> StringSanitizerKind {
         match self {
-            StringSanitizer::Trim => StringSanitizerKind::Trim,
-            StringSanitizer::Lowercase => StringSanitizerKind::Lowercase,
-            StringSanitizer::Uppercase => StringSanitizerKind::Uppercase,
+            Self::Trim => StringSanitizerKind::Trim,
+            Self::Lowercase => StringSanitizerKind::Lowercase,
+            Self::Uppercase => StringSanitizerKind::Uppercase,
         }
     }
 }
@@ -51,6 +51,18 @@ impl std::fmt::Display for StringSanitizerKind {
 }
 
 // Validator
+//
+#[derive(Debug)]
+pub struct ParsedStringValidator {
+    pub span: Span,
+    pub validator: StringValidator,
+}
+
+impl ParsedStringValidator {
+    pub fn kind(&self) -> StringValidatorKind {
+        self.validator.kind()
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub enum StringValidator {
@@ -59,5 +71,34 @@ pub enum StringValidator {
     Present,
 }
 
-pub type RawNewtypeStringMeta = RawNewtypeMeta<ParsedStringSanitizer, StringValidator>;
+impl StringValidator {
+    pub fn kind(&self) -> StringValidatorKind {
+        match self {
+            Self::MinLen(_) => StringValidatorKind::MinLen,
+            Self::MaxLen(_) => StringValidatorKind::MaxLen,
+            Self::Present => StringValidatorKind::Present,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum StringValidatorKind {
+    MinLen,
+    MaxLen,
+    Present,
+}
+
+impl std::fmt::Display for StringValidatorKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::MinLen => write!(f, "min_len"),
+            Self::MaxLen => write!(f, "max_len"),
+            Self::Present => write!(f, "present"),
+        }
+    }
+}
+
+// Meta
+
+pub type RawNewtypeStringMeta = RawNewtypeMeta<ParsedStringSanitizer, ParsedStringValidator>;
 pub type NewtypeStringMeta = NewtypeMeta<StringSanitizer, StringValidator>;
