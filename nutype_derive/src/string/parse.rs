@@ -1,6 +1,4 @@
-use crate::common::parse::{
-    parse_nutype_attributes, parse_value_as, try_unwrap_ident,
-};
+use crate::common::parse::{parse_nutype_attributes, parse_value_as, try_unwrap_ident};
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;

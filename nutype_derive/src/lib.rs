@@ -4,7 +4,8 @@ mod number;
 mod parse;
 mod string;
 
-use models::{InnerType, TypeNameAndInnerType};
+use models::{InnerType, NumberType, TypeNameAndInnerType};
+use number::gen::gen_nutype_for_number;
 use parse::parse_type_name_and_inner_type;
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -40,5 +41,11 @@ fn expand_nutype(
             let meta = string::parse::parse_attributes(attrs)?;
             Ok(gen_nutype_for_string(&type_name, meta))
         }
+        InnerType::Number(number_type) => match number_type {
+            NumberType::I32 => {
+                let meta = number::parse::parse_attributes::<i32>(attrs)?;
+                Ok(gen_nutype_for_number(&type_name, meta))
+            }
+        },
     }
 }

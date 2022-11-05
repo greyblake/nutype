@@ -1,12 +1,16 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::common::parse::{parse_value_as, try_unwrap_ident, parse_nutype_attributes};
+use crate::common::parse::{parse_nutype_attributes, parse_value_as, try_unwrap_ident};
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
-use super::{models::{
-    NumberValidator, ParsedNumberSanitizer, ParsedNumberValidator, RawNewtypeNumberMeta, NewtypeNumberMeta,
-}, validate::validate_number_meta};
+use super::{
+    models::{
+        NewtypeNumberMeta, NumberValidator, ParsedNumberSanitizer, ParsedNumberValidator,
+        RawNewtypeNumberMeta,
+    },
+    validate::validate_number_meta,
+};
 
 pub fn parse_attributes<T>(input: TokenStream2) -> Result<NewtypeNumberMeta<T>, Vec<syn::Error>>
 where
@@ -15,7 +19,6 @@ where
 {
     parse_raw_attributes(input).and_then(validate_number_meta)
 }
-
 
 fn parse_raw_attributes<T>(input: TokenStream2) -> Result<RawNewtypeNumberMeta<T>, Vec<syn::Error>>
 where
@@ -36,7 +39,6 @@ where
     let mut output = vec![];
     Ok(output)
 }
-
 
 fn parse_validate_attrs<T>(
     stream: TokenStream2,

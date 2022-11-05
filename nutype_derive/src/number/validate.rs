@@ -1,4 +1,7 @@
-use super::models::{ParsedNumberSanitizer, ParsedNumberValidator, NumberSanitizer, NumberValidator, NewtypeNumberMeta, RawNewtypeNumberMeta};
+use super::models::{
+    NewtypeNumberMeta, NumberSanitizer, NumberValidator, ParsedNumberSanitizer,
+    ParsedNumberValidator, RawNewtypeNumberMeta,
+};
 
 pub fn validate_number_meta<T>(
     raw_meta: RawNewtypeNumberMeta<T>,

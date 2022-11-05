@@ -9,6 +9,12 @@ pub struct TypeName(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InnerType {
     String,
+    Number(NumberType),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NumberType {
+    I32,
 }
 
 impl ToTokens for InnerType {
@@ -17,7 +23,20 @@ impl ToTokens for InnerType {
             InnerType::String => {
                 quote!(String).to_tokens(token_stream);
             }
+            InnerType::Number(number_type) => {
+                number_type.to_tokens(token_stream);
+            }
         };
+    }
+}
+
+impl ToTokens for NumberType {
+    fn to_tokens(&self, token_stream: &mut TokenStream2) {
+        match self {
+            Self::I32 => {
+                quote!(i32).to_tokens(token_stream);
+            }
+        }
     }
 }
 

@@ -9,25 +9,16 @@ use nutype_derive::nutype;
 // * nutype
 // * xtype
 
-#[nutype(
-    sanitize(trim, lowercase)
-    validate(present, min_len = 5)
-)]
-pub struct Email(String);
+// #[nutype(
+//     sanitize(trim, lowercase)
+//     validate(present, min_len = 5)
+// )]
+// pub struct Email(String);
 
-// struct Email(String);
-
-// #[nutype(sanitize(trim, lowercase))]
-// struct Email(String);
-
-/*
-#[derive(nutype::TryFrom)]
-#[sanitize(trim, lowercase)]
-#[validate(present, min_len=6, max_len=255)]
-pub struct Email(String);
-*/
+#[nutype(validate(min = 18, max = 99))]
+pub struct Age(i32);
 
 fn main() {
-    let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
-    println!("\n\nemail = {:?}\n\n", email);
+    // let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
+    // println!("\n\nemail = {:?}\n\n", email);
 }
