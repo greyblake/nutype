@@ -1,7 +1,7 @@
 use crate::common::parse::{
-    parse_nutype_attributes, parse_value_as, try_unwrap_group, try_unwrap_ident,
+    parse_nutype_attributes, parse_value_as, try_unwrap_ident,
 };
-use crate::models::{RawNewtypeMeta, StringSanitizer, StringValidator};
+use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
