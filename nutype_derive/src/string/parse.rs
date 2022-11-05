@@ -1,5 +1,7 @@
-use crate::common::parse::{parse_value_as, try_unwrap_group, try_unwrap_ident};
-use crate::models::{StringSanitizer, StringValidator};
+use crate::common::parse::{
+    parse_nutype_attributes, parse_value_as, try_unwrap_group, try_unwrap_ident,
+};
+use crate::models::{RawNewtypeMeta, StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
@@ -12,44 +14,7 @@ pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<sy
 }
 
 fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, Vec<syn::Error>> {
-    let mut output = RawNewtypeStringMeta {
-        sanitizers: vec![],
-        validators: vec![],
-    };
-
-    let mut iter = input.into_iter();
-
-    loop {
-        let token = match iter.next() {
-            Some(t) => t,
-            None => {
-                return Ok(output);
-            }
-        };
-
-        let ident = try_unwrap_ident(token)?;
-
-        match ident.to_string().as_ref() {
-            "sanitize" => {
-                let token = iter.next().unwrap();
-                let group = try_unwrap_group(token)?;
-
-                let sanitize_stream = group.stream();
-                output.sanitizers = parse_sanitize_attrs(sanitize_stream)?;
-            }
-            "validate" => {
-                let token = iter.next().unwrap();
-                let group = try_unwrap_group(token)?;
-                let validate_stream = group.stream();
-                output.validators = parse_validate_attrs(validate_stream)?;
-            }
-            unknown => {
-                let msg = format!("Unknown #[nutype] option: `{unknown}`");
-                let error = syn::Error::new(ident.span(), msg);
-                return Err(vec![error]);
-            }
-        }
-    }
+    parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
 
 fn parse_sanitize_attrs(

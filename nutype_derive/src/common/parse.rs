@@ -1,6 +1,8 @@
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
-use proc_macro2::{Group, Ident, TokenTree};
+use proc_macro2::{Group, Ident, TokenStream, TokenTree};
+
+use crate::models::RawNewtypeMeta;
 
 /// ## Example
 /// Input (token stream):
@@ -41,6 +43,52 @@ pub fn try_unwrap_group(token: TokenTree) -> Result<Group, Vec<syn::Error>> {
         _ => {
             let error = syn::Error::new(token.span(), "#[nutype] expected ident");
             Err(vec![error])
+        }
+    }
+}
+
+pub fn parse_nutype_attributes<S, V>(
+    parse_sanitize_attrs: impl Fn(TokenStream) -> Result<Vec<S>, Vec<syn::Error>>,
+    parse_validate_attrs: impl Fn(TokenStream) -> Result<Vec<V>, Vec<syn::Error>>,
+) -> impl FnOnce(TokenStream) -> Result<RawNewtypeMeta<S, V>, Vec<syn::Error>> {
+    move |input: TokenStream| {
+        let mut output = RawNewtypeMeta {
+            sanitizers: vec![],
+            validators: vec![],
+        };
+
+        let mut iter = input.into_iter();
+
+        loop {
+            let token = match iter.next() {
+                Some(t) => t,
+                None => {
+                    return Ok(output);
+                }
+            };
+
+            let ident = try_unwrap_ident(token)?;
+
+            match ident.to_string().as_ref() {
+                "sanitize" => {
+                    let token = iter.next().unwrap();
+                    let group = try_unwrap_group(token)?;
+
+                    let sanitize_stream = group.stream();
+                    output.sanitizers = parse_sanitize_attrs(sanitize_stream)?;
+                }
+                "validate" => {
+                    let token = iter.next().unwrap();
+                    let group = try_unwrap_group(token)?;
+                    let validate_stream = group.stream();
+                    output.validators = parse_validate_attrs(validate_stream)?;
+                }
+                unknown => {
+                    let msg = format!("Unknown #[nutype] option: `{unknown}`");
+                    let error = syn::Error::new(ident.span(), msg);
+                    return Err(vec![error]);
+                }
+            }
         }
     }
 }
