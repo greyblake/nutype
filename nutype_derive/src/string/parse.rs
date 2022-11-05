@@ -4,9 +4,7 @@ use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
-use super::models::{
-    ParsedStringSanitizer, ParsedStringValidator
-};
+use super::models::{ParsedStringSanitizer, ParsedStringValidator};
 use super::validate::validate_string_meta;
 
 pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
@@ -162,7 +160,8 @@ mod tests {
     fn test_validate_attrs() {
         let tokens = quote!(max_len = 13, min_len = 7, present);
         let validators = parse_validate_attrs(tokens).unwrap();
-        let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.validator).collect();
+        let validators: Vec<StringValidator> =
+            validators.into_iter().map(|v| v.validator).collect();
         assert_eq!(
             validators,
             vec![

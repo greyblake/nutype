@@ -2,11 +2,11 @@ use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 
-use super::models::{
-    ParsedStringSanitizer, ParsedStringValidator, StringSanitizerKind
-};
+use super::models::{ParsedStringSanitizer, ParsedStringValidator, StringSanitizerKind};
 
-pub fn validate_string_meta(raw_meta: RawNewtypeStringMeta) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
+pub fn validate_string_meta(
+    raw_meta: RawNewtypeStringMeta,
+) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
     let RawNewtypeStringMeta {
         sanitizers,
         validators,
@@ -25,7 +25,9 @@ pub fn validate_string_meta(raw_meta: RawNewtypeStringMeta) -> Result<NewtypeStr
     }
 }
 
-fn validate_validators(validators: Vec<ParsedStringValidator>) -> Result<Vec<StringValidator>, Vec<syn::Error>> {
+fn validate_validators(
+    validators: Vec<ParsedStringValidator>,
+) -> Result<Vec<StringValidator>, Vec<syn::Error>> {
     // Check duplicates
     for (i1, v1) in validators.iter().enumerate() {
         for (i2, v2) in validators.iter().enumerate() {
@@ -72,7 +74,9 @@ fn validate_validators(validators: Vec<ParsedStringValidator>) -> Result<Vec<Str
     Ok(validators)
 }
 
-fn validate_sanitizers(sanitizers: Vec<ParsedStringSanitizer>) -> Result<Vec<StringSanitizer>, Vec<syn::Error>> {
+fn validate_sanitizers(
+    sanitizers: Vec<ParsedStringSanitizer>,
+) -> Result<Vec<StringSanitizer>, Vec<syn::Error>> {
     // Check duplicates
     for (i1, san1) in sanitizers.iter().enumerate() {
         for (i2, san2) in sanitizers.iter().enumerate() {
