@@ -1,20 +1,13 @@
 use proc_macro2::Span;
 
-use crate::models::{NewtypeMeta, RawNewtypeMeta};
+use crate::{
+    base::{Kind, Spanned},
+    models::{NewtypeMeta, RawNewtypeMeta},
+};
 
 // Sanitizer
 
-#[derive(Debug)]
-pub struct ParsedStringSanitizer {
-    pub span: Span,
-    pub sanitizer: StringSanitizer,
-}
-
-impl ParsedStringSanitizer {
-    pub fn kind(&self) -> StringSanitizerKind {
-        self.sanitizer.kind()
-    }
-}
+pub type SpannedStringSanitizer = Spanned<StringSanitizer>;
 
 #[derive(Debug, PartialEq)]
 pub enum StringSanitizer {
@@ -23,8 +16,10 @@ pub enum StringSanitizer {
     Uppercase,
 }
 
-impl StringSanitizer {
-    pub fn kind(&self) -> StringSanitizerKind {
+impl Kind for StringSanitizer {
+    type Kind = StringSanitizerKind;
+
+    fn kind(&self) -> StringSanitizerKind {
         match self {
             Self::Trim => StringSanitizerKind::Trim,
             Self::Lowercase => StringSanitizerKind::Lowercase,
@@ -52,17 +47,8 @@ impl std::fmt::Display for StringSanitizerKind {
 
 // Validator
 //
-#[derive(Debug)]
-pub struct ParsedStringValidator {
-    pub span: Span,
-    pub validator: StringValidator,
-}
 
-impl ParsedStringValidator {
-    pub fn kind(&self) -> StringValidatorKind {
-        self.validator.kind()
-    }
-}
+pub type SpannedStringValidator = Spanned<StringValidator>;
 
 #[derive(Debug, PartialEq)]
 pub enum StringValidator {
@@ -71,8 +57,10 @@ pub enum StringValidator {
     Present,
 }
 
-impl StringValidator {
-    pub fn kind(&self) -> StringValidatorKind {
+impl Kind for StringValidator {
+    type Kind = StringValidatorKind;
+
+    fn kind(&self) -> StringValidatorKind {
         match self {
             Self::MinLen(_) => StringValidatorKind::MinLen,
             Self::MaxLen(_) => StringValidatorKind::MaxLen,
@@ -100,5 +88,5 @@ impl std::fmt::Display for StringValidatorKind {
 
 // Meta
 
-pub type RawNewtypeStringMeta = RawNewtypeMeta<ParsedStringSanitizer, ParsedStringValidator>;
+pub type RawNewtypeStringMeta = RawNewtypeMeta<SpannedStringSanitizer, SpannedStringValidator>;
 pub type NewtypeStringMeta = NewtypeMeta<StringSanitizer, StringValidator>;

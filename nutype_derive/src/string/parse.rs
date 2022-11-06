@@ -4,7 +4,7 @@ use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
-use super::models::{ParsedStringSanitizer, ParsedStringValidator};
+use super::models::{SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
 pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
@@ -17,7 +17,7 @@ fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, Vec
 
 fn parse_sanitize_attrs(
     stream: TokenStream2,
-) -> Result<Vec<ParsedStringSanitizer>, Vec<syn::Error>> {
+) -> Result<Vec<SpannedStringSanitizer>, Vec<syn::Error>> {
     let mut output = vec![];
     for token in stream.into_iter() {
         match token {
@@ -32,9 +32,9 @@ fn parse_sanitize_attrs(
                         return Err(vec![error]);
                     }
                 };
-                output.push(ParsedStringSanitizer {
+                output.push(SpannedStringSanitizer {
                     span: ident.span(),
-                    sanitizer: san,
+                    item: san,
                 });
             }
             _ => (),
@@ -46,7 +46,7 @@ fn parse_sanitize_attrs(
 
 fn parse_validate_attrs(
     stream: TokenStream2,
-) -> Result<Vec<ParsedStringValidator>, Vec<syn::Error>> {
+) -> Result<Vec<SpannedStringValidator>, Vec<syn::Error>> {
     let mut output = vec![];
 
     let mut token_iter = stream.into_iter();
@@ -67,7 +67,7 @@ fn parse_validate_attrs(
 
 fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
     mut iter: ITER,
-) -> Result<Option<(ParsedStringValidator, ITER)>, Vec<syn::Error>> {
+) -> Result<Option<(SpannedStringValidator, ITER)>, Vec<syn::Error>> {
     match iter.next() {
         Some(mut token) => {
             // Skip punctuations between validators
@@ -80,26 +80,26 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
                 "max_len" => {
                     let (value, iter) = parse_value_as(iter)?;
                     let validator = StringValidator::MaxLen(value);
-                    let parsed_validator = ParsedStringValidator {
+                    let parsed_validator = SpannedStringValidator {
+                        item: validator,
                         span: ident.span(),
-                        validator,
                     };
                     Ok(Some((parsed_validator, iter)))
                 }
                 "min_len" => {
                     let (value, iter) = parse_value_as(iter)?;
                     let validator = StringValidator::MinLen(value);
-                    let parsed_validator = ParsedStringValidator {
+                    let parsed_validator = SpannedStringValidator {
+                        item: validator,
                         span: ident.span(),
-                        validator,
                     };
                     Ok(Some((parsed_validator, iter)))
                 }
                 "present" => {
                     let validator = StringValidator::Present;
-                    let parsed_validator = ParsedStringValidator {
+                    let parsed_validator = SpannedStringValidator {
+                        item: validator,
                         span: ident.span(),
-                        validator,
                     };
                     Ok(Some((parsed_validator, iter)))
                 }

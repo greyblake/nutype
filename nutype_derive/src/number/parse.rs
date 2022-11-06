@@ -1,13 +1,15 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::common::parse::{parse_nutype_attributes, parse_value_as, try_unwrap_ident, try_unwrap_group};
+use crate::common::parse::{
+    parse_nutype_attributes, parse_value_as, try_unwrap_group, try_unwrap_ident,
+};
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
 use super::{
     models::{
-        NewtypeNumberMeta, NumberValidator, ParsedNumberSanitizer, ParsedNumberValidator,
-        RawNewtypeNumberMeta, NumberSanitizer,
+        NewtypeNumberMeta, NumberSanitizer, NumberValidator, ParsedNumberSanitizer,
+        ParsedNumberValidator, RawNewtypeNumberMeta,
     },
     validate::validate_number_meta,
 };
@@ -39,7 +41,7 @@ where
     let mut iter = stream.into_iter();
 
     match iter.next() {
-        None => {},
+        None => {}
         Some(token) => {
             let ident = try_unwrap_ident(token.clone())?;
             match ident.to_string().as_str() {
@@ -60,7 +62,7 @@ where
                         let error = syn::Error::new(span, msg);
                         return Err(vec![error]);
                     }
-                },
+                }
                 unknown_sanitizer => {
                     let msg = format!("Unknown number sanitizer: `{unknown_sanitizer}`");
                     let error = syn::Error::new(ident.span(), msg);
@@ -174,7 +176,6 @@ where
 
     output
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -1,8 +1,9 @@
+use crate::base::Kind;
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 
-use super::models::{ParsedStringSanitizer, ParsedStringValidator, StringSanitizerKind};
+use super::models::{SpannedStringSanitizer, SpannedStringValidator, StringSanitizerKind};
 
 pub fn validate_string_meta(
     raw_meta: RawNewtypeStringMeta,
@@ -26,7 +27,7 @@ pub fn validate_string_meta(
 }
 
 fn validate_validators(
-    validators: Vec<ParsedStringValidator>,
+    validators: Vec<SpannedStringValidator>,
 ) -> Result<Vec<StringValidator>, Vec<syn::Error>> {
     // Check duplicates
     for (i1, v1) in validators.iter().enumerate() {
@@ -46,14 +47,14 @@ fn validate_validators(
     // max_len VS min_len
     let maybe_min_len = validators
         .iter()
-        .flat_map(|v| match v.validator {
+        .flat_map(|v| match v.item {
             StringValidator::MinLen(len) => Some((v.span, len)),
             _ => None,
         })
         .next();
     let maybe_max_len = validators
         .iter()
-        .flat_map(|v| match v.validator {
+        .flat_map(|v| match v.item {
             StringValidator::MaxLen(len) => Some((v.span, len)),
             _ => None,
         })
@@ -70,12 +71,12 @@ fn validate_validators(
         }
     }
 
-    let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.validator).collect();
+    let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.item).collect();
     Ok(validators)
 }
 
 fn validate_sanitizers(
-    sanitizers: Vec<ParsedStringSanitizer>,
+    sanitizers: Vec<SpannedStringSanitizer>,
 ) -> Result<Vec<StringSanitizer>, Vec<syn::Error>> {
     // Check duplicates
     for (i1, san1) in sanitizers.iter().enumerate() {
@@ -103,6 +104,6 @@ fn validate_sanitizers(
         return Err(vec![err]);
     }
 
-    let sanitizers: Vec<StringSanitizer> = sanitizers.into_iter().map(|s| s.sanitizer).collect();
+    let sanitizers: Vec<StringSanitizer> = sanitizers.into_iter().map(|s| s.item).collect();
     Ok(sanitizers)
 }

@@ -1,4 +1,7 @@
-use crate::models::{NewtypeMeta, RawNewtypeMeta};
+use crate::{
+    base::Kind,
+    models::{NewtypeMeta, RawNewtypeMeta},
+};
 use proc_macro2::Span;
 
 // Sanitizer
@@ -28,16 +31,20 @@ impl std::fmt::Display for NumberSanitizerKind {
     }
 }
 
-impl<T> NumberSanitizer<T> {
-    pub fn kind(&self) -> NumberSanitizerKind {
+impl<T> Kind for NumberSanitizer<T> {
+    type Kind = NumberSanitizerKind;
+
+    fn kind(&self) -> NumberSanitizerKind {
         match self {
             Self::Clamp { .. } => NumberSanitizerKind::Clamp,
         }
     }
 }
 
-impl<T> ParsedNumberSanitizer<T> {
-    pub fn kind(&self) -> NumberSanitizerKind {
+impl<T> Kind for ParsedNumberSanitizer<T> {
+    type Kind = NumberSanitizerKind;
+
+    fn kind(&self) -> NumberSanitizerKind {
         self.sanitizer.kind()
     }
 }
