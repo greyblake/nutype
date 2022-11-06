@@ -9,15 +9,14 @@ use nutype_derive::nutype;
 // * nutype
 // * xtype
 
-// #[nutype(
-//     sanitize(trim, lowercase)
-//     validate(present, min_len = 5)
-// )]
-// pub struct Email(String);
+#[nutype(
+    sanitize(trim, lowercase)
+    validate(present, min_len = 5)
+)]
+pub struct Email(String);
 
 // TODO:
 // * Implement validation for number
-//   * Duplicates
 //   * max cannot be smaller than min
 //   * overlaps between clamp, min and max.
 // * Support other numbers:

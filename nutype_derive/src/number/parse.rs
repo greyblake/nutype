@@ -8,8 +8,8 @@ use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
 use super::{
     models::{
-        NewtypeNumberMeta, NumberSanitizer, NumberValidator, ParsedNumberSanitizer,
-        ParsedNumberValidator, RawNewtypeNumberMeta,
+        NewtypeNumberMeta, NumberSanitizer, NumberValidator, RawNewtypeNumberMeta,
+        SpannedNumberSanitizer, SpannedNumberValidator,
     },
     validate::validate_number_meta,
 };
@@ -32,7 +32,7 @@ where
 
 fn parse_sanitize_attrs<T>(
     stream: TokenStream2,
-) -> Result<Vec<ParsedNumberSanitizer<T>>, Vec<syn::Error>>
+) -> Result<Vec<SpannedNumberSanitizer<T>>, Vec<syn::Error>>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -56,7 +56,10 @@ where
                         let min = iter.next().unwrap();
                         let max = iter.next().unwrap();
                         let sanitizer = NumberSanitizer::Clamp { min, max };
-                        output.push(ParsedNumberSanitizer { span, sanitizer });
+                        output.push(SpannedNumberSanitizer {
+                            span,
+                            item: sanitizer,
+                        });
                     } else {
                         let msg = format!("Invalid parameters for clamp()");
                         let error = syn::Error::new(span, msg);
@@ -77,7 +80,7 @@ where
 
 fn parse_validate_attrs<T>(
     stream: TokenStream2,
-) -> Result<Vec<ParsedNumberValidator<T>>, Vec<syn::Error>>
+) -> Result<Vec<SpannedNumberValidator<T>>, Vec<syn::Error>>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -102,7 +105,7 @@ where
 
 fn parse_validation_rule<T, ITER>(
     mut iter: ITER,
-) -> Result<Option<(ParsedNumberValidator<T>, ITER)>, Vec<syn::Error>>
+) -> Result<Option<(SpannedNumberValidator<T>, ITER)>, Vec<syn::Error>>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -120,18 +123,18 @@ where
                 "min" => {
                     let (value, iter) = parse_value_as(iter)?;
                     let validator = NumberValidator::Min(value);
-                    let parsed_validator = ParsedNumberValidator {
+                    let parsed_validator = SpannedNumberValidator {
                         span: ident.span(),
-                        validator,
+                        item: validator,
                     };
                     Ok(Some((parsed_validator, iter)))
                 }
                 "max" => {
                     let (value, iter) = parse_value_as(iter)?;
                     let validator = NumberValidator::Max(value);
-                    let parsed_validator = ParsedNumberValidator {
+                    let parsed_validator = SpannedNumberValidator {
                         span: ident.span(),
-                        validator,
+                        item: validator,
                     };
                     Ok(Some((parsed_validator, iter)))
                 }

@@ -1,7 +1,10 @@
+use std::fmt::Debug;
+
 use proc_macro2::Span;
+use syn::spanned::Spanned;
 
 pub trait Kind {
-    type Kind;
+    type Kind: PartialEq + Debug;
 
     fn kind(&self) -> Self::Kind;
 }
@@ -12,11 +15,11 @@ pub struct SpannedItem<T> {
     pub span: Span,
 }
 
-// impl<T> Spanned<T> {
-//     pub fn new(item: T, span: Span) -> Self {
-//         Self { item, span }
-//     }
-// }
+impl<T> Spanned for SpannedItem<T> {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
 
 impl<T: Kind> Kind for SpannedItem<T> {
     type Kind = <T as Kind>::Kind;

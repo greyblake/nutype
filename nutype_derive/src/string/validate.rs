@@ -1,4 +1,5 @@
 use crate::base::Kind;
+use crate::common::validate::validate_duplicates;
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
@@ -30,19 +31,9 @@ fn validate_validators(
     validators: Vec<SpannedStringValidator>,
 ) -> Result<Vec<StringValidator>, Vec<syn::Error>> {
     // Check duplicates
-    for (i1, v1) in validators.iter().enumerate() {
-        for (i2, v2) in validators.iter().enumerate() {
-            if i1 != i2 && v1.kind() == v2.kind() {
-                let msg = format!(
-                    "Duplicated validators `{}`.\nDon't worry, you still remain ingenious!",
-                    v1.kind()
-                );
-                let span = v1.span.join(v2.span).unwrap();
-                let err = syn::Error::new(span, &msg);
-                return Err(vec![err]);
-            }
-        }
-    }
+    validate_duplicates(&validators, |kind| {
+        format!("Duplicated validators `{kind}`.\nDon't worry, you still remain ingenious!")
+    })?;
 
     // max_len VS min_len
     let maybe_min_len = validators
@@ -78,17 +69,9 @@ fn validate_validators(
 fn validate_sanitizers(
     sanitizers: Vec<SpannedStringSanitizer>,
 ) -> Result<Vec<StringSanitizer>, Vec<syn::Error>> {
-    // Check duplicates
-    for (i1, san1) in sanitizers.iter().enumerate() {
-        for (i2, san2) in sanitizers.iter().enumerate() {
-            if i1 != i2 && san1.kind() == san2.kind() {
-                let msg = format!("Duplicated sanitizer `{}`.\nYou're doing well, just don't forget to call your mom!", san1.kind());
-                let span = san1.span.join(san2.span).unwrap();
-                let err = syn::Error::new(span, &msg);
-                return Err(vec![err]);
-            }
-        }
-    }
+    validate_duplicates(&sanitizers, |kind| {
+        format!("Duplicated sanitizer `{kind}`.\nYou're doing well, it's not bad unless you forget to call your mom!")
+    })?;
 
     // Validate lowercase VS uppercase
     let lowercase = sanitizers

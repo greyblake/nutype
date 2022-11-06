@@ -1,5 +1,3 @@
-use proc_macro2::Span;
-
 use crate::{
     base::{Kind, SpannedItem},
     models::{NewtypeMeta, RawNewtypeMeta},

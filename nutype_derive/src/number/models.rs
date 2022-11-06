@@ -1,8 +1,7 @@
 use crate::{
-    base::Kind,
+    base::{Kind, SpannedItem},
     models::{NewtypeMeta, RawNewtypeMeta},
 };
-use proc_macro2::Span;
 
 // Sanitizer
 //
@@ -12,11 +11,7 @@ pub enum NumberSanitizer<T> {
     Clamp { min: T, max: T },
 }
 
-#[derive(Debug)]
-pub struct ParsedNumberSanitizer<T> {
-    pub span: Span,
-    pub sanitizer: NumberSanitizer<T>,
-}
+pub type SpannedNumberSanitizer<T> = SpannedItem<NumberSanitizer<T>>;
 
 #[derive(Debug, PartialEq)]
 pub enum NumberSanitizerKind {
@@ -41,14 +36,6 @@ impl<T> Kind for NumberSanitizer<T> {
     }
 }
 
-impl<T> Kind for ParsedNumberSanitizer<T> {
-    type Kind = NumberSanitizerKind;
-
-    fn kind(&self) -> NumberSanitizerKind {
-        self.sanitizer.kind()
-    }
-}
-
 // Validator
 //
 
@@ -58,11 +45,7 @@ pub enum NumberValidator<T> {
     Max(T),
 }
 
-#[derive(Debug)]
-pub struct ParsedNumberValidator<T> {
-    pub span: Span,
-    pub validator: NumberValidator<T>,
-}
+pub type SpannedNumberValidator<T> = SpannedItem<NumberValidator<T>>;
 
 #[derive(Debug, PartialEq)]
 pub enum NumberValidatorKind {
@@ -79,8 +62,10 @@ impl std::fmt::Display for NumberValidatorKind {
     }
 }
 
-impl<T> NumberValidator<T> {
-    pub fn kind(&self) -> NumberValidatorKind {
+impl<T> Kind for NumberValidator<T> {
+    type Kind = NumberValidatorKind;
+
+    fn kind(&self) -> NumberValidatorKind {
         match self {
             Self::Min(_) => NumberValidatorKind::Min,
             Self::Max(_) => NumberValidatorKind::Max,
@@ -88,15 +73,9 @@ impl<T> NumberValidator<T> {
     }
 }
 
-impl<T> ParsedNumberValidator<T> {
-    pub fn kind(&self) -> NumberValidatorKind {
-        self.validator.kind()
-    }
-}
-
 // Meta
 //
 
 pub type RawNewtypeNumberMeta<T> =
-    RawNewtypeMeta<ParsedNumberSanitizer<T>, ParsedNumberValidator<T>>;
+    RawNewtypeMeta<SpannedNumberSanitizer<T>, SpannedNumberValidator<T>>;
 pub type NewtypeNumberMeta<T> = NewtypeMeta<NumberSanitizer<T>, NumberValidator<T>>;
