@@ -191,7 +191,7 @@ mod tests {
             clamp(-4, 10)
         };
         let parsed_sanitizers = parse_sanitize_attrs::<i32>(tokens).unwrap();
-        let sanitizers: Vec<_> = parsed_sanitizers.into_iter().map(|s| s.sanitizer).collect();
+        let sanitizers: Vec<_> = parsed_sanitizers.into_iter().map(|s| s.item).collect();
         assert_eq!(
             sanitizers,
             vec![NumberSanitizer::Clamp { min: -4, max: 10 }]

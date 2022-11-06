@@ -123,8 +123,7 @@ mod tests {
     fn test_validate_attrs() {
         let tokens = quote!(max_len = 13, min_len = 7, present);
         let validators = parse_validate_attrs(tokens).unwrap();
-        let validators: Vec<StringValidator> =
-            validators.into_iter().map(|v| v.validator).collect();
+        let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.item).collect();
         assert_eq!(
             validators,
             vec![
