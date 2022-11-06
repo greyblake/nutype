@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::common::parse::{parse_nutype_attributes, parse_value_as, try_unwrap_ident};
+use crate::common::parse::{parse_nutype_attributes, parse_value_as, try_unwrap_ident, try_unwrap_group};
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
 use super::{
     models::{
         NewtypeNumberMeta, NumberValidator, ParsedNumberSanitizer, ParsedNumberValidator,
-        RawNewtypeNumberMeta,
+        RawNewtypeNumberMeta, NumberSanitizer,
     },
     validate::validate_number_meta,
 };
@@ -35,8 +35,41 @@ where
     T: FromStr,
     <T as FromStr>::Err: Debug,
 {
-    // TODO: Implement!
     let mut output = vec![];
+    let mut iter = stream.into_iter();
+
+    match iter.next() {
+        None => {},
+        Some(token) => {
+            let ident = try_unwrap_ident(token.clone())?;
+            match ident.to_string().as_str() {
+                "clamp" => {
+                    let t = iter.next().expect("clamp() cannot be empty");
+                    let span = token.span().join(t.span()).unwrap();
+
+                    let group = try_unwrap_group(t)?;
+                    let list: Vec<T> = parse_list_of_numbers(group.stream());
+                    if list.len() == 2 {
+                        let mut iter = list.into_iter();
+                        let min = iter.next().unwrap();
+                        let max = iter.next().unwrap();
+                        let sanitizer = NumberSanitizer::Clamp { min, max };
+                        output.push(ParsedNumberSanitizer { span, sanitizer });
+                    } else {
+                        let msg = format!("Invalid parameters for clamp()");
+                        let error = syn::Error::new(span, msg);
+                        return Err(vec![error]);
+                    }
+                },
+                unknown_sanitizer => {
+                    let msg = format!("Unknown number sanitizer: `{unknown_sanitizer}`");
+                    let error = syn::Error::new(ident.span(), msg);
+                    return Err(vec![error]);
+                }
+            }
+        }
+    }
+
     Ok(output)
 }
 
@@ -108,5 +141,56 @@ where
             }
         }
         None => Ok(None),
+    }
+}
+
+// TODO: Refactor
+fn parse_list_of_numbers<T>(stream: TokenStream2) -> Vec<T>
+where
+    T: FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    let mut output: Vec<T> = Vec::new();
+    let mut cur = String::new();
+
+    for token in stream.into_iter() {
+        let t = token.to_string();
+        if t == "," {
+            if !cur.is_empty() {
+                // TODO: result an Result and error
+                let val: T = cur.parse().unwrap();
+                output.push(val);
+                cur = String::new();
+            }
+        } else {
+            cur.push_str(&t);
+        }
+    }
+    if !cur.is_empty() {
+        // TODO: result an Result and error
+        let val: T = cur.parse().unwrap();
+        output.push(val);
+    }
+
+    output
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::number::models::NumberSanitizer;
+
+    #[test]
+    fn test_parse_sanitize_attrs() {
+        let tokens = quote::quote! {
+            clamp(-4, 10)
+        };
+        let parsed_sanitizers = parse_sanitize_attrs::<i32>(tokens).unwrap();
+        let sanitizers: Vec<_> = parsed_sanitizers.into_iter().map(|s| s.sanitizer).collect();
+        assert_eq!(
+            sanitizers,
+            vec![NumberSanitizer::Clamp { min: -4, max: 10 }]
+        );
     }
 }

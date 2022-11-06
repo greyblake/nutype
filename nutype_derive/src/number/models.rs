@@ -16,7 +16,7 @@ pub struct ParsedNumberSanitizer<T> {
 }
 
 #[derive(Debug, PartialEq)]
-enum NumberSanitizerKind {
+pub enum NumberSanitizerKind {
     Clamp,
 }
 
@@ -58,7 +58,7 @@ pub struct ParsedNumberValidator<T> {
 }
 
 #[derive(Debug, PartialEq)]
-enum NumberValidatorKind {
+pub enum NumberValidatorKind {
     Min,
     Max,
 }

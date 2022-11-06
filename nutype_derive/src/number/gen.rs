@@ -9,6 +9,8 @@ where
 {
     let module_name = gen_module_name_for_type(&type_name);
     let implementation = gen_implementation(type_name, &meta);
+
+    // TODO: refactor: inject InnerType, that implements ToString
     let tp: TokenStream =
         syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
 
@@ -116,15 +118,14 @@ where
         .map(|san| match san {
             NumberSanitizer::Clamp { min, max } => {
                 quote!(
-                    //let value: String = value.trim().to_string();
+                    value = value.clamp(#min, #max);
                 )
             }
         })
         .collect();
 
-    // TODO: Implement sanitizers
     quote!(
-        fn sanitize(value: #tp) -> #tp {
+        fn sanitize(mut value: #tp) -> #tp {
             #transformations
             value
         }
