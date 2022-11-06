@@ -7,7 +7,7 @@ pub trait Kind {
 }
 
 #[derive(Debug)]
-pub struct Spanned<T> {
+pub struct SpannedItem<T> {
     pub item: T,
     pub span: Span,
 }
@@ -18,7 +18,7 @@ pub struct Spanned<T> {
 //     }
 // }
 
-impl<T: Kind> Kind for Spanned<T> {
+impl<T: Kind> Kind for SpannedItem<T> {
     type Kind = <T as Kind>::Kind;
 
     fn kind(&self) -> Self::Kind {

@@ -1,13 +1,13 @@
 use proc_macro2::Span;
 
 use crate::{
-    base::{Kind, Spanned},
+    base::{Kind, SpannedItem},
     models::{NewtypeMeta, RawNewtypeMeta},
 };
 
 // Sanitizer
 
-pub type SpannedStringSanitizer = Spanned<StringSanitizer>;
+pub type SpannedStringSanitizer = SpannedItem<StringSanitizer>;
 
 #[derive(Debug, PartialEq)]
 pub enum StringSanitizer {
@@ -48,7 +48,7 @@ impl std::fmt::Display for StringSanitizerKind {
 // Validator
 //
 
-pub type SpannedStringValidator = Spanned<StringValidator>;
+pub type SpannedStringValidator = SpannedItem<StringValidator>;
 
 #[derive(Debug, PartialEq)]
 pub enum StringValidator {
