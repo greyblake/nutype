@@ -7,7 +7,7 @@ pub fn gen_nutype_for_number<T>(type_name: &Ident, meta: NewtypeNumberMeta<T>) -
 where
     T: ToTokens + PartialOrd,
 {
-    let module_name = gen_module_name_for_type(&type_name);
+    let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_implementation(type_name, &meta);
 
     // TODO: refactor: inject InnerType, that implements ToString
@@ -17,7 +17,7 @@ where
     let error_type_import = match meta {
         NewtypeNumberMeta::From { .. } => quote!(),
         NewtypeNumberMeta::TryFrom { .. } => {
-            let error_type_name = gen_error_type_name(&type_name);
+            let error_type_name = gen_error_type_name(type_name);
             quote! (
                 pub use #module_name::#error_type_name;
             )
@@ -114,7 +114,7 @@ where
     let tp: TokenStream =
         syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
     let transformations: TokenStream = sanitizers
-        .into_iter()
+        .iter()
         .map(|san| match san {
             NumberSanitizer::Clamp { min, max } => {
                 quote!(
@@ -180,7 +180,7 @@ pub fn gen_validation_error_type<T>(
     let error_name = gen_error_type_name(type_name);
 
     let error_variants: TokenStream = validators
-        .into_iter()
+        .iter()
         .map(|validator| match validator {
             NumberValidator::Min(_) => {
                 quote!(TooSmall,)

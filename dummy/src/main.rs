@@ -16,6 +16,7 @@ use nutype_derive::nutype;
 pub struct Email(String);
 
 // TODO:
+// * Address clippy warnings
 // * Implement validation for number
 //   * max cannot be smaller than min
 //   * overlaps between clamp, min and max.

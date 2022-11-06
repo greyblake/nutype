@@ -6,14 +6,14 @@ use crate::{
 // Sanitizer
 //
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum NumberSanitizer<T> {
     Clamp { min: T, max: T },
 }
 
 pub type SpannedNumberSanitizer<T> = SpannedItem<NumberSanitizer<T>>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum NumberSanitizerKind {
     Clamp,
 }
@@ -39,7 +39,7 @@ impl<T> Kind for NumberSanitizer<T> {
 // Validator
 //
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum NumberValidator<T> {
     Min(T),
     Max(T),
@@ -47,7 +47,7 @@ pub enum NumberValidator<T> {
 
 pub type SpannedNumberValidator<T> = SpannedItem<NumberValidator<T>>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum NumberValidatorKind {
     Min,
     Max,

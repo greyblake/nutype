@@ -61,7 +61,7 @@ where
                             item: sanitizer,
                         });
                     } else {
-                        let msg = format!("Invalid parameters for clamp()");
+                        let msg = "Invalid parameters for clamp()";
                         let error = syn::Error::new(span, msg);
                         return Err(vec![error]);
                     }
