@@ -6,9 +6,6 @@
 // * Implement validation for number
 //   * max cannot be smaller than min
 //   * overlaps between clamp, min and max.
-// * Support other numbers:
-//   * Integers
-//   * Floats
 // * Custom validations
 // * Support serde
 //   * Serialize
@@ -35,13 +32,7 @@ pub struct Email(String);
     sanitize(clamp(0, 100))
     validate(min = 0, max = 320_100)
 )]
-pub struct Value(usize);
-
-#[nutype(
-    sanitize(clamp(0, 100))
-    validate(min = 0, max = 320_100)
-)]
-pub struct Val(isize);
+pub struct Value(f32);
 
 #[nutype(validate(min_len = 5))]
 pub struct Username(String);
@@ -50,7 +41,7 @@ fn main() {
     let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
     println!("\n\nemail = {:?}\n\n", email);
 
-    let value = Value::try_from(15).unwrap();
+    let value = Value::try_from(15.0).unwrap();
     println!("value = {value:?}");
 }
 
@@ -217,5 +208,27 @@ mod tests {
         assert_eq!(Amount::try_from(2001), Err(AmountError::TooBig));
         assert!(Amount::try_from(1000).is_ok());
         assert!(Amount::try_from(2000).is_ok());
+    }
+
+    #[test]
+    fn test_f32_validate() {
+        #[nutype(validate(min = 0.0, max = 100))]
+        pub struct Width(f32);
+
+        assert_eq!(Width::try_from(-0.0001), Err(WidthError::TooSmall));
+        assert_eq!(Width::try_from(100.0001), Err(WidthError::TooBig));
+        assert!(Width::try_from(0.0).is_ok());
+        assert!(Width::try_from(100.0).is_ok());
+    }
+
+    #[test]
+    fn test_f64_validate() {
+        #[nutype(validate(min = 0.0, max = 100))]
+        pub struct Width(f64);
+
+        assert_eq!(Width::try_from(-0.0001), Err(WidthError::TooSmall));
+        assert_eq!(Width::try_from(100.0001), Err(WidthError::TooBig));
+        assert!(Width::try_from(0.0).is_ok());
+        assert!(Width::try_from(100.0).is_ok());
     }
 }

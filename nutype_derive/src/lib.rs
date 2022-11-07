@@ -57,6 +57,8 @@ fn expand_nutype(
             NumberType::I64 => parse_number_attrs_and_gen::<i64>(tp, &type_name, attrs),
             NumberType::I128 => parse_number_attrs_and_gen::<i128>(tp, &type_name, attrs),
             NumberType::Isize => parse_number_attrs_and_gen::<isize>(tp, &type_name, attrs),
+            NumberType::F32 => parse_number_attrs_and_gen::<f32>(tp, &type_name, attrs),
+            NumberType::F64 => parse_number_attrs_and_gen::<f64>(tp, &type_name, attrs),
         },
     }
 }
@@ -67,7 +69,7 @@ fn parse_number_attrs_and_gen<T>(
     attrs: TokenStream,
 ) -> Result<TokenStream, Vec<syn::Error>>
 where
-    T: FromStr + ToTokens + Ord,
+    T: FromStr + ToTokens + PartialOrd,
     <T as FromStr>::Err: Debug,
 {
     let meta = number::parse::parse_attributes::<T>(attrs)?;

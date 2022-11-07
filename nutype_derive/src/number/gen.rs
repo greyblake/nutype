@@ -209,10 +209,11 @@ fn gen_derive(number_type: NumberType) -> TokenStream {
     use NumberType::*;
 
     match number_type {
-        U8 | U16 | U32 | U64 | U128 | I8 | I16 | I32 | I64 | I128 | Usize | Isize => {
-            quote! {
-                #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-            }
-        }
+        U8 | U16 | U32 | U64 | U128 | I8 | I16 | I32 | I64 | I128 | Usize | Isize => quote! {
+            #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+        },
+        F32 | F64 => quote! {
+            #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+        },
     }
 }
