@@ -60,4 +60,14 @@ mod tests {
         assert_eq!(Age::try_from(100), Err(AgeError::TooBig));
         assert!(Age::try_from(20).is_ok());
     }
+
+    #[test]
+    fn test_u16() {
+        #[nutype(validate(min = 18, max = 65000))]
+        struct Age(u8);
+
+        assert_eq!(Age::try_from(17), Err(AgeError::TooSmall));
+        assert_eq!(Age::try_from(65001), Err(AgeError::TooBig));
+        assert!(Age::try_from(20).is_ok());
+    }
 }
