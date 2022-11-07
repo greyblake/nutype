@@ -1,11 +1,12 @@
 // TODO:
-// * Address clippy warnings
+// * Remove Vec<syn::Error> - there seem to be no use of it
 // * Implement validation for number
 //   * max cannot be smaller than min
 //   * overlaps between clamp, min and max.
 // * Support other numbers:
 //   * Integers
 //   * Floats
+// * Custom validations
 // * Support serde
 //   * Serialize
 //   * Deserialize
@@ -31,7 +32,7 @@ pub struct Email(String);
     sanitize(clamp(0, 200))
     validate(min = 0, max =  66700)
 )]
-pub struct Value(u64);
+pub struct Value(u128);
 
 #[nutype(validate(min_len = 5))]
 pub struct Username(String);
@@ -49,7 +50,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_u8() {
+    fn test_u8_validate() {
         #[nutype(
             sanitize(clamp(0, 200))
             validate(min = 18, max = 99)
@@ -59,6 +60,15 @@ mod tests {
         assert_eq!(Age::try_from(17), Err(AgeError::TooSmall));
         assert_eq!(Age::try_from(100), Err(AgeError::TooBig));
         assert!(Age::try_from(20).is_ok());
+    }
+
+    #[test]
+    fn test_u8_sanitize() {
+        #[nutype(sanitize(clamp(10, 100)))]
+        struct Percentage(u8);
+
+        assert_eq!(Percentage::from(101), Percentage::from(100));
+        assert_eq!(Percentage::from(9), Percentage::from(10));
     }
 
     #[test]
@@ -92,5 +102,19 @@ mod tests {
             Err(AmountError::TooBig)
         );
         assert!(Amount::try_from(1000).is_ok());
+    }
+
+    #[test]
+    fn test_u128() {
+        #[nutype(validate(min = 1000, max = 170141183460469231731687303715884105828))]
+        struct Amount(u128);
+
+        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
+        assert_eq!(
+            Amount::try_from(170141183460469231731687303715884105829),
+            Err(AmountError::TooBig)
+        );
+        assert!(Amount::try_from(1000).is_ok());
+        assert!(Amount::try_from(170141183460469231731687303715884105828).is_ok());
     }
 }
