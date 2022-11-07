@@ -54,6 +54,7 @@ fn expand_nutype(
             NumberType::I16 => parse_number_attrs_and_gen::<i16>(&type_name, attrs),
             NumberType::I32 => parse_number_attrs_and_gen::<i32>(&type_name, attrs),
             NumberType::I64 => parse_number_attrs_and_gen::<i64>(&type_name, attrs),
+            NumberType::I128 => parse_number_attrs_and_gen::<i128>(&type_name, attrs),
         },
     }
 }
