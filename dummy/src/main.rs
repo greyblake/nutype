@@ -151,4 +151,15 @@ mod tests {
         assert!(Amount::try_from(1000).is_ok());
         assert!(Amount::try_from(32_000).is_ok());
     }
+
+    #[test]
+    fn test_i32_validate() {
+        #[nutype(validate(min = 1000, max = 320_000))]
+        struct Amount(i32);
+
+        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::try_from(320_001), Err(AmountError::TooBig));
+        assert!(Amount::try_from(1000).is_ok());
+        assert!(Amount::try_from(320_000).is_ok());
+    }
 }
