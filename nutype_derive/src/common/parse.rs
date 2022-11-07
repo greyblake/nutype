@@ -9,7 +9,7 @@ use crate::models::RawNewtypeMeta;
 ///     = 123
 /// Output (parsed value):
 ///    123
-pub fn parse_value_as<T, ITER>(mut iter: ITER) -> Result<(T, ITER), Vec<syn::Error>>
+pub fn parse_value_as_number<T, ITER>(mut iter: ITER) -> Result<(T, ITER), Vec<syn::Error>>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -20,11 +20,15 @@ where
 
     let token_value = iter.next().expect("Expected number");
     let str_value = token_value.to_string();
-    let value: T = str_value.parse::<T>().map_err(|_err| {
+    let value: T = sanitize_number(&str_value).parse::<T>().map_err(|_err| {
         let msg = format!("Expected {}, got `{}`", type_name::<T>(), str_value);
         vec![syn::Error::new(token_value.span(), msg)]
     })?;
     Ok((value, iter))
+}
+
+fn sanitize_number(val: &str) -> String {
+    val.replace("_", "")
 }
 
 pub fn try_unwrap_ident(token: TokenTree) -> Result<Ident, Vec<syn::Error>> {

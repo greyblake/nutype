@@ -16,6 +16,7 @@ pub enum InnerType {
 pub enum NumberType {
     U8,
     U16,
+    U32,
     I32,
 }
 
@@ -37,6 +38,7 @@ impl ToTokens for NumberType {
         let type_stream = match self {
             Self::U8 => quote!(u8),
             Self::U16 => quote!(u16),
+            Self::U32 => quote!(u32),
             Self::I32 => quote!(i32),
         };
         type_stream.to_tokens(token_stream);

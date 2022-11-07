@@ -1,4 +1,4 @@
-use crate::common::parse::{parse_nutype_attributes, parse_value_as, try_unwrap_ident};
+use crate::common::parse::{parse_nutype_attributes, parse_value_as_number, try_unwrap_ident};
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
@@ -68,7 +68,7 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
             let ident = try_unwrap_ident(token)?;
             match ident.to_string().as_ref() {
                 "max_len" => {
-                    let (value, iter) = parse_value_as(iter)?;
+                    let (value, iter) = parse_value_as_number(iter)?;
                     let validator = StringValidator::MaxLen(value);
                     let parsed_validator = SpannedStringValidator {
                         item: validator,
@@ -77,7 +77,7 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
                     Ok(Some((parsed_validator, iter)))
                 }
                 "min_len" => {
-                    let (value, iter) = parse_value_as(iter)?;
+                    let (value, iter) = parse_value_as_number(iter)?;
                     let validator = StringValidator::MinLen(value);
                     let parsed_validator = SpannedStringValidator {
                         item: validator,

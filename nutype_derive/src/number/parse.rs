@@ -2,7 +2,7 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::common::parse::{
-    parse_nutype_attributes, parse_value_as, try_unwrap_group, try_unwrap_ident,
+    parse_nutype_attributes, parse_value_as_number, try_unwrap_group, try_unwrap_ident,
 };
 use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 
@@ -114,7 +114,7 @@ where
             let ident = try_unwrap_ident(token)?;
             match ident.to_string().as_ref() {
                 "min" => {
-                    let (value, iter) = parse_value_as(iter)?;
+                    let (value, iter) = parse_value_as_number(iter)?;
                     let validator = NumberValidator::Min(value);
                     let parsed_validator = SpannedNumberValidator {
                         span: ident.span(),
@@ -123,7 +123,7 @@ where
                     Ok(Some((parsed_validator, iter)))
                 }
                 "max" => {
-                    let (value, iter) = parse_value_as(iter)?;
+                    let (value, iter) = parse_value_as_number(iter)?;
                     let validator = NumberValidator::Max(value);
                     let parsed_validator = SpannedNumberValidator {
                         span: ident.span(),
