@@ -7,7 +7,7 @@ use crate::{
 
 pub type SpannedStringSanitizer = SpannedItem<StringSanitizer>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum StringSanitizer {
     Trim,
     Lowercase,
@@ -26,7 +26,7 @@ impl Kind for StringSanitizer {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum StringSanitizerKind {
     Trim,
     Lowercase,
@@ -48,7 +48,7 @@ impl std::fmt::Display for StringSanitizerKind {
 
 pub type SpannedStringValidator = SpannedItem<StringValidator>;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
@@ -67,7 +67,7 @@ impl Kind for StringValidator {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum StringValidatorKind {
     MinLen,
     MaxLen,

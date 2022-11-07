@@ -8,7 +8,7 @@ mod string;
 use models::{InnerType, NumberType, TypeNameAndInnerType};
 use number::gen::gen_nutype_for_number;
 use parse::parse_type_name_and_inner_type;
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use string::gen::gen_nutype_for_string;
 
@@ -43,10 +43,16 @@ fn expand_nutype(
             Ok(gen_nutype_for_string(&type_name, meta))
         }
         InnerType::Number(number_type) => match number_type {
-            NumberType::I32 => {
-                let meta = number::parse::parse_attributes::<i32>(attrs)?;
-                Ok(gen_nutype_for_number(&type_name, meta))
-            }
+            NumberType::U8 => parse_number_attrs_and_gen::<u8>(&type_name, attrs),
+            NumberType::I32 => parse_number_attrs_and_gen::<i32>(&type_name, attrs),
         },
     }
+}
+
+fn parse_number_attrs_and_gen<T>(
+    type_name: &Ident,
+    attrs: TokenStream,
+) -> Result<TokenStream, Vec<syn::Error>> {
+    let meta = number::parse::parse_attributes::<i32>(attrs)?;
+    Ok(gen_nutype_for_number(type_name, meta))
 }

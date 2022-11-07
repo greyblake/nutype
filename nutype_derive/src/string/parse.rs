@@ -20,24 +20,21 @@ fn parse_sanitize_attrs(
 ) -> Result<Vec<SpannedStringSanitizer>, Vec<syn::Error>> {
     let mut output = vec![];
     for token in stream.into_iter() {
-        match token {
-            TokenTree::Ident(ident) => {
-                let san = match ident.to_string().as_ref() {
-                    "trim" => StringSanitizer::Trim,
-                    "lowercase" => StringSanitizer::Lowercase,
-                    "uppercase" => StringSanitizer::Uppercase,
-                    unknown_sanitizer => {
-                        let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                        let error = syn::Error::new(ident.span(), msg);
-                        return Err(vec![error]);
-                    }
-                };
-                output.push(SpannedStringSanitizer {
-                    span: ident.span(),
-                    item: san,
-                });
-            }
-            _ => (),
+        if let TokenTree::Ident(ident) = token {
+            let san = match ident.to_string().as_ref() {
+                "trim" => StringSanitizer::Trim,
+                "lowercase" => StringSanitizer::Lowercase,
+                "uppercase" => StringSanitizer::Uppercase,
+                unknown_sanitizer => {
+                    let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
+                    let error = syn::Error::new(ident.span(), msg);
+                    return Err(vec![error]);
+                }
+            };
+            output.push(SpannedStringSanitizer {
+                span: ident.span(),
+                item: san,
+            });
         }
     }
 
@@ -50,16 +47,9 @@ fn parse_validate_attrs(
     let mut output = vec![];
 
     let mut token_iter = stream.into_iter();
-    loop {
-        match parse_validation_rule(token_iter)? {
-            Some((validator, rest_iter)) => {
-                token_iter = rest_iter;
-                output.push(validator);
-            }
-            None => {
-                break;
-            }
-        }
+    while let Some((validator, rest_iter)) = parse_validation_rule(token_iter)? {
+        token_iter = rest_iter;
+        output.push(validator);
     }
 
     Ok(output)
@@ -106,7 +96,7 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
                 validator => {
                     let msg = format!("Unknown validation rule `{validator}`");
                     let error = syn::Error::new(ident.span(), msg);
-                    return Err(vec![error]);
+                    Err(vec![error])
                 }
             }
         }

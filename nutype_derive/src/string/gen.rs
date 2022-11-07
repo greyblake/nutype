@@ -6,13 +6,13 @@ use crate::models::{StringSanitizer, StringValidator};
 use super::models::NewtypeStringMeta;
 
 pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> TokenStream {
-    let module_name = gen_module_name_for_type(&type_name);
+    let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_string_implementation(type_name, &meta);
 
     let error_type_import = match meta {
         NewtypeStringMeta::From { .. } => quote!(),
         NewtypeStringMeta::TryFrom { .. } => {
-            let error_type_name = gen_error_type_name(&type_name);
+            let error_type_name = gen_error_type_name(type_name);
             quote! (
                 pub use #module_name::#error_type_name;
             )
@@ -114,7 +114,7 @@ pub fn gen_module_name_for_type(type_name: &Ident) -> Ident {
 
 pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
     let transformations: TokenStream = sanitizers
-        .into_iter()
+        .iter()
         .map(|san| match san {
             StringSanitizer::Trim => {
                 quote!(
@@ -189,7 +189,7 @@ pub fn gen_validation_error_type(type_name: &Ident, validators: &[StringValidato
     let error_name = gen_error_type_name(type_name);
 
     let error_variants: TokenStream = validators
-        .into_iter()
+        .iter()
         .map(|validator| match validator {
             StringValidator::MaxLen(_len) => {
                 quote!(TooLong,)

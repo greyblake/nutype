@@ -51,6 +51,7 @@ pub fn parse_type_name_and_inner_type(
 
     let inner_type = match type_path_str.as_ref() {
         "String" => InnerType::String,
+        "u8" => InnerType::Number(crate::models::NumberType::U8),
         "i32" => InnerType::Number(crate::models::NumberType::I32),
         tp => {
             let error = syn::Error::new(

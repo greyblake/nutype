@@ -88,16 +88,9 @@ where
     let mut output = vec![];
 
     let mut token_iter = stream.into_iter();
-    loop {
-        match parse_validation_rule(token_iter)? {
-            Some((validator, rest_iter)) => {
-                token_iter = rest_iter;
-                output.push(validator);
-            }
-            None => {
-                break;
-            }
-        }
+    while let Some((validator, rest_iter)) = parse_validation_rule(token_iter)? {
+        token_iter = rest_iter;
+        output.push(validator);
     }
 
     Ok(output)
@@ -141,7 +134,7 @@ where
                 validator => {
                     let msg = format!("Unknown validation rule `{validator}`");
                     let error = syn::Error::new(ident.span(), msg);
-                    return Err(vec![error]);
+                    Err(vec![error])
                 }
             }
         }
