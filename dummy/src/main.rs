@@ -33,9 +33,9 @@ pub struct Email(String);
 /// Just an age of the age.
 #[nutype(
     sanitize(clamp(0, 100))
-    validate(min = 0, max = 32100)
+    validate(min = 0, max = 320_100)
 )]
-pub struct Value(i16);
+pub struct Value(i64);
 
 #[nutype(validate(min_len = 5))]
 pub struct Username(String);
@@ -161,5 +161,19 @@ mod tests {
         assert_eq!(Amount::try_from(320_001), Err(AmountError::TooBig));
         assert!(Amount::try_from(1000).is_ok());
         assert!(Amount::try_from(320_000).is_ok());
+    }
+
+    #[test]
+    fn test_i64_validate() {
+        #[nutype(validate(min = 1000, max = 8446744073709551000))]
+        struct Amount(i64);
+
+        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
+        assert_eq!(
+            Amount::try_from(8446744073709551001),
+            Err(AmountError::TooBig)
+        );
+        assert!(Amount::try_from(1000).is_ok());
+        assert!(Amount::try_from(8446744073709551000).is_ok());
     }
 }
