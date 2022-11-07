@@ -57,6 +57,7 @@ pub fn parse_type_name_and_inner_type(
         "u64" => InnerType::Number(crate::models::NumberType::U64),
         "u128" => InnerType::Number(crate::models::NumberType::U128),
         "i8" => InnerType::Number(crate::models::NumberType::I8),
+        "i16" => InnerType::Number(crate::models::NumberType::I16),
         "i32" => InnerType::Number(crate::models::NumberType::I32),
         tp => {
             let error = syn::Error::new(
