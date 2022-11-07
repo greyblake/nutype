@@ -8,7 +8,7 @@ use super::models::{SpannedStringSanitizer, SpannedStringValidator, StringSaniti
 
 pub fn validate_string_meta(
     raw_meta: RawNewtypeStringMeta,
-) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
+) -> Result<NewtypeStringMeta, syn::Error> {
     let RawNewtypeStringMeta {
         sanitizers,
         validators,
@@ -29,7 +29,7 @@ pub fn validate_string_meta(
 
 fn validate_validators(
     validators: Vec<SpannedStringValidator>,
-) -> Result<Vec<StringValidator>, Vec<syn::Error>> {
+) -> Result<Vec<StringValidator>, syn::Error> {
     // Check duplicates
     validate_duplicates(&validators, |kind| {
         format!("Duplicated validators `{kind}`.\nDon't worry, you still remain ingenious!")
@@ -57,7 +57,7 @@ fn validate_validators(
             let msg = "min_len cannot be greater than max_len.\nDon't you find this obvious?";
             let span = min_len_span.join(max_len_span).unwrap();
             let err = syn::Error::new(span, &msg);
-            return Err(vec![err]);
+            return Err(err);
         }
     }
 
@@ -67,7 +67,7 @@ fn validate_validators(
 
 fn validate_sanitizers(
     sanitizers: Vec<SpannedStringSanitizer>,
-) -> Result<Vec<StringSanitizer>, Vec<syn::Error>> {
+) -> Result<Vec<StringSanitizer>, syn::Error> {
     validate_duplicates(&sanitizers, |kind| {
         format!("Duplicated sanitizer `{kind}`.\nYou're doing well, it's not bad unless you forget to call your mom!")
     })?;
@@ -83,7 +83,7 @@ fn validate_sanitizers(
         let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
         let span = lowercase.span.join(uppercase.span).unwrap();
         let err = syn::Error::new(span, &msg);
-        return Err(vec![err]);
+        return Err(err);
     }
 
     let sanitizers: Vec<StringSanitizer> = sanitizers.into_iter().map(|s| s.item).collect();

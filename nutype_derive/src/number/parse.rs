@@ -14,7 +14,7 @@ use super::{
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream2) -> Result<NewtypeNumberMeta<T>, Vec<syn::Error>>
+pub fn parse_attributes<T>(input: TokenStream2) -> Result<NewtypeNumberMeta<T>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -22,7 +22,7 @@ where
     parse_raw_attributes(input).and_then(validate_number_meta)
 }
 
-fn parse_raw_attributes<T>(input: TokenStream2) -> Result<RawNewtypeNumberMeta<T>, Vec<syn::Error>>
+fn parse_raw_attributes<T>(input: TokenStream2) -> Result<RawNewtypeNumberMeta<T>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -32,7 +32,7 @@ where
 
 fn parse_sanitize_attrs<T>(
     stream: TokenStream2,
-) -> Result<Vec<SpannedNumberSanitizer<T>>, Vec<syn::Error>>
+) -> Result<Vec<SpannedNumberSanitizer<T>>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -63,13 +63,13 @@ where
                     } else {
                         let msg = "Invalid parameters for clamp()";
                         let error = syn::Error::new(span, msg);
-                        return Err(vec![error]);
+                        return Err(error);
                     }
                 }
                 unknown_sanitizer => {
                     let msg = format!("Unknown number sanitizer: `{unknown_sanitizer}`");
                     let error = syn::Error::new(ident.span(), msg);
-                    return Err(vec![error]);
+                    return Err(error);
                 }
             }
         }
@@ -80,7 +80,7 @@ where
 
 fn parse_validate_attrs<T>(
     stream: TokenStream2,
-) -> Result<Vec<SpannedNumberValidator<T>>, Vec<syn::Error>>
+) -> Result<Vec<SpannedNumberValidator<T>>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -98,7 +98,7 @@ where
 
 fn parse_validation_rule<T, ITER>(
     mut iter: ITER,
-) -> Result<Option<(SpannedNumberValidator<T>, ITER)>, Vec<syn::Error>>
+) -> Result<Option<(SpannedNumberValidator<T>, ITER)>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -134,7 +134,7 @@ where
                 validator => {
                     let msg = format!("Unknown validation rule `{validator}`");
                     let error = syn::Error::new(ident.span(), msg);
-                    Err(vec![error])
+                    Err(error)
                 }
             }
         }

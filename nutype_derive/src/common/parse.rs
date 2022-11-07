@@ -9,7 +9,7 @@ use crate::models::RawNewtypeMeta;
 ///     = 123
 /// Output (parsed value):
 ///    123
-pub fn parse_value_as_number<T, ITER>(mut iter: ITER) -> Result<(T, ITER), Vec<syn::Error>>
+pub fn parse_value_as_number<T, ITER>(mut iter: ITER) -> Result<(T, ITER), syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -22,7 +22,7 @@ where
     let str_value = token_value.to_string();
     let value: T = sanitize_number(&str_value).parse::<T>().map_err(|_err| {
         let msg = format!("Expected {}, got `{}`", type_name::<T>(), str_value);
-        vec![syn::Error::new(token_value.span(), msg)]
+        syn::Error::new(token_value.span(), msg)
     })?;
     Ok((value, iter))
 }
@@ -31,30 +31,30 @@ fn sanitize_number(val: &str) -> String {
     val.replace("_", "")
 }
 
-pub fn try_unwrap_ident(token: TokenTree) -> Result<Ident, Vec<syn::Error>> {
+pub fn try_unwrap_ident(token: TokenTree) -> Result<Ident, syn::Error> {
     match token {
         TokenTree::Ident(ident) => Ok(ident),
         _ => {
             let error = syn::Error::new(token.span(), "#[nutype] expected ident");
-            Err(vec![error])
+            Err(error)
         }
     }
 }
 
-pub fn try_unwrap_group(token: TokenTree) -> Result<Group, Vec<syn::Error>> {
+pub fn try_unwrap_group(token: TokenTree) -> Result<Group, syn::Error> {
     match token {
         TokenTree::Group(group) => Ok(group),
         _ => {
             let error = syn::Error::new(token.span(), "#[nutype] expected ident");
-            Err(vec![error])
+            Err(error)
         }
     }
 }
 
 pub fn parse_nutype_attributes<S, V>(
-    parse_sanitize_attrs: impl Fn(TokenStream) -> Result<Vec<S>, Vec<syn::Error>>,
-    parse_validate_attrs: impl Fn(TokenStream) -> Result<Vec<V>, Vec<syn::Error>>,
-) -> impl FnOnce(TokenStream) -> Result<RawNewtypeMeta<S, V>, Vec<syn::Error>> {
+    parse_sanitize_attrs: impl Fn(TokenStream) -> Result<Vec<S>, syn::Error>,
+    parse_validate_attrs: impl Fn(TokenStream) -> Result<Vec<V>, syn::Error>,
+) -> impl FnOnce(TokenStream) -> Result<RawNewtypeMeta<S, V>, syn::Error> {
     move |input: TokenStream| {
         let mut output = RawNewtypeMeta {
             sanitizers: vec![],
@@ -90,7 +90,7 @@ pub fn parse_nutype_attributes<S, V>(
                 unknown => {
                     let msg = format!("Unknown #[nutype] option: `{unknown}`");
                     let error = syn::Error::new(ident.span(), msg);
-                    return Err(vec![error]);
+                    return Err(error);
                 }
             }
         }

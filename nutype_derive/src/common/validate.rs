@@ -5,7 +5,7 @@ use crate::base::Kind;
 pub fn validate_duplicates<T>(
     items: &[T],
     build_error_msg: impl Fn(<T as Kind>::Kind) -> String,
-) -> Result<(), Vec<syn::Error>>
+) -> Result<(), syn::Error>
 where
     T: Spanned + Kind,
 {
@@ -15,7 +15,7 @@ where
         let msg = build_error_msg(kind);
         let span = item1.span().join(item2.span()).expect("Items (validators or sanitizers) for the same type expected to be defined in the same file");
         let err = syn::Error::new(span, &msg);
-        return Err(vec![err]);
+        return Err(err);
     }
     Ok(())
 }

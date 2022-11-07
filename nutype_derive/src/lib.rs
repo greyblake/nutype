@@ -11,7 +11,7 @@ use models::{InnerType, NumberType, TypeNameAndInnerType};
 use number::gen::gen_nutype_for_number;
 use parse::parse_type_name_and_inner_type;
 use proc_macro2::{Ident, TokenStream};
-use quote::{quote, ToTokens};
+use quote::ToTokens;
 use string::gen::gen_nutype_for_string;
 
 #[proc_macro_attribute]
@@ -20,19 +20,14 @@ pub fn nutype(
     type_definition: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     expand_nutype(attrs.into(), type_definition.into())
-        .unwrap_or_else(to_compile_errors)
+        .unwrap_or_else(|e| syn::Error::to_compile_error(&e))
         .into()
-}
-
-fn to_compile_errors(errors: Vec<syn::Error>) -> proc_macro2::TokenStream {
-    let compile_errors = errors.iter().map(syn::Error::to_compile_error);
-    quote!(#(#compile_errors)*)
 }
 
 fn expand_nutype(
     attrs: TokenStream,
     type_definition: TokenStream,
-) -> Result<TokenStream, Vec<syn::Error>> {
+) -> Result<TokenStream, syn::Error> {
     let TypeNameAndInnerType {
         type_name,
         inner_type,
@@ -67,7 +62,7 @@ fn parse_number_attrs_and_gen<T>(
     tp: NumberType,
     type_name: &Ident,
     attrs: TokenStream,
-) -> Result<TokenStream, Vec<syn::Error>>
+) -> Result<TokenStream, syn::Error>
 where
     T: FromStr + ToTokens + PartialOrd,
     <T as FromStr>::Err: Debug,

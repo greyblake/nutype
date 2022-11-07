@@ -7,17 +7,15 @@ use proc_macro2::{TokenStream as TokenStream2, TokenTree};
 use super::models::{SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
-pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, Vec<syn::Error>> {
+pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, syn::Error> {
     parse_raw_attributes(input).and_then(validate_string_meta)
 }
 
-fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, Vec<syn::Error>> {
+fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, syn::Error> {
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
 
-fn parse_sanitize_attrs(
-    stream: TokenStream2,
-) -> Result<Vec<SpannedStringSanitizer>, Vec<syn::Error>> {
+fn parse_sanitize_attrs(stream: TokenStream2) -> Result<Vec<SpannedStringSanitizer>, syn::Error> {
     let mut output = vec![];
     for token in stream.into_iter() {
         if let TokenTree::Ident(ident) = token {
@@ -28,7 +26,7 @@ fn parse_sanitize_attrs(
                 unknown_sanitizer => {
                     let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
                     let error = syn::Error::new(ident.span(), msg);
-                    return Err(vec![error]);
+                    return Err(error);
                 }
             };
             output.push(SpannedStringSanitizer {
@@ -41,9 +39,7 @@ fn parse_sanitize_attrs(
     Ok(output)
 }
 
-fn parse_validate_attrs(
-    stream: TokenStream2,
-) -> Result<Vec<SpannedStringValidator>, Vec<syn::Error>> {
+fn parse_validate_attrs(stream: TokenStream2) -> Result<Vec<SpannedStringValidator>, syn::Error> {
     let mut output = vec![];
 
     let mut token_iter = stream.into_iter();
@@ -57,7 +53,7 @@ fn parse_validate_attrs(
 
 fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
     mut iter: ITER,
-) -> Result<Option<(SpannedStringValidator, ITER)>, Vec<syn::Error>> {
+) -> Result<Option<(SpannedStringValidator, ITER)>, syn::Error> {
     match iter.next() {
         Some(mut token) => {
             // Skip punctuations between validators
@@ -96,7 +92,7 @@ fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
                 validator => {
                     let msg = format!("Unknown validation rule `{validator}`");
                     let error = syn::Error::new(ident.span(), msg);
-                    Err(vec![error])
+                    Err(error)
                 }
             }
         }

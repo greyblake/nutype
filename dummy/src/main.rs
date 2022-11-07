@@ -27,6 +27,15 @@ use nutype_derive::nutype;
 )]
 pub struct Email(String);
 
+#[nutype(validate(min = 0, max = 10))]
+pub struct Amount(usize);
+
+#[nutype(validate(min = 10, max = 100))]
+pub struct X(f64);
+
+#[nutype(sanitize(trim, lowercase))]
+pub struct User(String);
+
 /// Just an age of the age.
 #[nutype(
     sanitize(clamp(0, 100))

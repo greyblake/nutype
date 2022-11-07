@@ -7,7 +7,7 @@ use super::models::{
 
 pub fn validate_number_meta<T>(
     raw_meta: RawNewtypeNumberMeta<T>,
-) -> Result<NewtypeNumberMeta<T>, Vec<syn::Error>> {
+) -> Result<NewtypeNumberMeta<T>, syn::Error> {
     let RawNewtypeNumberMeta {
         sanitizers,
         validators,
@@ -28,7 +28,7 @@ pub fn validate_number_meta<T>(
 
 fn validate_validators<T>(
     validators: Vec<SpannedNumberValidator<T>>,
-) -> Result<Vec<NumberValidator<T>>, Vec<syn::Error>> {
+) -> Result<Vec<NumberValidator<T>>, syn::Error> {
     validate_duplicates(&validators, |kind| {
         format!("Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!")
     })?;
@@ -39,7 +39,7 @@ fn validate_validators<T>(
 
 fn validate_sanitizers<T>(
     sanitizers: Vec<SpannedNumberSanitizer<T>>,
-) -> Result<Vec<NumberSanitizer<T>>, Vec<syn::Error>> {
+) -> Result<Vec<NumberSanitizer<T>>, syn::Error> {
     validate_duplicates(&sanitizers, |kind| {
         format!("Duplicated sanitizer `{kind}`.\nIt happens, don't worry. We still love you!")
     })?;

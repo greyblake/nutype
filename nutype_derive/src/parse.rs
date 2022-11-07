@@ -7,7 +7,7 @@ use crate::models::{InnerType, TypeNameAndInnerType};
 // TODO: Parse visibility as well
 pub fn parse_type_name_and_inner_type(
     token_stream: TokenStream2,
-) -> Result<TypeNameAndInnerType, Vec<syn::Error>> {
+) -> Result<TypeNameAndInnerType, syn::Error> {
     let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
 
     let type_name = input.ident.clone();
@@ -19,7 +19,7 @@ pub fn parse_type_name_and_inner_type(
                 input.span(),
                 "#[nutype] can be used only with tuple structs.",
             );
-            return Err(vec![error]);
+            return Err(error);
         }
     };
 
@@ -30,7 +30,7 @@ pub fn parse_type_name_and_inner_type(
                 input.span(),
                 "#[nutype] can be used only with tuple structs.",
             );
-            return Err(vec![error]);
+            return Err(error);
         }
     };
 
@@ -43,7 +43,7 @@ pub fn parse_type_name_and_inner_type(
                 seg.span(),
                 "#[nutype] requires a simple inner type (e.g. String, i32, etc.)",
             );
-            return Err(vec![error]);
+            return Err(error);
         }
     };
 
@@ -70,7 +70,7 @@ pub fn parse_type_name_and_inner_type(
                 seg.span(),
                 format!("#[nutype] does not support `{tp}` as inner type"),
             );
-            return Err(vec![error]);
+            return Err(error);
         }
     };
 
