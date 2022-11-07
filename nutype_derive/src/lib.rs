@@ -5,11 +5,13 @@ mod number;
 mod parse;
 mod string;
 
+use std::{fmt::Debug, str::FromStr};
+
 use models::{InnerType, NumberType, TypeNameAndInnerType};
 use number::gen::gen_nutype_for_number;
 use parse::parse_type_name_and_inner_type;
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
+use quote::{quote, ToTokens};
 use string::gen::gen_nutype_for_string;
 
 #[proc_macro_attribute]
@@ -44,6 +46,7 @@ fn expand_nutype(
         }
         InnerType::Number(number_type) => match number_type {
             NumberType::U8 => parse_number_attrs_and_gen::<u8>(&type_name, attrs),
+            NumberType::U16 => parse_number_attrs_and_gen::<u16>(&type_name, attrs),
             NumberType::I32 => parse_number_attrs_and_gen::<i32>(&type_name, attrs),
         },
     }
@@ -52,7 +55,11 @@ fn expand_nutype(
 fn parse_number_attrs_and_gen<T>(
     type_name: &Ident,
     attrs: TokenStream,
-) -> Result<TokenStream, Vec<syn::Error>> {
-    let meta = number::parse::parse_attributes::<i32>(attrs)?;
+) -> Result<TokenStream, Vec<syn::Error>>
+where
+    T: FromStr + ToTokens + Ord,
+    <T as FromStr>::Err: Debug,
+{
+    let meta = number::parse::parse_attributes::<T>(attrs)?;
     Ok(gen_nutype_for_number(type_name, meta))
 }

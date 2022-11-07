@@ -29,9 +29,9 @@ pub struct Email(String);
 /// Just an age of the age.
 #[nutype(
     sanitize(clamp(0, 200))
-    validate(min = 0, max = 20)
+    validate(min = 0, max =  64000)
 )]
-pub struct Value(u8);
+pub struct Value(u16);
 
 #[nutype(validate(min_len = 5))]
 pub struct Username(String);
