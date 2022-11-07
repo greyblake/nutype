@@ -2,8 +2,13 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 
 use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
+use crate::models::NumberType;
 
-pub fn gen_nutype_for_number<T>(type_name: &Ident, meta: NewtypeNumberMeta<T>) -> TokenStream
+pub fn gen_nutype_for_number<T>(
+    number_type: NumberType,
+    type_name: &Ident,
+    meta: NewtypeNumberMeta<T>,
+) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -23,11 +28,12 @@ where
             )
         }
     };
+    let derive = gen_derive(number_type);
 
     quote!(
         mod #module_name {
-            #[derive(Debug, PartialEq, Eq, PartialOrd, Clone, Copy)]
             // TODO: respect visiblity!
+            #derive
             pub struct #type_name(#tp);
 
             #implementation
@@ -102,12 +108,12 @@ where
 }
 
 // TODO: DRY
-pub fn gen_module_name_for_type(type_name: &Ident) -> Ident {
+fn gen_module_name_for_type(type_name: &Ident) -> Ident {
     let module_name = format!("__nutype_module_for_{type_name}");
     Ident::new(&module_name, Span::call_site())
 }
 
-pub fn gen_sanitize_fn<T>(sanitizers: &[NumberSanitizer<T>]) -> TokenStream
+fn gen_sanitize_fn<T>(sanitizers: &[NumberSanitizer<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -132,12 +138,12 @@ where
     )
 }
 
-pub fn gen_error_type_name(type_name: &Ident) -> Ident {
+fn gen_error_type_name(type_name: &Ident) -> Ident {
     let error_name_str = format!("{type_name}Error");
     Ident::new(&error_name_str, Span::call_site())
 }
 
-pub fn gen_validate_fn<T>(type_name: &Ident, validators: &[NumberValidator<T>]) -> TokenStream
+fn gen_validate_fn<T>(type_name: &Ident, validators: &[NumberValidator<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -173,7 +179,7 @@ where
     )
 }
 
-pub fn gen_validation_error_type<T>(
+fn gen_validation_error_type<T>(
     type_name: &Ident,
     validators: &[NumberValidator<T>],
 ) -> TokenStream {
@@ -195,6 +201,18 @@ pub fn gen_validation_error_type<T>(
         #[derive(Debug, Clone, PartialEq, Eq)]
         pub enum #error_name {
             #error_variants
+        }
+    }
+}
+
+fn gen_derive(number_type: NumberType) -> TokenStream {
+    use NumberType::*;
+
+    match number_type {
+        U8 | U16 | U32 | U64 | U128 | I8 | I16 | I32 | I64 | I128 | Usize | Isize => {
+            quote! {
+                #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+            }
         }
     }
 }

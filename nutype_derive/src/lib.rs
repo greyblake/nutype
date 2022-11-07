@@ -44,24 +44,25 @@ fn expand_nutype(
             let meta = string::parse::parse_attributes(attrs)?;
             Ok(gen_nutype_for_string(&type_name, meta))
         }
-        InnerType::Number(number_type) => match number_type {
-            NumberType::U8 => parse_number_attrs_and_gen::<u8>(&type_name, attrs),
-            NumberType::U16 => parse_number_attrs_and_gen::<u16>(&type_name, attrs),
-            NumberType::U32 => parse_number_attrs_and_gen::<u32>(&type_name, attrs),
-            NumberType::U64 => parse_number_attrs_and_gen::<u64>(&type_name, attrs),
-            NumberType::U128 => parse_number_attrs_and_gen::<u128>(&type_name, attrs),
-            NumberType::Usize => parse_number_attrs_and_gen::<usize>(&type_name, attrs),
-            NumberType::I8 => parse_number_attrs_and_gen::<i8>(&type_name, attrs),
-            NumberType::I16 => parse_number_attrs_and_gen::<i16>(&type_name, attrs),
-            NumberType::I32 => parse_number_attrs_and_gen::<i32>(&type_name, attrs),
-            NumberType::I64 => parse_number_attrs_and_gen::<i64>(&type_name, attrs),
-            NumberType::I128 => parse_number_attrs_and_gen::<i128>(&type_name, attrs),
-            NumberType::Isize => parse_number_attrs_and_gen::<isize>(&type_name, attrs),
+        InnerType::Number(tp) => match tp {
+            NumberType::U8 => parse_number_attrs_and_gen::<u8>(tp, &type_name, attrs),
+            NumberType::U16 => parse_number_attrs_and_gen::<u16>(tp, &type_name, attrs),
+            NumberType::U32 => parse_number_attrs_and_gen::<u32>(tp, &type_name, attrs),
+            NumberType::U64 => parse_number_attrs_and_gen::<u64>(tp, &type_name, attrs),
+            NumberType::U128 => parse_number_attrs_and_gen::<u128>(tp, &type_name, attrs),
+            NumberType::Usize => parse_number_attrs_and_gen::<usize>(tp, &type_name, attrs),
+            NumberType::I8 => parse_number_attrs_and_gen::<i8>(tp, &type_name, attrs),
+            NumberType::I16 => parse_number_attrs_and_gen::<i16>(tp, &type_name, attrs),
+            NumberType::I32 => parse_number_attrs_and_gen::<i32>(tp, &type_name, attrs),
+            NumberType::I64 => parse_number_attrs_and_gen::<i64>(tp, &type_name, attrs),
+            NumberType::I128 => parse_number_attrs_and_gen::<i128>(tp, &type_name, attrs),
+            NumberType::Isize => parse_number_attrs_and_gen::<isize>(tp, &type_name, attrs),
         },
     }
 }
 
 fn parse_number_attrs_and_gen<T>(
+    tp: NumberType,
     type_name: &Ident,
     attrs: TokenStream,
 ) -> Result<TokenStream, Vec<syn::Error>>
@@ -70,5 +71,5 @@ where
     <T as FromStr>::Err: Debug,
 {
     let meta = number::parse::parse_attributes::<T>(attrs)?;
-    Ok(gen_nutype_for_number(type_name, meta))
+    Ok(gen_nutype_for_number(tp, type_name, meta))
 }
