@@ -1,5 +1,8 @@
 // TODO:
 // * Remove Vec<syn::Error> - there seem to be no use of it
+// * Ensure negative numbers can be correctly parsed in:
+//   * number types (validate, sanitize)
+//   * string types (validate(min, max)
 // * Implement validation for number
 //   * max cannot be smaller than min
 //   * overlaps between clamp, min and max.
@@ -29,10 +32,10 @@ pub struct Email(String);
 
 /// Just an age of the age.
 #[nutype(
-    sanitize(clamp(0, 200))
-    validate(min = 0, max =  66700)
+    sanitize(clamp(0, 100))
+    validate(min = 0, max = 100)
 )]
-pub struct Value(u128);
+pub struct Value(i8);
 
 #[nutype(validate(min_len = 5))]
 pub struct Username(String);
@@ -116,5 +119,25 @@ mod tests {
         );
         assert!(Amount::try_from(1000).is_ok());
         assert!(Amount::try_from(170141183460469231731687303715884105828).is_ok());
+    }
+
+    #[test]
+    fn test_i8_sanitize() {
+        #[nutype(sanitize(clamp(0, 100)))]
+        struct Percentage(i8);
+
+        assert_eq!(Percentage::from(101), Percentage::from(100));
+        assert_eq!(Percentage::from(-1), Percentage::from(0));
+    }
+
+    #[test]
+    fn test_i8_validate() {
+        // TODO: use negative numbers
+        #[nutype(validate(min = 18, max = 99))]
+        struct Age(i8);
+
+        assert_eq!(Age::try_from(17), Err(AgeError::TooSmall));
+        assert_eq!(Age::try_from(100), Err(AgeError::TooBig));
+        assert!(Age::try_from(20).is_ok());
     }
 }
