@@ -35,7 +35,13 @@ pub struct Email(String);
     sanitize(clamp(0, 100))
     validate(min = 0, max = 320_100)
 )]
-pub struct Value(i128);
+pub struct Value(usize);
+
+#[nutype(
+    sanitize(clamp(0, 100))
+    validate(min = 0, max = 320_100)
+)]
+pub struct Val(isize);
 
 #[nutype(validate(min_len = 5))]
 pub struct Username(String);
@@ -189,5 +195,27 @@ mod tests {
         );
         assert!(Amount::try_from(1000).is_ok());
         assert!(Amount::try_from(70141183460469231731687303715884105000).is_ok());
+    }
+
+    #[test]
+    fn test_usize_validate() {
+        #[nutype(validate(min = 1000, max = 2000))]
+        struct Amount(usize);
+
+        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::try_from(2001), Err(AmountError::TooBig));
+        assert!(Amount::try_from(1000).is_ok());
+        assert!(Amount::try_from(2000).is_ok());
+    }
+
+    #[test]
+    fn test_isize_validate() {
+        #[nutype(validate(min = 1000, max = 2000))]
+        struct Amount(isize);
+
+        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::try_from(2001), Err(AmountError::TooBig));
+        assert!(Amount::try_from(1000).is_ok());
+        assert!(Amount::try_from(2000).is_ok());
     }
 }

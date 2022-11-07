@@ -24,8 +24,8 @@ pub enum NumberType {
     I32,
     I64,
     I128,
-    // Usize,
-    // Isize,
+    Usize,
+    Isize,
 }
 
 impl ToTokens for InnerType {
@@ -49,11 +49,13 @@ impl ToTokens for NumberType {
             Self::U32 => quote!(u32),
             Self::U64 => quote!(u64),
             Self::U128 => quote!(u128),
+            Self::Usize => quote!(usize),
             Self::I8 => quote!(i8),
             Self::I16 => quote!(i16),
             Self::I32 => quote!(i32),
             Self::I64 => quote!(i64),
             Self::I128 => quote!(i128),
+            Self::Isize => quote!(isize),
         };
         type_stream.to_tokens(token_stream);
     }

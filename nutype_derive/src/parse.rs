@@ -56,11 +56,13 @@ pub fn parse_type_name_and_inner_type(
         "u32" => InnerType::Number(crate::models::NumberType::U32),
         "u64" => InnerType::Number(crate::models::NumberType::U64),
         "u128" => InnerType::Number(crate::models::NumberType::U128),
+        "usize" => InnerType::Number(crate::models::NumberType::Usize),
         "i8" => InnerType::Number(crate::models::NumberType::I8),
         "i16" => InnerType::Number(crate::models::NumberType::I16),
         "i32" => InnerType::Number(crate::models::NumberType::I32),
         "i64" => InnerType::Number(crate::models::NumberType::I64),
         "i128" => InnerType::Number(crate::models::NumberType::I128),
+        "isize" => InnerType::Number(crate::models::NumberType::Isize),
         tp => {
             let error = syn::Error::new(
                 seg.span(),
