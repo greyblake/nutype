@@ -1,5 +1,6 @@
 // TODO:
-// * Remove Vec<syn::Error> - there seem to be no use of it
+// * Implement Into<InnerType> / into_inner()
+//
 // * Ensure negative numbers can be correctly parsed in:
 //   * number types (validate, sanitize)
 //   * string types (validate(min, max)
@@ -27,15 +28,6 @@ use nutype_derive::nutype;
 )]
 pub struct Email(String);
 
-#[nutype(validate(min = 0, max = 10))]
-pub struct Amount(usize);
-
-#[nutype(validate(min = 10, max = 100))]
-pub struct X(f64);
-
-#[nutype(sanitize(trim, lowercase))]
-pub struct User(String);
-
 /// Just an age of the age.
 #[nutype(
     sanitize(clamp(0, 100))
@@ -43,12 +35,10 @@ pub struct User(String);
 )]
 pub struct Value(f32);
 
-#[nutype(validate(min_len = 5))]
-pub struct Username(String);
-
 fn main() {
     let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
     println!("\n\nemail = {:?}\n\n", email);
+    assert_eq!(email.into_inner(), "example@mail.org");
 
     let value = Value::try_from(15.0).unwrap();
     println!("value = {value:?}");
@@ -167,7 +157,27 @@ mod tests {
         assert_eq!(Amount::try_from(320_001), Err(AmountError::TooBig));
         assert!(Amount::try_from(1000).is_ok());
         assert!(Amount::try_from(320_000).is_ok());
+
+        let amount = Amount::try_from(2055).unwrap();
+        assert_eq!(amount.into_inner(), 2055);
     }
+
+    /*
+    #[test]
+    fn test_i32_negative() {
+        #[nutype(
+            sanitize(clamp(-200, -5))
+            validate(min = -100, -50)
+        )]
+        pub struct Balance(i32);
+
+        assert_eq!(Balance::try_from(-300), Err(BalanceError::TooSmall));
+        assert_eq!(Balance::try_from(-4), Err(BalanceError::TooBig));
+
+        let balance = Balance::try_from(-55).unwrap();
+        assert_eq!(balance.into_inner(), -55);
+    }
+    */
 
     #[test]
     fn test_i64_validate() {
@@ -237,7 +247,10 @@ mod tests {
 
         assert_eq!(Width::try_from(-0.0001), Err(WidthError::TooSmall));
         assert_eq!(Width::try_from(100.0001), Err(WidthError::TooBig));
-        assert!(Width::try_from(0.0).is_ok());
-        assert!(Width::try_from(100.0).is_ok());
+
+        assert_eq!(Width::try_from(0.0).unwrap().into_inner(), 0.0);
+
+        let w: f64 = Width::try_from(100.0).unwrap().into();
+        assert_eq!(w, 100.0);
     }
 }

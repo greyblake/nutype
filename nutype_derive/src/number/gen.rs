@@ -13,7 +13,7 @@ where
     T: ToTokens + PartialOrd,
 {
     let module_name = gen_module_name_for_type(type_name);
-    let implementation = gen_implementation(type_name, &meta);
+    let implementation = gen_implementation(type_name, number_type, &meta);
 
     // TODO: refactor: inject InnerType, that implements ToString
     let tp: TokenStream =
@@ -43,16 +43,42 @@ where
     )
 }
 
-pub fn gen_implementation<T>(type_name: &Ident, meta: &NewtypeNumberMeta<T>) -> TokenStream
+pub fn gen_implementation<T>(
+    type_name: &Ident,
+    inner_type: NumberType,
+    meta: &NewtypeNumberMeta<T>,
+) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
-    match meta {
+    let convert_implementation = match meta {
         NewtypeNumberMeta::From { sanitizers } => gen_from_implementation(type_name, sanitizers),
         NewtypeNumberMeta::TryFrom {
             sanitizers,
             validators,
         } => gen_try_from_implementation(type_name, sanitizers, validators),
+    };
+    let methods = gen_impl_methods(type_name, inner_type);
+
+    quote! {
+        #convert_implementation
+        #methods
+    }
+}
+
+fn gen_impl_methods(type_name: &Ident, inner_type: NumberType) -> TokenStream {
+    quote! {
+        impl ::core::convert::Into<#inner_type> for #type_name {
+            fn into(self) -> #inner_type {
+                self.0
+            }
+        }
+
+        impl #type_name {
+            pub fn into_inner(self) -> #inner_type {
+                self.0
+            }
+        }
     }
 }
 

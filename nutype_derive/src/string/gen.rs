@@ -33,7 +33,8 @@ pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> Toke
 }
 
 pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) -> TokenStream {
-    match meta {
+    let methods = gen_impl_methods(type_name);
+    let convert_implementation = match meta {
         NewtypeStringMeta::From { sanitizers } => {
             gen_string_from_implementation(type_name, sanitizers)
         }
@@ -41,6 +42,27 @@ pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) ->
             sanitizers,
             validators,
         } => gen_string_try_from_implementation(type_name, sanitizers, validators),
+    };
+
+    quote! {
+        #convert_implementation
+        #methods
+    }
+}
+
+fn gen_impl_methods(type_name: &Ident) -> TokenStream {
+    quote! {
+        impl ::core::convert::Into<String> for #type_name {
+            fn into(self) -> String {
+                self.0
+            }
+        }
+
+        impl #type_name {
+            pub fn into_inner(self) -> String {
+                self.0
+            }
+        }
     }
 }
 
@@ -60,7 +82,6 @@ fn gen_string_from_implementation(
         }
 
         impl ::core::convert::From<&str> for #type_name {
-
             fn from(raw_value: &str) -> #type_name {
                 let raw_value = raw_value.to_string();
                 #type_name(sanitize(raw_value))
