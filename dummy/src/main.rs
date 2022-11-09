@@ -1,6 +1,4 @@
 // TODO:
-// * Implement Into<InnerType> / into_inner()
-//
 // * Ensure negative numbers can be correctly parsed in:
 //   * number types (validate, sanitize)
 //   * string types (validate(min, max)
@@ -14,10 +12,13 @@
 // * Support Arbitrary
 // * Support decimals libraries:
 //   * https://crates.io/crates/rust_decimal
+// * Support time libraries (e.g. chrono)
 // * Impl  "did you mean" hints:
 //   * E.g. unknown validation rule `min`. Did you mean `min_len`?
 // * Finalize syntax!
 // * Setup CI
+// * Find a way to bypass documentation comments
+// Refactor parsers
 
 use core::convert::TryFrom;
 use nutype_derive::nutype;
@@ -30,17 +31,17 @@ pub struct Email(String);
 
 /// Just an age of the age.
 #[nutype(
-    sanitize(clamp(0, 100))
-    validate(min = 0, max = 320_100)
+    sanitize(clamp(-1000, -10))
+    validate(min = -2000, max = -10)
 )]
-pub struct Value(f32);
+pub struct Value(i32);
 
 fn main() {
     let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
     println!("\n\nemail = {:?}\n\n", email);
     assert_eq!(email.into_inner(), "example@mail.org");
 
-    let value = Value::try_from(15.0).unwrap();
+    let value = Value::try_from(-15).unwrap();
     println!("value = {value:?}");
 }
 
@@ -162,12 +163,11 @@ mod tests {
         assert_eq!(amount.into_inner(), 2055);
     }
 
-    /*
     #[test]
     fn test_i32_negative() {
         #[nutype(
             sanitize(clamp(-200, -5))
-            validate(min = -100, -50)
+            validate(min = -100, max = -50)
         )]
         pub struct Balance(i32);
 
@@ -177,7 +177,6 @@ mod tests {
         let balance = Balance::try_from(-55).unwrap();
         assert_eq!(balance.into_inner(), -55);
     }
-    */
 
     #[test]
     fn test_i64_validate() {
@@ -252,5 +251,20 @@ mod tests {
 
         let w: f64 = Width::try_from(100.0).unwrap().into();
         assert_eq!(w, 100.0);
+    }
+
+    #[test]
+    fn test_f64_negative() {
+        #[nutype(
+            sanitize(clamp(-200.25, -5))
+            validate(min = -100.25, max = -50.1)
+        )]
+        pub struct Balance(f64);
+
+        assert_eq!(Balance::try_from(-300.0), Err(BalanceError::TooSmall));
+        assert_eq!(Balance::try_from(-4.0), Err(BalanceError::TooBig));
+
+        let balance = Balance::try_from(-100.24).unwrap();
+        assert_eq!(balance.into_inner(), -100.24);
     }
 }

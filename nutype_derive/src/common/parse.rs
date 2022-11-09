@@ -1,6 +1,6 @@
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
-use proc_macro2::{Group, Ident, TokenStream, TokenTree};
+use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
 
 use crate::models::RawNewtypeMeta;
 
@@ -18,13 +18,35 @@ where
     let token_eq = iter.next().expect("Expected token `=`");
     assert_eq!(token_eq.to_string(), "=", "Expected token `=`");
 
-    let token_value = iter.next().expect("Expected number");
-    let str_value = token_value.to_string();
-    let value: T = sanitize_number(&str_value).parse::<T>().map_err(|_err| {
-        let msg = format!("Expected {}, got `{}`", type_name::<T>(), str_value);
-        syn::Error::new(token_value.span(), msg)
+    let (num_str, span) = read_number(&mut iter)?;
+
+    let value: T = sanitize_number(&num_str).parse::<T>().map_err(|_err| {
+        let msg = format!("Expected {}, got `{}`", type_name::<T>(), num_str);
+        syn::Error::new(span, msg)
     })?;
+
     Ok((value, iter))
+}
+
+fn read_number<ITER>(iter: &mut ITER) -> Result<(String, Span), syn::Error>
+where
+    ITER: Iterator<Item = TokenTree>,
+{
+    let mut output = String::with_capacity(16);
+    let mut token_value = iter.next().expect("Expected number");
+    let mut span = token_value.span();
+    let mut t = token_value.to_string();
+
+    // If it starts with `-` (negative number), add it to output and parse the next token.
+    if t == "-" {
+        output.push_str(&t);
+        token_value = iter.next().expect("Expected number");
+        span = span.join(token_value.span()).unwrap();
+        t = token_value.to_string();
+    }
+
+    output.push_str(&t);
+    Ok((output, span))
 }
 
 fn sanitize_number(val: &str) -> String {
