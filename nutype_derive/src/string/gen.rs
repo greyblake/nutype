@@ -152,6 +152,11 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
                     let value: String = value.to_uppercase();
                 )
             }
+            StringSanitizer::With(custom_sanitizer_fn) => {
+                quote!(
+                    let value: String = (#custom_sanitizer_fn)(value);
+                )
+            }
         })
         .collect();
 

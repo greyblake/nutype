@@ -80,7 +80,7 @@ fn validate_sanitizers(
         .iter()
         .find(|&s| s.kind() == StringSanitizerKind::Uppercase);
     if let (Some(lowercase), Some(uppercase)) = (lowercase, uppercase) {
-        let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
+        let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're a great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
         let span = lowercase.span.join(uppercase.span).unwrap();
         let err = syn::Error::new(span, &msg);
         return Err(err);

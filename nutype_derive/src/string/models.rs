@@ -1,3 +1,5 @@
+use proc_macro2::TokenStream;
+
 use crate::{
     base::{Kind, SpannedItem},
     models::{NewtypeMeta, RawNewtypeMeta},
@@ -7,11 +9,12 @@ use crate::{
 
 pub type SpannedStringSanitizer = SpannedItem<StringSanitizer>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum StringSanitizer {
     Trim,
     Lowercase,
     Uppercase,
+    With(TokenStream),
 }
 
 impl Kind for StringSanitizer {
@@ -22,6 +25,7 @@ impl Kind for StringSanitizer {
             Self::Trim => StringSanitizerKind::Trim,
             Self::Lowercase => StringSanitizerKind::Lowercase,
             Self::Uppercase => StringSanitizerKind::Uppercase,
+            Self::With(_) => StringSanitizerKind::With,
         }
     }
 }
@@ -31,6 +35,7 @@ pub enum StringSanitizerKind {
     Trim,
     Lowercase,
     Uppercase,
+    With,
 }
 
 impl std::fmt::Display for StringSanitizerKind {
@@ -39,6 +44,7 @@ impl std::fmt::Display for StringSanitizerKind {
             Self::Trim => write!(f, "trim"),
             Self::Lowercase => write!(f, "lowercase"),
             Self::Uppercase => write!(f, "uppercase"),
+            Self::With => write!(f, "with"),
         }
     }
 }

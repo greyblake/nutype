@@ -1,4 +1,5 @@
 // TODO:
+// * Custom sanitizers
 // * Custom validations
 // * Regex
 // * Support serde
@@ -19,6 +20,7 @@ use core::convert::TryFrom;
 use nutype_derive::nutype;
 
 #[nutype(
+    //sanitize(trim, lowercase, with = |s| s.trim())
     sanitize(trim, lowercase)
     validate(present, min_len = 5)
 )]
