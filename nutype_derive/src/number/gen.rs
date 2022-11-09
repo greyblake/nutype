@@ -68,9 +68,9 @@ where
 
 fn gen_impl_methods(type_name: &Ident, inner_type: NumberType) -> TokenStream {
     quote! {
-        impl ::core::convert::Into<#inner_type> for #type_name {
-            fn into(self) -> #inner_type {
-                self.0
+        impl ::core::convert::From<#type_name> for  #inner_type {
+            fn from(val: #type_name) -> #inner_type {
+                val.0
             }
         }
 

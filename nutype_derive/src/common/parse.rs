@@ -50,7 +50,7 @@ where
 }
 
 fn sanitize_number(val: &str) -> String {
-    val.replace("_", "")
+    val.replace('_', "")
 }
 
 pub fn try_unwrap_ident(token: TokenTree) -> Result<Ident, syn::Error> {

@@ -1,7 +1,4 @@
 // TODO:
-// * Ensure negative numbers can be correctly parsed in:
-//   * number types (validate, sanitize)
-//   * string types (validate(min, max)
 // * Implement validation for number
 //   * max cannot be smaller than min
 //   * overlaps between clamp, min and max.
