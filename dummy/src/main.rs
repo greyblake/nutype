@@ -1,8 +1,6 @@
 // TODO:
-// * Implement validation for number
-//   * max cannot be smaller than min
-//   * overlaps between clamp, min and max.
 // * Custom validations
+// * Regex
 // * Support serde
 //   * Serialize
 //   * Deserialize

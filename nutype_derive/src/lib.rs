@@ -64,7 +64,7 @@ fn parse_number_attrs_and_gen<T>(
     attrs: TokenStream,
 ) -> Result<TokenStream, syn::Error>
 where
-    T: FromStr + ToTokens + PartialOrd,
+    T: FromStr + ToTokens + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
 {
     let meta = number::parse::parse_attributes::<T>(attrs)?;

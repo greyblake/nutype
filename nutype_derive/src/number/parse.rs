@@ -16,7 +16,7 @@ use super::{
 
 pub fn parse_attributes<T>(input: TokenStream2) -> Result<NewtypeNumberMeta<T>, syn::Error>
 where
-    T: FromStr,
+    T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
 {
     parse_raw_attributes(input).and_then(validate_number_meta)
