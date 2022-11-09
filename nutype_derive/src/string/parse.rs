@@ -2,20 +2,20 @@ use crate::common::parse::{parse_nutype_attributes, parse_value_as_number, try_u
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
-use proc_macro2::{TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{TokenStream, TokenTree};
 
 use super::models::{SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
-pub fn parse_attributes(input: TokenStream2) -> Result<NewtypeStringMeta, syn::Error> {
+pub fn parse_attributes(input: TokenStream) -> Result<NewtypeStringMeta, syn::Error> {
     parse_raw_attributes(input).and_then(validate_string_meta)
 }
 
-fn parse_raw_attributes(input: TokenStream2) -> Result<RawNewtypeStringMeta, syn::Error> {
+fn parse_raw_attributes(input: TokenStream) -> Result<RawNewtypeStringMeta, syn::Error> {
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
 
-fn parse_sanitize_attrs(stream: TokenStream2) -> Result<Vec<SpannedStringSanitizer>, syn::Error> {
+fn parse_sanitize_attrs(stream: TokenStream) -> Result<Vec<SpannedStringSanitizer>, syn::Error> {
     let mut output = vec![];
     for token in stream.into_iter() {
         if let TokenTree::Ident(ident) = token {
@@ -39,7 +39,7 @@ fn parse_sanitize_attrs(stream: TokenStream2) -> Result<Vec<SpannedStringSanitiz
     Ok(output)
 }
 
-fn parse_validate_attrs(stream: TokenStream2) -> Result<Vec<SpannedStringValidator>, syn::Error> {
+fn parse_validate_attrs(stream: TokenStream) -> Result<Vec<SpannedStringValidator>, syn::Error> {
     let mut output = vec![];
 
     let mut token_iter = stream.into_iter();
