@@ -2,7 +2,7 @@ use crate::common::parse::{parse_nutype_attributes, parse_value_as_number, try_u
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
-use proc_macro2::{TokenStream, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree};
 
 use super::models::{SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
@@ -16,27 +16,84 @@ fn parse_raw_attributes(input: TokenStream) -> Result<RawNewtypeStringMeta, syn:
 }
 
 fn parse_sanitize_attrs(stream: TokenStream) -> Result<Vec<SpannedStringSanitizer>, syn::Error> {
-    let mut output = vec![];
-    for token in stream.into_iter() {
-        if let TokenTree::Ident(ident) = token {
-            let san = match ident.to_string().as_ref() {
-                "trim" => StringSanitizer::Trim,
-                "lowercase" => StringSanitizer::Lowercase,
-                "uppercase" => StringSanitizer::Uppercase,
-                unknown_sanitizer => {
-                    let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                    let error = syn::Error::new(ident.span(), msg);
-                    return Err(error);
-                }
-            };
-            output.push(SpannedStringSanitizer {
-                span: ident.span(),
-                item: san,
-            });
-        }
-    }
+    let tokens: Vec<TokenTree> = stream.into_iter().collect();
+    split_and_parse(tokens, is_comma, parse_sanitize_attr)
+}
 
-    Ok(output)
+fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer, syn::Error> {
+    let mut token_iter = tokens.iter();
+    let token = token_iter.next();
+    if let Some(TokenTree::Ident(ident)) = token {
+        let san = match ident.to_string().as_ref() {
+            "trim" => StringSanitizer::Trim,
+            "lowercase" => StringSanitizer::Lowercase,
+            "uppercase" => StringSanitizer::Uppercase,
+            "with" => {
+                {
+                    // Take `=` sign
+                    if let Some(eq_t) = token_iter.next() {
+                        if !is_eq(eq_t) {
+                            let span = ident.span().join(eq_t.span()).unwrap();
+                            return Err(syn::Error::new(
+                                span,
+                                "Invalid syntax for `with`. Expected `=`, got `{eq_t}`",
+                            ));
+                        }
+                    } else {
+                        return Err(syn::Error::new(
+                            ident.span(),
+                            "Invalid syntax for `with`. Missing `=`",
+                        ));
+                    }
+                }
+
+                // Preserve the rest as `custom_sanitizer_fn`
+                let tokens: Vec<TokenTree> = token_iter.cloned().collect();
+                let ts = TokenStream::from_iter(tokens.into_iter());
+                StringSanitizer::With(ts)
+            }
+            unknown_sanitizer => {
+                let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
+                let error = syn::Error::new(ident.span(), msg);
+                return Err(error);
+            }
+        };
+        Ok(SpannedStringSanitizer {
+            span: ident.span(),
+            item: san,
+        })
+    } else {
+        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+    }
+}
+
+fn split_and_parse<SEP, PRS, OUT>(
+    tokens: Vec<TokenTree>,
+    is_separator: SEP,
+    parse: PRS,
+) -> Result<Vec<OUT>, syn::Error>
+where
+    SEP: Fn(&TokenTree) -> bool,
+    PRS: Fn(Vec<TokenTree>) -> Result<OUT, syn::Error>,
+{
+    tokens
+        .split(is_separator)
+        .map(|subtokens| parse(subtokens.to_owned()))
+        .collect()
+}
+
+fn is_comma(token: &TokenTree) -> bool {
+    match token {
+        TokenTree::Punct(punct) => punct.as_char() == ',',
+        _ => false,
+    }
+}
+
+fn is_eq(token: &TokenTree) -> bool {
+    match token {
+        TokenTree::Punct(punct) => punct.as_char() == '=',
+        _ => false,
+    }
 }
 
 fn parse_validate_attrs(stream: TokenStream) -> Result<Vec<SpannedStringValidator>, syn::Error> {

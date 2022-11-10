@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use quote::quote;
 
 use crate::models::{StringSanitizer, StringValidator};
@@ -21,6 +21,8 @@ pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> Toke
 
     quote!(
         mod #module_name {
+            use super::*;
+
             #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
             // TODO: respect visiblity!
             pub struct #type_name(String);
@@ -152,9 +154,11 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
                     let value: String = value.to_uppercase();
                 )
             }
-            StringSanitizer::With(custom_sanitizer_fn) => {
+            StringSanitizer::With(custom_sanitizer_token_stream) => {
+                let custom_sanitizer =
+                    type_custom_sanitizier_closure(custom_sanitizer_token_stream);
                 quote!(
-                    let value: String = (#custom_sanitizer_fn)(value);
+                    let value: String = (#custom_sanitizer)(value);
                 )
             }
         })
@@ -166,6 +170,40 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
             value
         }
     )
+}
+
+/// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
+/// the expected closure pattern.
+///
+/// Input:
+///   |s| s.trim().to_lowercase()
+/// Output:
+///   |s: String| s.trim().to_lowercase()
+fn type_custom_sanitizier_closure(custom_sanitizer: &TokenStream) -> TokenStream {
+    let mut ts: Vec<TokenTree> = custom_sanitizer.clone().into_iter().collect();
+
+    if ts.len() >= 3 && is_pipe(&ts[0]) && is_ident(&ts[1]) && is_pipe(&ts[2]) {
+        let colon = TokenTree::Punct(Punct::new(':', Spacing::Alone));
+        let tp = TokenTree::Ident(Ident::new("String", Span::call_site()));
+        ts.insert(2, colon);
+        ts.insert(3, tp);
+    }
+
+    ts.into_iter().collect()
+}
+
+fn is_pipe(token: &TokenTree) -> bool {
+    match token {
+        TokenTree::Punct(ref punct) => punct.as_char() == '|',
+        _ => false,
+    }
+}
+
+fn is_ident(token: &TokenTree) -> bool {
+    match token {
+        TokenTree::Ident(_) => true,
+        _ => false,
+    }
 }
 
 pub fn gen_error_type_name(type_name: &Ident) -> Ident {

@@ -1,6 +1,11 @@
 // TODO:
 // * Custom sanitizers
+//   * Strings (DONE)
+//   * Numbers - TODO
 // * Custom validations
+//   * Strings - TODO
+//   * Numbers - TODO
+// * Reorgnize test suit
 // * Regex
 // * Support serde
 //   * Serialize
@@ -15,12 +20,15 @@
 // * Setup CI
 // * Find a way to bypass documentation comments
 // Refactor parsers
+// String sanitizers:
+//   * capitalize
+//   * truncate
+//   * Remove extra spaces
 
 use core::convert::TryFrom;
 use nutype_derive::nutype;
 
 #[nutype(
-    //sanitize(trim, lowercase, with = |s| s.trim())
     sanitize(trim, lowercase)
     validate(present, min_len = 5)
 )]
@@ -263,5 +271,33 @@ mod tests {
 
         let balance = Balance::try_from(-100.24).unwrap();
         assert_eq!(balance.into_inner(), -100.24);
+    }
+
+    #[test]
+    fn test_string_custom_sanitizer_closure_with_explicit_type() {
+        #[nutype(sanitize(with = |s: String| s.trim().to_uppercase() ))]
+        pub struct Name(String);
+
+        assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
+    }
+
+    #[test]
+    fn test_string_custom_sanitizer_closure_with_no_type() {
+        #[nutype(sanitize(with = |s| s.trim().to_uppercase() ))]
+        pub struct Name(String);
+
+        assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
+    }
+
+    fn sanitize_name(raw_name: String) -> String {
+        raw_name.trim().to_uppercase()
+    }
+
+    #[test]
+    fn test_string_custom_sanitizer_as_function() {
+        #[nutype(sanitize(with = sanitize_name))]
+        pub struct Name(String);
+
+        assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
     }
 }
