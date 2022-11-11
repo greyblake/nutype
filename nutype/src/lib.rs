@@ -1,14 +1,34 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+pub use nutype_derive::nutype;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn test_email_example() {
+         #[nutype(
+             sanitize(trim, lowercase)
+             validate(present)
+         )]
+         pub struct Email(String);
+
+         let email = Email::try_from("  OH@my.example\n\n").unwrap();
+         assert_eq!(email.into_inner(), "oh@my.example");
+
+         assert_eq!(
+             Email::try_from("  \n\n"),
+             Err(EmailError::Missing)
+        );
+    }
+
+    #[test]
+    fn test_amount_example() {
+        #[nutype(validate(min = 100, max = 1_000))]
+        pub struct Amount(u32);
+
+        assert_eq!(Amount::try_from(99), Err(AmountError::TooSmall));
+        assert_eq!(Amount::try_from(1_001), Err(AmountError::TooBig));
+
+        assert_eq!(Amount::try_from(100).unwrap().into_inner(), 100);
     }
 }

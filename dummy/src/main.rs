@@ -1,11 +1,12 @@
 // TODO:
+// * `derive(*)` - syntax to derive all possible traits
+// * Reorgonize test suite
 // * Custom sanitizers
 //   * Strings (DONE)
 //   * Numbers - TODO
 // * Custom validations
 //   * Strings - TODO
 //   * Numbers - TODO
-// * Reorgnize test suit
 // * Regex
 // * Support serde
 //   * Serialize
@@ -33,6 +34,10 @@ use nutype_derive::nutype;
     validate(present, min_len = 5)
 )]
 pub struct Email(String);
+
+
+// #[nutype(sanitize = [trim, lowercase], derive(*))]
+// pub struct Email(String);
 
 /// Just an age of the age.
 #[nutype(
@@ -263,6 +268,7 @@ mod tests {
         #[nutype(
             sanitize(clamp(-200.25, -5))
             validate(min = -100.25, max = -50.1)
+            derive(*)
         )]
         pub struct Balance(f64);
 
@@ -271,33 +277,5 @@ mod tests {
 
         let balance = Balance::try_from(-100.24).unwrap();
         assert_eq!(balance.into_inner(), -100.24);
-    }
-
-    #[test]
-    fn test_string_custom_sanitizer_closure_with_explicit_type() {
-        #[nutype(sanitize(with = |s: String| s.trim().to_uppercase() ))]
-        pub struct Name(String);
-
-        assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
-    }
-
-    #[test]
-    fn test_string_custom_sanitizer_closure_with_no_type() {
-        #[nutype(sanitize(with = |s| s.trim().to_uppercase() ))]
-        pub struct Name(String);
-
-        assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
-    }
-
-    fn sanitize_name(raw_name: String) -> String {
-        raw_name.trim().to_uppercase()
-    }
-
-    #[test]
-    fn test_string_custom_sanitizer_as_function() {
-        #[nutype(sanitize(with = sanitize_name))]
-        pub struct Name(String);
-
-        assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
     }
 }

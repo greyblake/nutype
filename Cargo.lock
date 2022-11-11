@@ -12,6 +12,9 @@ dependencies = [
 [[package]]
 name = "nutype"
 version = "0.1.0"
+dependencies = [
+ "nutype_derive",
+]
 
 [[package]]
 name = "nutype_derive"
@@ -20,6 +23,13 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "nutype_test_suite"
+version = "0.1.0"
+dependencies = [
+ "nutype",
 ]
 
 [[package]]

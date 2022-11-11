@@ -1,7 +1,8 @@
 [workspace]
 
 members = [
-    "nutype_derive",
     "nutype",
+    "nutype_derive",
+    "nutype_test_suite",
     "dummy",
 ]
