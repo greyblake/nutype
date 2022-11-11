@@ -1,4 +1,7 @@
-use crate::common::parse::{parse_nutype_attributes, parse_value_as_number, try_unwrap_ident, split_and_parse, is_comma, is_eq};
+use crate::common::parse::{
+    is_comma, is_eq, parse_nutype_attributes, parse_value_as_number, split_and_parse,
+    try_unwrap_ident,
+};
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
@@ -29,27 +32,9 @@ fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer,
             "lowercase" => StringSanitizer::Lowercase,
             "uppercase" => StringSanitizer::Uppercase,
             "with" => {
-                {
-                    // Take `=` sign
-                    if let Some(eq_t) = token_iter.next() {
-                        if !is_eq(eq_t) {
-                            let span = ident.span().join(eq_t.span()).unwrap();
-                            return Err(syn::Error::new(
-                                span,
-                                "Invalid syntax for `with`. Expected `=`, got `{eq_t}`",
-                            ));
-                        }
-                    } else {
-                        return Err(syn::Error::new(
-                            ident.span(),
-                            "Invalid syntax for `with`. Missing `=`",
-                        ));
-                    }
-                }
-
                 // Preserve the rest as `custom_sanitizer_fn`
-                let ts = TokenStream::from_iter(token_iter.cloned());
-                StringSanitizer::With(ts)
+                let stream = parse_with_token_stream(token_iter, ident.span())?;
+                StringSanitizer::With(stream)
             }
             unknown_sanitizer => {
                 let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");

@@ -119,7 +119,6 @@ pub fn parse_nutype_attributes<S, V>(
     }
 }
 
-
 pub fn split_and_parse<SEP, PRS, OUT>(
     tokens: Vec<TokenTree>,
     is_separator: SEP,
@@ -147,4 +146,37 @@ pub fn is_eq(token: &TokenTree) -> bool {
         TokenTree::Punct(punct) => punct.as_char() == '=',
         _ => false,
     }
+}
+
+// Context:
+//   with = |s: String| s.uppercase()
+// Input:
+//   = |s: String| s.to_uppercase()
+// Output
+//   |s: String| s.to_uppercase()
+fn parse_with_token_stream<'a>(
+    mut token_iter: impl Iterator<Item = &'a TokenTree>,
+    with_span: Span,
+) -> Result<TokenStream, syn::Error> {
+    {
+        // Take `=` sign
+        if let Some(eq_t) = token_iter.next() {
+            if !is_eq(eq_t) {
+                let span = with_span.join(eq_t.span()).unwrap();
+                return Err(syn::Error::new(
+                    span,
+                    "Invalid syntax for `with`. Expected `=`, got `{eq_t}`",
+                ));
+            }
+        } else {
+            return Err(syn::Error::new(
+                with_span,
+                "Invalid syntax for `with`. Missing `=`",
+            ));
+        }
+    }
+
+    // Return the rest as TokenStream
+    let rest = TokenStream::from_iter(token_iter.cloned());
+    Ok(rest)
 }
