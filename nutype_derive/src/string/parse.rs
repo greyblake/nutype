@@ -48,8 +48,7 @@ fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer,
                 }
 
                 // Preserve the rest as `custom_sanitizer_fn`
-                let tokens: Vec<TokenTree> = token_iter.cloned().collect();
-                let ts = TokenStream::from_iter(tokens.into_iter());
+                let ts = TokenStream::from_iter(token_iter.cloned());
                 StringSanitizer::With(ts)
             }
             unknown_sanitizer => {

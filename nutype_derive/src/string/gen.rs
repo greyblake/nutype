@@ -200,10 +200,7 @@ fn is_pipe(token: &TokenTree) -> bool {
 }
 
 fn is_ident(token: &TokenTree) -> bool {
-    match token {
-        TokenTree::Ident(_) => true,
-        _ => false,
-    }
+    matches!(token, TokenTree::Ident(_))
 }
 
 pub fn gen_error_type_name(type_name: &Ident) -> Ident {
