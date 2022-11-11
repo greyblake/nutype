@@ -1,4 +1,4 @@
-use crate::common::parse::{parse_nutype_attributes, parse_value_as_number, try_unwrap_ident};
+use crate::common::parse::{parse_nutype_attributes, parse_value_as_number, try_unwrap_ident, split_and_parse, is_comma, is_eq};
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
@@ -63,35 +63,6 @@ fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer,
         })
     } else {
         Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
-    }
-}
-
-fn split_and_parse<SEP, PRS, OUT>(
-    tokens: Vec<TokenTree>,
-    is_separator: SEP,
-    parse: PRS,
-) -> Result<Vec<OUT>, syn::Error>
-where
-    SEP: Fn(&TokenTree) -> bool,
-    PRS: Fn(Vec<TokenTree>) -> Result<OUT, syn::Error>,
-{
-    tokens
-        .split(is_separator)
-        .map(|subtokens| parse(subtokens.to_owned()))
-        .collect()
-}
-
-fn is_comma(token: &TokenTree) -> bool {
-    match token {
-        TokenTree::Punct(punct) => punct.as_char() == ',',
-        _ => false,
-    }
-}
-
-fn is_eq(token: &TokenTree) -> bool {
-    match token {
-        TokenTree::Punct(punct) => punct.as_char() == '=',
-        _ => false,
     }
 }
 

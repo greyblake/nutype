@@ -118,3 +118,33 @@ pub fn parse_nutype_attributes<S, V>(
         }
     }
 }
+
+
+pub fn split_and_parse<SEP, PRS, OUT>(
+    tokens: Vec<TokenTree>,
+    is_separator: SEP,
+    parse: PRS,
+) -> Result<Vec<OUT>, syn::Error>
+where
+    SEP: Fn(&TokenTree) -> bool,
+    PRS: Fn(Vec<TokenTree>) -> Result<OUT, syn::Error>,
+{
+    tokens
+        .split(is_separator)
+        .map(|subtokens| parse(subtokens.to_owned()))
+        .collect()
+}
+
+pub fn is_comma(token: &TokenTree) -> bool {
+    match token {
+        TokenTree::Punct(punct) => punct.as_char() == ',',
+        _ => false,
+    }
+}
+
+pub fn is_eq(token: &TokenTree) -> bool {
+    match token {
+        TokenTree::Punct(punct) => punct.as_char() == '=',
+        _ => false,
+    }
+}
