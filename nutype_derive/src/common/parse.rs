@@ -154,7 +154,7 @@ pub fn is_eq(token: &TokenTree) -> bool {
 //   = |s: String| s.to_uppercase()
 // Output
 //   |s: String| s.to_uppercase()
-fn parse_with_token_stream<'a>(
+pub fn parse_with_token_stream<'a>(
     mut token_iter: impl Iterator<Item = &'a TokenTree>,
     with_span: Span,
 ) -> Result<TokenStream, syn::Error> {

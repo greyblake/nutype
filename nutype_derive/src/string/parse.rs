@@ -1,6 +1,6 @@
 use crate::common::parse::{
     is_comma, is_eq, parse_nutype_attributes, parse_value_as_number, split_and_parse,
-    try_unwrap_ident,
+    try_unwrap_ident, parse_with_token_stream,
 };
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
