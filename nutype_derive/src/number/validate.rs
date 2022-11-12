@@ -83,7 +83,8 @@ where
         .flat_map(|san| match &san.item {
             NumberSanitizer::Clamp { ref min, ref max } => {
                 Some((san.span, (min.clone(), max.clone())))
-            } // _ => None,
+            }
+            _ => None,
         })
         .next();
     if let Some((span, (min, max))) = maybe_clamp {

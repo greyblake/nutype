@@ -54,11 +54,12 @@ impl std::fmt::Display for StringSanitizerKind {
 
 pub type SpannedStringValidator = SpannedItem<StringValidator>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
     Present,
+    With(TokenStream),
 }
 
 impl Kind for StringValidator {
@@ -69,6 +70,7 @@ impl Kind for StringValidator {
             Self::MinLen(_) => StringValidatorKind::MinLen,
             Self::MaxLen(_) => StringValidatorKind::MaxLen,
             Self::Present => StringValidatorKind::Present,
+            Self::With(_) => StringValidatorKind::With,
         }
     }
 }
@@ -78,6 +80,7 @@ pub enum StringValidatorKind {
     MinLen,
     MaxLen,
     Present,
+    With,
 }
 
 impl std::fmt::Display for StringValidatorKind {
@@ -86,6 +89,7 @@ impl std::fmt::Display for StringValidatorKind {
             Self::MinLen => write!(f, "min_len"),
             Self::MaxLen => write!(f, "max_len"),
             Self::Present => write!(f, "present"),
+            Self::With => write!(f, "with"),
         }
     }
 }

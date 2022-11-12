@@ -1,12 +1,12 @@
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{spanned::Spanned, DeriveInput};
 
 use crate::models::{InnerType, TypeNameAndInnerType};
 
-// TODO: Parse visibility as well
+// TODO: Parse visibility as well and documentation as well
 pub fn parse_type_name_and_inner_type(
-    token_stream: TokenStream2,
+    token_stream: TokenStream,
 ) -> Result<TypeNameAndInnerType, syn::Error> {
     let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
 

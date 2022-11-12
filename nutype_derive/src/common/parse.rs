@@ -130,6 +130,7 @@ where
 {
     tokens
         .split(is_separator)
+        .filter(|subtokens| !subtokens.is_empty())
         .map(|subtokens| parse(subtokens.to_owned()))
         .collect()
 }

@@ -1,19 +1,49 @@
 use nutype::nutype;
 
-
 #[cfg(test)]
 mod sanitizers {
     use super::*;
 
     #[test]
     fn test_clamp() {
-        #[nutype(
-            sanitize(clamp(18, 99))
-        )]
+        #[nutype(sanitize(clamp(18, 99)))]
         struct Age(u8);
 
         assert_eq!(Age::from(17).into_inner(), 18);
         assert_eq!(Age::from(100).into_inner(), 99);
+    }
+
+    #[cfg(test)]
+    mod with {
+        use super::*;
+
+        #[test]
+        fn test_with_closure_with_explicit_type() {
+            #[nutype(sanitize(with = |n: i32| n.clamp(0, 100)))]
+            pub struct Cent(i32);
+
+            assert_eq!(Cent::from(-10).into_inner(), 0);
+        }
+
+        #[test]
+        fn test_closure_with_no_type() {
+            #[nutype(sanitize(with = |n| n.clamp(0, 100)))]
+            pub struct Cent(i32);
+
+            assert_eq!(Cent::from(-10).into_inner(), 0);
+        }
+
+        fn sanitize_cent(value: i32) -> i32 {
+            value.clamp(0, 100)
+        }
+
+        #[test]
+        fn test_with_function() {
+            #[nutype(sanitize(with = sanitize_cent))]
+            pub struct Cent(i32);
+
+            assert_eq!(Cent::from(222).into_inner(), 100);
+        }
     }
 }
 

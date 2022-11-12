@@ -116,6 +116,51 @@ mod validators {
         assert_eq!(Name::try_from("Friedrich"), Err(NameError::TooLong));
         assert_eq!(Name::try_from("Julia").unwrap().into_inner(), "Julia");
     }
+
+    #[cfg(test)]
+    mod with {
+        use super::*;
+
+        #[test]
+        fn test_with_closure_with_explicit_type() {
+            #[nutype(validate(with = |e: &str| e.contains('@')))]
+            pub struct Email(String);
+
+            assert_eq!(Email::try_from("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(
+                Email::try_from("foo@bar.example").unwrap().into_inner(),
+                "foo@bar.example"
+            );
+        }
+
+        #[test]
+        fn test_closure_with_no_type() {
+            #[nutype(validate(with = |e| e.contains('@')))]
+            pub struct Email(String);
+
+            assert_eq!(Email::try_from("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(
+                Email::try_from("foo@bar.example").unwrap().into_inner(),
+                "foo@bar.example"
+            );
+        }
+
+        fn validate_email(val: &str) -> bool {
+            val.contains('@')
+        }
+
+        #[test]
+        fn test_with_function() {
+            #[nutype(validate(with = validate_email))]
+            pub struct Email(String);
+
+            assert_eq!(Email::try_from("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(
+                Email::try_from("foo@bar.example").unwrap().into_inner(),
+                "foo@bar.example"
+            );
+        }
+    }
 }
 
 #[cfg(test)]
@@ -132,6 +177,9 @@ mod complex {
 
         assert_eq!(Name::try_from("    "), Err(NameError::Missing));
         assert_eq!(Name::try_from("Willy Brandt"), Err(NameError::TooLong));
-        assert_eq!(Name::try_from("   Brandt  ").unwrap().into_inner(), "BRANDT");
+        assert_eq!(
+            Name::try_from("   Brandt  ").unwrap().into_inner(),
+            "BRANDT"
+        );
     }
 }

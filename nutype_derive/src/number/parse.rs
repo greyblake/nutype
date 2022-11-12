@@ -2,9 +2,11 @@ use std::fmt::Debug;
 use std::str::FromStr;
 
 use crate::common::parse::{
-    parse_nutype_attributes, parse_value_as_number, try_unwrap_group, try_unwrap_ident,
+    is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
+    split_and_parse, try_unwrap_group, try_unwrap_ident,
 };
-use proc_macro2::{TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Span, TokenStream, TokenTree};
+use syn::spanned::Spanned;
 
 use super::{
     models::{
@@ -14,7 +16,7 @@ use super::{
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream2) -> Result<NewtypeNumberMeta<T>, syn::Error>
+pub fn parse_attributes<T>(input: TokenStream) -> Result<NewtypeNumberMeta<T>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
@@ -22,7 +24,7 @@ where
     parse_raw_attributes(input).and_then(validate_number_meta)
 }
 
-fn parse_raw_attributes<T>(input: TokenStream2) -> Result<RawNewtypeNumberMeta<T>, syn::Error>
+fn parse_raw_attributes<T>(input: TokenStream) -> Result<RawNewtypeNumberMeta<T>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -31,7 +33,19 @@ where
 }
 
 fn parse_sanitize_attrs<T>(
-    stream: TokenStream2,
+    stream: TokenStream,
+) -> Result<Vec<SpannedNumberSanitizer<T>>, syn::Error>
+where
+    T: FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    let tokens: Vec<TokenTree> = stream.into_iter().collect();
+    split_and_parse(tokens, is_comma, parse_sanitize_attr)
+}
+
+/*
+fn parse_sanitize_attrs<T>(
+    stream: TokenStream,
 ) -> Result<Vec<SpannedNumberSanitizer<T>>, syn::Error>
 where
     T: FromStr,
@@ -77,9 +91,61 @@ where
 
     Ok(output)
 }
+*/
+
+fn parse_sanitize_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedNumberSanitizer<T>, syn::Error>
+where
+    T: FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    let mut token_iter = tokens.iter();
+    let token = token_iter.next();
+    if let Some(TokenTree::Ident(ident)) = token {
+        match ident.to_string().as_ref() {
+            "clamp" => {
+                let t = token_iter.next().expect("clamp() cannot be empty");
+                let span = ident.span().join(t.span()).unwrap();
+
+                let group = try_unwrap_group(t.clone())?;
+                let list: Vec<T> = parse_list_of_numbers(group.stream());
+                if list.len() != 2 {
+                    let msg = "Invalid parameters for clamp()";
+                    let error = syn::Error::new(span, msg);
+                    return Err(error);
+                }
+
+                let mut iter = list.into_iter();
+                let min = iter.next().unwrap();
+                let max = iter.next().unwrap();
+                let sanitizer = NumberSanitizer::Clamp { min, max };
+                return Ok(SpannedNumberSanitizer {
+                    span,
+                    item: sanitizer,
+                });
+            }
+            "with" => {
+                // Preserve the rest as `custom_sanitizer_fn`
+                let stream = parse_with_token_stream(token_iter, ident.span())?;
+                let span = ident.span().join(stream.span()).unwrap();
+                let sanitizer = NumberSanitizer::With(stream);
+                return Ok(SpannedNumberSanitizer {
+                    span,
+                    item: sanitizer,
+                });
+            }
+            unknown_sanitizer => {
+                let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
+                let error = syn::Error::new(ident.span(), msg);
+                return Err(error);
+            }
+        }
+    } else {
+        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+    }
+}
 
 fn parse_validate_attrs<T>(
-    stream: TokenStream2,
+    stream: TokenStream,
 ) -> Result<Vec<SpannedNumberValidator<T>>, syn::Error>
 where
     T: FromStr,
@@ -143,7 +209,7 @@ where
 }
 
 // TODO: Refactor
-fn parse_list_of_numbers<T>(stream: TokenStream2) -> Vec<T>
+fn parse_list_of_numbers<T>(stream: TokenStream) -> Vec<T>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,

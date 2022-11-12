@@ -1,3 +1,5 @@
+use proc_macro2::TokenStream;
+
 use crate::{
     base::{Kind, SpannedItem},
     models::{NewtypeMeta, RawNewtypeMeta},
@@ -6,9 +8,10 @@ use crate::{
 // Sanitizer
 //
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum NumberSanitizer<T> {
     Clamp { min: T, max: T },
+    With(TokenStream),
 }
 
 pub type SpannedNumberSanitizer<T> = SpannedItem<NumberSanitizer<T>>;
@@ -16,12 +19,14 @@ pub type SpannedNumberSanitizer<T> = SpannedItem<NumberSanitizer<T>>;
 #[derive(Debug, PartialEq, Eq)]
 pub enum NumberSanitizerKind {
     Clamp,
+    With,
 }
 
 impl std::fmt::Display for NumberSanitizerKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Clamp => write!(f, "clamp"),
+            Self::With => write!(f, "with"),
         }
     }
 }
@@ -32,6 +37,7 @@ impl<T> Kind for NumberSanitizer<T> {
     fn kind(&self) -> NumberSanitizerKind {
         match self {
             Self::Clamp { .. } => NumberSanitizerKind::Clamp,
+            Self::With(_) => NumberSanitizerKind::With,
         }
     }
 }

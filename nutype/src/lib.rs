@@ -6,19 +6,16 @@ mod tests {
 
     #[test]
     fn test_email_example() {
-         #[nutype(
+        #[nutype(
              sanitize(trim, lowercase)
              validate(present)
          )]
-         pub struct Email(String);
+        pub struct Email(String);
 
-         let email = Email::try_from("  OH@my.example\n\n").unwrap();
-         assert_eq!(email.into_inner(), "oh@my.example");
+        let email = Email::try_from("  OH@my.example\n\n").unwrap();
+        assert_eq!(email.into_inner(), "oh@my.example");
 
-         assert_eq!(
-             Email::try_from("  \n\n"),
-             Err(EmailError::Missing)
-        );
+        assert_eq!(Email::try_from("  \n\n"), Err(EmailError::Missing));
     }
 
     #[test]

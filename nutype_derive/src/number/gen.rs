@@ -2,7 +2,7 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 
 use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
-use crate::models::NumberType;
+use crate::{common::gen::type_custom_sanitizier_closure, models::NumberType};
 
 pub fn gen_nutype_for_number<T>(
     number_type: NumberType,
@@ -32,6 +32,8 @@ where
 
     quote!(
         mod #module_name {
+            use super::*;
+
             // TODO: respect visiblity!
             #derive
             pub struct #type_name(#tp);
@@ -151,6 +153,14 @@ where
             NumberSanitizer::Clamp { min, max } => {
                 quote!(
                     value = value.clamp(#min, #max);
+                )
+            }
+            NumberSanitizer::With(token_stream) => {
+                let tp = Ident::new(std::any::type_name::<T>(), Span::call_site());
+                let tp = quote!(#tp);
+                let custom_sanitizer = type_custom_sanitizier_closure(token_stream, tp);
+                quote!(
+                    value = (#custom_sanitizer)(value);
                 )
             }
         })

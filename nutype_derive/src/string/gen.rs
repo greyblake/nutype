@@ -1,7 +1,10 @@
-use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
-use crate::models::{StringSanitizer, StringValidator};
+use crate::{
+    common::gen::type_custom_sanitizier_closure,
+    models::{StringSanitizer, StringValidator},
+};
 
 use super::models::NewtypeStringMeta;
 
@@ -140,6 +143,8 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
         .iter()
         .map(|san| match san {
             StringSanitizer::Trim => {
+                // TODO: consider optimizing sequences of [trim, lowercase] and [trim, uppercase] to avoid
+                // unnecessary allocation with `to_string()`
                 quote!(
                     let value: String = value.trim().to_string();
                 )
@@ -155,8 +160,10 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
                 )
             }
             StringSanitizer::With(custom_sanitizer_token_stream) => {
+                let tp = Ident::new("String", Span::call_site());
+                let tp = quote!(#tp);
                 let custom_sanitizer =
-                    type_custom_sanitizier_closure(custom_sanitizer_token_stream);
+                    type_custom_sanitizier_closure(custom_sanitizer_token_stream, tp);
                 quote!(
                     let value: String = (#custom_sanitizer)(value);
                 )
@@ -170,37 +177,6 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
             value
         }
     )
-}
-
-/// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
-/// the expected closure pattern.
-///
-/// Input:
-///   |s| s.trim().to_lowercase()
-/// Output:
-///   |s: String| s.trim().to_lowercase()
-fn type_custom_sanitizier_closure(custom_sanitizer: &TokenStream) -> TokenStream {
-    let mut ts: Vec<TokenTree> = custom_sanitizer.clone().into_iter().collect();
-
-    if ts.len() >= 3 && is_pipe(&ts[0]) && is_ident(&ts[1]) && is_pipe(&ts[2]) {
-        let colon = TokenTree::Punct(Punct::new(':', Spacing::Alone));
-        let tp = TokenTree::Ident(Ident::new("String", Span::call_site()));
-        ts.insert(2, colon);
-        ts.insert(3, tp);
-    }
-
-    ts.into_iter().collect()
-}
-
-fn is_pipe(token: &TokenTree) -> bool {
-    match token {
-        TokenTree::Punct(ref punct) => punct.as_char() == '|',
-        _ => false,
-    }
-}
-
-fn is_ident(token: &TokenTree) -> bool {
-    matches!(token, TokenTree::Ident(_))
 }
 
 pub fn gen_error_type_name(type_name: &Ident) -> Ident {
@@ -235,6 +211,15 @@ pub fn gen_string_validate_fn(type_name: &Ident, validators: &[StringValidator])
                     }
                 )
             }
+            StringValidator::With(is_valid_fn) => {
+                let tp = quote!(&str);
+                let is_valid_fn = type_custom_sanitizier_closure(is_valid_fn, tp);
+                quote!(
+                    if !(#is_valid_fn)(&val) {
+                        return Err(#error_name::Invalid);
+                    }
+                )
+            }
         })
         .collect();
 
@@ -260,6 +245,9 @@ pub fn gen_validation_error_type(type_name: &Ident, validators: &[StringValidato
             }
             StringValidator::Present => {
                 quote!(Missing,)
+            }
+            StringValidator::With(_) => {
+                quote!(Invalid,)
             }
         })
         .collect();

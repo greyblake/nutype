@@ -1,6 +1,6 @@
 use crate::common::parse::{
-    is_comma, is_eq, parse_nutype_attributes, parse_value_as_number, split_and_parse,
-    try_unwrap_ident, parse_with_token_stream,
+    is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
+    split_and_parse, try_unwrap_ident,
 };
 use crate::models::{StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
@@ -52,63 +52,62 @@ fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer,
 }
 
 fn parse_validate_attrs(stream: TokenStream) -> Result<Vec<SpannedStringValidator>, syn::Error> {
-    let mut output = vec![];
-
-    let mut token_iter = stream.into_iter();
-    while let Some((validator, rest_iter)) = parse_validation_rule(token_iter)? {
-        token_iter = rest_iter;
-        output.push(validator);
-    }
-
-    Ok(output)
+    let tokens: Vec<TokenTree> = stream.into_iter().collect();
+    split_and_parse(tokens, is_comma, parse_validate_attr)
 }
 
-fn parse_validation_rule<ITER: Iterator<Item = TokenTree>>(
-    mut iter: ITER,
-) -> Result<Option<(SpannedStringValidator, ITER)>, syn::Error> {
-    match iter.next() {
-        Some(mut token) => {
-            // Skip punctuations between validators
-            if token.to_string() == "," {
-                token = iter.next().unwrap();
+// TODO: refactor
+// * Avoid unnecessary allocations
+// * Replace `parse_value_as_number()` with something better
+fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator, syn::Error> {
+    let mut token_iter = tokens.into_iter();
+    let token = token_iter.next();
+    if let Some(TokenTree::Ident(ident)) = token {
+        match ident.to_string().as_ref() {
+            "max_len" => {
+                let (value, _iter) = parse_value_as_number(token_iter)?;
+                let validator = StringValidator::MaxLen(value);
+                let parsed_validator = SpannedStringValidator {
+                    item: validator,
+                    span: ident.span(),
+                };
+                Ok(parsed_validator)
             }
-
-            let ident = try_unwrap_ident(token)?;
-            match ident.to_string().as_ref() {
-                "max_len" => {
-                    let (value, iter) = parse_value_as_number(iter)?;
-                    let validator = StringValidator::MaxLen(value);
-                    let parsed_validator = SpannedStringValidator {
-                        item: validator,
-                        span: ident.span(),
-                    };
-                    Ok(Some((parsed_validator, iter)))
-                }
-                "min_len" => {
-                    let (value, iter) = parse_value_as_number(iter)?;
-                    let validator = StringValidator::MinLen(value);
-                    let parsed_validator = SpannedStringValidator {
-                        item: validator,
-                        span: ident.span(),
-                    };
-                    Ok(Some((parsed_validator, iter)))
-                }
-                "present" => {
-                    let validator = StringValidator::Present;
-                    let parsed_validator = SpannedStringValidator {
-                        item: validator,
-                        span: ident.span(),
-                    };
-                    Ok(Some((parsed_validator, iter)))
-                }
-                validator => {
-                    let msg = format!("Unknown validation rule `{validator}`");
-                    let error = syn::Error::new(ident.span(), msg);
-                    Err(error)
-                }
+            "min_len" => {
+                let (value, _iter) = parse_value_as_number(token_iter)?;
+                let validator = StringValidator::MinLen(value);
+                let parsed_validator = SpannedStringValidator {
+                    item: validator,
+                    span: ident.span(),
+                };
+                Ok(parsed_validator)
+            }
+            "present" => {
+                let validator = StringValidator::Present;
+                let parsed_validator = SpannedStringValidator {
+                    item: validator,
+                    span: ident.span(),
+                };
+                Ok(parsed_validator)
+            }
+            "with" => {
+                let rest_tokens: Vec<_> = token_iter.collect();
+                let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
+                let validator = StringValidator::With(stream);
+                let parsed_validator = SpannedStringValidator {
+                    item: validator,
+                    span: ident.span(),
+                };
+                Ok(parsed_validator)
+            }
+            validator => {
+                let msg = format!("Unknown validation rule `{validator}`");
+                let error = syn::Error::new(ident.span(), msg);
+                Err(error)
             }
         }
-        None => Ok(None),
+    } else {
+        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
     }
 }
 
