@@ -45,10 +45,11 @@ impl<T> Kind for NumberSanitizer<T> {
 // Validator
 //
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum NumberValidator<T> {
     Min(T),
     Max(T),
+    With(TokenStream),
 }
 
 pub type SpannedNumberValidator<T> = SpannedItem<NumberValidator<T>>;
@@ -57,6 +58,7 @@ pub type SpannedNumberValidator<T> = SpannedItem<NumberValidator<T>>;
 pub enum NumberValidatorKind {
     Min,
     Max,
+    With,
 }
 
 impl std::fmt::Display for NumberValidatorKind {
@@ -64,6 +66,7 @@ impl std::fmt::Display for NumberValidatorKind {
         match self {
             Self::Min => write!(f, "min"),
             Self::Max => write!(f, "max"),
+            Self::With => write!(f, "with"),
         }
     }
 }
@@ -75,6 +78,7 @@ impl<T> Kind for NumberValidator<T> {
         match self {
             Self::Min(_) => NumberValidatorKind::Min,
             Self::Max(_) => NumberValidatorKind::Max,
+            Self::With(_) => NumberValidatorKind::With,
         }
     }
 }

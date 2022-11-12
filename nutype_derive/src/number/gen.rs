@@ -204,6 +204,18 @@ where
                     }
                 )
             }
+            NumberValidator::With(is_valid_fn) => {
+                let tp = Ident::new(std::any::type_name::<T>(), Span::call_site());
+                let tp = quote!(&#tp);
+                // TODO: rename type_custom_sanitizier_closure, cause it's used only for
+                // sanitizers
+                let is_valid_fn = type_custom_sanitizier_closure(is_valid_fn, tp);
+                quote!(
+                    if !(#is_valid_fn)(&val) {
+                        return Err(#error_name::Invalid);
+                    }
+                )
+            }
         })
         .collect();
 
@@ -229,6 +241,9 @@ fn gen_validation_error_type<T>(
             }
             NumberValidator::Max(_) => {
                 quote!(TooBig,)
+            }
+            NumberValidator::With(_) => {
+                quote!(Invalid,)
             }
         })
         .collect();

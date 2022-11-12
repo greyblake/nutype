@@ -78,6 +78,45 @@ mod validators {
         assert_eq!(Age::try_from(100).unwrap_err(), AgeError::TooBig);
         assert_eq!(Age::try_from(25).unwrap().into_inner(), 25);
     }
+
+    #[cfg(test)]
+    mod with {
+        use super::*;
+
+        #[test]
+        fn test_with_closure_with_explicit_type() {
+            #[nutype(validate(with = |c: &i32| (0..=100).contains(c) ))]
+            pub struct Cent(i32);
+
+            assert_eq!(Cent::try_from(-10), Err(CentError::Invalid));
+            assert_eq!(Cent::try_from(101), Err(CentError::Invalid));
+            assert_eq!(Cent::try_from(100).unwrap().into_inner(), 100);
+        }
+
+        #[test]
+        fn test_closure_with_no_type() {
+            #[nutype(validate(with = |c| (0..=100).contains(c) ))]
+            pub struct Cent(i32);
+
+            assert_eq!(Cent::try_from(-10), Err(CentError::Invalid));
+            assert_eq!(Cent::try_from(101), Err(CentError::Invalid));
+            assert_eq!(Cent::try_from(100).unwrap().into_inner(), 100);
+        }
+
+        fn is_cent_valid(val: &i32) -> bool {
+            (0..=100).contains(val)
+        }
+
+        #[test]
+        fn test_with_function() {
+            #[nutype(validate(with = is_cent_valid))]
+            pub struct Cent(i32);
+
+            assert_eq!(Cent::try_from(-1), Err(CentError::Invalid));
+            assert_eq!(Cent::try_from(101), Err(CentError::Invalid));
+            assert_eq!(Cent::try_from(100).unwrap().into_inner(), 100);
+        }
+    }
 }
 
 #[cfg(test)]
