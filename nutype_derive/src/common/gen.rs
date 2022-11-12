@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, Punct, Spacing, TokenStream, TokenTree};
+use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
 
 /// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
 /// the expected closure pattern.

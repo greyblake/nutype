@@ -118,25 +118,25 @@ where
                 let min = iter.next().unwrap();
                 let max = iter.next().unwrap();
                 let sanitizer = NumberSanitizer::Clamp { min, max };
-                return Ok(SpannedNumberSanitizer {
+                Ok(SpannedNumberSanitizer {
                     span,
                     item: sanitizer,
-                });
+                })
             }
             "with" => {
                 // Preserve the rest as `custom_sanitizer_fn`
                 let stream = parse_with_token_stream(token_iter, ident.span())?;
                 let span = ident.span().join(stream.span()).unwrap();
                 let sanitizer = NumberSanitizer::With(stream);
-                return Ok(SpannedNumberSanitizer {
+                Ok(SpannedNumberSanitizer {
                     span,
                     item: sanitizer,
-                });
+                })
             }
             unknown_sanitizer => {
                 let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
                 let error = syn::Error::new(ident.span(), msg);
-                return Err(error);
+                Err(error)
             }
         }
     } else {
