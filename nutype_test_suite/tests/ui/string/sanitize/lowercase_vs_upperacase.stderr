@@ -1,0 +1,6 @@
+error: Using both sanitizers `lowercase` and `uppercase` makes no sense.
+       You're a great developer! Take care of yourself, a 5 mins break may help.
+ --> tests/ui/string/sanitize/lowercase_vs_upperacase.rs:3:25
+  |
+3 | #[nutype(sanitize(trim, lowercase, uppercase))]
+  |                         ^^^^^^^^^^^^^^^^^^^^

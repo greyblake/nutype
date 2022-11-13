@@ -1,0 +1,5 @@
+error: Unknown validation rule `meaningful`
+ --> tests/ui/number/validate/unknown.rs:3:19
+  |
+3 | #[nutype(validate(meaningful))]
+  |                   ^^^^^^^^^^

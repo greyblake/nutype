@@ -1,0 +1,5 @@
+error: Unknown validation rule `unique`
+ --> tests/ui/string/validate/unknown.rs:3:19
+  |
+3 | #[nutype(validate(unique))]
+  |                   ^^^^^^

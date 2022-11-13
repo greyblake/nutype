@@ -1,0 +1,7 @@
+error: Duplicated sanitizer `with`.
+       It happens, don't worry. We still love you!
+ --> tests/ui/number/sanitize/duplicated.rs:5:9
+  |
+5 | /         with = |n| n,
+6 | |         with = |n| n,
+  | |____________________^

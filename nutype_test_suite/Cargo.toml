@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 nutype = { path = "../nutype" }
+trybuild = { version = "1.0.71", features = ["diff"] }

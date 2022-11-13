@@ -1,0 +1,5 @@
+error: Unknown sanitizer `cleanup`
+ --> tests/ui/string/sanitize/unknown.rs:3:19
+  |
+3 | #[nutype(sanitize(cleanup = true))]
+  |                   ^^^^^^^

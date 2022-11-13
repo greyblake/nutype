@@ -69,7 +69,7 @@ fn validate_sanitizers(
     sanitizers: Vec<SpannedStringSanitizer>,
 ) -> Result<Vec<StringSanitizer>, syn::Error> {
     validate_duplicates(&sanitizers, |kind| {
-        format!("Duplicated sanitizer `{kind}`.\nYou're doing well, it's not bad unless you forget to call your mom!")
+        format!("Duplicated sanitizer `{kind}`.\nYou're doing well, it's not that bad unless you forgot to call your mom!")
     })?;
 
     // Validate lowercase VS uppercase

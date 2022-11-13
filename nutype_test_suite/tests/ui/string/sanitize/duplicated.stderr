@@ -1,0 +1,6 @@
+error: Duplicated sanitizer `trim`.
+       You're doing well, it's not that bad unless you forgot to call your mom!
+ --> tests/ui/string/sanitize/duplicated.rs:3:19
+  |
+3 | #[nutype(sanitize(trim, lowercase, trim))]
+  |                   ^^^^^^^^^^^^^^^^^^^^^

@@ -1,0 +1,5 @@
+error: Unknown sanitizer `convert_to_euro`
+ --> tests/ui/number/sanitize/unknown.rs:3:19
+  |
+3 | #[nutype(sanitize(convert_to_euro))]
+  |                   ^^^^^^^^^^^^^^^

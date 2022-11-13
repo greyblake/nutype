@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* UI tests
 * Respect visibility
 * Respect documentation
 * Use `new`, instead of `from` and `try_from`
@@ -33,3 +32,4 @@ String sanitizers:
 * Custom validators for strings
 * Custom sanitizers for numbers
 * Custom validators for numbers
+* Setup compiletests
