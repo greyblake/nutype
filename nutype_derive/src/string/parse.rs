@@ -110,18 +110,3 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
         Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use quote::quote;
-
-    #[test]
-    fn test_validate_attrs_with_errors() {
-        let tokens = quote!(max_len = -1);
-        assert!(parse_validate_attrs(tokens).is_err());
-
-        let tokens = quote!(present = 3);
-        assert!(parse_validate_attrs(tokens).is_err());
-    }
-}
