@@ -117,21 +117,6 @@ mod tests {
     use quote::quote;
 
     #[test]
-    fn test_validate_attrs() {
-        let tokens = quote!(max_len = 13, min_len = 7, present);
-        let validators = parse_validate_attrs(tokens).unwrap();
-        let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.item).collect();
-        assert_eq!(
-            validators,
-            vec![
-                StringValidator::MaxLen(13),
-                StringValidator::MinLen(7),
-                StringValidator::Present,
-            ]
-        );
-    }
-
-    #[test]
     fn test_validate_attrs_with_errors() {
         let tokens = quote!(max_len = -1);
         assert!(parse_validate_attrs(tokens).is_err());

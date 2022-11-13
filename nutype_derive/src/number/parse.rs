@@ -183,22 +183,3 @@ where
 
     output
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::number::models::NumberSanitizer;
-
-    #[test]
-    fn test_parse_sanitize_attrs() {
-        let tokens = quote::quote! {
-            clamp(-4, 10)
-        };
-        let parsed_sanitizers = parse_sanitize_attrs::<i32>(tokens).unwrap();
-        let sanitizers: Vec<_> = parsed_sanitizers.into_iter().map(|s| s.item).collect();
-        assert_eq!(
-            sanitizers,
-            vec![NumberSanitizer::Clamp { min: -4, max: 10 }]
-        );
-    }
-}
