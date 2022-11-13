@@ -40,13 +40,11 @@ pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> Toke
 pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) -> TokenStream {
     let methods = gen_impl_methods(type_name);
     let convert_implementation = match meta {
-        NewtypeStringMeta::From { sanitizers } => {
-            gen_string_from_implementation(type_name, sanitizers)
-        }
+        NewtypeStringMeta::From { sanitizers } => gen_new_and_from(type_name, sanitizers),
         NewtypeStringMeta::TryFrom {
             sanitizers,
             validators,
-        } => gen_string_try_from_implementation(type_name, sanitizers, validators),
+        } => gen_new_and_try_from(type_name, sanitizers, validators),
     };
 
     quote! {
@@ -71,31 +69,33 @@ fn gen_impl_methods(type_name: &Ident) -> TokenStream {
     }
 }
 
-fn gen_string_from_implementation(
-    type_name: &Ident,
-    sanitizers: &[StringSanitizer],
-) -> TokenStream {
+fn gen_new_and_from(type_name: &Ident, sanitizers: &[StringSanitizer]) -> TokenStream {
     let sanitize = gen_string_sanitize_fn(sanitizers);
 
     quote!(
         #sanitize
 
+        impl #type_name {
+            pub fn new(raw_value: impl Into<String>) -> Self {
+                #type_name(sanitize(raw_value.into()))
+            }
+        }
+
         impl ::core::convert::From<String> for #type_name {
-            fn from(raw_value: String) -> #type_name {
-                #type_name(sanitize(raw_value))
+            fn from(raw_value: String) -> Self {
+                Self::new(raw_value)
             }
         }
 
         impl ::core::convert::From<&str> for #type_name {
-            fn from(raw_value: &str) -> #type_name {
-                let raw_value = raw_value.to_string();
-                #type_name(sanitize(raw_value))
+            fn from(raw_value: &str) -> Self {
+                Self::new(raw_value)
             }
         }
     )
 }
 
-fn gen_string_try_from_implementation(
+fn gen_new_and_try_from(
     type_name: &Ident,
     sanitizers: &[StringSanitizer],
     validators: &[StringValidator],
@@ -109,6 +109,14 @@ fn gen_string_try_from_implementation(
         #sanitize
         #validation_error
         #validate
+
+        impl #type_name {
+            pub fn new(raw_value: impl Into<String>) -> Result<Self, #error_type_name> {
+                let sanitized_value = sanitize(raw_value.into());
+                validate(&sanitized_value)?;
+                Ok(#type_name(sanitized_value))
+            }
+        }
 
         impl ::core::convert::TryFrom<String> for #type_name {
             type Error = #error_type_name;

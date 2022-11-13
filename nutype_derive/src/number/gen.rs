@@ -54,11 +54,11 @@ where
     T: ToTokens + PartialOrd,
 {
     let convert_implementation = match meta {
-        NewtypeNumberMeta::From { sanitizers } => gen_from_implementation(type_name, sanitizers),
+        NewtypeNumberMeta::From { sanitizers } => gen_new_and_from(type_name, sanitizers),
         NewtypeNumberMeta::TryFrom {
             sanitizers,
             validators,
-        } => gen_try_from_implementation(type_name, sanitizers, validators),
+        } => gen_new_and_try_from(type_name, sanitizers, validators),
     };
     let methods = gen_impl_methods(type_name, inner_type);
 
@@ -84,26 +84,32 @@ fn gen_impl_methods(type_name: &Ident, inner_type: NumberType) -> TokenStream {
     }
 }
 
-fn gen_from_implementation<T>(type_name: &Ident, sanitizers: &[NumberSanitizer<T>]) -> TokenStream
+fn gen_new_and_from<T>(type_name: &Ident, sanitizers: &[NumberSanitizer<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
-    let tp: TokenStream =
+    let inner_type: TokenStream =
         syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
     let sanitize = gen_sanitize_fn(sanitizers);
 
     quote!(
         #sanitize
 
-        impl ::core::convert::From<#tp> for #type_name {
-            fn from(raw_value: #tp) -> #type_name {
-                #type_name(sanitize(raw_value))
+        impl #type_name {
+            pub fn new(raw_value: #inner_type) -> Self {
+                Self(sanitize(raw_value))
+            }
+        }
+
+        impl ::core::convert::From<#inner_type> for #type_name {
+            fn from(raw_value: #inner_type) -> Self {
+                Self::new(raw_value)
             }
         }
     )
 }
 
-fn gen_try_from_implementation<T>(
+fn gen_new_and_try_from<T>(
     type_name: &Ident,
     sanitizers: &[NumberSanitizer<T>],
     validators: &[NumberValidator<T>],
@@ -111,7 +117,7 @@ fn gen_try_from_implementation<T>(
 where
     T: ToTokens + PartialOrd,
 {
-    let tp: TokenStream =
+    let inner_type: TokenStream =
         syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
     let sanitize = gen_sanitize_fn(sanitizers);
     let validation_error = gen_validation_error_type(type_name, validators);
@@ -123,13 +129,19 @@ where
         #validation_error
         #validate
 
-        impl ::core::convert::TryFrom<#tp> for #type_name {
-            type Error = #error_type_name;
-
-            fn try_from(raw_value: #tp) -> Result<#type_name, Self::Error> {
+        impl #type_name {
+            pub fn new(raw_value: #inner_type) -> Result<Self, #error_type_name> {
                 let sanitized_value = sanitize(raw_value);
                 validate(sanitized_value)?;
                 Ok(#type_name(sanitized_value))
+            }
+        }
+
+        impl ::core::convert::TryFrom<#inner_type> for #type_name {
+            type Error = #error_type_name;
+
+            fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
+                #type_name::new(raw_value)
             }
         }
     )

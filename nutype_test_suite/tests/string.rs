@@ -9,10 +9,10 @@ mod sanitizers {
         #[nutype(sanitize(trim))]
         pub struct Name(String);
 
-        assert_eq!(Name::from("").into_inner(), "");
-        assert_eq!(Name::from("\n\t ").into_inner(), "");
-        assert_eq!(Name::from(" ! ").into_inner(), "!");
-        assert_eq!(Name::from(" foo \n bar ").into_inner(), "foo \n bar");
+        assert_eq!(Name::new("").into_inner(), "");
+        assert_eq!(Name::new("\n\t ").into_inner(), "");
+        assert_eq!(Name::new(" ! ").into_inner(), "!");
+        assert_eq!(Name::new(" foo \n bar ").into_inner(), "foo \n bar");
     }
 
     #[test]
@@ -20,8 +20,8 @@ mod sanitizers {
         #[nutype(sanitize(lowercase))]
         pub struct Name(String);
 
-        assert_eq!(Name::from("  ").into_inner(), "  ");
-        assert_eq!(Name::from("Hello THERE").into_inner(), "hello there");
+        assert_eq!(Name::new("  ").into_inner(), "  ");
+        assert_eq!(Name::new("Hello THERE").into_inner(), "hello there");
     }
 
     #[test]
@@ -29,8 +29,8 @@ mod sanitizers {
         #[nutype(sanitize(uppercase))]
         pub struct Name(String);
 
-        assert_eq!(Name::from(" ").into_inner(), " ");
-        assert_eq!(Name::from("Hello THERE").into_inner(), "HELLO THERE");
+        assert_eq!(Name::new(" ").into_inner(), " ");
+        assert_eq!(Name::new("Hello THERE").into_inner(), "HELLO THERE");
     }
 
     #[cfg(test)]
@@ -42,7 +42,7 @@ mod sanitizers {
             #[nutype(sanitize(with = |s: String| s.trim().to_uppercase() ))]
             pub struct Name(String);
 
-            assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
+            assert_eq!(Name::new(" Anton\n\n").into_inner(), "ANTON");
         }
 
         #[test]
@@ -50,7 +50,7 @@ mod sanitizers {
             #[nutype(sanitize(with = |s| s.trim().to_uppercase() ))]
             pub struct Name(String);
 
-            assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
+            assert_eq!(Name::new(" Anton\n\n").into_inner(), "ANTON");
         }
 
         fn sanitize_name(raw_name: String) -> String {
@@ -62,7 +62,7 @@ mod sanitizers {
             #[nutype(sanitize(with = sanitize_name))]
             pub struct Name(String);
 
-            assert_eq!(Name::from(" Anton\n\n").into_inner(), "ANTON");
+            assert_eq!(Name::new(" Anton\n\n").into_inner(), "ANTON");
         }
     }
 
@@ -71,7 +71,18 @@ mod sanitizers {
         #[nutype(sanitize(trim, uppercase, with = |s| s[1..=2].to_string()))]
         pub struct Country(String);
 
-        assert_eq!(Country::from(" Deutschland ").into_inner(), "EU");
+        assert_eq!(Country::new(" Deutschland ").into_inner(), "EU");
+    }
+
+    #[test]
+    fn test_from_trait() {
+        #[nutype(sanitize(trim, lowercase))]
+        pub struct Email(String);
+
+        assert_eq!(
+            Email::from("  Email@example.com ").into_inner(),
+            "email@example.com"
+        );
     }
 }
 
@@ -84,8 +95,8 @@ mod validators {
         #[nutype(validate(max_len = 5))]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from("Anton").unwrap().into_inner(), "Anton");
-        assert_eq!(Name::try_from("Serhii"), Err(NameError::TooLong));
+        assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
+        assert_eq!(Name::new("Serhii"), Err(NameError::TooLong));
     }
 
     #[test]
@@ -93,8 +104,8 @@ mod validators {
         #[nutype(validate(min_len = 6))]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from("Anton"), Err(NameError::TooShort));
-        assert_eq!(Name::try_from("Serhii").unwrap().into_inner(), "Serhii");
+        assert_eq!(Name::new("Anton"), Err(NameError::TooShort));
+        assert_eq!(Name::new("Serhii").unwrap().into_inner(), "Serhii");
     }
 
     #[test]
@@ -102,9 +113,9 @@ mod validators {
         #[nutype(validate(present))]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from(""), Err(NameError::Missing));
-        assert_eq!(Name::try_from(" ").unwrap().into_inner(), " ");
-        assert_eq!(Name::try_from("Julia").unwrap().into_inner(), "Julia");
+        assert_eq!(Name::new(""), Err(NameError::Missing));
+        assert_eq!(Name::new(" ").unwrap().into_inner(), " ");
+        assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
     }
 
     #[test]
@@ -112,9 +123,9 @@ mod validators {
         #[nutype(validate(min_len = 3, max_len = 6))]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from("Jo"), Err(NameError::TooShort));
-        assert_eq!(Name::try_from("Friedrich"), Err(NameError::TooLong));
-        assert_eq!(Name::try_from("Julia").unwrap().into_inner(), "Julia");
+        assert_eq!(Name::new("Jo"), Err(NameError::TooShort));
+        assert_eq!(Name::new("Friedrich"), Err(NameError::TooLong));
+        assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
     }
 
     #[cfg(test)]
@@ -126,9 +137,9 @@ mod validators {
             #[nutype(validate(with = |e: &str| e.contains('@')))]
             pub struct Email(String);
 
-            assert_eq!(Email::try_from("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
             assert_eq!(
-                Email::try_from("foo@bar.example").unwrap().into_inner(),
+                Email::new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
             );
         }
@@ -138,9 +149,9 @@ mod validators {
             #[nutype(validate(with = |e| e.contains('@')))]
             pub struct Email(String);
 
-            assert_eq!(Email::try_from("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
             assert_eq!(
-                Email::try_from("foo@bar.example").unwrap().into_inner(),
+                Email::new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
             );
         }
@@ -154,12 +165,21 @@ mod validators {
             #[nutype(validate(with = validate_email))]
             pub struct Email(String);
 
-            assert_eq!(Email::try_from("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
             assert_eq!(
-                Email::try_from("foo@bar.example").unwrap().into_inner(),
+                Email::new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
             );
         }
+    }
+
+    #[test]
+    fn test_try_from_trait() {
+        #[nutype(validate(present))]
+        pub struct Name(String);
+
+        assert_eq!(Name::try_from(""), Err(NameError::Missing));
+        assert_eq!(Name::try_from("Tom").unwrap().into_inner(), "Tom");
     }
 }
 
@@ -175,11 +195,8 @@ mod complex {
         )]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from("    "), Err(NameError::Missing));
-        assert_eq!(Name::try_from("Willy Brandt"), Err(NameError::TooLong));
-        assert_eq!(
-            Name::try_from("   Brandt  ").unwrap().into_inner(),
-            "BRANDT"
-        );
+        assert_eq!(Name::new("    "), Err(NameError::Missing));
+        assert_eq!(Name::new("Willy Brandt"), Err(NameError::TooLong));
+        assert_eq!(Name::new("   Brandt  ").unwrap().into_inner(), "BRANDT");
     }
 }

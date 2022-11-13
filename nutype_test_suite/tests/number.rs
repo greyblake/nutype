@@ -9,8 +9,8 @@ mod sanitizers {
         #[nutype(sanitize(clamp(18, 99)))]
         struct Age(u8);
 
-        assert_eq!(Age::from(17).into_inner(), 18);
-        assert_eq!(Age::from(100).into_inner(), 99);
+        assert_eq!(Age::new(17).into_inner(), 18);
+        assert_eq!(Age::new(100).into_inner(), 99);
     }
 
     #[cfg(test)]
@@ -22,7 +22,7 @@ mod sanitizers {
             #[nutype(sanitize(with = |n: i32| n.clamp(0, 100)))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::from(-10).into_inner(), 0);
+            assert_eq!(Cent::new(-10).into_inner(), 0);
         }
 
         #[test]
@@ -30,7 +30,7 @@ mod sanitizers {
             #[nutype(sanitize(with = |n| n.clamp(0, 100)))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::from(-10).into_inner(), 0);
+            assert_eq!(Cent::new(-10).into_inner(), 0);
         }
 
         fn sanitize_cent(value: i32) -> i32 {
@@ -42,8 +42,16 @@ mod sanitizers {
             #[nutype(sanitize(with = sanitize_cent))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::from(222).into_inner(), 100);
+            assert_eq!(Cent::new(222).into_inner(), 100);
         }
+    }
+
+    #[test]
+    fn test_from_trait() {
+        #[nutype(sanitize(with = |a| a.clamp(18, 99)))]
+        struct Age(u8);
+
+        assert_eq!(Age::from(17).into_inner(), 18);
     }
 }
 
@@ -56,8 +64,8 @@ mod validators {
         #[nutype(validate(min = 18))]
         struct Age(u8);
 
-        assert_eq!(Age::try_from(17).unwrap_err(), AgeError::TooSmall);
-        assert_eq!(Age::try_from(18).unwrap().into_inner(), 18);
+        assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
+        assert_eq!(Age::new(18).unwrap().into_inner(), 18);
     }
 
     #[test]
@@ -65,8 +73,8 @@ mod validators {
         #[nutype(validate(max = 99))]
         struct Age(u8);
 
-        assert_eq!(Age::try_from(100).unwrap_err(), AgeError::TooBig);
-        assert_eq!(Age::try_from(99).unwrap().into_inner(), 99);
+        assert_eq!(Age::new(100).unwrap_err(), AgeError::TooBig);
+        assert_eq!(Age::new(99).unwrap().into_inner(), 99);
     }
 
     #[test]
@@ -74,9 +82,9 @@ mod validators {
         #[nutype(validate(min = 18, max = 99))]
         struct Age(u8);
 
-        assert_eq!(Age::try_from(17).unwrap_err(), AgeError::TooSmall);
-        assert_eq!(Age::try_from(100).unwrap_err(), AgeError::TooBig);
-        assert_eq!(Age::try_from(25).unwrap().into_inner(), 25);
+        assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
+        assert_eq!(Age::new(100).unwrap_err(), AgeError::TooBig);
+        assert_eq!(Age::new(25).unwrap().into_inner(), 25);
     }
 
     #[cfg(test)]
@@ -88,9 +96,9 @@ mod validators {
             #[nutype(validate(with = |c: &i32| (0..=100).contains(c) ))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::try_from(-10), Err(CentError::Invalid));
-            assert_eq!(Cent::try_from(101), Err(CentError::Invalid));
-            assert_eq!(Cent::try_from(100).unwrap().into_inner(), 100);
+            assert_eq!(Cent::new(-10), Err(CentError::Invalid));
+            assert_eq!(Cent::new(101), Err(CentError::Invalid));
+            assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
         }
 
         #[test]
@@ -98,9 +106,9 @@ mod validators {
             #[nutype(validate(with = |c| (0..=100).contains(c) ))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::try_from(-10), Err(CentError::Invalid));
-            assert_eq!(Cent::try_from(101), Err(CentError::Invalid));
-            assert_eq!(Cent::try_from(100).unwrap().into_inner(), 100);
+            assert_eq!(Cent::new(-10), Err(CentError::Invalid));
+            assert_eq!(Cent::new(101), Err(CentError::Invalid));
+            assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
         }
 
         fn is_cent_valid(val: &i32) -> bool {
@@ -112,10 +120,19 @@ mod validators {
             #[nutype(validate(with = is_cent_valid))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::try_from(-1), Err(CentError::Invalid));
-            assert_eq!(Cent::try_from(101), Err(CentError::Invalid));
-            assert_eq!(Cent::try_from(100).unwrap().into_inner(), 100);
+            assert_eq!(Cent::new(-1), Err(CentError::Invalid));
+            assert_eq!(Cent::new(101), Err(CentError::Invalid));
+            assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
         }
+    }
+
+    #[test]
+    fn test_try_from_trait() {
+        #[nutype(validate(min = 18))]
+        struct Age(u8);
+
+        assert_eq!(Age::try_from(17).unwrap_err(), AgeError::TooSmall);
+        assert_eq!(Age::try_from(18).unwrap().into_inner(), 18);
     }
 }
 
@@ -131,9 +148,9 @@ mod number_types {
         )]
         struct Age(u8);
 
-        assert_eq!(Age::try_from(17), Err(AgeError::TooSmall));
-        assert_eq!(Age::try_from(100), Err(AgeError::TooBig));
-        assert!(Age::try_from(20).is_ok());
+        assert_eq!(Age::new(17), Err(AgeError::TooSmall));
+        assert_eq!(Age::new(100), Err(AgeError::TooBig));
+        assert!(Age::new(20).is_ok());
     }
 
     #[test]
@@ -141,8 +158,8 @@ mod number_types {
         #[nutype(sanitize(clamp(10, 100)))]
         struct Percentage(u8);
 
-        assert_eq!(Percentage::from(101), Percentage::from(100));
-        assert_eq!(Percentage::from(9), Percentage::from(10));
+        assert_eq!(Percentage::new(101), Percentage::new(100));
+        assert_eq!(Percentage::new(9), Percentage::new(10));
     }
 
     #[test]
@@ -150,9 +167,9 @@ mod number_types {
         #[nutype(validate(min = 18, max = 65000))]
         struct Age(u16);
 
-        assert_eq!(Age::try_from(17), Err(AgeError::TooSmall));
-        assert_eq!(Age::try_from(65001), Err(AgeError::TooBig));
-        assert!(Age::try_from(20).is_ok());
+        assert_eq!(Age::new(17), Err(AgeError::TooSmall));
+        assert_eq!(Age::new(65001), Err(AgeError::TooBig));
+        assert!(Age::new(20).is_ok());
     }
 
     #[test]
@@ -160,9 +177,9 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 100_000))]
         struct Amount(u32);
 
-        assert_eq!(Amount::try_from(17), Err(AmountError::TooSmall));
-        assert_eq!(Amount::try_from(100_001), Err(AmountError::TooBig));
-        assert!(Amount::try_from(100_000).is_ok());
+        assert_eq!(Amount::new(17), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(100_001), Err(AmountError::TooBig));
+        assert!(Amount::new(100_000).is_ok());
     }
 
     #[test]
@@ -170,12 +187,9 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 18446744073709551000))]
         struct Amount(u64);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
-        assert_eq!(
-            Amount::try_from(18446744073709551001),
-            Err(AmountError::TooBig)
-        );
-        assert!(Amount::try_from(1000).is_ok());
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(18446744073709551001), Err(AmountError::TooBig));
+        assert!(Amount::new(1000).is_ok());
     }
 
     #[test]
@@ -183,13 +197,13 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 170141183460469231731687303715884105828))]
         struct Amount(u128);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
         assert_eq!(
-            Amount::try_from(170141183460469231731687303715884105829),
+            Amount::new(170141183460469231731687303715884105829),
             Err(AmountError::TooBig)
         );
-        assert!(Amount::try_from(1000).is_ok());
-        assert!(Amount::try_from(170141183460469231731687303715884105828).is_ok());
+        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::new(170141183460469231731687303715884105828).is_ok());
     }
 
     #[test]
@@ -197,8 +211,8 @@ mod number_types {
         #[nutype(sanitize(clamp(0, 100)))]
         struct Percentage(i8);
 
-        assert_eq!(Percentage::from(101), Percentage::from(100));
-        assert_eq!(Percentage::from(-1), Percentage::from(0));
+        assert_eq!(Percentage::new(101), Percentage::new(100));
+        assert_eq!(Percentage::new(-1), Percentage::new(0));
     }
 
     #[test]
@@ -207,9 +221,9 @@ mod number_types {
         #[nutype(validate(min = 18, max = 99))]
         struct Age(i8);
 
-        assert_eq!(Age::try_from(17), Err(AgeError::TooSmall));
-        assert_eq!(Age::try_from(100), Err(AgeError::TooBig));
-        assert!(Age::try_from(20).is_ok());
+        assert_eq!(Age::new(17), Err(AgeError::TooSmall));
+        assert_eq!(Age::new(100), Err(AgeError::TooBig));
+        assert!(Age::new(20).is_ok());
     }
 
     #[test]
@@ -217,10 +231,10 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 32_000))]
         struct Amount(i16);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::try_from(32_001), Err(AmountError::TooBig));
-        assert!(Amount::try_from(1000).is_ok());
-        assert!(Amount::try_from(32_000).is_ok());
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(32_001), Err(AmountError::TooBig));
+        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::new(32_000).is_ok());
     }
 
     #[test]
@@ -228,12 +242,12 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 320_000))]
         struct Amount(i32);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::try_from(320_001), Err(AmountError::TooBig));
-        assert!(Amount::try_from(1000).is_ok());
-        assert!(Amount::try_from(320_000).is_ok());
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(320_001), Err(AmountError::TooBig));
+        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::new(320_000).is_ok());
 
-        let amount = Amount::try_from(2055).unwrap();
+        let amount = Amount::new(2055).unwrap();
         assert_eq!(amount.into_inner(), 2055);
     }
 
@@ -245,10 +259,10 @@ mod number_types {
         )]
         pub struct Balance(i32);
 
-        assert_eq!(Balance::try_from(-300), Err(BalanceError::TooSmall));
-        assert_eq!(Balance::try_from(-4), Err(BalanceError::TooBig));
+        assert_eq!(Balance::new(-300), Err(BalanceError::TooSmall));
+        assert_eq!(Balance::new(-4), Err(BalanceError::TooBig));
 
-        let balance = Balance::try_from(-55).unwrap();
+        let balance = Balance::new(-55).unwrap();
         assert_eq!(balance.into_inner(), -55);
     }
 
@@ -257,13 +271,10 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 8446744073709551000))]
         struct Amount(i64);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
-        assert_eq!(
-            Amount::try_from(8446744073709551001),
-            Err(AmountError::TooBig)
-        );
-        assert!(Amount::try_from(1000).is_ok());
-        assert!(Amount::try_from(8446744073709551000).is_ok());
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(8446744073709551001), Err(AmountError::TooBig));
+        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::new(8446744073709551000).is_ok());
     }
 
     #[test]
@@ -271,13 +282,13 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 70141183460469231731687303715884105000))]
         struct Amount(i128);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
         assert_eq!(
-            Amount::try_from(70141183460469231731687303715884105001),
+            Amount::new(70141183460469231731687303715884105001),
             Err(AmountError::TooBig)
         );
-        assert!(Amount::try_from(1000).is_ok());
-        assert!(Amount::try_from(70141183460469231731687303715884105000).is_ok());
+        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::new(70141183460469231731687303715884105000).is_ok());
     }
 
     #[test]
@@ -285,10 +296,10 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 2000))]
         struct Amount(usize);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::try_from(2001), Err(AmountError::TooBig));
-        assert!(Amount::try_from(1000).is_ok());
-        assert!(Amount::try_from(2000).is_ok());
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(2001), Err(AmountError::TooBig));
+        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::new(2000).is_ok());
     }
 
     #[test]
@@ -296,10 +307,10 @@ mod number_types {
         #[nutype(validate(min = 1000, max = 2000))]
         struct Amount(isize);
 
-        assert_eq!(Amount::try_from(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::try_from(2001), Err(AmountError::TooBig));
-        assert!(Amount::try_from(1000).is_ok());
-        assert!(Amount::try_from(2000).is_ok());
+        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(2001), Err(AmountError::TooBig));
+        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::new(2000).is_ok());
     }
 
     #[test]
@@ -307,10 +318,10 @@ mod number_types {
         #[nutype(validate(min = 0.0, max = 100))]
         pub struct Width(f32);
 
-        assert_eq!(Width::try_from(-0.0001), Err(WidthError::TooSmall));
-        assert_eq!(Width::try_from(100.0001), Err(WidthError::TooBig));
-        assert!(Width::try_from(0.0).is_ok());
-        assert!(Width::try_from(100.0).is_ok());
+        assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));
+        assert_eq!(Width::new(100.0001), Err(WidthError::TooBig));
+        assert!(Width::new(0.0).is_ok());
+        assert!(Width::new(100.0).is_ok());
     }
 
     #[test]
@@ -318,12 +329,12 @@ mod number_types {
         #[nutype(validate(min = 0.0, max = 100))]
         pub struct Width(f64);
 
-        assert_eq!(Width::try_from(-0.0001), Err(WidthError::TooSmall));
-        assert_eq!(Width::try_from(100.0001), Err(WidthError::TooBig));
+        assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));
+        assert_eq!(Width::new(100.0001), Err(WidthError::TooBig));
 
-        assert_eq!(Width::try_from(0.0).unwrap().into_inner(), 0.0);
+        assert_eq!(Width::new(0.0).unwrap().into_inner(), 0.0);
 
-        let w: f64 = Width::try_from(100.0).unwrap().into();
+        let w: f64 = Width::new(100.0).unwrap().into();
         assert_eq!(w, 100.0);
     }
 
@@ -335,10 +346,10 @@ mod number_types {
         )]
         pub struct Balance(f64);
 
-        assert_eq!(Balance::try_from(-300.0), Err(BalanceError::TooSmall));
-        assert_eq!(Balance::try_from(-4.0), Err(BalanceError::TooBig));
+        assert_eq!(Balance::new(-300.0), Err(BalanceError::TooSmall));
+        assert_eq!(Balance::new(-4.0), Err(BalanceError::TooBig));
 
-        let balance = Balance::try_from(-100.24).unwrap();
+        let balance = Balance::new(-100.24).unwrap();
         assert_eq!(balance.into_inner(), -100.24);
     }
 }
