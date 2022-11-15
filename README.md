@@ -1,10 +1,9 @@
 ## Roadmap
 
 ### TODO:
-* Respect visibility
 * Respect documentation
-* Use `new`, instead of `from` and `try_from`
 * `derive(*)` - syntax to derive all possible traits
+* Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Regex
 * Support serde
   * Serialize
@@ -25,6 +24,8 @@ String sanitizers:
   * truncate
   * Remove extra spaces
 * Impl FromStr for String types
+* Extra validations for floats:
+  * `is_number` (aka not NaN, and not `Inifinity`)
 
 
 ### Done
@@ -33,3 +34,5 @@ String sanitizers:
 * Custom sanitizers for numbers
 * Custom validators for numbers
 * Setup compiletests
+* Use `new`, instead of `from` and `try_from`
+* Respect visibility

@@ -8,7 +8,11 @@ use crate::{
 
 use super::models::NewtypeStringMeta;
 
-pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> TokenStream {
+pub fn gen_nutype_for_string(
+    vis: syn::Visibility,
+    type_name: &Ident,
+    meta: NewtypeStringMeta,
+) -> TokenStream {
     let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_string_implementation(type_name, &meta);
 
@@ -17,7 +21,7 @@ pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> Toke
         NewtypeStringMeta::TryFrom { .. } => {
             let error_type_name = gen_error_type_name(type_name);
             quote! (
-                pub use #module_name::#error_type_name;
+                #vis use #module_name::#error_type_name;
             )
         }
     };
@@ -27,12 +31,11 @@ pub fn gen_nutype_for_string(type_name: &Ident, meta: NewtypeStringMeta) -> Toke
             use super::*;
 
             #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
-            // TODO: respect visiblity!
             pub struct #type_name(String);
 
             #implementation
         }
-        pub use #module_name::#type_name;
+        #vis use #module_name::#type_name;
         #error_type_import
     )
 }

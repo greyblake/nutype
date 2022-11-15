@@ -1,10 +1,12 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
+use syn::Visibility;
 
 use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
 use crate::{common::gen::type_custom_sanitizier_closure, models::NumberType};
 
 pub fn gen_nutype_for_number<T>(
+    vis: Visibility,
     number_type: NumberType,
     type_name: &Ident,
     meta: NewtypeNumberMeta<T>,
@@ -24,7 +26,7 @@ where
         NewtypeNumberMeta::TryFrom { .. } => {
             let error_type_name = gen_error_type_name(type_name);
             quote! (
-                pub use #module_name::#error_type_name;
+                #vis use #module_name::#error_type_name;
             )
         }
     };
@@ -34,13 +36,12 @@ where
         mod #module_name {
             use super::*;
 
-            // TODO: respect visiblity!
             #derive
             pub struct #type_name(#tp);
 
             #implementation
         }
-        pub use #module_name::#type_name;
+        #vis use #module_name::#type_name;
         #error_type_import
     )
 }

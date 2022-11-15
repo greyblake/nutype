@@ -9,7 +9,6 @@ pub fn parse_type_name_and_inner_type(
     token_stream: TokenStream,
 ) -> Result<TypeNameAndInnerType, syn::Error> {
     let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
-
     let type_name = input.ident.clone();
 
     let data_struct = match &input.data {
@@ -77,5 +76,6 @@ pub fn parse_type_name_and_inner_type(
     Ok(TypeNameAndInnerType {
         type_name,
         inner_type,
+        vis: input.vis,
     })
 }

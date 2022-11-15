@@ -353,3 +353,19 @@ mod number_types {
         assert_eq!(balance.into_inner(), -100.24);
     }
 }
+
+#[cfg(test)]
+mod visibility {
+    mod encapsulated {
+        use nutype::nutype;
+
+        #[nutype(sanitize(with = |n: i32| n.clamp(0, 100)))]
+        pub struct Percentage(i32);
+    }
+
+    #[test]
+    fn test_public_visibility() {
+        let percentage = encapsulated::Percentage::new(133);
+        assert_eq!(percentage.into_inner(), 100);
+    }
+}

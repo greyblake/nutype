@@ -65,10 +65,12 @@ impl ToTokens for NumberType {
     }
 }
 
+// TODO: Rename
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeNameAndInnerType {
     pub type_name: Ident,
     pub inner_type: InnerType,
+    pub vis: syn::Visibility,
 }
 
 /// Validated model, that represents precisly what needs to be generated.

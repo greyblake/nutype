@@ -200,3 +200,19 @@ mod complex {
         assert_eq!(Name::new("   Brandt  ").unwrap().into_inner(), "BRANDT");
     }
 }
+
+#[cfg(test)]
+mod visibility {
+    mod encapsulated {
+        use nutype::nutype;
+
+        #[nutype(sanitize(lowercase))]
+        pub struct Email(String);
+    }
+
+    #[test]
+    fn test_public_visibility() {
+        let email = encapsulated::Email::new("FOO@bar.com");
+        assert_eq!(email.into_inner(), "foo@bar.com");
+    }
+}

@@ -1,0 +1,17 @@
+error[E0603]: struct import `Email` is private
+  --> tests/ui/string/visibility/private.rs:13:19
+   |
+13 |     encapsulated::Email::new("foo@bar.com");
+   |                   ^^^^^ private struct import
+   |
+note: the struct import `Email` is defined here...
+  --> tests/ui/string/visibility/private.rs:4:5
+   |
+4  |     #[nutype(sanitize(trim))]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: ...and refers to the struct `Email` which is defined here
+  --> tests/ui/string/visibility/private.rs:4:5
+   |
+4  |     #[nutype(sanitize(trim))]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ consider importing it directly
+   = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
