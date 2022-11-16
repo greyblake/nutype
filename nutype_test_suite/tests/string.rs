@@ -189,6 +189,8 @@ mod complex {
 
     #[test]
     fn test_sanitizers_and_validators() {
+        /// Some documentation for Name
+        /// goes here.
         #[nutype(
             sanitize(trim, with = |s| s.to_uppercase())
             validate(present, max_len = 6)

@@ -1,23 +1,33 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{spanned::Spanned, DeriveInput};
+use syn::{spanned::Spanned, Attribute, DeriveInput};
 
-use crate::models::{InnerType, TypeNameAndInnerType};
+use crate::{
+    common::parse::is_doc_attribute,
+    models::{InnerType, TypeNameAndInnerType},
+};
 
-// TODO: Parse visibility as well and documentation as well
 pub fn parse_type_name_and_inner_type(
     token_stream: TokenStream,
 ) -> Result<TypeNameAndInnerType, syn::Error> {
     let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
-    let type_name = input.ident.clone();
 
-    let data_struct = match &input.data {
+    let input_span = input.span();
+    let DeriveInput {
+        attrs,
+        data,
+        vis,
+        ident: type_name,
+        generics: _,
+    } = input;
+
+    let doc_attrs: Vec<Attribute> = attrs.into_iter().filter(is_doc_attribute).collect();
+
+    let data_struct = match &data {
         syn::Data::Struct(v) => v.clone(),
         _ => {
-            let error = syn::Error::new(
-                input.span(),
-                "#[nutype] can be used only with tuple structs.",
-            );
+            let error =
+                syn::Error::new(input_span, "#[nutype] can be used only with tuple structs.");
             return Err(error);
         }
     };
@@ -25,10 +35,8 @@ pub fn parse_type_name_and_inner_type(
     let fields_unnamed = match data_struct.fields {
         syn::Fields::Unnamed(fu) => fu,
         _ => {
-            let error = syn::Error::new(
-                input.span(),
-                "#[nutype] can be used only with tuple structs.",
-            );
+            let error =
+                syn::Error::new(input_span, "#[nutype] can be used only with tuple structs.");
             return Err(error);
         }
     };
@@ -74,8 +82,9 @@ pub fn parse_type_name_and_inner_type(
     };
 
     Ok(TypeNameAndInnerType {
+        doc_attrs,
         type_name,
         inner_type,
-        vis: input.vis,
+        vis,
     })
 }

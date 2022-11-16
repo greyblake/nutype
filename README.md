@@ -1,8 +1,10 @@
 ## Roadmap
 
 ### TODO:
-* Respect documentation
+* Generate documentation automatically.
+* Implement std::error::Error for errors
 * `derive(*)` - syntax to derive all possible traits
+  * Alternatively allow the regular `#[derive(Debug, Copy)]` syntax. The attributes can be read from syn
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Regex
 * Support serde
@@ -16,10 +18,11 @@
   * E.g. unknown validation rule `min`. Did you mean `min_len`?
 * Finalize syntax!
 * Setup CI
-Refactor parsers
-Number sanitizers:
+* Address TODOs
+* Refactor parsers
+* Number sanitizers:
   * Replace `clamp(a, b)` with something like `min = a, max = b`
-String sanitizers:
+* String sanitizers:
   * capitalize
   * truncate
   * Remove extra spaces
@@ -36,3 +39,4 @@ String sanitizers:
 * Setup compiletests
 * Use `new`, instead of `from` and `try_from`
 * Respect visibility
+* Respect documentation

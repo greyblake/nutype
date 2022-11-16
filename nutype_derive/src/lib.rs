@@ -30,6 +30,7 @@ fn expand_nutype(
     type_definition: TokenStream,
 ) -> Result<TokenStream, syn::Error> {
     let TypeNameAndInnerType {
+        doc_attrs,
         type_name,
         inner_type,
         vis,
@@ -39,10 +40,11 @@ fn expand_nutype(
         InnerType::String => {
             // TODO: rename to parse_string_attributes
             let meta = string::parse::parse_attributes(attrs)?;
-            Ok(gen_nutype_for_string(vis, &type_name, meta))
+            Ok(gen_nutype_for_string(doc_attrs, vis, &type_name, meta))
         }
         InnerType::Number(tp) => {
             let params = NumberParams {
+                doc_attrs,
                 vis,
                 tp,
                 type_name,
@@ -69,6 +71,7 @@ fn expand_nutype(
 }
 
 struct NumberParams {
+    doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
     tp: NumberType,
     type_name: Ident,
@@ -81,11 +84,12 @@ where
     <T as FromStr>::Err: Debug,
 {
     let NumberParams {
+        doc_attrs,
         vis,
         tp,
         type_name,
         attrs,
     } = params;
     let meta = number::parse::parse_attributes::<T>(attrs)?;
-    Ok(gen_nutype_for_number(vis, tp, &type_name, meta))
+    Ok(gen_nutype_for_number(doc_attrs, vis, tp, &type_name, meta))
 }

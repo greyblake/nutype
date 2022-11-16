@@ -6,6 +6,7 @@ use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
 use crate::{common::gen::type_custom_sanitizier_closure, models::NumberType};
 
 pub fn gen_nutype_for_number<T>(
+    doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
     number_type: NumberType,
     type_name: &Ident,
@@ -36,6 +37,7 @@ where
         mod #module_name {
             use super::*;
 
+            #(#doc_attrs)*
             #derive
             pub struct #type_name(#tp);
 

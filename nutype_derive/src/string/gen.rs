@@ -1,5 +1,6 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
+use syn::Attribute;
 
 use crate::{
     common::gen::type_custom_sanitizier_closure,
@@ -9,6 +10,7 @@ use crate::{
 use super::models::NewtypeStringMeta;
 
 pub fn gen_nutype_for_string(
+    doc_attrs: Vec<Attribute>,
     vis: syn::Visibility,
     type_name: &Ident,
     meta: NewtypeStringMeta,
@@ -30,6 +32,7 @@ pub fn gen_nutype_for_string(
         mod #module_name {
             use super::*;
 
+            #(#doc_attrs)*
             #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
             pub struct #type_name(String);
 

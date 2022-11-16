@@ -1,5 +1,6 @@
 use proc_macro2::{Ident, TokenStream as TokenStream2};
 use quote::{quote, ToTokens};
+use syn::Attribute;
 
 pub use crate::string::models::{StringSanitizer, StringValidator};
 
@@ -71,6 +72,7 @@ pub struct TypeNameAndInnerType {
     pub type_name: Ident,
     pub inner_type: InnerType,
     pub vis: syn::Visibility,
+    pub doc_attrs: Vec<Attribute>,
 }
 
 /// Validated model, that represents precisly what needs to be generated.

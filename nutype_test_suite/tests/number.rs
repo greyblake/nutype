@@ -19,6 +19,7 @@ mod sanitizers {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
+            /// Some documentation for Cent goes here.
             #[nutype(sanitize(with = |n: i32| n.clamp(0, 100)))]
             pub struct Cent(i32);
 

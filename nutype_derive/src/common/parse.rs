@@ -181,3 +181,10 @@ pub fn parse_with_token_stream<'a>(
     let rest = TokenStream::from_iter(token_iter.cloned());
     Ok(rest)
 }
+
+pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
+    match attribute.path.segments.first() {
+        Some(path_segment) => path_segment.ident == "doc",
+        None => false,
+    }
+}
