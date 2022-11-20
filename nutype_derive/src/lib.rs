@@ -12,7 +12,7 @@ use number::gen::gen_nutype_for_number;
 use parse::parse_type_name_and_inner_type;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
-use string::gen::gen_nutype_for_string;
+use string::{gen::gen_nutype_for_string, validate::validate_derive_traits};
 use syn::Visibility;
 
 #[proc_macro_attribute]
@@ -40,8 +40,10 @@ fn expand_nutype(
     match inner_type {
         InnerType::String => {
             let meta = string::parse::parse_attributes(attrs)?;
-            // TODO: inject derive_traits
-            Ok(gen_nutype_for_string(doc_attrs, vis, &type_name, meta))
+            let traits = validate_derive_traits(derive_traits)?;
+            Ok(gen_nutype_for_string(
+                doc_attrs, traits, vis, &type_name, meta,
+            ))
         }
         InnerType::Number(tp) => {
             // TODO: inject derive_traits

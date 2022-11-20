@@ -96,8 +96,8 @@ impl std::fmt::Display for StringValidatorKind {
 
 // Traits
 //
-#[derive(Debug, Clone, Copy)]
-pub enum StringTrait {
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+pub enum StringDeriveTrait {
     // Standard library
     Debug,
     Clone,

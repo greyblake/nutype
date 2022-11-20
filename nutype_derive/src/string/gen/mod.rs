@@ -1,5 +1,7 @@
 pub mod error;
 
+use std::collections::HashSet;
+
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::Attribute;
@@ -11,10 +13,11 @@ use crate::{
 
 use self::error::{gen_error_type_name, gen_validation_error_type};
 
-use super::models::NewtypeStringMeta;
+use super::models::{NewtypeStringMeta, StringDeriveTrait};
 
 pub fn gen_nutype_for_string(
     doc_attrs: Vec<Attribute>,
+    derive_traits: HashSet<StringDeriveTrait>,
     vis: syn::Visibility,
     type_name: &Ident,
     meta: NewtypeStringMeta,

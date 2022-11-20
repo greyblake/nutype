@@ -3,6 +3,8 @@
 ### TODO:
 * `derive(*)` - syntax to derive all possible traits
   * Alternatively allow the regular `#[derive(Debug, Copy)]` syntax. The attributes can be read from syn
+* Support derive traits:
+  * Hash
 * Impl FromStr for String types
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Regex

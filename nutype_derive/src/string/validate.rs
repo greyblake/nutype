@@ -1,10 +1,14 @@
+use std::collections::HashSet;
+
 use crate::base::Kind;
 use crate::common::validate::validate_duplicates;
-use crate::models::{StringSanitizer, StringValidator};
+use crate::models::{DeriveTrait, SpannedDeriveTrait, StringSanitizer, StringValidator};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 
-use super::models::{SpannedStringSanitizer, SpannedStringValidator, StringSanitizerKind};
+use super::models::{
+    SpannedStringSanitizer, SpannedStringValidator, StringDeriveTrait, StringSanitizerKind,
+};
 
 pub fn validate_string_meta(
     raw_meta: RawNewtypeStringMeta,
@@ -88,4 +92,64 @@ fn validate_sanitizers(
 
     let sanitizers: Vec<StringSanitizer> = sanitizers.into_iter().map(|s| s.item).collect();
     Ok(sanitizers)
+}
+
+pub fn validate_derive_traits(
+    spanned_derive_traits: Vec<SpannedDeriveTrait>,
+) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
+    let mut traits = HashSet::with_capacity(24);
+
+    for spanned_trait in spanned_derive_traits {
+        match spanned_trait.item {
+            DeriveTrait::Asterisk => {
+                traits.extend(
+                    [
+                        StringDeriveTrait::Debug,
+                        StringDeriveTrait::Clone,
+                        StringDeriveTrait::PartialEq,
+                        StringDeriveTrait::Eq,
+                        StringDeriveTrait::PartialOrd,
+                        StringDeriveTrait::Ord,
+                        StringDeriveTrait::FromStr,
+                        StringDeriveTrait::AsRef,
+                        // TODO: should depend on features
+                        // StringDeriveTrait::Serialize,
+                        // StringDeriveTrait::Deserialize,
+                        // StringDeriveTrait::Arbitrary,
+                    ]
+                    .iter(),
+                );
+                true
+            }
+            DeriveTrait::Debug => traits.insert(StringDeriveTrait::Debug),
+            DeriveTrait::Clone => traits.insert(StringDeriveTrait::Clone),
+            DeriveTrait::PartialEq => traits.insert(StringDeriveTrait::PartialEq),
+            DeriveTrait::Eq => traits.insert(StringDeriveTrait::Eq),
+            DeriveTrait::PartialOrd => traits.insert(StringDeriveTrait::PartialOrd),
+            DeriveTrait::Ord => traits.insert(StringDeriveTrait::Ord),
+            DeriveTrait::FromStr => traits.insert(StringDeriveTrait::FromStr),
+            DeriveTrait::AsRef => traits.insert(StringDeriveTrait::AsRef),
+            DeriveTrait::Serialize => {
+                unimplemented!("Serialize is not yet implemented");
+                // traits.insert(StringDeriveTrait::Serialize)
+            }
+            DeriveTrait::Deserialize => {
+                unimplemented!("Deserialize is not yet implemented");
+                traits.insert(StringDeriveTrait::Deserialize)
+            }
+            DeriveTrait::Arbitrary => {
+                unimplemented!("Arbitrary is not yet implemented");
+                traits.insert(StringDeriveTrait::Arbitrary)
+            }
+            DeriveTrait::Copy => {
+                let err = syn::Error::new(
+                    spanned_trait.span,
+                    "Copy trait cannot be derived for a String based type",
+                );
+                return Err(err);
+            }
+        };
+    }
+
+    Ok(traits)
 }
