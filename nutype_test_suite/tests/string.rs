@@ -181,6 +181,24 @@ mod validators {
         assert_eq!(Name::try_from(""), Err(NameError::Missing));
         assert_eq!(Name::try_from("Tom").unwrap().into_inner(), "Tom");
     }
+
+    #[test]
+    fn test_error() {
+        fn ensure_type_implements_error<T: std::error::Error>() {}
+
+        #[nutype(validate(present))]
+        pub struct Email(String);
+
+        ensure_type_implements_error::<EmailError>();
+    }
+
+    #[test]
+    fn test_error_display() {
+        #[nutype(validate(present))]
+        pub struct Email(String);
+
+        assert_eq!(EmailError::Missing.to_string(), "missing");
+    }
 }
 
 #[cfg(test)]

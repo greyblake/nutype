@@ -1,10 +1,9 @@
 ## Roadmap
 
 ### TODO:
-* Generate documentation automatically.
-* Implement std::error::Error for errors
 * `derive(*)` - syntax to derive all possible traits
   * Alternatively allow the regular `#[derive(Debug, Copy)]` syntax. The attributes can be read from syn
+* Impl FromStr for String types
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Regex
 * Support serde
@@ -26,7 +25,7 @@
   * capitalize
   * truncate
   * Remove extra spaces
-* Impl FromStr for String types
+* Generate documentation automatically.
 * Extra validations for floats:
   * `is_number` (aka not NaN, and not `Inifinity`)
 
@@ -40,3 +39,4 @@
 * Use `new`, instead of `from` and `try_from`
 * Respect visibility
 * Respect documentation
+* Implement std::error::Error for errors

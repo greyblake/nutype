@@ -1,3 +1,5 @@
+pub mod error;
+
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 use syn::Attribute;
@@ -7,7 +9,10 @@ use crate::{
     models::{StringSanitizer, StringValidator},
 };
 
+use self::error::{gen_validation_error_type, gen_error_type_name};
+
 use super::models::NewtypeStringMeta;
+
 
 pub fn gen_nutype_for_string(
     doc_attrs: Vec<Attribute>,
@@ -193,11 +198,6 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
     )
 }
 
-pub fn gen_error_type_name(type_name: &Ident) -> Ident {
-    let error_name_str = format!("{type_name}Error");
-    Ident::new(&error_name_str, Span::call_site())
-}
-
 pub fn gen_string_validate_fn(type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
     let error_name = gen_error_type_name(type_name);
 
@@ -243,33 +243,4 @@ pub fn gen_string_validate_fn(type_name: &Ident, validators: &[StringValidator])
             Ok(())
         }
     )
-}
-
-pub fn gen_validation_error_type(type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
-    let error_name = gen_error_type_name(type_name);
-
-    let error_variants: TokenStream = validators
-        .iter()
-        .map(|validator| match validator {
-            StringValidator::MaxLen(_len) => {
-                quote!(TooLong,)
-            }
-            StringValidator::MinLen(_len) => {
-                quote!(TooShort,)
-            }
-            StringValidator::Present => {
-                quote!(Missing,)
-            }
-            StringValidator::With(_) => {
-                quote!(Invalid,)
-            }
-        })
-        .collect();
-
-    quote! {
-        #[derive(Debug, Clone, PartialEq, Eq)]
-        pub enum #error_name {
-            #error_variants
-        }
-    }
 }

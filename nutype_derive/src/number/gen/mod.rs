@@ -1,9 +1,12 @@
+pub mod error;
+
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
 use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
 use crate::{common::gen::type_custom_sanitizier_closure, models::NumberType};
+use self::error::{gen_error_type_name, gen_validation_error_type};
 
 pub fn gen_nutype_for_number<T>(
     doc_attrs: Vec<syn::Attribute>,
@@ -189,11 +192,6 @@ where
     )
 }
 
-fn gen_error_type_name(type_name: &Ident) -> Ident {
-    let error_name_str = format!("{type_name}Error");
-    Ident::new(&error_name_str, Span::call_site())
-}
-
 fn gen_validate_fn<T>(type_name: &Ident, validators: &[NumberValidator<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
@@ -240,35 +238,6 @@ where
             Ok(())
         }
     )
-}
-
-fn gen_validation_error_type<T>(
-    type_name: &Ident,
-    validators: &[NumberValidator<T>],
-) -> TokenStream {
-    let error_name = gen_error_type_name(type_name);
-
-    let error_variants: TokenStream = validators
-        .iter()
-        .map(|validator| match validator {
-            NumberValidator::Min(_) => {
-                quote!(TooSmall,)
-            }
-            NumberValidator::Max(_) => {
-                quote!(TooBig,)
-            }
-            NumberValidator::With(_) => {
-                quote!(Invalid,)
-            }
-        })
-        .collect();
-
-    quote! {
-        #[derive(Debug, Clone, PartialEq, Eq)]
-        pub enum #error_name {
-            #error_variants
-        }
-    }
 }
 
 fn gen_derive(number_type: NumberType) -> TokenStream {
