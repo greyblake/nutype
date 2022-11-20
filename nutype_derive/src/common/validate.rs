@@ -14,7 +14,7 @@ where
         let kind = item1.kind();
         let msg = build_error_msg(kind);
         let span = item1.span().join(item2.span()).expect("Items (validators or sanitizers) for the same type expected to be defined in the same file");
-        let err = syn::Error::new(span, &msg);
+        let err = syn::Error::new(span, msg);
         return Err(err);
     }
     Ok(())

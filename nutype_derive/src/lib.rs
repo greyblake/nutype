@@ -34,15 +34,17 @@ fn expand_nutype(
         type_name,
         inner_type,
         vis,
+        derive_traits,
     } = parse_type_name_and_inner_type(type_definition)?;
 
     match inner_type {
         InnerType::String => {
-            // TODO: rename to parse_string_attributes
             let meta = string::parse::parse_attributes(attrs)?;
+            // TODO: inject derive_traits
             Ok(gen_nutype_for_string(doc_attrs, vis, &type_name, meta))
         }
         InnerType::Number(tp) => {
+            // TODO: inject derive_traits
             let params = NumberParams {
                 doc_attrs,
                 vis,

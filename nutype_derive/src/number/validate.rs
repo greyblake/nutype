@@ -58,7 +58,7 @@ where
         if min > max {
             let msg = "`min` cannot be greater than `max`.\nSometimes we all need a little break.";
             let span = min_span.join(max_span).unwrap();
-            let err = syn::Error::new(span, &msg);
+            let err = syn::Error::new(span, msg);
             return Err(err);
         }
     }
@@ -90,7 +90,7 @@ where
     if let Some((span, (min, max))) = maybe_clamp {
         if min > max {
             let msg = "Min cannot be creater than max in `clamp`";
-            let err = syn::Error::new(span, &msg);
+            let err = syn::Error::new(span, msg);
             return Err(err);
         }
     }

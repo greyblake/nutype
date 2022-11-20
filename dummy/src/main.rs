@@ -23,6 +23,7 @@ pub struct Email(String);
 /// assert_eq!(name.into_inner(), "Anton");
 /// ```
 #[nutype(validate(max = 100))]
+#[derive(*)]
 #[derive(Debug, Copy)]
 pub struct Value(i32);
 

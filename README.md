@@ -25,9 +25,9 @@
   * capitalize
   * truncate
   * Remove extra spaces
-* Generate documentation automatically.
 * Extra validations for floats:
-  * `is_number` (aka not NaN, and not `Inifinity`)
+  * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
+* Generate documentation automatically.
 
 
 ### Done

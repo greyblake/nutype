@@ -67,12 +67,13 @@ impl ToTokens for NumberType {
 }
 
 // TODO: Rename
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TypeNameAndInnerType {
     pub type_name: Ident,
     pub inner_type: InnerType,
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
+    pub derive_traits: Vec<DeriveTrait>,
 }
 
 /// Validated model, that represents precisly what needs to be generated.
@@ -92,4 +93,23 @@ pub enum NewtypeMeta<Sanitizer, Validator> {
 pub struct RawNewtypeMeta<Sanitizer, Validator> {
     pub sanitizers: Vec<Sanitizer>,
     pub validators: Vec<Validator>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DeriveTrait {
+    Asterisk,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    FromStr,
+    AsRef,
+
+    // external
+    Serialize,
+    Deserialize,
+    Arbitrary,
 }

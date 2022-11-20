@@ -4,9 +4,9 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
+use self::error::{gen_error_type_name, gen_validation_error_type};
 use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
 use crate::{common::gen::type_custom_sanitizier_closure, models::NumberType};
-use self::error::{gen_error_type_name, gen_validation_error_type};
 
 pub fn gen_nutype_for_number<T>(
     doc_attrs: Vec<syn::Attribute>,

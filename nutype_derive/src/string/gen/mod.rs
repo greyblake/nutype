@@ -9,10 +9,9 @@ use crate::{
     models::{StringSanitizer, StringValidator},
 };
 
-use self::error::{gen_validation_error_type, gen_error_type_name};
+use self::error::{gen_error_type_name, gen_validation_error_type};
 
 use super::models::NewtypeStringMeta;
-
 
 pub fn gen_nutype_for_string(
     doc_attrs: Vec<Attribute>,

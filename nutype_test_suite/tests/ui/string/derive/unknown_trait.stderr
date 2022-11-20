@@ -1,0 +1,5 @@
+error: unsupported trait derive: Bingo
+ --> tests/ui/string/derive/unknown_trait.rs:4:24
+  |
+4 | #[derive(Debug, Clone, Bingo, PartialEq)]
+  |                        ^^^^^

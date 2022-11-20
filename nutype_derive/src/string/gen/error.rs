@@ -50,23 +50,20 @@ fn gen_definition(error_type_name: &Ident, validators: &[StringValidator]) -> To
 }
 
 fn gen_impl_display_trait(error_type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
-   let match_arms = validators
-       .iter()
-       .map(|validator| match validator {
-           StringValidator::MaxLen(_len) => quote! {
-                #error_type_name::TooLong => write!(f, "too long")
-           },
-           StringValidator::MinLen(_len) => quote! {
-                #error_type_name::TooShort => write!(f, "too short")
-           },
-           StringValidator::Present => quote! {
-                #error_type_name::Missing => write!(f, "missing")
-           },
-           StringValidator::With(_) => quote! {
-                #error_type_name::Invalid => write!(f, "invalid")
-           }
-       });
-
+    let match_arms = validators.iter().map(|validator| match validator {
+        StringValidator::MaxLen(_len) => quote! {
+             #error_type_name::TooLong => write!(f, "too long")
+        },
+        StringValidator::MinLen(_len) => quote! {
+             #error_type_name::TooShort => write!(f, "too short")
+        },
+        StringValidator::Present => quote! {
+             #error_type_name::Missing => write!(f, "missing")
+        },
+        StringValidator::With(_) => quote! {
+             #error_type_name::Invalid => write!(f, "invalid")
+        },
+    });
 
     quote! {
         impl ::core::fmt::Display for #error_type_name {
@@ -78,7 +75,6 @@ fn gen_impl_display_trait(error_type_name: &Ident, validators: &[StringValidator
         }
     }
 }
-
 
 fn gen_impl_error_trait(error_type_name: &Ident) -> TokenStream {
     quote! {

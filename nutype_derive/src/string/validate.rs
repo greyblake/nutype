@@ -56,7 +56,7 @@ fn validate_validators(
         if min_len > max_len {
             let msg = "min_len cannot be greater than max_len.\nDon't you find this obvious?";
             let span = min_len_span.join(max_len_span).unwrap();
-            let err = syn::Error::new(span, &msg);
+            let err = syn::Error::new(span, msg);
             return Err(err);
         }
     }
@@ -82,7 +82,7 @@ fn validate_sanitizers(
     if let (Some(lowercase), Some(uppercase)) = (lowercase, uppercase) {
         let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're a great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
         let span = lowercase.span.join(uppercase.span).unwrap();
-        let err = syn::Error::new(span, &msg);
+        let err = syn::Error::new(span, msg);
         return Err(err);
     }
 

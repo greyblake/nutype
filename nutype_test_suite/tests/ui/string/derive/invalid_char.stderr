@@ -1,0 +1,5 @@
+error: Unexpected `!`
+ --> tests/ui/string/derive/invalid_char.rs:4:20
+  |
+4 | #[derive(Debug, *, !)]
+  |                    ^

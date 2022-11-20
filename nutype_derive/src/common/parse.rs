@@ -1,8 +1,9 @@
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
+use syn::spanned::Spanned;
 
-use crate::models::RawNewtypeMeta;
+use crate::models::{DeriveTrait, RawNewtypeMeta};
 
 /// ## Example
 /// Input (token stream):
@@ -186,5 +187,82 @@ pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
     match attribute.path.segments.first() {
         Some(path_segment) => path_segment.ident == "doc",
         None => false,
+    }
+}
+
+pub fn is_derive_attribute(attribute: &syn::Attribute) -> bool {
+    match attribute.path.segments.first() {
+        Some(path_segment) => path_segment.ident == "derive",
+        None => false,
+    }
+}
+
+pub fn parse_derive_traits(attributes: &[syn::Attribute]) -> Result<Vec<DeriveTrait>, syn::Error> {
+    let traits: Vec<Vec<DeriveTrait>> = attributes
+        .iter()
+        .filter(|a| is_derive_attribute(a))
+        .map(parse_derive_attr)
+        .collect::<Result<_, syn::Error>>()?;
+    Ok(traits.into_iter().flatten().collect())
+}
+
+fn parse_derive_attr(attr: &syn::Attribute) -> Result<Vec<DeriveTrait>, syn::Error> {
+    let maybe_token = attr.tokens.clone().into_iter().next();
+    let Some(token) = maybe_token else {
+        return Err(syn::Error::new(attr.span(), "derive() cannot be empty"));
+    };
+    let group = try_unwrap_group(token)?;
+
+    let derive_traits: Vec<DeriveTrait> = group
+        .stream()
+        .into_iter()
+        .map(parse_token_into_derive_trait)
+        .collect::<Result<Vec<Option<DeriveTrait>>, syn::Error>>()?
+        .into_iter()
+        .flatten()
+        .collect();
+
+    Ok(derive_traits)
+}
+
+fn parse_token_into_derive_trait(token: TokenTree) -> Result<Option<DeriveTrait>, syn::Error> {
+    match token {
+        TokenTree::Ident(ident) => {
+            let derive_trait = parse_ident_into_derive_trait(ident)?;
+            Ok(Some(derive_trait))
+        }
+        TokenTree::Punct(ref punct) => match punct.as_char() {
+            ',' => Ok(None),
+            '*' => Ok(Some(DeriveTrait::Asterisk)),
+            _ => Err(syn::Error::new(
+                token.span(),
+                format!("Unexpected `{token}`"),
+            )),
+        },
+        _ => Err(syn::Error::new(
+            token.span(),
+            format!("Unexpected `{token}`"),
+        )),
+    }
+}
+
+fn parse_ident_into_derive_trait(ident: Ident) -> Result<DeriveTrait, syn::Error> {
+    match ident.to_string().as_ref() {
+        "Debug" => Ok(DeriveTrait::Debug),
+        "Clone" => Ok(DeriveTrait::Clone),
+        "Copy" => Ok(DeriveTrait::Copy),
+        "PartialEq" => Ok(DeriveTrait::PartialEq),
+        "Eq" => Ok(DeriveTrait::Eq),
+        "PartialOrd" => Ok(DeriveTrait::PartialOrd),
+        "Ord" => Ok(DeriveTrait::Ord),
+        "FromStr" => Ok(DeriveTrait::FromStr),
+        "AsRef" => Ok(DeriveTrait::AsRef),
+        "Serialize" => Ok(DeriveTrait::Serialize),
+        "Deserialize" => Ok(DeriveTrait::Deserialize),
+        "Arbitrary" => Ok(DeriveTrait::Arbitrary),
+        _ => Err(syn::Error::new(
+            ident.span(),
+            format!("unsupported trait derive: {ident}"),
+        )),
     }
 }

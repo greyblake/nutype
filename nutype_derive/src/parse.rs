@@ -3,7 +3,7 @@ use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput};
 
 use crate::{
-    common::parse::is_doc_attribute,
+    common::parse::{is_doc_attribute, parse_derive_traits},
     models::{InnerType, TypeNameAndInnerType},
 };
 
@@ -21,6 +21,7 @@ pub fn parse_type_name_and_inner_type(
         generics: _,
     } = input;
 
+    let derive_traits = parse_derive_traits(&attrs)?;
     let doc_attrs: Vec<Attribute> = attrs.into_iter().filter(is_doc_attribute).collect();
 
     let data_struct = match &data {
@@ -86,5 +87,6 @@ pub fn parse_type_name_and_inner_type(
         type_name,
         inner_type,
         vis,
+        derive_traits,
     })
 }
