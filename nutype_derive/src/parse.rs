@@ -3,7 +3,7 @@ use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput};
 
 use crate::{
-    common::parse::{is_doc_attribute, parse_derive_traits},
+    common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
     models::{InnerType, TypeNameAndInnerType},
 };
 
@@ -21,6 +21,7 @@ pub fn parse_type_name_and_inner_type(
         generics: _,
     } = input;
 
+    validate_supported_attrs(&attrs)?;
     let derive_traits = parse_derive_traits(&attrs)?;
     let doc_attrs: Vec<Attribute> = attrs.into_iter().filter(is_doc_attribute).collect();
 
@@ -89,4 +90,21 @@ pub fn parse_type_name_and_inner_type(
         vis,
         derive_traits,
     })
+}
+
+fn validate_supported_attrs(attrs: &[syn::Attribute]) -> Result<(), syn::Error> {
+    fn is_supported_attr(attr: &syn::Attribute) -> bool {
+        is_doc_attribute(attr) || is_derive_attribute(attr)
+    }
+
+    for attr in attrs {
+        if !is_supported_attr(attr) {
+            return Err(syn::Error::new(
+                attr.span(),
+                format!("Unsupported attribute"),
+            ));
+        }
+    }
+
+    Ok(())
 }

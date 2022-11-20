@@ -6,14 +6,6 @@ use nutype_derive::nutype;
 )]
 pub struct Email(String);
 
-// fn sanitize_value(val: i32) -> i32 {
-//     if val > 100 {
-//         100
-//     } else {
-//         val
-//     }
-// }
-
 /// It should be cool here.
 /// I hope that is fine.
 ///
@@ -28,7 +20,6 @@ pub struct Email(String);
 pub struct Value(i32);
 
 fn main() {
-    //let email = Email::try_from("  EXAMPLE@mail.ORG\n").unwrap();
     let email = Email::try_from(" ").unwrap();
     println!("\n\nemail = {:?}\n\n", email);
     assert_eq!(email.into_inner(), "example@mail.org");
