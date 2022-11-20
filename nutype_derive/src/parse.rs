@@ -101,7 +101,7 @@ fn validate_supported_attrs(attrs: &[syn::Attribute]) -> Result<(), syn::Error> 
         if !is_supported_attr(attr) {
             return Err(syn::Error::new(
                 attr.span(),
-                format!("Unsupported attribute"),
+                "#[nutype] does not support this attribute",
             ));
         }
     }

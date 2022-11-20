@@ -2,6 +2,7 @@ use proc_macro2::{Ident, TokenStream as TokenStream2};
 use quote::{quote, ToTokens};
 use syn::Attribute;
 
+use crate::base::SpannedItem;
 pub use crate::string::models::{StringSanitizer, StringValidator};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -67,13 +68,13 @@ impl ToTokens for NumberType {
 }
 
 // TODO: Rename
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug)]
 pub struct TypeNameAndInnerType {
     pub type_name: Ident,
     pub inner_type: InnerType,
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
-    pub derive_traits: Vec<DeriveTrait>,
+    pub derive_traits: Vec<SpannedDeriveTrait>,
 }
 
 /// Validated model, that represents precisly what needs to be generated.
@@ -98,6 +99,8 @@ pub struct RawNewtypeMeta<Sanitizer, Validator> {
 #[derive(Debug, Clone, PartialEq)]
 pub enum DeriveTrait {
     Asterisk,
+
+    // Standard library
     Debug,
     Clone,
     Copy,
@@ -108,8 +111,10 @@ pub enum DeriveTrait {
     FromStr,
     AsRef,
 
-    // external
+    // External crates
     Serialize,
     Deserialize,
     Arbitrary,
 }
+
+pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;

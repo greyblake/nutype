@@ -94,6 +94,26 @@ impl std::fmt::Display for StringValidatorKind {
     }
 }
 
+// Traits
+//
+#[derive(Debug, Clone, Copy)]
+pub enum StringTrait {
+    // Standard library
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    FromStr,
+    AsRef,
+
+    // External crates
+    Serialize,
+    Deserialize,
+    Arbitrary,
+}
+
 // Meta
 
 pub type RawNewtypeStringMeta = RawNewtypeMeta<SpannedStringSanitizer, SpannedStringValidator>;
