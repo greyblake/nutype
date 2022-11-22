@@ -93,6 +93,7 @@ mod validators {
     #[test]
     fn test_max_len() {
         #[nutype(validate(max_len = 5))]
+        #[derive(*)]
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
@@ -102,6 +103,7 @@ mod validators {
     #[test]
     fn test_min_len() {
         #[nutype(validate(min_len = 6))]
+        #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton"), Err(NameError::TooShort));
@@ -111,6 +113,7 @@ mod validators {
     #[test]
     fn test_present() {
         #[nutype(validate(present))]
+        #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
         assert_eq!(Name::new(""), Err(NameError::Missing));
@@ -121,6 +124,7 @@ mod validators {
     #[test]
     fn test_many_validators() {
         #[nutype(validate(min_len = 3, max_len = 6))]
+        #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
         assert_eq!(Name::new("Jo"), Err(NameError::TooShort));
@@ -135,6 +139,7 @@ mod validators {
         #[test]
         fn test_with_closure_with_explicit_type() {
             #[nutype(validate(with = |e: &str| e.contains('@')))]
+            #[derive(Debug, PartialEq)]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -147,6 +152,7 @@ mod validators {
         #[test]
         fn test_closure_with_no_type() {
             #[nutype(validate(with = |e| e.contains('@')))]
+            #[derive(Debug, PartialEq)]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -163,6 +169,7 @@ mod validators {
         #[test]
         fn test_with_function() {
             #[nutype(validate(with = validate_email))]
+            #[derive(Debug, PartialEq)]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -176,6 +183,7 @@ mod validators {
     #[test]
     fn test_try_from_trait() {
         #[nutype(validate(present))]
+        #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
         assert_eq!(Name::try_from(""), Err(NameError::Missing));
@@ -187,6 +195,7 @@ mod validators {
         fn ensure_type_implements_error<T: std::error::Error>() {}
 
         #[nutype(validate(present))]
+        #[derive(Debug, PartialEq)]
         pub struct Email(String);
 
         ensure_type_implements_error::<EmailError>();
@@ -213,6 +222,7 @@ mod complex {
             sanitize(trim, with = |s| s.to_uppercase())
             validate(present, max_len = 6)
         )]
+        #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
         assert_eq!(Name::new("    "), Err(NameError::Missing));

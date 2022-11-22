@@ -107,11 +107,10 @@ pub enum StringDeriveTrait {
     Ord,
     FromStr,
     AsRef,
-
-    // External crates
-    Serialize,
-    Deserialize,
-    Arbitrary,
+    // // External crates
+    // Serialize,
+    // Deserialize,
+    // Arbitrary,
 }
 
 // Meta

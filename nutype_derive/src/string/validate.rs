@@ -135,11 +135,11 @@ pub fn validate_derive_traits(
             }
             DeriveTrait::Deserialize => {
                 unimplemented!("Deserialize is not yet implemented");
-                traits.insert(StringDeriveTrait::Deserialize)
+                // traits.insert(StringDeriveTrait::Deserialize)
             }
             DeriveTrait::Arbitrary => {
                 unimplemented!("Arbitrary is not yet implemented");
-                traits.insert(StringDeriveTrait::Arbitrary)
+                // traits.insert(StringDeriveTrait::Arbitrary)
             }
             DeriveTrait::Copy => {
                 let err = syn::Error::new(

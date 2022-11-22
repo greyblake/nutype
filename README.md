@@ -1,8 +1,8 @@
 ## Roadmap
 
 ### TODO:
-* `derive(*)` - syntax to derive all possible traits
-  * Alternatively allow the regular `#[derive(Debug, Copy)]` syntax. The attributes can be read from syn
+* Support derive of From and TryFrom for String
+* Support derive for numbers
 * Support derive traits:
   * Hash
 * Impl FromStr for String types
@@ -42,3 +42,4 @@
 * Respect visibility
 * Respect documentation
 * Implement std::error::Error for errors
+* Support derive for String

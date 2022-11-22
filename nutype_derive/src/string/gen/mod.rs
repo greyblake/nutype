@@ -1,4 +1,5 @@
 pub mod error;
+pub mod traits;
 
 use std::collections::HashSet;
 
@@ -11,13 +12,16 @@ use crate::{
     models::{StringSanitizer, StringValidator},
 };
 
-use self::error::{gen_error_type_name, gen_validation_error_type};
+use self::{
+    error::{gen_error_type_name, gen_validation_error_type},
+    traits::{gen_traits, GeneratedTraits},
+};
 
 use super::models::{NewtypeStringMeta, StringDeriveTrait};
 
 pub fn gen_nutype_for_string(
     doc_attrs: Vec<Attribute>,
-    derive_traits: HashSet<StringDeriveTrait>,
+    traits: HashSet<StringDeriveTrait>,
     vis: syn::Visibility,
     type_name: &Ident,
     meta: NewtypeStringMeta,
@@ -25,25 +29,35 @@ pub fn gen_nutype_for_string(
     let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_string_implementation(type_name, &meta);
 
-    let error_type_import = match meta {
-        NewtypeStringMeta::From { .. } => quote!(),
-        NewtypeStringMeta::TryFrom { .. } => {
-            let error_type_name = gen_error_type_name(type_name);
+    let maybe_error_type_name: Option<Ident> = match meta {
+        NewtypeStringMeta::From { .. } => None,
+        NewtypeStringMeta::TryFrom { .. } => Some(gen_error_type_name(type_name)),
+    };
+
+    let error_type_import = match maybe_error_type_name {
+        None => quote!(),
+        Some(ref error_type_name) => {
             quote! (
                 #vis use #module_name::#error_type_name;
             )
         }
     };
 
+    let GeneratedTraits {
+        derive_standard_traits,
+        implement_traits,
+    } = gen_traits(type_name, maybe_error_type_name, traits);
+
     quote!(
         mod #module_name {
             use super::*;
 
             #(#doc_attrs)*
-            #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+            #derive_standard_traits
             pub struct #type_name(String);
 
             #implementation
+            #implement_traits
         }
         #vis use #module_name::#type_name;
         #error_type_import

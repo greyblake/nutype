@@ -4,8 +4,10 @@ use nutype_derive::nutype;
     sanitize(trim, lowercase)
     validate(present, min_len = 5, with = |e: &str| e.contains('@'))
 )]
+#[derive(Debug, FromStr)]
 pub struct Email(String);
 
+/*
 /// It should be cool here.
 /// I hope that is fine.
 ///
@@ -18,12 +20,17 @@ pub struct Email(String);
 #[derive(*)]
 #[derive(Debug, Copy)]
 pub struct Value(i32);
+*/
 
 fn main() {
-    let email = Email::try_from(" ").unwrap();
+    let email = Email::try_from("  example@MAIL.ORG ").unwrap();
     println!("\n\nemail = {:?}\n\n", email);
     assert_eq!(email.into_inner(), "example@mail.org");
 
-    let value = Value::new(-15);
-    println!("value = {value:?}");
+    let my_mail: Email = "  TSHI@cool.com".parse().unwrap();
+
+    println!("my_mail = {:?}", my_mail);
+
+    // let value = Value::new(-15);
+    // println!("value = {value:?}");
 }
