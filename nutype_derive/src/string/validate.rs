@@ -54,12 +54,12 @@ fn validate_validators(
             _ => None,
         })
         .next();
-    if let (Some((min_len_span, min_len)), Some((max_len_span, max_len))) =
+    if let (Some((_min_len_span, min_len)), Some((max_len_span, max_len))) =
         (maybe_min_len, maybe_max_len)
     {
         if min_len > max_len {
             let msg = "min_len cannot be greater than max_len.\nDon't you find this obvious?";
-            let span = min_len_span.join(max_len_span).unwrap();
+            let span = max_len_span;
             let err = syn::Error::new(span, msg);
             return Err(err);
         }
@@ -85,7 +85,7 @@ fn validate_sanitizers(
         .find(|&s| s.kind() == StringSanitizerKind::Uppercase);
     if let (Some(lowercase), Some(uppercase)) = (lowercase, uppercase) {
         let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're a great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
-        let span = lowercase.span.join(uppercase.span).unwrap();
+        let span = lowercase.span;
         let err = syn::Error::new(span, msg);
         return Err(err);
     }
@@ -95,6 +95,7 @@ fn validate_sanitizers(
 }
 
 pub fn validate_derive_traits(
+    meta: &NewtypeStringMeta,
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
 ) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
     let mut traits = HashSet::with_capacity(24);
@@ -119,6 +120,10 @@ pub fn validate_derive_traits(
                     ]
                     .iter(),
                 );
+                match meta {
+                    NewtypeStringMeta::From { .. } => traits.insert(StringDeriveTrait::From),
+                    NewtypeStringMeta::TryFrom { .. } => traits.insert(StringDeriveTrait::TryFrom),
+                };
                 true
             }
             DeriveTrait::Debug => traits.insert(StringDeriveTrait::Debug),
@@ -147,6 +152,31 @@ pub fn validate_derive_traits(
                     "Copy trait cannot be derived for a String based type",
                 );
                 return Err(err);
+            }
+            DeriveTrait::From => {
+                match meta {
+                    NewtypeStringMeta::From { .. } => traits.insert(StringDeriveTrait::From),
+                    NewtypeStringMeta::TryFrom { .. } => {
+                        let err = syn::Error::new(
+                            spanned_trait.span,
+                            "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.",
+                        );
+                        return Err(err);
+                    }
+                }
+            }
+            DeriveTrait::TryFrom => {
+                match meta {
+                    NewtypeStringMeta::From { .. } => {
+                        // TODO: refactor: use closure
+                        let err = syn::Error::new(
+                            spanned_trait.span,
+                            "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead.",
+                        );
+                        return Err(err);
+                    },
+                    NewtypeStringMeta::TryFrom { .. } => traits.insert(StringDeriveTrait::TryFrom),
+                }
             }
         };
     }

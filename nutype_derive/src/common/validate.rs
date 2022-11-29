@@ -1,3 +1,4 @@
+use proc_macro2::Span;
 use syn::spanned::Spanned;
 
 use crate::base::Kind;
@@ -13,7 +14,7 @@ where
         assert_eq!(item1.kind(), item2.kind());
         let kind = item1.kind();
         let msg = build_error_msg(kind);
-        let span = item1.span().join(item2.span()).expect("Items (validators or sanitizers) for the same type expected to be defined in the same file");
+        let span = join_spans_or_last(item1.span(), item2.span());
         let err = syn::Error::new(span, msg);
         return Err(err);
     }
@@ -29,4 +30,8 @@ fn detect_items_of_same_kind<T: Kind>(items: &[T]) -> Option<(&T, &T)> {
         }
     }
     None
+}
+
+fn join_spans_or_last(span1: Span, span2: Span) -> Span {
+    span1.join(span2).unwrap_or_else(|| span2)
 }

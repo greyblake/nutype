@@ -40,7 +40,7 @@ fn expand_nutype(
     match inner_type {
         InnerType::String => {
             let meta = string::parse::parse_attributes(attrs)?;
-            let traits = validate_derive_traits(derive_traits)?;
+            let traits = validate_derive_traits(&meta, derive_traits)?;
             Ok(gen_nutype_for_string(
                 doc_attrs, traits, vis, &type_name, meta,
             ))

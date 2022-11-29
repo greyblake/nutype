@@ -77,6 +77,7 @@ mod sanitizers {
     #[test]
     fn test_from_trait() {
         #[nutype(sanitize(trim, lowercase))]
+        #[derive(Debug, PartialEq, From)]
         pub struct Email(String);
 
         assert_eq!(
@@ -183,7 +184,7 @@ mod validators {
     #[test]
     fn test_try_from_trait() {
         #[nutype(validate(present))]
-        #[derive(Debug, PartialEq)]
+        #[derive(Debug, PartialEq, TryFrom)]
         pub struct Name(String);
 
         assert_eq!(Name::try_from(""), Err(NameError::Missing));

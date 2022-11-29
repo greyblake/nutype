@@ -54,11 +54,10 @@ where
             _ => None,
         })
         .next();
-    if let (Some((min_span, min)), Some((max_span, max))) = (maybe_min, maybe_max) {
+    if let (Some((_min_span, min)), Some((max_span, max))) = (maybe_min, maybe_max) {
         if min > max {
             let msg = "`min` cannot be greater than `max`.\nSometimes we all need a little break.";
-            let span = min_span.join(max_span).unwrap();
-            let err = syn::Error::new(span, msg);
+            let err = syn::Error::new(max_span, msg);
             return Err(err);
         }
     }

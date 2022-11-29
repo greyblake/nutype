@@ -3,4 +3,4 @@ error: Using both sanitizers `lowercase` and `uppercase` makes no sense.
  --> tests/ui/string/sanitize/lowercase_vs_upperacase.rs:3:25
   |
 3 | #[nutype(sanitize(trim, lowercase, uppercase))]
-  |                         ^^^^^^^^^^^^^^^^^^^^
+  |                         ^^^^^^^^^

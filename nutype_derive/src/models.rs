@@ -110,6 +110,8 @@ pub enum DeriveTrait {
     Ord,
     FromStr,
     AsRef,
+    From,
+    TryFrom,
 
     // External crates
     Serialize,

@@ -1,19 +1,19 @@
 ## Roadmap
 
 ### TODO:
-* Support derive of From and TryFrom for String
+* Support derive of Borrow<str> and Borrow<String> for String types
+* Support derive Hash for String
 * Support derive for numbers
-* Support derive traits:
-  * Hash
 * Impl FromStr for String types
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
-* Regex
 * Support serde
   * Serialize
   * Deserialize
 * Support Arbitrary
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
+* Regex
+  * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
 * Support time libraries (e.g. chrono)
 * Impl  "did you mean" hints:
   * E.g. unknown validation rule `min`. Did you mean `min_len`?
@@ -43,3 +43,7 @@
 * Respect documentation
 * Implement std::error::Error for errors
 * Support derive for String
+* Support derive of From and TryFrom for String types
+* Add UI tests to detect conflicts:
+  * derive(TryFrom) without validations
+  * derive(From) with validations

@@ -4,7 +4,7 @@ use nutype_derive::nutype;
     sanitize(trim, lowercase)
     validate(present, min_len = 5, with = |e: &str| e.contains('@'))
 )]
-#[derive(Debug, FromStr)]
+#[derive(Debug, FromStr, TryFrom)]
 pub struct Email(String);
 
 /*

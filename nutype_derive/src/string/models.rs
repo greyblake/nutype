@@ -107,6 +107,8 @@ pub enum StringDeriveTrait {
     Ord,
     FromStr,
     AsRef,
+    From,
+    TryFrom,
     // // External crates
     // Serialize,
     // Deserialize,

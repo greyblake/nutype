@@ -47,6 +47,8 @@ impl From<StringDeriveTrait> for Trait {
             StringDeriveTrait::Ord => Trait::Derived(DerivedTrait::Ord),
             StringDeriveTrait::FromStr => Trait::Implemented(ImplementedTrait::FromStr),
             StringDeriveTrait::AsRef => Trait::Implemented(ImplementedTrait::AsRef),
+            StringDeriveTrait::From => Trait::Implemented(ImplementedTrait::From),
+            StringDeriveTrait::TryFrom => Trait::Implemented(ImplementedTrait::TryFrom),
         }
     }
 }
@@ -65,6 +67,8 @@ enum DerivedTrait {
 enum ImplementedTrait {
     FromStr,
     AsRef,
+    From,
+    TryFrom,
 }
 
 impl ToTokens for DerivedTrait {
@@ -109,6 +113,8 @@ fn gen_implemented_traits(
             ImplementedTrait::FromStr => {
                 gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
             }
+            ImplementedTrait::From => gen_impl_from(type_name),
+            ImplementedTrait::TryFrom => gen_impl_try_from(type_name, maybe_error_type_name.as_ref()),
         })
         .collect()
 }
@@ -142,6 +148,44 @@ fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
                 fn from_str(raw_string: &str) -> Result<Self, Self::Err> {
                     Ok(#type_name::new(raw_string))
                 }
+            }
+        }
+    }
+}
+
+fn gen_impl_from(type_name: &Ident) -> TokenStream {
+    quote! {
+        impl ::core::convert::From<String> for #type_name {
+            fn from(raw_value: String) -> Self {
+                Self::new(raw_value)
+            }
+        }
+
+        impl ::core::convert::From<&str> for #type_name {
+            fn from(raw_value: &str) -> Self {
+                Self::new(raw_value)
+            }
+        }
+    }
+}
+
+fn gen_impl_try_from(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -> TokenStream {
+    let error_type_name = maybe_error_type_name.expect("gen_impl_try_from() for String is expected to have error_type_name");
+
+    quote! {
+        impl ::core::convert::TryFrom<String> for #type_name {
+            type Error = #error_type_name;
+
+            fn try_from(raw_value: String) -> Result<#type_name, Self::Error> {
+                Self::new(raw_value)
+            }
+        }
+
+        impl ::core::convert::TryFrom<&str> for #type_name {
+            type Error = #error_type_name;
+
+            fn try_from(raw_value: &str) -> Result<#type_name, Self::Error> {
+                Self::new(raw_value)
             }
         }
     }

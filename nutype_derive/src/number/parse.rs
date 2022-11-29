@@ -6,7 +6,6 @@ use crate::common::parse::{
     split_and_parse, try_unwrap_group,
 };
 use proc_macro2::{Span, TokenStream, TokenTree};
-use syn::spanned::Spanned;
 
 use super::{
     models::{
@@ -54,8 +53,7 @@ where
         match ident.to_string().as_ref() {
             "clamp" => {
                 let t = token_iter.next().expect("clamp() cannot be empty");
-                let span = ident.span().join(t.span()).unwrap();
-
+                let span = ident.span();
                 let group = try_unwrap_group(t.clone())?;
                 let list: Vec<T> = parse_list_of_numbers(group.stream());
                 if list.len() != 2 {
@@ -76,7 +74,7 @@ where
             "with" => {
                 // Preserve the rest as `custom_sanitizer_fn`
                 let stream = parse_with_token_stream(token_iter, ident.span())?;
-                let span = ident.span().join(stream.span()).unwrap();
+                let span = ident.span();
                 let sanitizer = NumberSanitizer::With(stream);
                 Ok(SpannedNumberSanitizer {
                     span,
@@ -135,7 +133,7 @@ where
             "with" => {
                 let rest_tokens: Vec<_> = token_iter.collect();
                 let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
-                let span = ident.span().join(stream.span()).unwrap();
+                let span = ident.span();
                 let validator = NumberValidator::With(stream);
                 Ok(SpannedNumberValidator {
                     span,

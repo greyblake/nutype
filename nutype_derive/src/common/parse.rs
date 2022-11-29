@@ -35,14 +35,13 @@ where
 {
     let mut output = String::with_capacity(16);
     let mut token_value = iter.next().expect("Expected number");
-    let mut span = token_value.span();
+    let span = token_value.span();
     let mut t = token_value.to_string();
 
     // If it starts with `-` (negative number), add it to output and parse the next token.
     if t == "-" {
         output.push_str(&t);
         token_value = iter.next().expect("Expected number");
-        span = span.join(token_value.span()).unwrap();
         t = token_value.to_string();
     }
 
@@ -164,7 +163,7 @@ pub fn parse_with_token_stream<'a>(
         // Take `=` sign
         if let Some(eq_t) = token_iter.next() {
             if !is_eq(eq_t) {
-                let span = with_span.join(eq_t.span()).unwrap();
+                let span = with_span;
                 return Err(syn::Error::new(
                     span,
                     "Invalid syntax for `with`. Expected `=`, got `{eq_t}`",
@@ -270,6 +269,8 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Serialize" => DeriveTrait::Serialize,
         "Deserialize" => DeriveTrait::Deserialize,
         "Arbitrary" => DeriveTrait::Arbitrary,
+        "TryFrom" => DeriveTrait::TryFrom,
+        "From" => DeriveTrait::From,
         _ => {
             return Err(syn::Error::new(
                 ident.span(),
