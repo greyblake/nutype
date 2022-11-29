@@ -2,7 +2,6 @@
 
 ### TODO:
 * Support derive of Borrow<str> and Borrow<String> for String types
-* Support derive Hash for String
 * Support derive for numbers
 * Impl FromStr for String types
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
@@ -30,6 +29,7 @@
 * Extra validations for floats:
   * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
 * Generate documentation automatically.
+* Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
 
 
 ### Done
@@ -47,3 +47,12 @@
 * Add UI tests to detect conflicts:
   * derive(TryFrom) without validations
   * derive(From) with validations
+* Support derive Hash for String
+
+
+
+## Similar crates
+
+* bounded_integer
+* semval
+* refinement

@@ -271,6 +271,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Arbitrary" => DeriveTrait::Arbitrary,
         "TryFrom" => DeriveTrait::TryFrom,
         "From" => DeriveTrait::From,
+        "Hash" => DeriveTrait::Hash,
         _ => {
             return Err(syn::Error::new(
                 ident.span(),

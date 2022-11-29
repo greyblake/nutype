@@ -247,3 +247,24 @@ mod visibility {
         assert_eq!(email.into_inner(), "foo@bar.com");
     }
 }
+
+#[cfg(test)]
+mod derives {
+    use super::*;
+
+    fn should_implement_hash<T: std::hash::Hash>() {}
+    fn should_implement_debug<T: std::fmt::Debug>() {}
+    fn should_implement_from<T: core::convert::From<Inner>, Inner>() {}
+
+    #[nutype]
+    #[derive(Debug, Hash, From)]
+    pub struct Name(String);
+
+    #[test]
+    fn test_traits() {
+        should_implement_hash::<Name>();
+        should_implement_debug::<Name>();
+        should_implement_from::<Name, String>();
+        should_implement_from::<Name, &str>();
+    }
+}

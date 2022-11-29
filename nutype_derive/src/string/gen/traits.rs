@@ -45,6 +45,7 @@ impl From<StringDeriveTrait> for Trait {
             StringDeriveTrait::Eq => Trait::Derived(DerivedTrait::Eq),
             StringDeriveTrait::PartialOrd => Trait::Derived(DerivedTrait::PartialOrd),
             StringDeriveTrait::Ord => Trait::Derived(DerivedTrait::Ord),
+            StringDeriveTrait::Hash => Trait::Derived(DerivedTrait::Hash),
             StringDeriveTrait::FromStr => Trait::Implemented(ImplementedTrait::FromStr),
             StringDeriveTrait::AsRef => Trait::Implemented(ImplementedTrait::AsRef),
             StringDeriveTrait::From => Trait::Implemented(ImplementedTrait::From),
@@ -53,6 +54,7 @@ impl From<StringDeriveTrait> for Trait {
     }
 }
 
+/// A trait that can be automatically derived.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 enum DerivedTrait {
     Debug,
@@ -61,8 +63,11 @@ enum DerivedTrait {
     Eq,
     PartialOrd,
     Ord,
+    Hash,
 }
 
+/// A trait that can not be automatically derived and we need to generate
+/// an implementation for it.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 enum ImplementedTrait {
     FromStr,
@@ -80,6 +85,7 @@ impl ToTokens for DerivedTrait {
             Self::Eq => quote!(Eq),
             Self::PartialOrd => quote!(PartialOrd),
             Self::Ord => quote!(Ord),
+            Self::Hash => quote!(Hash),
         };
         tokens.to_tokens(token_stream)
     }

@@ -112,6 +112,7 @@ pub enum DeriveTrait {
     AsRef,
     From,
     TryFrom,
+    Hash,
 
     // External crates
     Serialize,

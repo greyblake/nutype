@@ -113,6 +113,7 @@ pub fn validate_derive_traits(
                         StringDeriveTrait::Ord,
                         StringDeriveTrait::FromStr,
                         StringDeriveTrait::AsRef,
+                        StringDeriveTrait::Hash,
                         // TODO: should depend on features
                         // StringDeriveTrait::Serialize,
                         // StringDeriveTrait::Deserialize,
@@ -134,6 +135,7 @@ pub fn validate_derive_traits(
             DeriveTrait::Ord => traits.insert(StringDeriveTrait::Ord),
             DeriveTrait::FromStr => traits.insert(StringDeriveTrait::FromStr),
             DeriveTrait::AsRef => traits.insert(StringDeriveTrait::AsRef),
+            DeriveTrait::Hash => traits.insert(StringDeriveTrait::Hash),
             DeriveTrait::Serialize => {
                 unimplemented!("Serialize is not yet implemented");
                 // traits.insert(StringDeriveTrait::Serialize)
