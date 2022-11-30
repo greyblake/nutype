@@ -3,7 +3,6 @@
 ### TODO:
 * Support derive of Borrow<str> and Borrow<String> for String types
 * Support derive for numbers
-* Impl FromStr for String types
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Support serde
   * Serialize
@@ -49,6 +48,7 @@
   * derive(TryFrom) without validations
   * derive(From) with validations
 * Support derive Hash for String
+* Impl FromStr for String types
 
 
 

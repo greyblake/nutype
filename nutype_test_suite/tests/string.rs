@@ -251,20 +251,31 @@ mod visibility {
 #[cfg(test)]
 mod derives {
     use super::*;
-
-    fn should_implement_hash<T: std::hash::Hash>() {}
-    fn should_implement_debug<T: std::fmt::Debug>() {}
-    fn should_implement_from<T: core::convert::From<Inner>, Inner>() {}
-
-    #[nutype]
-    #[derive(Debug, Hash, From)]
-    pub struct Name(String);
+    use nutype_test_suite::test_helpers::traits::*;
 
     #[test]
-    fn test_traits() {
+    fn test_without_validation() {
+        #[nutype]
+        #[derive(Debug, Hash, From, FromStr)]
+        pub struct Name(String);
+
         should_implement_hash::<Name>();
         should_implement_debug::<Name>();
         should_implement_from::<Name, String>();
         should_implement_from::<Name, &str>();
+        should_implement_from_str::<Name>();
+    }
+
+    #[test]
+    fn test_with_validaiton() {
+        #[nutype(validate(present))]
+        #[derive(Debug, Hash, TryFrom, FromStr)]
+        pub struct Name(String);
+
+        should_implement_hash::<Name>();
+        should_implement_debug::<Name>();
+        should_implement_try_from::<Name, String>();
+        should_implement_try_from::<Name, &str>();
+        should_implement_from_str::<Name>();
     }
 }
