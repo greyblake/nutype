@@ -11,11 +11,12 @@ pub struct TypeName(String);
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InnerType {
     String,
-    Number(NumberType),
+    Integer(IntegerType),
+    Float(FloatType),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NumberType {
+pub enum IntegerType {
     U8,
     U16,
     U32,
@@ -28,6 +29,10 @@ pub enum NumberType {
     I128,
     Usize,
     Isize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FloatType {
     F32,
     F64,
 }
@@ -38,14 +43,17 @@ impl ToTokens for InnerType {
             InnerType::String => {
                 quote!(String).to_tokens(token_stream);
             }
-            InnerType::Number(number_type) => {
-                number_type.to_tokens(token_stream);
+            InnerType::Integer(integer_type) => {
+                integer_type.to_tokens(token_stream);
+            }
+            InnerType::Float(float_type) => {
+                float_type.to_tokens(token_stream);
             }
         };
     }
 }
 
-impl ToTokens for NumberType {
+impl ToTokens for IntegerType {
     fn to_tokens(&self, token_stream: &mut TokenStream2) {
         let type_stream = match self {
             Self::U8 => quote!(u8),
@@ -60,6 +68,14 @@ impl ToTokens for NumberType {
             Self::I64 => quote!(i64),
             Self::I128 => quote!(i128),
             Self::Isize => quote!(isize),
+        };
+        type_stream.to_tokens(token_stream);
+    }
+}
+
+impl ToTokens for FloatType {
+    fn to_tokens(&self, token_stream: &mut TokenStream2) {
+        let type_stream = match self {
             Self::F32 => quote!(f32),
             Self::F64 => quote!(f64),
         };

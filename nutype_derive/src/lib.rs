@@ -1,14 +1,14 @@
 mod base;
 mod common;
+mod float;
+mod integer;
 mod models;
-mod number;
 mod parse;
 mod string;
 
 use std::{fmt::Debug, str::FromStr};
 
-use models::{InnerType, NumberType, TypeNameAndInnerType};
-use number::gen::gen_nutype_for_number;
+use models::{FloatType, InnerType, IntegerType, TypeNameAndInnerType};
 use parse::parse_type_name_and_inner_type;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
@@ -45,7 +45,7 @@ fn expand_nutype(
                 doc_attrs, traits, vis, &type_name, meta,
             ))
         }
-        InnerType::Number(tp) => {
+        InnerType::Integer(tp) => {
             // TODO: inject derive_traits
             let params = NumberParams {
                 doc_attrs,
@@ -55,26 +55,38 @@ fn expand_nutype(
                 attrs,
             };
             match tp {
-                NumberType::U8 => parse_number_attrs_and_gen::<u8>(params),
-                NumberType::U16 => parse_number_attrs_and_gen::<u16>(params),
-                NumberType::U32 => parse_number_attrs_and_gen::<u32>(params),
-                NumberType::U64 => parse_number_attrs_and_gen::<u64>(params),
-                NumberType::U128 => parse_number_attrs_and_gen::<u128>(params),
-                NumberType::Usize => parse_number_attrs_and_gen::<usize>(params),
-                NumberType::I8 => parse_number_attrs_and_gen::<i8>(params),
-                NumberType::I16 => parse_number_attrs_and_gen::<i16>(params),
-                NumberType::I32 => parse_number_attrs_and_gen::<i32>(params),
-                NumberType::I64 => parse_number_attrs_and_gen::<i64>(params),
-                NumberType::I128 => parse_number_attrs_and_gen::<i128>(params),
-                NumberType::Isize => parse_number_attrs_and_gen::<isize>(params),
-                NumberType::F32 => parse_number_attrs_and_gen::<f32>(params),
-                NumberType::F64 => parse_number_attrs_and_gen::<f64>(params),
+                IntegerType::U8 => parse_integer_attrs_and_gen::<u8>(params),
+                IntegerType::U16 => parse_integer_attrs_and_gen::<u16>(params),
+                IntegerType::U32 => parse_integer_attrs_and_gen::<u32>(params),
+                IntegerType::U64 => parse_integer_attrs_and_gen::<u64>(params),
+                IntegerType::U128 => parse_integer_attrs_and_gen::<u128>(params),
+                IntegerType::Usize => parse_integer_attrs_and_gen::<usize>(params),
+                IntegerType::I8 => parse_integer_attrs_and_gen::<i8>(params),
+                IntegerType::I16 => parse_integer_attrs_and_gen::<i16>(params),
+                IntegerType::I32 => parse_integer_attrs_and_gen::<i32>(params),
+                IntegerType::I64 => parse_integer_attrs_and_gen::<i64>(params),
+                IntegerType::I128 => parse_integer_attrs_and_gen::<i128>(params),
+                IntegerType::Isize => parse_integer_attrs_and_gen::<isize>(params),
+            }
+        }
+        InnerType::Float(tp) => {
+            // TODO: inject derive_traits
+            let params = NumberParams {
+                doc_attrs,
+                vis,
+                tp,
+                type_name,
+                attrs,
+            };
+            match tp {
+                FloatType::F32 => parse_float_attrs_and_gen::<f32>(params),
+                FloatType::F64 => parse_float_attrs_and_gen::<f64>(params),
             }
         }
     }
 }
 
-struct NumberParams {
+struct NumberParams<NumberType> {
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
     tp: NumberType,
@@ -82,7 +94,9 @@ struct NumberParams {
     attrs: TokenStream,
 }
 
-fn parse_number_attrs_and_gen<T>(params: NumberParams) -> Result<TokenStream, syn::Error>
+fn parse_integer_attrs_and_gen<T>(
+    params: NumberParams<IntegerType>,
+) -> Result<TokenStream, syn::Error>
 where
     T: FromStr + ToTokens + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
@@ -94,6 +108,26 @@ where
         type_name,
         attrs,
     } = params;
-    let meta = number::parse::parse_attributes::<T>(attrs)?;
-    Ok(gen_nutype_for_number(doc_attrs, vis, tp, &type_name, meta))
+    let meta = integer::parse::parse_attributes::<T>(attrs)?;
+    Ok(integer::gen::gen_nutype_for_number(
+        doc_attrs, vis, tp, &type_name, meta,
+    ))
+}
+
+fn parse_float_attrs_and_gen<T>(params: NumberParams<FloatType>) -> Result<TokenStream, syn::Error>
+where
+    T: FromStr + ToTokens + PartialOrd + Clone,
+    <T as FromStr>::Err: Debug,
+{
+    let NumberParams {
+        doc_attrs,
+        vis,
+        tp,
+        type_name,
+        attrs,
+    } = params;
+    let meta = float::parse::parse_attributes::<T>(attrs)?;
+    Ok(float::gen::gen_nutype_for_number(
+        doc_attrs, vis, tp, &type_name, meta,
+    ))
 }

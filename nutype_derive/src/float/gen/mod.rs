@@ -6,12 +6,12 @@ use syn::Visibility;
 
 use self::error::{gen_error_type_name, gen_validation_error_type};
 use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
-use crate::{common::gen::type_custom_sanitizier_closure, models::NumberType};
+use crate::{common::gen::type_custom_sanitizier_closure, models::FloatType};
 
 pub fn gen_nutype_for_number<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
-    number_type: NumberType,
+    number_type: FloatType,
     type_name: &Ident,
     meta: NewtypeNumberMeta<T>,
 ) -> TokenStream
@@ -34,7 +34,7 @@ where
             )
         }
     };
-    let derive = gen_derive(number_type);
+    let derive = gen_derive();
 
     quote!(
         mod #module_name {
@@ -53,7 +53,7 @@ where
 
 pub fn gen_implementation<T>(
     type_name: &Ident,
-    inner_type: NumberType,
+    inner_type: FloatType,
     meta: &NewtypeNumberMeta<T>,
 ) -> TokenStream
 where
@@ -74,7 +74,7 @@ where
     }
 }
 
-fn gen_impl_methods(type_name: &Ident, inner_type: NumberType) -> TokenStream {
+fn gen_impl_methods(type_name: &Ident, inner_type: FloatType) -> TokenStream {
     quote! {
         impl ::core::convert::From<#type_name> for  #inner_type {
             fn from(val: #type_name) -> #inner_type {
@@ -240,15 +240,8 @@ where
     )
 }
 
-fn gen_derive(number_type: NumberType) -> TokenStream {
-    use NumberType::*;
-
-    match number_type {
-        U8 | U16 | U32 | U64 | U128 | I8 | I16 | I32 | I64 | I128 | Usize | Isize => quote! {
-            #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-        },
-        F32 | F64 => quote! {
-            #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-        },
+fn gen_derive() -> TokenStream {
+    quote! {
+        #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
     }
 }

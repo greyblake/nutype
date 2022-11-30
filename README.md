@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Refactor numbers and split into groups: integer and float.
 * Support derive for integers
 * Support derive for floats
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
@@ -52,6 +51,7 @@
 * Support derive Hash for String
 * Impl FromStr for String types
 * Support derive of Borrow<str> and Borrow<String> for String types
+* Refactor numbers and split into groups: integer and float.
 
 
 
