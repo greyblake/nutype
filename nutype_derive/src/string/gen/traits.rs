@@ -120,7 +120,9 @@ fn gen_implemented_traits(
                 gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
             }
             ImplementedTrait::From => gen_impl_from(type_name),
-            ImplementedTrait::TryFrom => gen_impl_try_from(type_name, maybe_error_type_name.as_ref()),
+            ImplementedTrait::TryFrom => {
+                gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
+            }
         })
         .collect()
 }
@@ -176,7 +178,8 @@ fn gen_impl_from(type_name: &Ident) -> TokenStream {
 }
 
 fn gen_impl_try_from(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -> TokenStream {
-    let error_type_name = maybe_error_type_name.expect("gen_impl_try_from() for String is expected to have error_type_name");
+    let error_type_name = maybe_error_type_name
+        .expect("gen_impl_try_from() for String is expected to have error_type_name");
 
     quote! {
         impl ::core::convert::TryFrom<String> for #type_name {

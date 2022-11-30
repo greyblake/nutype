@@ -155,18 +155,16 @@ pub fn validate_derive_traits(
                 );
                 return Err(err);
             }
-            DeriveTrait::From => {
-                match meta {
-                    NewtypeStringMeta::From { .. } => traits.insert(StringDeriveTrait::From),
-                    NewtypeStringMeta::TryFrom { .. } => {
-                        let err = syn::Error::new(
+            DeriveTrait::From => match meta {
+                NewtypeStringMeta::From { .. } => traits.insert(StringDeriveTrait::From),
+                NewtypeStringMeta::TryFrom { .. } => {
+                    let err = syn::Error::new(
                             spanned_trait.span,
                             "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.",
                         );
-                        return Err(err);
-                    }
+                    return Err(err);
                 }
-            }
+            },
             DeriveTrait::TryFrom => {
                 match meta {
                     NewtypeStringMeta::From { .. } => {
@@ -176,7 +174,7 @@ pub fn validate_derive_traits(
                             "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead.",
                         );
                         return Err(err);
-                    },
+                    }
                     NewtypeStringMeta::TryFrom { .. } => traits.insert(StringDeriveTrait::TryFrom),
                 }
             }

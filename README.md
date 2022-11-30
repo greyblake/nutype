@@ -28,6 +28,7 @@
   * Remove extra spaces
 * Extra validations for floats:
   * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
+  * This should allow to derive Eq and Ord
 * Generate documentation automatically.
 * Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
 
