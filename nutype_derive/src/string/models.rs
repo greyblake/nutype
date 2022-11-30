@@ -110,6 +110,7 @@ pub enum StringDeriveTrait {
     From,
     TryFrom,
     Hash,
+    Borrow,
     // // External crates
     // Serialize,
     // Deserialize,

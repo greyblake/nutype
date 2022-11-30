@@ -1,9 +1,11 @@
 ## Roadmap
 
 ### TODO:
-* Support derive of Borrow<str> and Borrow<String> for String types
-* Support derive for numbers
+* Refactor numbers and split into groups: integer and float.
+* Support derive for integers
+* Support derive for floats
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
+* Rename default inner modules into something less scary
 * Support serde
   * Serialize
   * Deserialize
@@ -12,7 +14,7 @@
   * https://crates.io/crates/rust_decimal
 * Regex
   * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
-* Support time libraries (e.g. chrono)
+* Support time libraries (e.g. chrono, time)
 * Impl  "did you mean" hints:
   * E.g. unknown validation rule `min`. Did you mean `min_len`?
 * Finalize syntax!
@@ -49,6 +51,7 @@
   * derive(From) with validations
 * Support derive Hash for String
 * Impl FromStr for String types
+* Support derive of Borrow<str> and Borrow<String> for String types
 
 
 

@@ -33,5 +33,5 @@ fn detect_items_of_same_kind<T: Kind>(items: &[T]) -> Option<(&T, &T)> {
 }
 
 fn join_spans_or_last(span1: Span, span2: Span) -> Span {
-    span1.join(span2).unwrap_or_else(|| span2)
+    span1.join(span2).unwrap_or(span2)
 }

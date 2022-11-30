@@ -96,7 +96,7 @@ pub struct RawNewtypeMeta<Sanitizer, Validator> {
     pub validators: Vec<Validator>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeriveTrait {
     Asterisk,
 
@@ -113,6 +113,7 @@ pub enum DeriveTrait {
     From,
     TryFrom,
     Hash,
+    Borrow,
 
     // External crates
     Serialize,

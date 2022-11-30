@@ -136,6 +136,7 @@ pub fn validate_derive_traits(
             DeriveTrait::FromStr => traits.insert(StringDeriveTrait::FromStr),
             DeriveTrait::AsRef => traits.insert(StringDeriveTrait::AsRef),
             DeriveTrait::Hash => traits.insert(StringDeriveTrait::Hash),
+            DeriveTrait::Borrow => traits.insert(StringDeriveTrait::Borrow),
             DeriveTrait::Serialize => {
                 unimplemented!("Serialize is not yet implemented");
                 // traits.insert(StringDeriveTrait::Serialize)

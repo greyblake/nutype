@@ -50,6 +50,7 @@ impl From<StringDeriveTrait> for Trait {
             StringDeriveTrait::AsRef => Trait::Implemented(ImplementedTrait::AsRef),
             StringDeriveTrait::From => Trait::Implemented(ImplementedTrait::From),
             StringDeriveTrait::TryFrom => Trait::Implemented(ImplementedTrait::TryFrom),
+            StringDeriveTrait::Borrow => Trait::Implemented(ImplementedTrait::Borrow),
         }
     }
 }
@@ -74,6 +75,7 @@ enum ImplementedTrait {
     AsRef,
     From,
     TryFrom,
+    Borrow,
 }
 
 impl ToTokens for DerivedTrait {
@@ -123,6 +125,7 @@ fn gen_implemented_traits(
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
             }
+            ImplementedTrait::Borrow => gen_impl_borrow(type_name),
         })
         .collect()
 }
@@ -195,6 +198,22 @@ fn gen_impl_try_from(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
 
             fn try_from(raw_value: &str) -> Result<#type_name, Self::Error> {
                 Self::new(raw_value)
+            }
+        }
+    }
+}
+
+fn gen_impl_borrow(type_name: &Ident) -> TokenStream {
+    quote! {
+        impl ::core::borrow::Borrow<str> for #type_name {
+            fn borrow(&self) -> &str {
+                &self.0
+            }
+        }
+
+        impl ::core::borrow::Borrow<String> for #type_name {
+            fn borrow(&self) -> &String {
+                &self.0
             }
         }
     }

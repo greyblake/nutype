@@ -256,7 +256,7 @@ mod derives {
     #[test]
     fn test_without_validation() {
         #[nutype]
-        #[derive(Debug, Hash, From, FromStr)]
+        #[derive(Debug, Hash, From, FromStr, Borrow)]
         pub struct Name(String);
 
         should_implement_hash::<Name>();
@@ -264,12 +264,14 @@ mod derives {
         should_implement_from::<Name, String>();
         should_implement_from::<Name, &str>();
         should_implement_from_str::<Name>();
+        should_implement_borrow::<Name, str>();
+        should_implement_borrow::<Name, String>();
     }
 
     #[test]
     fn test_with_validaiton() {
         #[nutype(validate(present))]
-        #[derive(Debug, Hash, TryFrom, FromStr)]
+        #[derive(Debug, Hash, TryFrom, FromStr, Borrow)]
         pub struct Name(String);
 
         should_implement_hash::<Name>();
@@ -277,5 +279,7 @@ mod derives {
         should_implement_try_from::<Name, String>();
         should_implement_try_from::<Name, &str>();
         should_implement_from_str::<Name>();
+        should_implement_borrow::<Name, str>();
+        should_implement_borrow::<Name, String>();
     }
 }
