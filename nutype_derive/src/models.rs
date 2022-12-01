@@ -96,6 +96,7 @@ pub struct TypeNameAndInnerType {
 /// Validated model, that represents precisly what needs to be generated.
 #[derive(Debug)]
 pub enum NewtypeMeta<Sanitizer, Validator> {
+    // TODO: rename variants
     From {
         sanitizers: Vec<Sanitizer>,
     },
@@ -103,6 +104,15 @@ pub enum NewtypeMeta<Sanitizer, Validator> {
         sanitizers: Vec<Sanitizer>,
         validators: Vec<Validator>,
     },
+}
+
+impl<Sanitizer, Validator> NewtypeMeta<Sanitizer, Validator> {
+    pub fn has_validation(&self) -> bool {
+        match self {
+            Self::From { .. } => false,
+            Self::TryFrom { .. } => true,
+        }
+    }
 }
 
 /// Parsed by not yet validated
@@ -115,7 +125,11 @@ pub struct RawNewtypeMeta<Sanitizer, Validator> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeriveTrait {
     Asterisk,
+    Normal(NormalDeriveTrait),
+}
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum NormalDeriveTrait {
     // Standard library
     Debug,
     Clone,

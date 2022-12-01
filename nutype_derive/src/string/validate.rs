@@ -1,8 +1,12 @@
 use std::collections::HashSet;
 
+use proc_macro2::Span;
+
 use crate::base::Kind;
 use crate::common::validate::validate_duplicates;
-use crate::models::{DeriveTrait, SpannedDeriveTrait, StringSanitizer, StringValidator};
+use crate::models::{
+    DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait, StringSanitizer, StringValidator,
+};
 use crate::string::models::NewtypeStringMeta;
 use crate::string::models::RawNewtypeStringMeta;
 
@@ -100,87 +104,96 @@ pub fn validate_derive_traits(
 ) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
     let mut traits = HashSet::with_capacity(24);
 
+    let has_validation = meta.has_validation();
+
     for spanned_trait in spanned_derive_traits {
         match spanned_trait.item {
             DeriveTrait::Asterisk => {
-                traits.extend(
-                    [
-                        StringDeriveTrait::Debug,
-                        StringDeriveTrait::Clone,
-                        StringDeriveTrait::PartialEq,
-                        StringDeriveTrait::Eq,
-                        StringDeriveTrait::PartialOrd,
-                        StringDeriveTrait::Ord,
-                        StringDeriveTrait::FromStr,
-                        StringDeriveTrait::AsRef,
-                        StringDeriveTrait::Hash,
-                        // TODO: should depend on features
-                        // StringDeriveTrait::Serialize,
-                        // StringDeriveTrait::Deserialize,
-                        // StringDeriveTrait::Arbitrary,
-                    ]
-                    .iter(),
-                );
-                match meta {
-                    NewtypeStringMeta::From { .. } => traits.insert(StringDeriveTrait::From),
-                    NewtypeStringMeta::TryFrom { .. } => traits.insert(StringDeriveTrait::TryFrom),
-                };
-                true
+                traits.extend(unfold_asterisk_traits(has_validation));
             }
-            DeriveTrait::Debug => traits.insert(StringDeriveTrait::Debug),
-            DeriveTrait::Clone => traits.insert(StringDeriveTrait::Clone),
-            DeriveTrait::PartialEq => traits.insert(StringDeriveTrait::PartialEq),
-            DeriveTrait::Eq => traits.insert(StringDeriveTrait::Eq),
-            DeriveTrait::PartialOrd => traits.insert(StringDeriveTrait::PartialOrd),
-            DeriveTrait::Ord => traits.insert(StringDeriveTrait::Ord),
-            DeriveTrait::FromStr => traits.insert(StringDeriveTrait::FromStr),
-            DeriveTrait::AsRef => traits.insert(StringDeriveTrait::AsRef),
-            DeriveTrait::Hash => traits.insert(StringDeriveTrait::Hash),
-            DeriveTrait::Borrow => traits.insert(StringDeriveTrait::Borrow),
-            DeriveTrait::Serialize => {
-                unimplemented!("Serialize is not yet implemented");
-                // traits.insert(StringDeriveTrait::Serialize)
-            }
-            DeriveTrait::Deserialize => {
-                unimplemented!("Deserialize is not yet implemented");
-                // traits.insert(StringDeriveTrait::Deserialize)
-            }
-            DeriveTrait::Arbitrary => {
-                unimplemented!("Arbitrary is not yet implemented");
-                // traits.insert(StringDeriveTrait::Arbitrary)
-            }
-            DeriveTrait::Copy => {
-                let err = syn::Error::new(
-                    spanned_trait.span,
-                    "Copy trait cannot be derived for a String based type",
-                );
-                return Err(err);
-            }
-            DeriveTrait::From => match meta {
-                NewtypeStringMeta::From { .. } => traits.insert(StringDeriveTrait::From),
-                NewtypeStringMeta::TryFrom { .. } => {
-                    let err = syn::Error::new(
-                            spanned_trait.span,
-                            "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.",
-                        );
-                    return Err(err);
-                }
-            },
-            DeriveTrait::TryFrom => {
-                match meta {
-                    NewtypeStringMeta::From { .. } => {
-                        // TODO: refactor: use closure
-                        let err = syn::Error::new(
-                            spanned_trait.span,
-                            "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead.",
-                        );
-                        return Err(err);
-                    }
-                    NewtypeStringMeta::TryFrom { .. } => traits.insert(StringDeriveTrait::TryFrom),
-                }
+            DeriveTrait::Normal(normal_trait) => {
+                let string_derive_trait =
+                    to_string_derive_trait(normal_trait, has_validation, spanned_trait.span)?;
+                traits.insert(string_derive_trait);
             }
         };
     }
 
     Ok(traits)
+}
+
+fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = StringDeriveTrait> {
+    let from_or_try_from = if has_validation {
+        StringDeriveTrait::TryFrom
+    } else {
+        StringDeriveTrait::From
+    };
+
+    [
+        from_or_try_from,
+        StringDeriveTrait::Debug,
+        StringDeriveTrait::Clone,
+        StringDeriveTrait::PartialEq,
+        StringDeriveTrait::Eq,
+        StringDeriveTrait::PartialOrd,
+        StringDeriveTrait::Ord,
+        StringDeriveTrait::FromStr,
+        StringDeriveTrait::AsRef,
+        StringDeriveTrait::Hash,
+        // TODO: should depend on features
+        //
+        // StringDeriveTrait::Serialize,
+        // StringDeriveTrait::Deserialize,
+        // StringDeriveTrait::Arbitrary,
+    ]
+    .into_iter()
+}
+
+fn to_string_derive_trait(
+    tr: NormalDeriveTrait,
+    has_validation: bool,
+    span: Span,
+) -> Result<StringDeriveTrait, syn::Error> {
+    match tr {
+        NormalDeriveTrait::Debug => Ok(StringDeriveTrait::Debug),
+        NormalDeriveTrait::Clone => Ok(StringDeriveTrait::Clone),
+        NormalDeriveTrait::PartialEq => Ok(StringDeriveTrait::PartialEq),
+        NormalDeriveTrait::Eq => Ok(StringDeriveTrait::Eq),
+        NormalDeriveTrait::PartialOrd => Ok(StringDeriveTrait::PartialOrd),
+        NormalDeriveTrait::Ord => Ok(StringDeriveTrait::Ord),
+        NormalDeriveTrait::FromStr => Ok(StringDeriveTrait::FromStr),
+        NormalDeriveTrait::AsRef => Ok(StringDeriveTrait::AsRef),
+        NormalDeriveTrait::Hash => Ok(StringDeriveTrait::Hash),
+        NormalDeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
+        NormalDeriveTrait::Serialize => {
+            unimplemented!("Serialize is not yet implemented");
+            // traits.insert(StringDeriveTrait::Serialize)
+        }
+        NormalDeriveTrait::Deserialize => {
+            unimplemented!("Deserialize is not yet implemented");
+            // traits.insert(StringDeriveTrait::Deserialize)
+        }
+        NormalDeriveTrait::Arbitrary => {
+            unimplemented!("Arbitrary is not yet implemented");
+            // traits.insert(StringDeriveTrait::Arbitrary)
+        }
+        NormalDeriveTrait::Copy => Err(syn::Error::new(
+            span,
+            "Copy trait cannot be derived for a String based type",
+        )),
+        NormalDeriveTrait::From => {
+            if has_validation {
+                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+            } else {
+                Ok(StringDeriveTrait::From)
+            }
+        }
+        NormalDeriveTrait::TryFrom => {
+            if has_validation {
+                Ok(StringDeriveTrait::TryFrom)
+            } else {
+                Err(syn::Error::new(span, "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead."))
+            }
+        }
+    }
 }

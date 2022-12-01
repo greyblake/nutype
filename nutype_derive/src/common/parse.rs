@@ -3,7 +3,7 @@ use std::{any::type_name, fmt::Debug, str::FromStr};
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
 use syn::spanned::Spanned;
 
-use crate::models::{DeriveTrait, RawNewtypeMeta, SpannedDeriveTrait};
+use crate::models::{DeriveTrait, NormalDeriveTrait, RawNewtypeMeta, SpannedDeriveTrait};
 
 /// ## Example
 /// Input (token stream):
@@ -256,23 +256,23 @@ fn parse_token_into_derive_trait(
 }
 
 fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn::Error> {
-    let derive_trait = match ident.to_string().as_ref() {
-        "Debug" => DeriveTrait::Debug,
-        "Clone" => DeriveTrait::Clone,
-        "Copy" => DeriveTrait::Copy,
-        "PartialEq" => DeriveTrait::PartialEq,
-        "Eq" => DeriveTrait::Eq,
-        "PartialOrd" => DeriveTrait::PartialOrd,
-        "Ord" => DeriveTrait::Ord,
-        "FromStr" => DeriveTrait::FromStr,
-        "AsRef" => DeriveTrait::AsRef,
-        "Serialize" => DeriveTrait::Serialize,
-        "Deserialize" => DeriveTrait::Deserialize,
-        "Arbitrary" => DeriveTrait::Arbitrary,
-        "TryFrom" => DeriveTrait::TryFrom,
-        "From" => DeriveTrait::From,
-        "Hash" => DeriveTrait::Hash,
-        "Borrow" => DeriveTrait::Borrow,
+    let normal_derive_trait = match ident.to_string().as_ref() {
+        "Debug" => NormalDeriveTrait::Debug,
+        "Clone" => NormalDeriveTrait::Clone,
+        "Copy" => NormalDeriveTrait::Copy,
+        "PartialEq" => NormalDeriveTrait::PartialEq,
+        "Eq" => NormalDeriveTrait::Eq,
+        "PartialOrd" => NormalDeriveTrait::PartialOrd,
+        "Ord" => NormalDeriveTrait::Ord,
+        "FromStr" => NormalDeriveTrait::FromStr,
+        "AsRef" => NormalDeriveTrait::AsRef,
+        "Serialize" => NormalDeriveTrait::Serialize,
+        "Deserialize" => NormalDeriveTrait::Deserialize,
+        "Arbitrary" => NormalDeriveTrait::Arbitrary,
+        "TryFrom" => NormalDeriveTrait::TryFrom,
+        "From" => NormalDeriveTrait::From,
+        "Hash" => NormalDeriveTrait::Hash,
+        "Borrow" => NormalDeriveTrait::Borrow,
         _ => {
             return Err(syn::Error::new(
                 ident.span(),
@@ -280,6 +280,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
             ));
         }
     };
+    let derive_trait = DeriveTrait::Normal(normal_derive_trait);
     let spanned_trait = SpannedDeriveTrait {
         item: derive_trait,
         span: ident.span(),
