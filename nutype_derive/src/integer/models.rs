@@ -83,6 +83,30 @@ impl<T> Kind for NumberValidator<T> {
     }
 }
 
+// Traits
+//
+pub enum IntegerDeriveTrait {
+    // Standard
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    FromStr,
+    AsRef,
+    From,
+    TryFrom,
+    Hash,
+    Borrow,
+    // // External crates
+    //
+    // Serialize,
+    // Deserialize,
+    // Arbitrary,
+}
+
 // Meta
 //
 

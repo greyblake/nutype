@@ -31,6 +31,8 @@
   * This should allow to derive Eq and Ord
 * Generate documentation automatically.
 * Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
+* Rename nutype_derive to nutype_macros or something else?
+* Rename nutype_test_suite to `test_suite ` ?
 
 
 ### Done

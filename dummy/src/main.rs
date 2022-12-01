@@ -4,7 +4,7 @@ use nutype_derive::nutype;
     sanitize(trim, lowercase)
     validate(present, min_len = 5, with = |e: &str| e.contains('@'))
 )]
-#[derive(Debug, FromStr, TryFrom, Borrow)]
+#[derive(Debug, FromStr, TryFrom, Borrow, PartialEq, Eq, Hash)]
 pub struct Email(String);
 
 /*
@@ -27,9 +27,16 @@ fn main() {
     println!("\n\nemail = {:?}\n\n", email);
     assert_eq!(email.into_inner(), "example@mail.org");
 
-    let my_mail: Email = "  TSHI@cool.com".parse().unwrap();
+    let my_mail: Email = "  THIS@cool.com".parse().unwrap();
 
     println!("my_mail = {:?}", my_mail);
+
+    use std::collections::HashMap;
+
+    let mut emails: HashMap<Email, u32> = HashMap::new();
+
+    emails.insert(my_mail, 1);
+    println!("{:?}", emails.get("this@cool.com"));
 
     // let value = Value::new(-15);
     // println!("value = {value:?}");
