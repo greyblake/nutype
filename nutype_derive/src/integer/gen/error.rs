@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
-use super::super::models::NumberValidator;
+use super::super::models::IntegerValidator;
 
 pub fn gen_error_type_name(type_name: &Ident) -> Ident {
     let error_name_str = format!("{type_name}Error");
@@ -10,20 +10,20 @@ pub fn gen_error_type_name(type_name: &Ident) -> Ident {
 
 pub fn gen_validation_error_type<T>(
     type_name: &Ident,
-    validators: &[NumberValidator<T>],
+    validators: &[IntegerValidator<T>],
 ) -> TokenStream {
     let error_name = gen_error_type_name(type_name);
 
     let error_variants: TokenStream = validators
         .iter()
         .map(|validator| match validator {
-            NumberValidator::Min(_) => {
+            IntegerValidator::Min(_) => {
                 quote!(TooSmall,)
             }
-            NumberValidator::Max(_) => {
+            IntegerValidator::Max(_) => {
                 quote!(TooBig,)
             }
-            NumberValidator::With(_) => {
+            IntegerValidator::With(_) => {
                 quote!(Invalid,)
             }
         })

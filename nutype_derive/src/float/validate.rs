@@ -1,17 +1,17 @@
 use crate::common::validate::validate_duplicates;
 
 use super::models::{
-    NewtypeNumberMeta, NumberSanitizer, NumberValidator, RawNewtypeNumberMeta,
-    SpannedNumberSanitizer, SpannedNumberValidator,
+    FloatSanitizer, FloatValidator, NewtypeFloatMeta, RawNewtypeFloatMeta, SpannedFloatSanitizer,
+    SpannedFloatValidator,
 };
 
 pub fn validate_number_meta<T>(
-    raw_meta: RawNewtypeNumberMeta<T>,
-) -> Result<NewtypeNumberMeta<T>, syn::Error>
+    raw_meta: RawNewtypeFloatMeta<T>,
+) -> Result<NewtypeFloatMeta<T>, syn::Error>
 where
     T: PartialOrd + Clone,
 {
-    let RawNewtypeNumberMeta {
+    let RawNewtypeFloatMeta {
         sanitizers,
         validators,
     } = raw_meta;
@@ -20,9 +20,9 @@ where
     let sanitizers = validate_sanitizers(sanitizers)?;
 
     if validators.is_empty() {
-        Ok(NewtypeNumberMeta::From { sanitizers })
+        Ok(NewtypeFloatMeta::From { sanitizers })
     } else {
-        Ok(NewtypeNumberMeta::TryFrom {
+        Ok(NewtypeFloatMeta::TryFrom {
             sanitizers,
             validators,
         })
@@ -30,8 +30,8 @@ where
 }
 
 fn validate_validators<T>(
-    validators: Vec<SpannedNumberValidator<T>>,
-) -> Result<Vec<NumberValidator<T>>, syn::Error>
+    validators: Vec<SpannedFloatValidator<T>>,
+) -> Result<Vec<FloatValidator<T>>, syn::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -43,14 +43,14 @@ where
     let maybe_min = validators
         .iter()
         .flat_map(|v| match &v.item {
-            NumberValidator::Min(ref min) => Some((v.span, min.clone())),
+            FloatValidator::Min(ref min) => Some((v.span, min.clone())),
             _ => None,
         })
         .next();
     let maybe_max = validators
         .iter()
         .flat_map(|v| match v.item {
-            NumberValidator::Max(ref max) => Some((v.span, max.clone())),
+            FloatValidator::Max(ref max) => Some((v.span, max.clone())),
             _ => None,
         })
         .next();
@@ -67,8 +67,8 @@ where
 }
 
 fn validate_sanitizers<T>(
-    sanitizers: Vec<SpannedNumberSanitizer<T>>,
-) -> Result<Vec<NumberSanitizer<T>>, syn::Error>
+    sanitizers: Vec<SpannedFloatSanitizer<T>>,
+) -> Result<Vec<FloatSanitizer<T>>, syn::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -80,7 +80,7 @@ where
     let maybe_clamp = sanitizers
         .iter()
         .flat_map(|san| match &san.item {
-            NumberSanitizer::Clamp { ref min, ref max } => {
+            FloatSanitizer::Clamp { ref min, ref max } => {
                 Some((san.span, (min.clone(), max.clone())))
             }
             _ => None,

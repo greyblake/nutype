@@ -5,7 +5,7 @@ use quote::{quote, ToTokens};
 use syn::Visibility;
 
 use self::error::{gen_error_type_name, gen_validation_error_type};
-use super::models::{NewtypeNumberMeta, NumberSanitizer, NumberValidator};
+use super::models::{IntegerSanitizer, IntegerValidator, NewtypeIntegerMeta};
 use crate::{common::gen::type_custom_sanitizier_closure, models::IntegerType};
 
 pub fn gen_nutype_for_number<T>(
@@ -13,7 +13,7 @@ pub fn gen_nutype_for_number<T>(
     vis: Visibility,
     number_type: IntegerType,
     type_name: &Ident,
-    meta: NewtypeNumberMeta<T>,
+    meta: NewtypeIntegerMeta<T>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
@@ -26,8 +26,8 @@ where
         syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
 
     let error_type_import = match meta {
-        NewtypeNumberMeta::From { .. } => quote!(),
-        NewtypeNumberMeta::TryFrom { .. } => {
+        NewtypeIntegerMeta::From { .. } => quote!(),
+        NewtypeIntegerMeta::TryFrom { .. } => {
             let error_type_name = gen_error_type_name(type_name);
             quote! (
                 #vis use #module_name::#error_type_name;
@@ -54,14 +54,14 @@ where
 pub fn gen_implementation<T>(
     type_name: &Ident,
     inner_type: IntegerType,
-    meta: &NewtypeNumberMeta<T>,
+    meta: &NewtypeIntegerMeta<T>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
     let convert_implementation = match meta {
-        NewtypeNumberMeta::From { sanitizers } => gen_new_and_from(type_name, sanitizers),
-        NewtypeNumberMeta::TryFrom {
+        NewtypeIntegerMeta::From { sanitizers } => gen_new_and_from(type_name, sanitizers),
+        NewtypeIntegerMeta::TryFrom {
             sanitizers,
             validators,
         } => gen_new_and_try_from(type_name, sanitizers, validators),
@@ -90,7 +90,7 @@ fn gen_impl_methods(type_name: &Ident, inner_type: IntegerType) -> TokenStream {
     }
 }
 
-fn gen_new_and_from<T>(type_name: &Ident, sanitizers: &[NumberSanitizer<T>]) -> TokenStream
+fn gen_new_and_from<T>(type_name: &Ident, sanitizers: &[IntegerSanitizer<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -117,8 +117,8 @@ where
 
 fn gen_new_and_try_from<T>(
     type_name: &Ident,
-    sanitizers: &[NumberSanitizer<T>],
-    validators: &[NumberValidator<T>],
+    sanitizers: &[IntegerSanitizer<T>],
+    validators: &[IntegerValidator<T>],
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
@@ -159,7 +159,7 @@ fn gen_module_name_for_type(type_name: &Ident) -> Ident {
     Ident::new(&module_name, Span::call_site())
 }
 
-fn gen_sanitize_fn<T>(sanitizers: &[NumberSanitizer<T>]) -> TokenStream
+fn gen_sanitize_fn<T>(sanitizers: &[IntegerSanitizer<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -168,12 +168,12 @@ where
     let transformations: TokenStream = sanitizers
         .iter()
         .map(|san| match san {
-            NumberSanitizer::Clamp { min, max } => {
+            IntegerSanitizer::Clamp { min, max } => {
                 quote!(
                     value = value.clamp(#min, #max);
                 )
             }
-            NumberSanitizer::With(token_stream) => {
+            IntegerSanitizer::With(token_stream) => {
                 let tp = Ident::new(std::any::type_name::<T>(), Span::call_site());
                 let tp = quote!(#tp);
                 let custom_sanitizer = type_custom_sanitizier_closure(token_stream, tp);
@@ -192,7 +192,7 @@ where
     )
 }
 
-fn gen_validate_fn<T>(type_name: &Ident, validators: &[NumberValidator<T>]) -> TokenStream
+fn gen_validate_fn<T>(type_name: &Ident, validators: &[IntegerValidator<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -203,21 +203,21 @@ where
     let validations: TokenStream = validators
         .iter()
         .map(|validator| match validator {
-            NumberValidator::Max(max) => {
+            IntegerValidator::Max(max) => {
                 quote!(
                     if val > #max {
                         return Err(#error_name::TooBig);
                     }
                 )
             }
-            NumberValidator::Min(min) => {
+            IntegerValidator::Min(min) => {
                 quote!(
                     if val < #min {
                         return Err(#error_name::TooSmall);
                     }
                 )
             }
-            NumberValidator::With(is_valid_fn) => {
+            IntegerValidator::With(is_valid_fn) => {
                 let tp = Ident::new(std::any::type_name::<T>(), Span::call_site());
                 let tp = quote!(&#tp);
                 // TODO: rename type_custom_sanitizier_closure, cause it's used only for

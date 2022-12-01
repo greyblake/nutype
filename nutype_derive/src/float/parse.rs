@@ -9,13 +9,13 @@ use proc_macro2::{Span, TokenStream, TokenTree};
 
 use super::{
     models::{
-        NewtypeNumberMeta, NumberSanitizer, NumberValidator, RawNewtypeNumberMeta,
-        SpannedNumberSanitizer, SpannedNumberValidator,
+        FloatSanitizer, FloatValidator, NewtypeFloatMeta, RawNewtypeFloatMeta,
+        SpannedFloatSanitizer, SpannedFloatValidator,
     },
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream) -> Result<NewtypeNumberMeta<T>, syn::Error>
+pub fn parse_attributes<T>(input: TokenStream) -> Result<NewtypeFloatMeta<T>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
@@ -23,7 +23,7 @@ where
     parse_raw_attributes(input).and_then(validate_number_meta)
 }
 
-fn parse_raw_attributes<T>(input: TokenStream) -> Result<RawNewtypeNumberMeta<T>, syn::Error>
+fn parse_raw_attributes<T>(input: TokenStream) -> Result<RawNewtypeFloatMeta<T>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -31,9 +31,7 @@ where
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
 
-fn parse_sanitize_attrs<T>(
-    stream: TokenStream,
-) -> Result<Vec<SpannedNumberSanitizer<T>>, syn::Error>
+fn parse_sanitize_attrs<T>(stream: TokenStream) -> Result<Vec<SpannedFloatSanitizer<T>>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -42,7 +40,7 @@ where
     split_and_parse(tokens, is_comma, parse_sanitize_attr)
 }
 
-fn parse_sanitize_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedNumberSanitizer<T>, syn::Error>
+fn parse_sanitize_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedFloatSanitizer<T>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -65,8 +63,8 @@ where
                 let mut iter = list.into_iter();
                 let min = iter.next().unwrap();
                 let max = iter.next().unwrap();
-                let sanitizer = NumberSanitizer::Clamp { min, max };
-                Ok(SpannedNumberSanitizer {
+                let sanitizer = FloatSanitizer::Clamp { min, max };
+                Ok(SpannedFloatSanitizer {
                     span,
                     item: sanitizer,
                 })
@@ -75,8 +73,8 @@ where
                 // Preserve the rest as `custom_sanitizer_fn`
                 let stream = parse_with_token_stream(token_iter, ident.span())?;
                 let span = ident.span();
-                let sanitizer = NumberSanitizer::With(stream);
-                Ok(SpannedNumberSanitizer {
+                let sanitizer = FloatSanitizer::With(stream);
+                Ok(SpannedFloatSanitizer {
                     span,
                     item: sanitizer,
                 })
@@ -92,9 +90,7 @@ where
     }
 }
 
-fn parse_validate_attrs<T>(
-    stream: TokenStream,
-) -> Result<Vec<SpannedNumberValidator<T>>, syn::Error>
+fn parse_validate_attrs<T>(stream: TokenStream) -> Result<Vec<SpannedFloatValidator<T>>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -103,7 +99,7 @@ where
     split_and_parse(tokens, is_comma, parse_validate_attr)
 }
 
-fn parse_validate_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedNumberValidator<T>, syn::Error>
+fn parse_validate_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedFloatValidator<T>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -114,8 +110,8 @@ where
         match ident.to_string().as_ref() {
             "min" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = NumberValidator::Min(value);
-                let parsed_validator = SpannedNumberValidator {
+                let validator = FloatValidator::Min(value);
+                let parsed_validator = SpannedFloatValidator {
                     span: ident.span(),
                     item: validator,
                 };
@@ -123,8 +119,8 @@ where
             }
             "max" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = NumberValidator::Max(value);
-                let parsed_validator = SpannedNumberValidator {
+                let validator = FloatValidator::Max(value);
+                let parsed_validator = SpannedFloatValidator {
                     span: ident.span(),
                     item: validator,
                 };
@@ -134,8 +130,8 @@ where
                 let rest_tokens: Vec<_> = token_iter.collect();
                 let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
                 let span = ident.span();
-                let validator = NumberValidator::With(stream);
-                Ok(SpannedNumberValidator {
+                let validator = FloatValidator::With(stream);
+                Ok(SpannedFloatValidator {
                     span,
                     item: validator,
                 })

@@ -103,7 +103,6 @@ pub fn validate_derive_traits(
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
 ) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
     let mut traits = HashSet::with_capacity(24);
-
     let has_validation = meta.has_validation();
 
     for spanned_trait in spanned_derive_traits {

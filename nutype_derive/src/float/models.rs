@@ -9,20 +9,20 @@ use crate::{
 //
 
 #[derive(Debug)]
-pub enum NumberSanitizer<T> {
+pub enum FloatSanitizer<T> {
     Clamp { min: T, max: T },
     With(TokenStream),
 }
 
-pub type SpannedNumberSanitizer<T> = SpannedItem<NumberSanitizer<T>>;
+pub type SpannedFloatSanitizer<T> = SpannedItem<FloatSanitizer<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum NumberSanitizerKind {
+pub enum FloatSanitizerKind {
     Clamp,
     With,
 }
 
-impl std::fmt::Display for NumberSanitizerKind {
+impl std::fmt::Display for FloatSanitizerKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Clamp => write!(f, "clamp"),
@@ -31,13 +31,13 @@ impl std::fmt::Display for NumberSanitizerKind {
     }
 }
 
-impl<T> Kind for NumberSanitizer<T> {
-    type Kind = NumberSanitizerKind;
+impl<T> Kind for FloatSanitizer<T> {
+    type Kind = FloatSanitizerKind;
 
-    fn kind(&self) -> NumberSanitizerKind {
+    fn kind(&self) -> FloatSanitizerKind {
         match self {
-            Self::Clamp { .. } => NumberSanitizerKind::Clamp,
-            Self::With(_) => NumberSanitizerKind::With,
+            Self::Clamp { .. } => FloatSanitizerKind::Clamp,
+            Self::With(_) => FloatSanitizerKind::With,
         }
     }
 }
@@ -46,22 +46,22 @@ impl<T> Kind for NumberSanitizer<T> {
 //
 
 #[derive(Debug)]
-pub enum NumberValidator<T> {
+pub enum FloatValidator<T> {
     Min(T),
     Max(T),
     With(TokenStream),
 }
 
-pub type SpannedNumberValidator<T> = SpannedItem<NumberValidator<T>>;
+pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum NumberValidatorKind {
+pub enum FloatValidatorKind {
     Min,
     Max,
     With,
 }
 
-impl std::fmt::Display for NumberValidatorKind {
+impl std::fmt::Display for FloatValidatorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Min => write!(f, "min"),
@@ -71,14 +71,14 @@ impl std::fmt::Display for NumberValidatorKind {
     }
 }
 
-impl<T> Kind for NumberValidator<T> {
-    type Kind = NumberValidatorKind;
+impl<T> Kind for FloatValidator<T> {
+    type Kind = FloatValidatorKind;
 
-    fn kind(&self) -> NumberValidatorKind {
+    fn kind(&self) -> FloatValidatorKind {
         match self {
-            Self::Min(_) => NumberValidatorKind::Min,
-            Self::Max(_) => NumberValidatorKind::Max,
-            Self::With(_) => NumberValidatorKind::With,
+            Self::Min(_) => FloatValidatorKind::Min,
+            Self::Max(_) => FloatValidatorKind::Max,
+            Self::With(_) => FloatValidatorKind::With,
         }
     }
 }
@@ -86,6 +86,6 @@ impl<T> Kind for NumberValidator<T> {
 // Meta
 //
 
-pub type RawNewtypeNumberMeta<T> =
-    RawNewtypeMeta<SpannedNumberSanitizer<T>, SpannedNumberValidator<T>>;
-pub type NewtypeNumberMeta<T> = NewtypeMeta<NumberSanitizer<T>, NumberValidator<T>>;
+pub type RawNewtypeFloatMeta<T> =
+    RawNewtypeMeta<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
+pub type NewtypeFloatMeta<T> = NewtypeMeta<FloatSanitizer<T>, FloatValidator<T>>;
