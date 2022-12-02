@@ -1,12 +1,16 @@
 pub mod error;
+pub mod traits;
+
+use std::collections::HashSet;
 
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
 use self::error::{gen_error_type_name, gen_validation_error_type};
-use super::models::{FloatSanitizer, FloatValidator, NewtypeFloatMeta};
+use super::models::{FloatDeriveTrait, FloatSanitizer, FloatValidator, NewtypeFloatMeta};
 use crate::{common::gen::type_custom_sanitizier_closure, models::FloatType};
+use traits::{gen_traits, GeneratedTraits};
 
 pub fn gen_nutype_for_float<T>(
     doc_attrs: Vec<syn::Attribute>,
@@ -14,6 +18,7 @@ pub fn gen_nutype_for_float<T>(
     number_type: FloatType,
     type_name: &Ident,
     meta: NewtypeFloatMeta<T>,
+    traits: HashSet<FloatDeriveTrait>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
@@ -25,26 +30,35 @@ where
     let tp: TokenStream =
         syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
 
-    let error_type_import = match meta {
-        NewtypeFloatMeta::From { .. } => quote!(),
-        NewtypeFloatMeta::TryFrom { .. } => {
-            let error_type_name = gen_error_type_name(type_name);
+    let maybe_error_type_name: Option<Ident> = match meta {
+        NewtypeFloatMeta::From { .. } => None,
+        NewtypeFloatMeta::TryFrom { .. } => Some(gen_error_type_name(type_name)),
+    };
+
+    let error_type_import = match maybe_error_type_name {
+        None => quote!(),
+        Some(ref error_type_name) => {
             quote! (
                 #vis use #module_name::#error_type_name;
             )
         }
     };
-    let derive = gen_derive();
+
+    let GeneratedTraits {
+        derive_standard_traits,
+        implement_traits,
+    } = gen_traits(type_name, &tp, maybe_error_type_name, traits);
 
     quote!(
         mod #module_name {
             use super::*;
 
             #(#doc_attrs)*
-            #derive
+            #derive_standard_traits
             pub struct #type_name(#tp);
 
             #implementation
+            #implement_traits
         }
         #vis use #module_name::#type_name;
         #error_type_import
@@ -60,11 +74,11 @@ where
     T: ToTokens + PartialOrd,
 {
     let convert_implementation = match meta {
-        NewtypeFloatMeta::From { sanitizers } => gen_new_and_from(type_name, sanitizers),
+        NewtypeFloatMeta::From { sanitizers } => gen_new_without_validation(type_name, sanitizers),
         NewtypeFloatMeta::TryFrom {
             sanitizers,
             validators,
-        } => gen_new_and_try_from(type_name, sanitizers, validators),
+        } => gen_new_with_validation(type_name, sanitizers, validators),
     };
     let methods = gen_impl_methods(type_name, inner_type);
 
@@ -76,12 +90,6 @@ where
 
 fn gen_impl_methods(type_name: &Ident, inner_type: FloatType) -> TokenStream {
     quote! {
-        impl ::core::convert::From<#type_name> for  #inner_type {
-            fn from(val: #type_name) -> #inner_type {
-                val.0
-            }
-        }
-
         impl #type_name {
             pub fn into_inner(self) -> #inner_type {
                 self.0
@@ -90,7 +98,7 @@ fn gen_impl_methods(type_name: &Ident, inner_type: FloatType) -> TokenStream {
     }
 }
 
-fn gen_new_and_from<T>(type_name: &Ident, sanitizers: &[FloatSanitizer<T>]) -> TokenStream
+fn gen_new_without_validation<T>(type_name: &Ident, sanitizers: &[FloatSanitizer<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -106,16 +114,10 @@ where
                 Self(sanitize(raw_value))
             }
         }
-
-        impl ::core::convert::From<#inner_type> for #type_name {
-            fn from(raw_value: #inner_type) -> Self {
-                Self::new(raw_value)
-            }
-        }
     )
 }
 
-fn gen_new_and_try_from<T>(
+fn gen_new_with_validation<T>(
     type_name: &Ident,
     sanitizers: &[FloatSanitizer<T>],
     validators: &[FloatValidator<T>],
@@ -140,14 +142,6 @@ where
                 let sanitized_value = sanitize(raw_value);
                 validate(sanitized_value)?;
                 Ok(#type_name(sanitized_value))
-            }
-        }
-
-        impl ::core::convert::TryFrom<#inner_type> for #type_name {
-            type Error = #error_type_name;
-
-            fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
-                #type_name::new(raw_value)
             }
         }
     )
@@ -238,10 +232,4 @@ where
             Ok(())
         }
     )
-}
-
-fn gen_derive() -> TokenStream {
-    quote! {
-        #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-    }
 }

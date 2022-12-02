@@ -20,7 +20,7 @@ pub struct Email(String);
 
 #[nutype]
 #[derive(*, Borrow)]
-pub struct Value(i32);
+pub struct Value(f64);
 
 fn main() {
     let email = Email::try_from("  example@MAIL.ORG ").unwrap();

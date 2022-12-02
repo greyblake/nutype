@@ -360,7 +360,7 @@ mod number_types {
 
         assert_eq!(Width::new(0.0).unwrap().into_inner(), 0.0);
 
-        let w: f64 = Width::new(100.0).unwrap().into();
+        let w: f64 = Width::new(100.0).unwrap().into_inner();
         assert_eq!(w, 100.0);
     }
 
@@ -370,6 +370,7 @@ mod number_types {
             sanitize(clamp(-200.25, -5))
             validate(min = -100.25, max = -50.1)
         )]
+        #[derive(*)]
         pub struct Balance(f64);
 
         assert_eq!(Balance::new(-300.0), Err(BalanceError::TooSmall));

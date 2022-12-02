@@ -83,6 +83,28 @@ impl<T> Kind for FloatValidator<T> {
     }
 }
 
+// Traits
+//
+#[derive(Debug, Eq, PartialEq, Hash)]
+pub enum FloatDeriveTrait {
+    // Standard
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    PartialOrd,
+    FromStr,
+    AsRef,
+    From,
+    TryFrom,
+    Borrow,
+    // // External crates
+    //
+    // Serialize,
+    // Deserialize,
+    // Arbitrary,
+}
+
 // Meta
 //
 

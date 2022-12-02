@@ -8,6 +8,7 @@ mod string;
 
 use std::{fmt::Debug, str::FromStr};
 
+use float::validate::validate_float_derive_traits;
 use integer::validate::validate_integer_derive_traits;
 use models::{FloatType, InnerType, IntegerType, SpannedDeriveTrait, TypeNameAndInnerType};
 use parse::parse_type_name_and_inner_type;
@@ -129,11 +130,12 @@ where
         tp,
         type_name,
         attrs,
-        derive_traits: _,
+        derive_traits,
     } = params;
     // TODO: validate derive_traits
     let meta = float::parse::parse_attributes::<T>(attrs)?;
+    let traits = validate_float_derive_traits(derive_traits, meta.has_validation())?;
     Ok(float::gen::gen_nutype_for_float(
-        doc_attrs, vis, tp, &type_name, meta,
+        doc_attrs, vis, tp, &type_name, meta, traits,
     ))
 }
