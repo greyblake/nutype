@@ -50,6 +50,7 @@ mod sanitizers {
     #[test]
     fn test_from_trait() {
         #[nutype(sanitize(with = |a| a.clamp(18, 99)))]
+        #[derive(*)]
         struct Age(u8);
 
         assert_eq!(Age::from(17).into_inner(), 18);
@@ -63,6 +64,7 @@ mod validators {
     #[test]
     fn test_min() {
         #[nutype(validate(min = 18))]
+        #[derive(*)]
         struct Age(u8);
 
         assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
@@ -72,6 +74,7 @@ mod validators {
     #[test]
     fn test_max() {
         #[nutype(validate(max = 99))]
+        #[derive(*)]
         struct Age(u8);
 
         assert_eq!(Age::new(100).unwrap_err(), AgeError::TooBig);
@@ -81,6 +84,7 @@ mod validators {
     #[test]
     fn test_min_and_max() {
         #[nutype(validate(min = 18, max = 99))]
+        #[derive(*)]
         struct Age(u8);
 
         assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
@@ -95,6 +99,7 @@ mod validators {
         #[test]
         fn test_with_closure_with_explicit_type() {
             #[nutype(validate(with = |c: &i32| (0..=100).contains(c) ))]
+            #[derive(*)]
             pub struct Cent(i32);
 
             assert_eq!(Cent::new(-10), Err(CentError::Invalid));
@@ -105,6 +110,7 @@ mod validators {
         #[test]
         fn test_closure_with_no_type() {
             #[nutype(validate(with = |c| (0..=100).contains(c) ))]
+            #[derive(*)]
             pub struct Cent(i32);
 
             assert_eq!(Cent::new(-10), Err(CentError::Invalid));
@@ -119,6 +125,7 @@ mod validators {
         #[test]
         fn test_with_function() {
             #[nutype(validate(with = is_cent_valid))]
+            #[derive(*)]
             pub struct Cent(i32);
 
             assert_eq!(Cent::new(-1), Err(CentError::Invalid));
@@ -130,6 +137,7 @@ mod validators {
     #[test]
     fn test_try_from_trait() {
         #[nutype(validate(min = 18))]
+        #[derive(*)]
         struct Age(u8);
 
         assert_eq!(Age::try_from(17).unwrap_err(), AgeError::TooSmall);
@@ -147,6 +155,7 @@ mod number_types {
             sanitize(clamp(0, 200))
             validate(min = 18, max = 99)
         )]
+        #[derive(*)]
         struct Age(u8);
 
         assert_eq!(Age::new(17), Err(AgeError::TooSmall));
@@ -157,6 +166,7 @@ mod number_types {
     #[test]
     fn test_u8_sanitize() {
         #[nutype(sanitize(clamp(10, 100)))]
+        #[derive(*)]
         struct Percentage(u8);
 
         assert_eq!(Percentage::new(101), Percentage::new(100));
@@ -166,6 +176,7 @@ mod number_types {
     #[test]
     fn test_u16() {
         #[nutype(validate(min = 18, max = 65000))]
+        #[derive(*)]
         struct Age(u16);
 
         assert_eq!(Age::new(17), Err(AgeError::TooSmall));
@@ -176,6 +187,7 @@ mod number_types {
     #[test]
     fn test_u32() {
         #[nutype(validate(min = 1000, max = 100_000))]
+        #[derive(*)]
         struct Amount(u32);
 
         assert_eq!(Amount::new(17), Err(AmountError::TooSmall));
@@ -186,6 +198,7 @@ mod number_types {
     #[test]
     fn test_u64() {
         #[nutype(validate(min = 1000, max = 18446744073709551000))]
+        #[derive(*)]
         struct Amount(u64);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -196,6 +209,7 @@ mod number_types {
     #[test]
     fn test_u128() {
         #[nutype(validate(min = 1000, max = 170141183460469231731687303715884105828))]
+        #[derive(*)]
         struct Amount(u128);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -210,6 +224,7 @@ mod number_types {
     #[test]
     fn test_i8_sanitize() {
         #[nutype(sanitize(clamp(0, 100)))]
+        #[derive(*)]
         struct Percentage(i8);
 
         assert_eq!(Percentage::new(101), Percentage::new(100));
@@ -220,6 +235,7 @@ mod number_types {
     fn test_i8_validate() {
         // TODO: use negative numbers
         #[nutype(validate(min = 18, max = 99))]
+        #[derive(*)]
         struct Age(i8);
 
         assert_eq!(Age::new(17), Err(AgeError::TooSmall));
@@ -230,6 +246,7 @@ mod number_types {
     #[test]
     fn test_i16_validate() {
         #[nutype(validate(min = 1000, max = 32_000))]
+        #[derive(*)]
         struct Amount(i16);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -241,6 +258,7 @@ mod number_types {
     #[test]
     fn test_i32_validate() {
         #[nutype(validate(min = 1000, max = 320_000))]
+        #[derive(*)]
         struct Amount(i32);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -258,6 +276,7 @@ mod number_types {
             sanitize(clamp(-200, -5))
             validate(min = -100, max = -50)
         )]
+        #[derive(*)]
         pub struct Balance(i32);
 
         assert_eq!(Balance::new(-300), Err(BalanceError::TooSmall));
@@ -270,6 +289,7 @@ mod number_types {
     #[test]
     fn test_i64_validate() {
         #[nutype(validate(min = 1000, max = 8446744073709551000))]
+        #[derive(Debug, PartialEq)]
         struct Amount(i64);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -281,6 +301,7 @@ mod number_types {
     #[test]
     fn test_i128_validate() {
         #[nutype(validate(min = 1000, max = 70141183460469231731687303715884105000))]
+        #[derive(Debug, PartialEq)]
         struct Amount(i128);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -295,6 +316,7 @@ mod number_types {
     #[test]
     fn test_usize_validate() {
         #[nutype(validate(min = 1000, max = 2000))]
+        #[derive(Debug, PartialEq)]
         struct Amount(usize);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -306,6 +328,7 @@ mod number_types {
     #[test]
     fn test_isize_validate() {
         #[nutype(validate(min = 1000, max = 2000))]
+        #[derive(Debug, PartialEq)]
         struct Amount(isize);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -317,6 +340,7 @@ mod number_types {
     #[test]
     fn test_f32_validate() {
         #[nutype(validate(min = 0.0, max = 100))]
+        #[derive(Debug, PartialEq)]
         pub struct Width(f32);
 
         assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));
@@ -328,6 +352,7 @@ mod number_types {
     #[test]
     fn test_f64_validate() {
         #[nutype(validate(min = 0.0, max = 100))]
+        #[derive(Debug, PartialEq)]
         pub struct Width(f64);
 
         assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));

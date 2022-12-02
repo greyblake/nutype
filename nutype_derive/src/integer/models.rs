@@ -85,6 +85,7 @@ impl<T> Kind for IntegerValidator<T> {
 
 // Traits
 //
+#[derive(Debug, Eq, PartialEq, Hash)]
 pub enum IntegerDeriveTrait {
     // Standard
     Debug,

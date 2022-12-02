@@ -8,11 +8,12 @@ mod string;
 
 use std::{fmt::Debug, str::FromStr};
 
-use models::{FloatType, InnerType, IntegerType, TypeNameAndInnerType};
+use integer::validate::validate_integer_derive_traits;
+use models::{FloatType, InnerType, IntegerType, SpannedDeriveTrait, TypeNameAndInnerType};
 use parse::parse_type_name_and_inner_type;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
-use string::{gen::gen_nutype_for_string, validate::validate_derive_traits};
+use string::{gen::gen_nutype_for_string, validate::validate_string_derive_traits};
 use syn::Visibility;
 
 #[proc_macro_attribute]
@@ -40,19 +41,19 @@ fn expand_nutype(
     match inner_type {
         InnerType::String => {
             let meta = string::parse::parse_attributes(attrs)?;
-            let traits = validate_derive_traits(&meta, derive_traits)?;
+            let traits = validate_string_derive_traits(&meta, derive_traits)?;
             Ok(gen_nutype_for_string(
                 doc_attrs, traits, vis, &type_name, meta,
             ))
         }
         InnerType::Integer(tp) => {
-            // TODO: inject derive_traits
             let params = NumberParams {
                 doc_attrs,
                 vis,
                 tp,
                 type_name,
                 attrs,
+                derive_traits,
             };
             match tp {
                 IntegerType::U8 => parse_integer_attrs_and_gen::<u8>(params),
@@ -70,13 +71,13 @@ fn expand_nutype(
             }
         }
         InnerType::Float(tp) => {
-            // TODO: inject derive_traits
             let params = NumberParams {
                 doc_attrs,
                 vis,
                 tp,
                 type_name,
                 attrs,
+                derive_traits,
             };
             match tp {
                 FloatType::F32 => parse_float_attrs_and_gen::<f32>(params),
@@ -92,6 +93,7 @@ struct NumberParams<NumberType> {
     tp: NumberType,
     type_name: Ident,
     attrs: TokenStream,
+    derive_traits: Vec<SpannedDeriveTrait>,
 }
 
 fn parse_integer_attrs_and_gen<T>(
@@ -107,10 +109,12 @@ where
         tp,
         type_name,
         attrs,
+        derive_traits,
     } = params;
     let meta = integer::parse::parse_attributes::<T>(attrs)?;
-    Ok(integer::gen::gen_nutype_for_number(
-        doc_attrs, vis, tp, &type_name, meta,
+    let traits = validate_integer_derive_traits(derive_traits, meta.has_validation())?;
+    Ok(integer::gen::gen_nutype_for_integer(
+        doc_attrs, vis, tp, &type_name, meta, traits,
     ))
 }
 
@@ -125,9 +129,11 @@ where
         tp,
         type_name,
         attrs,
+        derive_traits: _,
     } = params;
+    // TODO: validate derive_traits
     let meta = float::parse::parse_attributes::<T>(attrs)?;
-    Ok(float::gen::gen_nutype_for_number(
+    Ok(float::gen::gen_nutype_for_float(
         doc_attrs, vis, tp, &type_name, meta,
     ))
 }

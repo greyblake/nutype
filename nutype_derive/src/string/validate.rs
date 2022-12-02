@@ -98,7 +98,7 @@ fn validate_sanitizers(
     Ok(sanitizers)
 }
 
-pub fn validate_derive_traits(
+pub fn validate_string_derive_traits(
     meta: &NewtypeStringMeta,
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
 ) -> Result<HashSet<StringDeriveTrait>, syn::Error> {

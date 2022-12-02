@@ -22,7 +22,7 @@ mod tests {
     #[test]
     fn test_amount_example() {
         #[nutype(validate(min = 100, max = 1_000))]
-        #[derive(Debug, PartialEq)]
+        #[derive(Debug, PartialEq, TryFrom)]
         pub struct Amount(u32);
 
         assert_eq!(Amount::try_from(99), Err(AmountError::TooSmall));

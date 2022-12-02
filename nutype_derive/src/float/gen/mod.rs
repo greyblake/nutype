@@ -8,7 +8,7 @@ use self::error::{gen_error_type_name, gen_validation_error_type};
 use super::models::{FloatSanitizer, FloatValidator, NewtypeFloatMeta};
 use crate::{common::gen::type_custom_sanitizier_closure, models::FloatType};
 
-pub fn gen_nutype_for_number<T>(
+pub fn gen_nutype_for_float<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
     number_type: FloatType,

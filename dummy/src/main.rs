@@ -16,11 +16,11 @@ pub struct Email(String);
 /// let name = Name::from(" Anton\n");
 /// assert_eq!(name.into_inner(), "Anton");
 /// ```
-#[nutype(validate(max = 100))]
-#[derive(*)]
-#[derive(Debug, Copy)]
-pub struct Value(i32);
 */
+
+#[nutype]
+#[derive(*, Borrow)]
+pub struct Value(i32);
 
 fn main() {
     let email = Email::try_from("  example@MAIL.ORG ").unwrap();
@@ -38,6 +38,6 @@ fn main() {
     emails.insert(my_mail, 1);
     println!("{:?}", emails.get("this@cool.com"));
 
-    // let value = Value::new(-15);
-    // println!("value = {value:?}");
+    let value: Value = "1234".parse().unwrap();
+    println!("value = {value:?}");
 }

@@ -1,8 +1,15 @@
-use crate::common::validate::validate_duplicates;
+use std::collections::HashSet;
+
+use proc_macro2::Span;
+
+use crate::{
+    common::validate::validate_duplicates,
+    models::{DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait},
+};
 
 use super::models::{
-    IntegerSanitizer, IntegerValidator, NewtypeIntegerMeta, RawNewtypeIntegerMeta,
-    SpannedIntegerSanitizer, SpannedIntegerValidator,
+    IntegerDeriveTrait, IntegerSanitizer, IntegerValidator, NewtypeIntegerMeta,
+    RawNewtypeIntegerMeta, SpannedIntegerSanitizer, SpannedIntegerValidator,
 };
 
 pub fn validate_number_meta<T>(
@@ -96,4 +103,103 @@ where
 
     let sanitizers: Vec<_> = sanitizers.into_iter().map(|s| s.item).collect();
     Ok(sanitizers)
+}
+
+pub fn validate_integer_derive_traits(
+    spanned_derive_traits: Vec<SpannedDeriveTrait>,
+    has_validation: bool,
+) -> Result<HashSet<IntegerDeriveTrait>, syn::Error> {
+    let mut traits = HashSet::with_capacity(24);
+
+    for spanned_trait in spanned_derive_traits {
+        match spanned_trait.item {
+            DeriveTrait::Asterisk => {
+                traits.extend(unfold_asterisk_traits(has_validation));
+            }
+            DeriveTrait::Normal(normal_trait) => {
+                let string_derive_trait =
+                    to_integer_derive_trait(normal_trait, has_validation, spanned_trait.span)?;
+                traits.insert(string_derive_trait);
+            }
+        };
+    }
+
+    Ok(traits)
+}
+
+fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = IntegerDeriveTrait> {
+    let from_or_try_from = if has_validation {
+        IntegerDeriveTrait::TryFrom
+    } else {
+        IntegerDeriveTrait::From
+    };
+
+    [
+        from_or_try_from,
+        IntegerDeriveTrait::Debug,
+        IntegerDeriveTrait::Clone,
+        IntegerDeriveTrait::Copy,
+        IntegerDeriveTrait::PartialEq,
+        IntegerDeriveTrait::Eq,
+        IntegerDeriveTrait::PartialOrd,
+        IntegerDeriveTrait::Ord,
+        IntegerDeriveTrait::FromStr,
+        IntegerDeriveTrait::AsRef,
+        IntegerDeriveTrait::Hash,
+        // TODO: should depend on features
+        //
+        // IntegerDeriveTrait::Serialize,
+        // IntegerDeriveTrait::Deserialize,
+        // IntegerDeriveTrait::Arbitrary,
+    ]
+    .into_iter()
+}
+
+fn to_integer_derive_trait(
+    tr: NormalDeriveTrait,
+    has_validation: bool,
+    span: Span,
+) -> Result<IntegerDeriveTrait, syn::Error> {
+    match tr {
+        NormalDeriveTrait::Debug => Ok(IntegerDeriveTrait::Debug),
+        NormalDeriveTrait::Clone => Ok(IntegerDeriveTrait::Clone),
+        NormalDeriveTrait::PartialEq => Ok(IntegerDeriveTrait::PartialEq),
+        NormalDeriveTrait::Eq => Ok(IntegerDeriveTrait::Eq),
+        NormalDeriveTrait::PartialOrd => Ok(IntegerDeriveTrait::PartialOrd),
+        NormalDeriveTrait::Ord => Ok(IntegerDeriveTrait::Ord),
+        NormalDeriveTrait::FromStr => Ok(IntegerDeriveTrait::FromStr),
+        NormalDeriveTrait::AsRef => Ok(IntegerDeriveTrait::AsRef),
+        NormalDeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),
+        NormalDeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
+        NormalDeriveTrait::Serialize => {
+            unimplemented!("Serialize is not yet implemented");
+            // traits.insert(IntegerDeriveTrait::Serialize)
+        }
+        NormalDeriveTrait::Deserialize => {
+            unimplemented!("Deserialize is not yet implemented");
+            // traits.insert(IntegerDeriveTrait::Deserialize)
+        }
+        NormalDeriveTrait::Arbitrary => {
+            unimplemented!("Arbitrary is not yet implemented");
+            // traits.insert(IntegerDeriveTrait::Arbitrary)
+        }
+        NormalDeriveTrait::Copy => Err(syn::Error::new(
+            span,
+            "Copy trait cannot be derived for a String based type",
+        )),
+        NormalDeriveTrait::From => {
+            if has_validation {
+                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+            } else {
+                Ok(IntegerDeriveTrait::From)
+            }
+        }
+        NormalDeriveTrait::TryFrom => {
+            if has_validation {
+                Ok(IntegerDeriveTrait::TryFrom)
+            } else {
+                Err(syn::Error::new(span, "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead."))
+            }
+        }
+    }
 }
