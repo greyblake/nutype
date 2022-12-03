@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
-use crate::{common::gen::traits::gen_impl_trait_into, string::models::StringDeriveTrait};
+use crate::{
+    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_into},
+    string::models::StringDeriveTrait,
+};
 
 pub struct GeneratedTraits {
     pub derive_standard_traits: TokenStream,
@@ -116,33 +119,21 @@ fn gen_implemented_traits(
     maybe_error_type_name: Option<Ident>,
     impl_traits: Vec<ImplementedTrait>,
 ) -> TokenStream {
-    let inner_type = quote!(String);
-
     impl_traits
         .iter()
         .map(|t| match t {
-            ImplementedTrait::AsRef => gen_impl_as_ref(type_name),
+            ImplementedTrait::AsRef => gen_impl_trait_as_ref(type_name, quote!(str)),
             ImplementedTrait::FromStr => {
                 gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
             }
             ImplementedTrait::From => gen_impl_from(type_name),
-            ImplementedTrait::Into => gen_impl_trait_into(type_name, &inner_type),
+            ImplementedTrait::Into => gen_impl_trait_into(type_name, quote!(String)),
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
             }
             ImplementedTrait::Borrow => gen_impl_borrow(type_name),
         })
         .collect()
-}
-
-fn gen_impl_as_ref(type_name: &Ident) -> TokenStream {
-    quote! {
-        impl ::core::convert::AsRef<str> for #type_name {
-            fn as_ref(&self) -> &str {
-                &self.0
-            }
-        }
-    }
 }
 
 fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -> TokenStream {

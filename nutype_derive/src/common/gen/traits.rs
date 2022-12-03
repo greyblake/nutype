@@ -14,3 +14,13 @@ pub fn gen_impl_trait_into(type_name: impl ToTokens, inner_type: impl ToTokens) 
         }
     }
 }
+
+pub fn gen_impl_trait_as_ref(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
+    quote! {
+        impl ::core::convert::AsRef<#inner_type> for #type_name {
+            fn as_ref(&self) -> &#inner_type {
+                &self.0
+            }
+        }
+    }
+}

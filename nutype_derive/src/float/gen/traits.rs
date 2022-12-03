@@ -3,7 +3,10 @@ use std::collections::HashSet;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
-use crate::{common::gen::traits::gen_impl_trait_into, float::models::FloatDeriveTrait};
+use crate::{
+    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_into},
+    float::models::FloatDeriveTrait,
+};
 
 // TODO: this can be a shared structure among all the types
 pub struct GeneratedTraits {
@@ -118,7 +121,7 @@ fn gen_implemented_traits(
     impl_traits
         .iter()
         .map(|t| match t {
-            ImplementedTrait::AsRef => gen_impl_as_ref(type_name, inner_type),
+            ImplementedTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
             ImplementedTrait::FromStr => {
                 gen_impl_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
             }
@@ -130,16 +133,6 @@ fn gen_implemented_traits(
             ImplementedTrait::Borrow => gen_impl_borrow(type_name, inner_type),
         })
         .collect()
-}
-
-fn gen_impl_as_ref(type_name: &Ident, inner_type: &TokenStream) -> TokenStream {
-    quote! {
-        impl ::core::convert::AsRef<#inner_type> for #type_name {
-            fn as_ref(&self) -> &#inner_type {
-                &self.0
-            }
-        }
-    }
 }
 
 fn gen_impl_from_str(
