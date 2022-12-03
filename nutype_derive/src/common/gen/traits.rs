@@ -37,3 +37,13 @@ pub fn gen_impl_trait_borrow(
         }
     }
 }
+
+pub fn gen_impl_trait_from(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
+    quote! {
+        impl ::core::convert::From<#inner_type> for #type_name {
+            fn from(raw_value: #inner_type) -> Self {
+                Self::new(raw_value)
+            }
+        }
+    }
+}

@@ -4,7 +4,9 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_into},
+    common::gen::traits::{
+        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_from, gen_impl_trait_into,
+    },
     float::models::FloatDeriveTrait,
 };
 
@@ -125,7 +127,7 @@ fn gen_implemented_traits(
             ImplementedTrait::FromStr => {
                 gen_impl_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
             }
-            ImplementedTrait::From => gen_impl_from(type_name, inner_type),
+            ImplementedTrait::From => gen_impl_trait_from(type_name, inner_type),
             ImplementedTrait::Into => gen_impl_trait_into(type_name, inner_type),
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
@@ -173,22 +175,6 @@ fn gen_impl_from_str(
                     let value: #inner_type = raw_string.parse()?;
                     Ok(#type_name::new(value))
                 }
-            }
-        }
-    }
-}
-
-fn gen_impl_from(type_name: &Ident, inner_type: &TokenStream) -> TokenStream {
-    quote! {
-        impl ::core::convert::From<#inner_type> for #type_name {
-            fn from(raw_value: #inner_type) -> Self {
-                Self::new(raw_value)
-            }
-        }
-
-        impl ::core::convert::From<&#inner_type> for #type_name {
-            fn from(raw_value: &#inner_type) -> Self {
-                Self::new(*raw_value)
             }
         }
     }

@@ -295,6 +295,26 @@ mod derives {
     }
 
     #[test]
+    fn test_trait_from_str() {
+        #[nutype]
+        #[derive(From)]
+        pub struct Name(String);
+
+        let name = Name::from("Anna");
+        assert_eq!(name.into_inner(), "Anna")
+    }
+
+    #[test]
+    fn test_trait_from_string() {
+        #[nutype]
+        #[derive(From)]
+        pub struct Name(String);
+
+        let name = Name::from("Anna".to_string());
+        assert_eq!(name.into_inner(), "Anna")
+    }
+
+    #[test]
     fn test_trait_as_ref() {
         #[nutype]
         #[derive(AsRef)]

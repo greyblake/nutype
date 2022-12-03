@@ -17,6 +17,16 @@ mod traits {
     }
 
     #[test]
+    fn test_trait_from() {
+        #[nutype]
+        #[derive(From)]
+        pub struct Amount(u32);
+
+        let amount = Amount::from(350);
+        assert_eq!(amount.into_inner(), 350);
+    }
+
+    #[test]
     fn test_trait_as_ref() {
         #[nutype]
         #[derive(AsRef)]

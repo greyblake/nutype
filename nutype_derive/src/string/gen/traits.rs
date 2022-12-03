@@ -4,7 +4,9 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_into},
+    common::gen::traits::{
+        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_from, gen_impl_trait_into,
+    },
     string::models::StringDeriveTrait,
 };
 
@@ -126,7 +128,7 @@ fn gen_implemented_traits(
             ImplementedTrait::FromStr => {
                 gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
             }
-            ImplementedTrait::From => gen_impl_from(type_name),
+            ImplementedTrait::From => gen_impl_from_str_and_string(type_name),
             ImplementedTrait::Into => gen_impl_trait_into(type_name, quote!(String)),
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
@@ -160,19 +162,13 @@ fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
     }
 }
 
-fn gen_impl_from(type_name: &Ident) -> TokenStream {
-    quote! {
-        impl ::core::convert::From<String> for #type_name {
-            fn from(raw_value: String) -> Self {
-                Self::new(raw_value)
-            }
-        }
+fn gen_impl_from_str_and_string(type_name: &Ident) -> TokenStream {
+    let impl_from_string = gen_impl_trait_from(type_name, quote!(String));
+    let impl_from_str = gen_impl_trait_from(type_name, quote!(&str));
 
-        impl ::core::convert::From<&str> for #type_name {
-            fn from(raw_value: &str) -> Self {
-                Self::new(raw_value)
-            }
-        }
+    quote! {
+        #impl_from_string
+        #impl_from_str
     }
 }
 

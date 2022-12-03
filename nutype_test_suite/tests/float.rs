@@ -42,6 +42,16 @@ mod traits {
     }
 
     #[test]
+    fn test_trait_from() {
+        #[nutype]
+        #[derive(From)]
+        pub struct Size(f64);
+
+        let size = Size::from(35.7);
+        assert_eq!(size.into_inner(), 35.7);
+    }
+
+    #[test]
     fn test_trait_as_ref() {
         #[nutype]
         #[derive(AsRef)]
