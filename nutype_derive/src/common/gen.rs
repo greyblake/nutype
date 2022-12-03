@@ -1,3 +1,5 @@
+pub mod traits;
+
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
 
 /// Inject an inner type into a closure, so compiler does not complain if the token stream matchers

@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
-use crate::integer::models::IntegerDeriveTrait;
+use crate::{common::gen::traits::gen_impl_trait_into, integer::models::IntegerDeriveTrait};
 
 // TODO: this can be shared structure among all the types
 pub struct GeneratedTraits {
@@ -189,20 +189,6 @@ fn gen_impl_from_str(
                     let value: #inner_type = raw_string.parse()?;
                     Ok(#type_name::new(value))
                 }
-            }
-        }
-    }
-}
-
-fn gen_impl_trait_into(type_name: &Ident, inner_type: &TokenStream) -> TokenStream {
-    // NOTE: We're getting blank implementation of
-    //     Into<Inner> for Type
-    // by implementing
-    //     From<Type> for Inner
-    quote! {
-        impl ::core::convert::From<#type_name> for #inner_type {
-            fn from(value: #type_name) -> Self {
-                value.into_inner()
             }
         }
     }

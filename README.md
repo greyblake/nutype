@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Support derive of Into trait for floats
 * Refactor: extract common generator functions
 * Cleanup tests: split number tests into integer and float
 * Finish implementation of FromStr wtih validation for integers and floats. Ensure there is a test coverage.
@@ -61,6 +60,7 @@
 * Support derive for floats
 * Support derive of Into trait for String
 * Support derive of Into trait for integers
+* Support derive of Into trait for floats
 
 
 
