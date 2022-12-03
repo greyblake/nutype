@@ -74,4 +74,17 @@ mod traits {
         let age_borrowed: &u8 = age.borrow();
         assert_eq!(age_borrowed, &32);
     }
+
+    #[test]
+    fn test_trait_try_from() {
+        #[nutype(validate(max = 12.34))]
+        #[derive(Debug, TryFrom)]
+        pub struct Dist(f64);
+
+        let dist = Dist::try_from(12.34).unwrap();
+        assert_eq!(dist.into_inner(), 12.34);
+
+        let error = Dist::try_from(12.35).unwrap_err();
+        assert_eq!(error, DistError::TooBig);
+    }
 }

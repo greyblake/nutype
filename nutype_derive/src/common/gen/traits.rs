@@ -47,3 +47,19 @@ pub fn gen_impl_trait_from(type_name: impl ToTokens, inner_type: impl ToTokens) 
         }
     }
 }
+
+pub fn gen_impl_trait_try_from(
+    type_name: impl ToTokens,
+    inner_type: impl ToTokens,
+    error_type_name: impl ToTokens,
+) -> TokenStream {
+    quote! {
+        impl ::core::convert::TryFrom<#inner_type> for #type_name {
+            type Error = #error_type_name;
+
+            fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
+                Self::new(raw_value)
+            }
+        }
+    }
+}

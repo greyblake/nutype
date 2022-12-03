@@ -6,6 +6,7 @@ use quote::{quote, ToTokens};
 use crate::{
     common::gen::traits::{
         gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_from, gen_impl_trait_into,
+        gen_impl_trait_try_from,
     },
     string::models::StringDeriveTrait,
 };
@@ -131,7 +132,10 @@ fn gen_implemented_traits(
             ImplementedTrait::From => gen_impl_from_str_and_string(type_name),
             ImplementedTrait::Into => gen_impl_trait_into(type_name, quote!(String)),
             ImplementedTrait::TryFrom => {
-                gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
+                let error_type_name = maybe_error_type_name
+                    .as_ref()
+                    .expect("TryFrom for String is expected to have error_type_name");
+                gen_impl_try_from(type_name, error_type_name)
             }
             ImplementedTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
         })
@@ -172,35 +176,22 @@ fn gen_impl_from_str_and_string(type_name: &Ident) -> TokenStream {
     }
 }
 
-fn gen_impl_try_from(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -> TokenStream {
-    let error_type_name = maybe_error_type_name
-        .expect("gen_impl_try_from() for String is expected to have error_type_name");
+fn gen_impl_try_from(type_name: &Ident, error_type_name: &Ident) -> TokenStream {
+    let impl_try_from_string = gen_impl_trait_try_from(type_name, quote!(String), error_type_name);
+    let impl_try_from_str = gen_impl_trait_try_from(type_name, quote!(&str), error_type_name);
 
     quote! {
-        impl ::core::convert::TryFrom<String> for #type_name {
-            type Error = #error_type_name;
-
-            fn try_from(raw_value: String) -> Result<#type_name, Self::Error> {
-                Self::new(raw_value)
-            }
-        }
-
-        impl ::core::convert::TryFrom<&str> for #type_name {
-            type Error = #error_type_name;
-
-            fn try_from(raw_value: &str) -> Result<#type_name, Self::Error> {
-                Self::new(raw_value)
-            }
-        }
+        #impl_try_from_string
+        #impl_try_from_str
     }
 }
 
 fn gen_impl_borrow_str_and_string(type_name: &Ident) -> TokenStream {
-    let impl_borrow_str = gen_impl_trait_borrow(type_name, quote!(str));
     let impl_borrow_string = gen_impl_trait_borrow(type_name, quote!(String));
+    let impl_borrow_str = gen_impl_trait_borrow(type_name, quote!(str));
 
     quote! {
-        #impl_borrow_str
         #impl_borrow_string
+        #impl_borrow_str
     }
 }

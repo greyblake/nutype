@@ -350,4 +350,30 @@ mod derives {
         let name_borrowed: &String = name.borrow();
         assert_eq!(name_borrowed, "Anna");
     }
+
+    #[test]
+    fn test_trait_try_from_str() {
+        #[nutype(validate(present))]
+        #[derive(Debug, TryFrom)]
+        pub struct Name(String);
+
+        let name = Name::try_from("Anna").unwrap();
+        assert_eq!(name.into_inner(), "Anna");
+
+        let error = Name::try_from("").unwrap_err();
+        assert_eq!(error, NameError::Missing);
+    }
+
+    #[test]
+    fn test_trait_try_from_string() {
+        #[nutype(validate(present))]
+        #[derive(Debug, TryFrom)]
+        pub struct Name(String);
+
+        let name = Name::try_from("Anna".to_string()).unwrap();
+        assert_eq!(name.into_inner(), "Anna");
+
+        let error = Name::try_from("".to_string()).unwrap_err();
+        assert_eq!(error, NameError::Missing);
+    }
 }
