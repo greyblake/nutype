@@ -1,0 +1,17 @@
+error[E0603]: enum import `PercentageError` is private
+ --> tests/ui/integer/visibility/private_error.rs:8:31
+  |
+8 | type TheError = encapsulated::PercentageError;
+  |                               ^^^^^^^^^^^^^^^ private enum import
+  |
+note: the enum import `PercentageError` is defined here...
+ --> tests/ui/integer/visibility/private_error.rs:4:5
+  |
+4 |     #[nutype(validate(min = 0, max = 100))]
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: ...and refers to the enum `PercentageError` which is defined here
+ --> tests/ui/integer/visibility/private_error.rs:4:5
+  |
+4 |     #[nutype(validate(min = 0, max = 100))]
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider importing it directly
+  = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)

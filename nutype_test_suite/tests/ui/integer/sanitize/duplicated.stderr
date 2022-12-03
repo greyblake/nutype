@@ -1,6 +1,6 @@
 error: Duplicated sanitizer `with`.
        It happens, don't worry. We still love you!
- --> tests/ui/number/sanitize/duplicated.rs:6:9
+ --> tests/ui/integer/sanitize/duplicated.rs:6:9
   |
 6 |         with = |n| n,
   |         ^^^^
