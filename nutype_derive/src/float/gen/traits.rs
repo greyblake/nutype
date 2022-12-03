@@ -51,6 +51,7 @@ impl From<FloatDeriveTrait> for Trait {
             FloatDeriveTrait::FromStr => Trait::Implemented(ImplementedTrait::FromStr),
             FloatDeriveTrait::AsRef => Trait::Implemented(ImplementedTrait::AsRef),
             FloatDeriveTrait::From => Trait::Implemented(ImplementedTrait::From),
+            FloatDeriveTrait::Into => Trait::Implemented(ImplementedTrait::Into),
             FloatDeriveTrait::TryFrom => Trait::Implemented(ImplementedTrait::TryFrom),
             FloatDeriveTrait::Borrow => Trait::Implemented(ImplementedTrait::Borrow),
         }
@@ -73,6 +74,7 @@ enum DerivedTrait {
 enum ImplementedTrait {
     FromStr,
     AsRef,
+    Into,
     From,
     TryFrom,
     Borrow,
@@ -121,6 +123,7 @@ fn gen_implemented_traits(
                 gen_impl_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
             }
             ImplementedTrait::From => gen_impl_from(type_name, inner_type),
+            ImplementedTrait::Into => gen_impl_trait_into(type_name, inner_type),
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
             }
@@ -222,6 +225,20 @@ fn gen_impl_borrow(type_name: &Ident, inner_type: &TokenStream) -> TokenStream {
         impl ::core::borrow::Borrow<#inner_type> for #type_name {
             fn borrow(&self) -> &#inner_type {
                 &self.0
+            }
+        }
+    }
+}
+
+fn gen_impl_trait_into(type_name: &Ident, inner_type: &TokenStream) -> TokenStream {
+    // NOTE: We're getting blank implementation of
+    //     Into<Inner> for Type
+    // by implementing
+    //     From<Type> for Inner
+    quote! {
+        impl ::core::convert::From<#type_name> for #inner_type {
+            fn from(value: #type_name) -> Self {
+                value.into_inner()
             }
         }
     }

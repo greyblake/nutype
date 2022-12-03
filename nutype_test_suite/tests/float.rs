@@ -1,7 +1,7 @@
 use nutype::nutype;
 
 #[cfg(test)]
-mod derives {
+mod traits {
     use super::*;
     use nutype_test_suite::test_helpers::traits::*;
 
@@ -28,5 +28,16 @@ mod derives {
         // TODO: implement FromStr with validation
         // should_implement_from_str::<Name>();
         should_implement_borrow::<Dist, f64>();
+    }
+
+    #[test]
+    fn test_trait_into() {
+        #[nutype]
+        #[derive(Into)]
+        pub struct Size(f64);
+
+        let size = Size::new(35.7);
+        let size: f64 = size.into();
+        assert_eq!(size, 35.7);
     }
 }

@@ -95,6 +95,7 @@ pub enum FloatDeriveTrait {
     PartialOrd,
     FromStr,
     AsRef,
+    Into,
     From,
     TryFrom,
     Borrow,
