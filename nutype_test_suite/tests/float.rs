@@ -40,4 +40,15 @@ mod traits {
         let size: f64 = size.into();
         assert_eq!(size, 35.7);
     }
+
+    #[test]
+    fn test_trait_as_ref() {
+        #[nutype]
+        #[derive(AsRef)]
+        pub struct Weight(f32);
+
+        let weight = Weight::new(72.650);
+        let weight_ref: &f32 = weight.as_ref();
+        assert_eq!(weight_ref, &72.650);
+    }
 }

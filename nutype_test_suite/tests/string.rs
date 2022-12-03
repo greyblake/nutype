@@ -293,4 +293,15 @@ mod derives {
         let name: String = name.into();
         assert_eq!(name, "Anna")
     }
+
+    #[test]
+    fn test_trait_as_ref() {
+        #[nutype]
+        #[derive(AsRef)]
+        pub struct Name(String);
+
+        let name = Name::new("Anna");
+        let name_ref: &str = name.as_ref();
+        assert_eq!(name_ref, "Anna")
+    }
 }
