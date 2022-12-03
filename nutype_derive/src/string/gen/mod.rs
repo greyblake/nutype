@@ -82,12 +82,6 @@ pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) ->
 
 fn gen_impl_methods(type_name: &Ident) -> TokenStream {
     quote! {
-        impl ::core::convert::From<#type_name> for String {
-            fn from(val: #type_name) -> String {
-                val.0
-            }
-        }
-
         impl #type_name {
             pub fn into_inner(self) -> String {
                 self.0

@@ -164,6 +164,7 @@ fn to_string_derive_trait(
         NormalDeriveTrait::AsRef => Ok(StringDeriveTrait::AsRef),
         NormalDeriveTrait::Hash => Ok(StringDeriveTrait::Hash),
         NormalDeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
+        NormalDeriveTrait::Into => Ok(StringDeriveTrait::Into),
         NormalDeriveTrait::Serialize => {
             unimplemented!("Serialize is not yet implemented");
             // traits.insert(StringDeriveTrait::Serialize)

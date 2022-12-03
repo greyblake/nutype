@@ -161,6 +161,7 @@ fn to_float_derive_trait(
         NormalDeriveTrait::Debug => Ok(FloatDeriveTrait::Debug),
         NormalDeriveTrait::Clone => Ok(FloatDeriveTrait::Clone),
         NormalDeriveTrait::PartialEq => Ok(FloatDeriveTrait::PartialEq),
+        NormalDeriveTrait::Into => todo!(),
         NormalDeriveTrait::Eq => Err(syn::Error::new(
             span,
             "#[nutype] cannot derive `Eq` trait for float types.",

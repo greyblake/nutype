@@ -167,6 +167,7 @@ fn to_integer_derive_trait(
         NormalDeriveTrait::Eq => Ok(IntegerDeriveTrait::Eq),
         NormalDeriveTrait::PartialOrd => Ok(IntegerDeriveTrait::PartialOrd),
         NormalDeriveTrait::Ord => Ok(IntegerDeriveTrait::Ord),
+        NormalDeriveTrait::Into => todo!(),
         NormalDeriveTrait::FromStr => Ok(IntegerDeriveTrait::FromStr),
         NormalDeriveTrait::AsRef => Ok(IntegerDeriveTrait::AsRef),
         NormalDeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),

@@ -142,6 +142,7 @@ pub enum NormalDeriveTrait {
     AsRef,
     From,
     TryFrom,
+    Into,
     Hash,
     Borrow,
 

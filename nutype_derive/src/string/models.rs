@@ -109,6 +109,7 @@ pub enum StringDeriveTrait {
     AsRef,
     From,
     TryFrom,
+    Into,
     Hash,
     Borrow,
     // // External crates

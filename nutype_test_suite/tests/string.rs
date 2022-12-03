@@ -282,4 +282,15 @@ mod derives {
         should_implement_borrow::<Name, str>();
         should_implement_borrow::<Name, String>();
     }
+
+    #[test]
+    fn test_trait_into() {
+        #[nutype(sanitize(trim))]
+        #[derive(Into)]
+        pub struct Name(String);
+
+        let name = Name::new("  Anna");
+        let name: String = name.into();
+        assert_eq!(name, "Anna")
+    }
 }

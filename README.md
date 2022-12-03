@@ -1,9 +1,9 @@
 ## Roadmap
 
 ### TODO:
-* Support derive of Into trait for String
 * Support derive of Into trait for integers
 * Support derive of Into trait for floats
+* Refactor: extract common generator functions
 * Finish implementation of FromStr wtih validation for integers and floats. Ensure there is a test coverage.
 * Use absolute path to `Result` in the generated code
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
@@ -59,6 +59,7 @@
 * Refactor numbers and split into groups: integer and float.
 * Support derive for integers
 * Support derive for floats
+* Support derive of Into trait for String
 
 
 

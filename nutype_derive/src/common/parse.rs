@@ -271,6 +271,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Arbitrary" => NormalDeriveTrait::Arbitrary,
         "TryFrom" => NormalDeriveTrait::TryFrom,
         "From" => NormalDeriveTrait::From,
+        "Into" => NormalDeriveTrait::Into,
         "Hash" => NormalDeriveTrait::Hash,
         "Borrow" => NormalDeriveTrait::Borrow,
         _ => {
