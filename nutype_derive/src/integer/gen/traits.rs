@@ -53,6 +53,7 @@ impl From<IntegerDeriveTrait> for Trait {
             IntegerDeriveTrait::Hash => Trait::Derived(DerivedTrait::Hash),
             IntegerDeriveTrait::FromStr => Trait::Implemented(ImplementedTrait::FromStr),
             IntegerDeriveTrait::AsRef => Trait::Implemented(ImplementedTrait::AsRef),
+            IntegerDeriveTrait::Into => Trait::Implemented(ImplementedTrait::Into),
             IntegerDeriveTrait::From => Trait::Implemented(ImplementedTrait::From),
             IntegerDeriveTrait::TryFrom => Trait::Implemented(ImplementedTrait::TryFrom),
             IntegerDeriveTrait::Borrow => Trait::Implemented(ImplementedTrait::Borrow),
@@ -82,6 +83,7 @@ enum ImplementedTrait {
     From,
     TryFrom,
     Borrow,
+    Into,
 }
 
 impl ToTokens for DerivedTrait {
@@ -130,6 +132,7 @@ fn gen_implemented_traits(
                 gen_impl_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
             }
             ImplementedTrait::From => gen_impl_from(type_name, inner_type),
+            ImplementedTrait::Into => gen_impl_trait_into(type_name, inner_type),
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
             }
@@ -186,6 +189,20 @@ fn gen_impl_from_str(
                     let value: #inner_type = raw_string.parse()?;
                     Ok(#type_name::new(value))
                 }
+            }
+        }
+    }
+}
+
+fn gen_impl_trait_into(type_name: &Ident, inner_type: &TokenStream) -> TokenStream {
+    // NOTE: We're getting blank implementation of
+    //     Into<Inner> for Type
+    // by implementing
+    //     From<Type> for Inner
+    quote! {
+        impl ::core::convert::From<#type_name> for #inner_type {
+            fn from(value: #type_name) -> Self {
+                value.into_inner()
             }
         }
     }

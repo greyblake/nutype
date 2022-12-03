@@ -97,6 +97,7 @@ pub enum IntegerDeriveTrait {
     Ord,
     FromStr,
     AsRef,
+    Into,
     From,
     TryFrom,
     Hash,
