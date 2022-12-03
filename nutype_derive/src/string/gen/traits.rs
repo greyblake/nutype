@@ -4,7 +4,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_into},
+    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_into},
     string::models::StringDeriveTrait,
 };
 
@@ -131,7 +131,7 @@ fn gen_implemented_traits(
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
             }
-            ImplementedTrait::Borrow => gen_impl_borrow(type_name),
+            ImplementedTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
         })
         .collect()
 }
@@ -199,18 +199,12 @@ fn gen_impl_try_from(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
     }
 }
 
-fn gen_impl_borrow(type_name: &Ident) -> TokenStream {
-    quote! {
-        impl ::core::borrow::Borrow<str> for #type_name {
-            fn borrow(&self) -> &str {
-                &self.0
-            }
-        }
+fn gen_impl_borrow_str_and_string(type_name: &Ident) -> TokenStream {
+    let impl_borrow_str = gen_impl_trait_borrow(type_name, quote!(str));
+    let impl_borrow_string = gen_impl_trait_borrow(type_name, quote!(String));
 
-        impl ::core::borrow::Borrow<String> for #type_name {
-            fn borrow(&self) -> &String {
-                &self.0
-            }
-        }
+    quote! {
+        #impl_borrow_str
+        #impl_borrow_string
     }
 }

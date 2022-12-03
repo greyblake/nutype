@@ -304,4 +304,30 @@ mod derives {
         let name_ref: &str = name.as_ref();
         assert_eq!(name_ref, "Anna")
     }
+
+    #[test]
+    fn test_trait_borrow_str() {
+        use std::borrow::Borrow;
+
+        #[nutype]
+        #[derive(Borrow)]
+        pub struct Name(String);
+
+        let name = Name::new("Anna");
+        let name_borrowed: &str = name.borrow();
+        assert_eq!(name_borrowed, "Anna");
+    }
+
+    #[test]
+    fn test_trait_borrow_string() {
+        use std::borrow::Borrow;
+
+        #[nutype]
+        #[derive(Borrow)]
+        pub struct Name(String);
+
+        let name = Name::new("Anna");
+        let name_borrowed: &String = name.borrow();
+        assert_eq!(name_borrowed, "Anna");
+    }
 }

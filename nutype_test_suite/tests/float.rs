@@ -51,4 +51,17 @@ mod traits {
         let weight_ref: &f32 = weight.as_ref();
         assert_eq!(weight_ref, &72.650);
     }
+
+    #[test]
+    fn test_trait_borrow() {
+        use std::borrow::Borrow;
+
+        #[nutype]
+        #[derive(Borrow)]
+        pub struct Age(u8);
+
+        let age = Age::new(32);
+        let age_borrowed: &u8 = age.borrow();
+        assert_eq!(age_borrowed, &32);
+    }
 }

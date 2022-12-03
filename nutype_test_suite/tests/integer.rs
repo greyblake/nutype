@@ -26,4 +26,17 @@ mod traits {
         let age_ref: &u8 = age.as_ref();
         assert_eq!(age_ref, &32);
     }
+
+    #[test]
+    fn test_trait_borrow() {
+        use std::borrow::Borrow;
+
+        #[nutype]
+        #[derive(Borrow)]
+        pub struct Age(u8);
+
+        let age = Age::new(32);
+        let age_borrowed: &u8 = age.borrow();
+        assert_eq!(age_borrowed, &32);
+    }
 }

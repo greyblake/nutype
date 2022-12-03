@@ -24,3 +24,16 @@ pub fn gen_impl_trait_as_ref(type_name: impl ToTokens, inner_type: impl ToTokens
         }
     }
 }
+
+pub fn gen_impl_trait_borrow(
+    type_name: impl ToTokens,
+    borrowed_type: impl ToTokens,
+) -> TokenStream {
+    quote! {
+        impl ::core::borrow::Borrow<#borrowed_type> for #type_name {
+            fn borrow(&self) -> &#borrowed_type {
+                &self.0
+            }
+        }
+    }
+}

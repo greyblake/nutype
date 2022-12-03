@@ -4,7 +4,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_into},
+    common::gen::traits::{gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_into},
     integer::models::IntegerDeriveTrait,
 };
 
@@ -139,7 +139,7 @@ fn gen_implemented_traits(
             ImplementedTrait::TryFrom => {
                 gen_impl_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
             }
-            ImplementedTrait::Borrow => gen_impl_borrow(type_name, inner_type),
+            ImplementedTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
         })
         .collect()
 }
@@ -217,16 +217,6 @@ fn gen_impl_try_from(
 
             fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
                 Self::new(raw_value)
-            }
-        }
-    }
-}
-
-fn gen_impl_borrow(type_name: &Ident, inner_type: &TokenStream) -> TokenStream {
-    quote! {
-        impl ::core::borrow::Borrow<#inner_type> for #type_name {
-            fn borrow(&self) -> &#inner_type {
-                &self.0
             }
         }
     }
