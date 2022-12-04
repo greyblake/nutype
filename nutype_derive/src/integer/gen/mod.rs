@@ -114,10 +114,10 @@ where
     let sanitize = gen_sanitize_fn(sanitizers);
 
     quote!(
-        #sanitize
 
         impl #type_name {
             pub fn new(raw_value: #inner_type) -> Self {
+                #sanitize
                 Self(sanitize(raw_value))
             }
         }
@@ -140,12 +140,15 @@ where
     let validate = gen_validate_fn(type_name, validators);
 
     quote!(
-        #sanitize
         #validation_error
-        #validate
 
         impl #type_name {
             pub fn new(raw_value: #inner_type) -> ::core::result::Result<Self, #error_type_name> {
+                // Keep sanitize() and validate() within new() so they do not overlap with outer
+                // scope imported with `use super::*`.
+                #sanitize
+                #validate
+
                 let sanitized_value = sanitize(raw_value);
                 validate(sanitized_value)?;
                 Ok(#type_name(sanitized_value))

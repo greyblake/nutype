@@ -94,10 +94,9 @@ fn gen_new_without_validation(type_name: &Ident, sanitizers: &[StringSanitizer])
     let sanitize = gen_string_sanitize_fn(sanitizers);
 
     quote!(
-        #sanitize
-
         impl #type_name {
             pub fn new(raw_value: impl Into<String>) -> Self {
+                #sanitize
                 #type_name(sanitize(raw_value.into()))
             }
         }
@@ -115,12 +114,15 @@ fn gen_new_and_with_validation(
     let validate = gen_string_validate_fn(type_name, validators);
 
     quote!(
-        #sanitize
         #validation_error
-        #validate
 
         impl #type_name {
             pub fn new(raw_value: impl Into<String>) -> ::core::result::Result<Self, #error_type_name> {
+                // Keep sanitize() and validate() within new() so they do not overlap with outer
+                // scope imported with `use super::*`.
+                #sanitize
+                #validate
+
                 let sanitized_value = sanitize(raw_value.into());
                 validate(&sanitized_value)?;
                 Ok(#type_name(sanitized_value))
