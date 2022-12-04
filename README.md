@@ -1,8 +1,14 @@
 ## Roadmap
 
 ### TODO:
-* Finish implementation of FromStr wtih validation for integers and floats. Ensure there is a test coverage.
+* Impl Display for errors on integers and floats. + add tests
+* Improve Display for parse error of float: src/common/gen/parse_error.rs
+* Impl FromStr for integer
 * Validate and show helpful error on on attempt to make inner field public. E.g. `Value(pub i32)`
+* Add #[repr(transparent)]
+* Add #[allow(non_snake_case)] for module names
+* Try to find a way to hide private module docs: Use #[doc(hidden)] on the module!
+* Derive Display
 * Support serde
   * Serialize
   * Deserialize
@@ -62,6 +68,7 @@
 * Use absolute path to `Result` in the generated code
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Rename default inner modules into something less scary
+* Impl FromStr for floats
 
 
 

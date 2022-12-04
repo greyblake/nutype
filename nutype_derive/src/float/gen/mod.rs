@@ -10,7 +10,9 @@ use syn::Visibility;
 use self::error::{gen_error_type_name, gen_validation_error_type};
 use super::models::{FloatDeriveTrait, FloatSanitizer, FloatValidator, NewtypeFloatMeta};
 use crate::{
-    common::gen::{gen_module_name_for_type, type_custom_sanitizier_closure},
+    common::gen::{
+        gen_module_name_for_type, parse_error::gen_parse_error_name, type_custom_sanitizier_closure,
+    },
     models::FloatType,
 };
 use traits::{gen_traits, GeneratedTraits};
@@ -38,14 +40,19 @@ where
         NewtypeFloatMeta::TryFrom { .. } => Some(gen_error_type_name(type_name)),
     };
 
-    let error_type_import = match maybe_error_type_name {
-        None => quote!(),
-        Some(ref error_type_name) => {
-            quote! (
-                #vis use #module_name::#error_type_name;
-            )
-        }
+    let maybe_parse_error_type_name = if traits.contains(&FloatDeriveTrait::FromStr) {
+        Some(gen_parse_error_name(type_name))
+    } else {
+        None
     };
+
+    let reimports = gen_reimports(
+        vis,
+        type_name,
+        &module_name,
+        maybe_error_type_name.as_ref(),
+        maybe_parse_error_type_name.as_ref(),
+    );
 
     let GeneratedTraits {
         derive_standard_traits,
@@ -63,9 +70,45 @@ where
             #implementation
             #implement_traits
         }
-        #vis use #module_name::#type_name;
-        #error_type_import
+        #reimports
     )
+}
+
+// TODO: consider reusing this function for integer types as well
+fn gen_reimports(
+    vis: Visibility,
+    type_name: &Ident,
+    module_name: &Ident,
+    maybe_error_type_name: Option<&Ident>,
+    maybe_parse_error_type_name: Option<&Ident>,
+) -> TokenStream {
+    let reimport_main_type = quote! {
+        #vis use #module_name::#type_name;
+    };
+
+    let reimport_error_type_if_needed = match maybe_error_type_name {
+        None => quote!(),
+        Some(ref error_type_name) => {
+            quote! (
+                #vis use #module_name::#error_type_name;
+            )
+        }
+    };
+
+    let reimport_parse_error_type_if_needed = match maybe_parse_error_type_name {
+        None => quote!(),
+        Some(ref parse_error_type_name) => {
+            quote! (
+                #vis use #module_name::#parse_error_type_name;
+            )
+        }
+    };
+
+    quote! {
+        #reimport_main_type
+        #reimport_error_type_if_needed
+        #reimport_parse_error_type_if_needed
+    }
 }
 
 pub fn gen_implementation<T>(

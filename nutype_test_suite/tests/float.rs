@@ -299,4 +299,39 @@ mod traits {
         let error = Dist::try_from(12.35).unwrap_err();
         assert_eq!(error, DistError::TooBig);
     }
+
+    #[test]
+    fn test_trait_from_str_without_validation() {
+        #[nutype]
+        #[derive(Debug, FromStr)]
+        pub struct Dist(f64);
+
+        let dist: Dist = "33.4".parse().unwrap();
+        assert_eq!(dist.into_inner(), 33.4);
+
+        // TODO: update when error display is improved
+        let err: DistParseError = "foobar".parse::<Dist>().unwrap_err();
+        assert_eq!(err.to_string(), "Failed to parse");
+    }
+
+    #[test]
+    fn test_trait_from_str_with_validation() {
+        #[nutype(validate(max = 12.34))]
+        #[derive(Debug, FromStr)]
+        pub struct Dist(f64);
+
+        // Happy path
+        let dist: Dist = "11.4".parse().unwrap();
+        assert_eq!(dist.into_inner(), 11.4);
+
+        // Unhappy path: float parsing error
+        // TODO: update when error display is improved
+        let err: DistParseError = "foobar".parse::<Dist>().unwrap_err();
+        assert_eq!(err.to_string(), "Failed to parse");
+
+        // Unhappy path: validation error
+        // TODO: update when error display is improved
+        let err: DistParseError = "12.35".parse::<Dist>().unwrap_err();
+        assert_eq!(err.to_string(), "Failed to parse");
+    }
 }
