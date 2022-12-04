@@ -174,7 +174,7 @@ fn gen_impl_from_str(
             // impl core::str::FromStr for #type_name {
             //     type Err = #error_type_name;
 
-            //     fn from_str(raw_string: &str) -> Result<Self, Self::Err> {
+            //     fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
             //         #type_name::new(raw_string)
             //     }
             // }
@@ -184,7 +184,7 @@ fn gen_impl_from_str(
             impl ::core::str::FromStr for #type_name {
                 type Err = <#inner_type as ::core::str::FromStr>::Err;
 
-                fn from_str(raw_string: &str) -> Result<Self, Self::Err> {
+                fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     let value: #inner_type = raw_string.parse()?;
                     Ok(#type_name::new(value))
                 }

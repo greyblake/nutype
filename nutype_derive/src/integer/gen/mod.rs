@@ -145,7 +145,7 @@ where
         #validate
 
         impl #type_name {
-            pub fn new(raw_value: #inner_type) -> Result<Self, #error_type_name> {
+            pub fn new(raw_value: #inner_type) -> ::core::result::Result<Self, #error_type_name> {
                 let sanitized_value = sanitize(raw_value);
                 validate(sanitized_value)?;
                 Ok(#type_name(sanitized_value))
@@ -234,7 +234,7 @@ where
         .collect();
 
     quote!(
-        fn validate(val: #tp) -> Result<(), #error_name> {
+        fn validate(val: #tp) -> ::core::result::Result<(), #error_name> {
             #validations
             Ok(())
         }

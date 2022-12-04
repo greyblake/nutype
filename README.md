@@ -1,11 +1,9 @@
 ## Roadmap
 
 ### TODO:
-* Cleanup tests: split number tests into integer and float
-* Finish implementation of FromStr wtih validation for integers and floats. Ensure there is a test coverage.
-* Use absolute path to `Result` in the generated code
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Rename default inner modules into something less scary
+* Finish implementation of FromStr wtih validation for integers and floats. Ensure there is a test coverage.
 * Support serde
   * Serialize
   * Deserialize
@@ -61,6 +59,8 @@
 * Support derive of Into trait for integers
 * Support derive of Into trait for floats
 * Refactor: extract common generator functions
+* Cleanup tests: split number tests into integer and float
+* Use absolute path to `Result` in the generated code
 
 
 

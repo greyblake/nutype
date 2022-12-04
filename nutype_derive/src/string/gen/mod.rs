@@ -120,7 +120,7 @@ fn gen_new_and_with_validation(
         #validate
 
         impl #type_name {
-            pub fn new(raw_value: impl Into<String>) -> Result<Self, #error_type_name> {
+            pub fn new(raw_value: impl Into<String>) -> ::core::result::Result<Self, #error_type_name> {
                 let sanitized_value = sanitize(raw_value.into());
                 validate(&sanitized_value)?;
                 Ok(#type_name(sanitized_value))
@@ -215,7 +215,7 @@ pub fn gen_string_validate_fn(type_name: &Ident, validators: &[StringValidator])
         .collect();
 
     quote!(
-        fn validate(val: &str) -> Result<(), #error_name> {
+        fn validate(val: &str) -> ::core::result::Result<(), #error_name> {
             #validations
             Ok(())
         }

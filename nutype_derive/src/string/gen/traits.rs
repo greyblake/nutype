@@ -148,7 +148,7 @@ fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
             impl core::str::FromStr for #type_name {
                 type Err = #error_type_name;
 
-                fn from_str(raw_string: &str) -> Result<Self, Self::Err> {
+                fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     #type_name::new(raw_string)
                 }
             }
@@ -158,7 +158,7 @@ fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
             impl core::str::FromStr for #type_name {
                 type Err = ();
 
-                fn from_str(raw_string: &str) -> Result<Self, Self::Err> {
+                fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     Ok(#type_name::new(raw_string))
                 }
             }
