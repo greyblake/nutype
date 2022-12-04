@@ -1,6 +1,6 @@
 pub mod traits;
 
-use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
+use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 
 /// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
 /// the expected closure pattern.
@@ -38,4 +38,9 @@ fn is_pipe(token: &TokenTree) -> bool {
 
 fn is_ident(token: &TokenTree) -> bool {
     matches!(token, TokenTree::Ident(_))
+}
+
+pub fn gen_module_name_for_type(type_name: &Ident) -> Ident {
+    let module_name = format!("__nutype_{type_name}__");
+    Ident::new(&module_name, Span::call_site())
 }

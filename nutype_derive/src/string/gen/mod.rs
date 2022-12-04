@@ -8,7 +8,7 @@ use quote::quote;
 use syn::Attribute;
 
 use crate::{
-    common::gen::type_custom_sanitizier_closure,
+    common::gen::{gen_module_name_for_type, type_custom_sanitizier_closure},
     models::{StringSanitizer, StringValidator},
 };
 
@@ -129,11 +129,6 @@ fn gen_new_and_with_validation(
             }
         }
     )
-}
-
-pub fn gen_module_name_for_type(type_name: &Ident) -> Ident {
-    let module_name = format!("__nutype_module_for_{type_name}");
-    Ident::new(&module_name, Span::call_site())
 }
 
 pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {

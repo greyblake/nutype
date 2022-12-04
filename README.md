@@ -1,13 +1,11 @@
 ## Roadmap
 
 ### TODO:
-* Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
-* Rename default inner modules into something less scary
 * Finish implementation of FromStr wtih validation for integers and floats. Ensure there is a test coverage.
+* Validate and show helpful error on on attempt to make inner field public. E.g. `Value(pub i32)`
 * Support serde
   * Serialize
   * Deserialize
-* Support Arbitrary
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
 * Regex
@@ -32,6 +30,7 @@
 * Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
 * Rename nutype_derive to nutype_macros or something else?
 * Rename nutype_test_suite to `test_suite ` ?
+* Support Arbitrary
 
 
 ### Done
@@ -61,6 +60,8 @@
 * Refactor: extract common generator functions
 * Cleanup tests: split number tests into integer and float
 * Use absolute path to `Result` in the generated code
+* Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
+* Rename default inner modules into something less scary
 
 
 

@@ -9,7 +9,10 @@ use syn::Visibility;
 
 use self::error::{gen_error_type_name, gen_validation_error_type};
 use super::models::{FloatDeriveTrait, FloatSanitizer, FloatValidator, NewtypeFloatMeta};
-use crate::{common::gen::type_custom_sanitizier_closure, models::FloatType};
+use crate::{
+    common::gen::{gen_module_name_for_type, type_custom_sanitizier_closure},
+    models::FloatType,
+};
 use traits::{gen_traits, GeneratedTraits};
 
 pub fn gen_nutype_for_float<T>(
@@ -147,12 +150,6 @@ where
             }
         }
     )
-}
-
-// TODO: DRY
-fn gen_module_name_for_type(type_name: &Ident) -> Ident {
-    let module_name = format!("__nutype_module_for_{type_name}");
-    Ident::new(&module_name, Span::call_site())
 }
 
 fn gen_sanitize_fn<T>(sanitizers: &[FloatSanitizer<T>]) -> TokenStream
