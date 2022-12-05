@@ -432,4 +432,41 @@ mod traits {
         let error = Amount::try_from(1001).unwrap_err();
         assert_eq!(error, AmountError::TooBig);
     }
+
+    #[test]
+    fn test_trait_from_str_without_validation() {
+        #[nutype]
+        #[derive(Debug, FromStr)]
+        pub struct Age(i16);
+
+        let age: Age = "33".parse().unwrap();
+        assert_eq!(age.into_inner(), 33);
+
+        let err: AgeParseError = "foobar".parse::<Age>().unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "Failed to parse Age: invalid digit found in string"
+        );
+    }
+
+    #[test]
+    fn test_trait_from_str_with_validation() {
+        #[nutype(validate(max = 99))]
+        #[derive(Debug, FromStr)]
+        pub struct Age(isize);
+
+        // Happy path
+        let age: Age = "99".parse().unwrap();
+        assert_eq!(age.into_inner(), 99);
+
+        let err: AgeParseError = "foobar".parse::<Age>().unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "Failed to parse Age: invalid digit found in string"
+        );
+
+        // Unhappy path: validation error
+        let err: AgeParseError = "101".parse::<Age>().unwrap_err();
+        assert_eq!(err.to_string(), "Failed to parse Age: too big");
+    }
 }

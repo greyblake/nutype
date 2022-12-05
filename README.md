@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Impl FromStr for integer
 * Validate and show helpful error on on attempt to make inner field public. E.g. `Value(pub i32)`
 * Add #[repr(transparent)]
 * Add #[allow(non_snake_case)] for module names
@@ -19,7 +18,7 @@
   * E.g. unknown validation rule `min`. Did you mean `min_len`?
 * Finalize syntax!
 * Setup CI
-* Address TODOs
+* Address TODO, todo!(), unimplemented!(), etc.
 * Refactor parsers
 * Number sanitizers:
   * Replace `clamp(a, b)` with something like `min = a, max = b`
@@ -69,6 +68,7 @@
 * Impl FromStr for floats
 * Impl Display for errors on integers and floats. + add tests
 * Improve Display for parse error of float: src/common/gen/parse_error.rs
+* Impl FromStr for integer
 
 
 

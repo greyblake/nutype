@@ -5,8 +5,8 @@ use quote::{quote, ToTokens};
 
 use crate::{
     common::gen::traits::{
-        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_from, gen_impl_trait_into,
-        gen_impl_trait_try_from,
+        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_from, gen_impl_trait_from_str,
+        gen_impl_trait_into, gen_impl_trait_try_from,
     },
     integer::models::IntegerDeriveTrait,
 };
@@ -135,7 +135,7 @@ fn gen_implemented_traits(
         .map(|t| match t {
             ImplementedTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
             ImplementedTrait::FromStr => {
-                gen_impl_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
+                gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
             }
             ImplementedTrait::From => gen_impl_trait_from(type_name, inner_type),
             ImplementedTrait::Into => gen_impl_trait_into(type_name, inner_type),
@@ -148,47 +148,4 @@ fn gen_implemented_traits(
             ImplementedTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
         })
         .collect()
-}
-
-fn gen_impl_from_str(
-    type_name: &Ident,
-    inner_type: &TokenStream,
-    maybe_error_type_name: Option<&Ident>,
-) -> TokenStream {
-    if let Some(_error_type_name) = maybe_error_type_name {
-        quote! {
-            // TODO
-            //
-            // * Exact Parse error name generation into a separate reusable function
-            // * Implement the Error trait for the parse error properly
-            // * Consider using same type ParseTypeError for FromStr variant without validation
-            // * Import the ParseTypeError properly
-            //
-            // Potential parse erro definition:
-            //
-            // enum Parse<#type_name>Error {
-            //     Parse(<#inner_type as ::core::str::FromStr>::Err),
-            //     Validate(#error_type_name),
-            // }
-
-            // impl core::str::FromStr for #type_name {
-            //     type Err = #error_type_name;
-
-            //     fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
-            //         #type_name::new(raw_string)
-            //     }
-            // }
-        }
-    } else {
-        quote! {
-            impl ::core::str::FromStr for #type_name {
-                type Err = <#inner_type as ::core::str::FromStr>::Err;
-
-                fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
-                    let value: #inner_type = raw_string.parse()?;
-                    Ok(#type_name::new(value))
-                }
-            }
-        }
-    }
 }
