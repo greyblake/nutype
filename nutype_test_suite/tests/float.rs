@@ -146,6 +146,22 @@ mod validators {
         assert_eq!(Age::try_from(17.9).unwrap_err(), AgeError::TooSmall);
         assert_eq!(Age::try_from(18.0).unwrap().into_inner(), 18.0);
     }
+
+    #[cfg(test)]
+    mod error {
+        use super::*;
+
+        #[test]
+        fn test_error_display() {
+            #[nutype(validate(min = 0.0))]
+            #[derive(*)]
+            struct Percentage(f64);
+
+            let err = Percentage::try_from(-0.1).unwrap_err();
+
+            assert_eq!(err.to_string(), "too small");
+        }
+    }
 }
 
 #[cfg(test)]
