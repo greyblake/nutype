@@ -76,6 +76,7 @@ fn gen_impl_display_trait(error_type_name: &Ident, validators: &[StringValidator
     }
 }
 
+// TODO: Reuse among the types
 fn gen_impl_error_trait(error_type_name: &Ident) -> TokenStream {
     quote! {
         impl ::std::error::Error for #error_type_name {
