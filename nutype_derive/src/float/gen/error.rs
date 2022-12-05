@@ -1,13 +1,9 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use super::super::models::FloatValidator;
+use crate::common::gen::error::gen_error_type_name;
 
-// TODO: Reuse
-pub fn gen_error_type_name(type_name: &Ident) -> Ident {
-    let error_name_str = format!("{type_name}Error");
-    Ident::new(&error_name_str, Span::call_site())
-}
+use super::super::models::FloatValidator;
 
 pub fn gen_validation_error_type<T>(
     type_name: &Ident,

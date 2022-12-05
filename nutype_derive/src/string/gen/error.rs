@@ -1,12 +1,7 @@
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use crate::string::models::StringValidator;
-
-pub fn gen_error_type_name(type_name: &Ident) -> Ident {
-    let error_name_str = format!("{type_name}Error");
-    Ident::new(&error_name_str, Span::call_site())
-}
+use crate::{common::gen::error::gen_error_type_name, string::models::StringValidator};
 
 pub fn gen_validation_error_type(type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
     let error_type_name = gen_error_type_name(type_name);

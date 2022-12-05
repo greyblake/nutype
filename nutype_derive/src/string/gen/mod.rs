@@ -8,12 +8,14 @@ use quote::quote;
 use syn::Attribute;
 
 use crate::{
-    common::gen::{gen_module_name_for_type, type_custom_sanitizier_closure},
+    common::gen::{
+        error::gen_error_type_name, gen_module_name_for_type, type_custom_sanitizier_closure,
+    },
     models::{StringSanitizer, StringValidator},
 };
 
 use self::{
-    error::{gen_error_type_name, gen_validation_error_type},
+    error::gen_validation_error_type,
     traits::{gen_traits, GeneratedTraits},
 };
 

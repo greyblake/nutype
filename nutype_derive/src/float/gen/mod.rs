@@ -7,11 +7,12 @@ use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
-use self::error::{gen_error_type_name, gen_validation_error_type};
+use self::error::gen_validation_error_type;
 use super::models::{FloatDeriveTrait, FloatSanitizer, FloatValidator, NewtypeFloatMeta};
 use crate::{
     common::gen::{
-        gen_module_name_for_type, parse_error::gen_parse_error_name, type_custom_sanitizier_closure,
+        error::gen_error_type_name, gen_module_name_for_type, parse_error::gen_parse_error_name,
+        type_custom_sanitizier_closure,
     },
     models::FloatType,
 };
