@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use crate::common::gen::error::gen_error_type_name;
+use crate::common::gen::error::{gen_error_type_name, gen_impl_error_trait};
 
 use super::super::models::FloatValidator;
 
@@ -68,17 +68,6 @@ fn gen_impl_display_trait<T>(
                 match self {
                     #(#match_arms,)*
                 }
-            }
-        }
-    }
-}
-
-// TODO: Reuse among the types
-fn gen_impl_error_trait(error_type_name: &Ident) -> TokenStream {
-    quote! {
-        impl ::std::error::Error for #error_type_name {
-            fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
-                None
             }
         }
     }

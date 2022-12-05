@@ -1,7 +1,10 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use crate::{common::gen::error::gen_error_type_name, string::models::StringValidator};
+use crate::{
+    common::gen::error::{gen_error_type_name, gen_impl_error_trait},
+    string::models::StringValidator,
+};
 
 pub fn gen_validation_error_type(type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
     let error_type_name = gen_error_type_name(type_name);
@@ -66,17 +69,6 @@ fn gen_impl_display_trait(error_type_name: &Ident, validators: &[StringValidator
                 match self {
                     #(#match_arms,)*
                 }
-            }
-        }
-    }
-}
-
-// TODO: Reuse among the types
-fn gen_impl_error_trait(error_type_name: &Ident) -> TokenStream {
-    quote! {
-        impl ::std::error::Error for #error_type_name {
-            fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
-                None
             }
         }
     }
