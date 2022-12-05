@@ -11,9 +11,12 @@ pub fn gen_parse_error_name(type_name: &Ident) -> Ident {
 /// floats or integers)
 pub fn gen_def_parse_error(
     inner_type: &TokenStream,
+    type_name: &Ident,
     maybe_error_type_name: Option<&Ident>,
     parse_error_type_name: &Ident,
 ) -> TokenStream {
+    let type_name_str = format!("{type_name}");
+
     let definition = if let Some(error_type_name) = maybe_error_type_name {
         quote! {
             #[derive(Debug)]
@@ -24,15 +27,11 @@ pub fn gen_def_parse_error(
 
             impl ::core::fmt::Display for #parse_error_type_name {
                 fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                    // TODO: display a meaningful error message, including:
-                    // * type_name
-                    // * display the inner error
-                    // match self {
-                    //     #parse_error_type_name::Parse(err) => write!(f, "parsing failed: {}", err),
-                    //     #parse_error_type_name::Validate(err) => write!(f, "parsing failed: {}", err),
-                    // }
-                    //
-                    write!(f, "Failed to parse")
+                    match self {
+                        #parse_error_type_name::Parse(err) => write!(f, "Failed to parse {}: {}", #type_name_str, err),
+                        #parse_error_type_name::Validate(err) => write!(f, "Failed to parse {}: {}", #type_name_str, err),
+                    }
+
                 }
             }
         }
@@ -45,14 +44,9 @@ pub fn gen_def_parse_error(
 
             impl ::core::fmt::Display for #parse_error_type_name {
                 fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                    // TODO: display a meaningful error message, including:
-                    // * type_name
-                    // * display the inner error
-                    // match self {
-                    //     #parse_error_type_name::Parse(err) => write!(f, "parsing failed: {}", err),
-                    // }
-
-                    write!(f, "Failed to parse")
+                    match self {
+                        #parse_error_type_name::Parse(err) => write!(f, "Failed to parse {}: {}", #type_name_str, err),
+                    }
                 }
             }
         }

@@ -1,8 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Impl Display for errors on integers and floats. + add tests
-* Improve Display for parse error of float: src/common/gen/parse_error.rs
 * Impl FromStr for integer
 * Validate and show helpful error on on attempt to make inner field public. E.g. `Value(pub i32)`
 * Add #[repr(transparent)]
@@ -69,6 +67,8 @@
 * Rename inner generated `validate` and `sanitize` methods into something more unique. Otherwise it may conflict because of `use super::*;`
 * Rename default inner modules into something less scary
 * Impl FromStr for floats
+* Impl Display for errors on integers and floats. + add tests
+* Improve Display for parse error of float: src/common/gen/parse_error.rs
 
 
 

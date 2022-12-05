@@ -325,9 +325,11 @@ mod traits {
         let dist: Dist = "33.4".parse().unwrap();
         assert_eq!(dist.into_inner(), 33.4);
 
-        // TODO: update when error display is improved
         let err: DistParseError = "foobar".parse::<Dist>().unwrap_err();
-        assert_eq!(err.to_string(), "Failed to parse");
+        assert_eq!(
+            err.to_string(),
+            "Failed to parse Dist: invalid float literal"
+        );
     }
 
     #[test]
@@ -340,14 +342,14 @@ mod traits {
         let dist: Dist = "11.4".parse().unwrap();
         assert_eq!(dist.into_inner(), 11.4);
 
-        // Unhappy path: float parsing error
-        // TODO: update when error display is improved
         let err: DistParseError = "foobar".parse::<Dist>().unwrap_err();
-        assert_eq!(err.to_string(), "Failed to parse");
+        assert_eq!(
+            err.to_string(),
+            "Failed to parse Dist: invalid float literal"
+        );
 
         // Unhappy path: validation error
-        // TODO: update when error display is improved
         let err: DistParseError = "12.35".parse::<Dist>().unwrap_err();
-        assert_eq!(err.to_string(), "Failed to parse");
+        assert_eq!(err.to_string(), "Failed to parse Dist: too big");
     }
 }

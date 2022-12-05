@@ -73,8 +73,12 @@ pub fn gen_impl_trait_from_str(
     maybe_error_type_name: Option<&Ident>,
 ) -> TokenStream {
     let parse_error_type_name = gen_parse_error_name(type_name);
-    let def_parse_error =
-        gen_def_parse_error(inner_type, maybe_error_type_name, &parse_error_type_name);
+    let def_parse_error = gen_def_parse_error(
+        inner_type,
+        type_name,
+        maybe_error_type_name,
+        &parse_error_type_name,
+    );
 
     if let Some(_error_type_name) = maybe_error_type_name {
         // The case with validation
