@@ -1,4 +1,4 @@
-use proc_macro2::{Ident, TokenStream as TokenStream2};
+use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Attribute;
 
@@ -38,7 +38,7 @@ pub enum FloatType {
 }
 
 impl ToTokens for InnerType {
-    fn to_tokens(&self, token_stream: &mut TokenStream2) {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
         match self {
             InnerType::String => {
                 quote!(String).to_tokens(token_stream);
@@ -54,7 +54,7 @@ impl ToTokens for InnerType {
 }
 
 impl ToTokens for IntegerType {
-    fn to_tokens(&self, token_stream: &mut TokenStream2) {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
         let type_stream = match self {
             Self::U8 => quote!(u8),
             Self::U16 => quote!(u16),
@@ -74,7 +74,7 @@ impl ToTokens for IntegerType {
 }
 
 impl ToTokens for FloatType {
-    fn to_tokens(&self, token_stream: &mut TokenStream2) {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
         let type_stream = match self {
             Self::F32 => quote!(f32),
             Self::F64 => quote!(f64),
