@@ -5,6 +5,6 @@ use nutype_derive::nutype;
 pub struct Dist(f64);
 
 fn main() {
-    let dist: Dist = "33.4".parse().unwrap();
+    let dist: Dist = "11.4".parse().unwrap();
     println!("dist = {}", dist.into_inner());
 }

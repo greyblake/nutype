@@ -14,8 +14,8 @@ use self::{
 use super::models::{IntegerDeriveTrait, IntegerSanitizer, IntegerValidator, NewtypeIntegerMeta};
 use crate::{
     common::gen::{
-        error::gen_error_type_name, gen_module_name_for_type, parse_error::gen_parse_error_name,
-        type_custom_sanitizier_closure,
+        error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
+        parse_error::gen_parse_error_name, type_custom_sanitizier_closure,
     },
     models::IntegerType,
 };
@@ -75,42 +75,6 @@ where
         }
         #reimports
     )
-}
-
-fn gen_reimports(
-    vis: Visibility,
-    type_name: &Ident,
-    module_name: &Ident,
-    maybe_error_type_name: Option<&Ident>,
-    maybe_parse_error_type_name: Option<&Ident>,
-) -> TokenStream {
-    let reimport_main_type = quote! {
-        #vis use #module_name::#type_name;
-    };
-
-    let reimport_error_type_if_needed = match maybe_error_type_name {
-        None => quote!(),
-        Some(ref error_type_name) => {
-            quote! (
-                #vis use #module_name::#error_type_name;
-            )
-        }
-    };
-
-    let reimport_parse_error_type_if_needed = match maybe_parse_error_type_name {
-        None => quote!(),
-        Some(ref parse_error_type_name) => {
-            quote! (
-                #vis use #module_name::#parse_error_type_name;
-            )
-        }
-    };
-
-    quote! {
-        #reimport_main_type
-        #reimport_error_type_if_needed
-        #reimport_parse_error_type_if_needed
-    }
 }
 
 pub fn gen_implementation<T>(

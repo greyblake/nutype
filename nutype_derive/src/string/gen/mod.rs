@@ -9,7 +9,8 @@ use syn::Attribute;
 
 use crate::{
     common::gen::{
-        error::gen_error_type_name, gen_module_name_for_type, type_custom_sanitizier_closure,
+        error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
+        type_custom_sanitizier_closure,
     },
     models::{StringSanitizer, StringValidator},
 };
@@ -36,14 +37,13 @@ pub fn gen_nutype_for_string(
         NewtypeStringMeta::TryFrom { .. } => Some(gen_error_type_name(type_name)),
     };
 
-    let error_type_import = match maybe_error_type_name {
-        None => quote!(),
-        Some(ref error_type_name) => {
-            quote! (
-                #vis use #module_name::#error_type_name;
-            )
-        }
-    };
+    let reimports = gen_reimports(
+        vis,
+        type_name,
+        &module_name,
+        maybe_error_type_name.as_ref(),
+        None,
+    );
 
     let GeneratedTraits {
         derive_standard_traits,
@@ -61,8 +61,7 @@ pub fn gen_nutype_for_string(
             #implementation
             #implement_traits
         }
-        #vis use #module_name::#type_name;
-        #error_type_import
+        #reimports
     )
 }
 
