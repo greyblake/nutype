@@ -162,6 +162,7 @@ fn to_integer_derive_trait(
 ) -> Result<IntegerDeriveTrait, syn::Error> {
     match tr {
         NormalDeriveTrait::Debug => Ok(IntegerDeriveTrait::Debug),
+        NormalDeriveTrait::Display => Ok(IntegerDeriveTrait::Display),
         NormalDeriveTrait::Clone => Ok(IntegerDeriveTrait::Clone),
         NormalDeriveTrait::PartialEq => Ok(IntegerDeriveTrait::PartialEq),
         NormalDeriveTrait::Eq => Ok(IntegerDeriveTrait::Eq),

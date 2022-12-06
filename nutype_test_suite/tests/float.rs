@@ -352,4 +352,14 @@ mod traits {
         let err: DistParseError = "12.35".parse::<Dist>().unwrap_err();
         assert_eq!(err.to_string(), "Failed to parse Dist: too big");
     }
+
+    #[test]
+    fn test_trait_display() {
+        #[nutype]
+        #[derive(Display)]
+        pub struct Size(f64);
+
+        let size = Size::new(35.7);
+        assert_eq!(size.to_string(), "35.7");
+    }
 }

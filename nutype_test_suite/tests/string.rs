@@ -376,4 +376,14 @@ mod derives {
         let error = Name::try_from("".to_string()).unwrap_err();
         assert_eq!(error, NameError::Missing);
     }
+
+    #[test]
+    fn test_trait_display() {
+        #[nutype]
+        #[derive(Display)]
+        pub struct Name(String);
+
+        let name = Name::new("Serhii");
+        assert_eq!(name.to_string(), "Serhii");
+    }
 }

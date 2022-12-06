@@ -159,6 +159,7 @@ fn to_float_derive_trait(
 ) -> Result<FloatDeriveTrait, syn::Error> {
     match tr {
         NormalDeriveTrait::Debug => Ok(FloatDeriveTrait::Debug),
+        NormalDeriveTrait::Display => Ok(FloatDeriveTrait::Display),
         NormalDeriveTrait::Clone => Ok(FloatDeriveTrait::Clone),
         NormalDeriveTrait::PartialEq => Ok(FloatDeriveTrait::PartialEq),
         NormalDeriveTrait::Into => Ok(FloatDeriveTrait::Into),

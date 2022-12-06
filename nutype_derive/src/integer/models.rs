@@ -102,6 +102,7 @@ pub enum IntegerDeriveTrait {
     TryFrom,
     Hash,
     Borrow,
+    Display,
     // // External crates
     //
     // Serialize,

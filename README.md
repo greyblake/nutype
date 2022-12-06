@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Derive Display
 * Support serde
   * Serialize
   * Deserialize
@@ -79,6 +78,7 @@
 * Impl Display for errors on integers and floats. + add tests
 * Improve Display for parse error of float: src/common/gen/parse_error.rs
 * Impl FromStr for integer
+* Derive Display
 
 
 

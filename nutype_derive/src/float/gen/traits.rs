@@ -5,8 +5,8 @@ use quote::{quote, ToTokens};
 
 use crate::{
     common::gen::traits::{
-        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_from, gen_impl_trait_from_str,
-        gen_impl_trait_into, gen_impl_trait_try_from,
+        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
+        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from,
     },
     float::models::FloatDeriveTrait,
 };
@@ -60,6 +60,7 @@ impl From<FloatDeriveTrait> for Trait {
             FloatDeriveTrait::Into => Trait::Implemented(ImplementedTrait::Into),
             FloatDeriveTrait::TryFrom => Trait::Implemented(ImplementedTrait::TryFrom),
             FloatDeriveTrait::Borrow => Trait::Implemented(ImplementedTrait::Borrow),
+            FloatDeriveTrait::Display => Trait::Implemented(ImplementedTrait::Display),
         }
     }
 }
@@ -84,6 +85,7 @@ enum ImplementedTrait {
     From,
     TryFrom,
     Borrow,
+    Display,
 }
 
 impl ToTokens for DerivedTrait {
@@ -137,6 +139,7 @@ fn gen_implemented_traits(
                 gen_impl_trait_try_from(type_name, inner_type, error_type_name)
             }
             ImplementedTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
+            ImplementedTrait::Display => gen_impl_trait_dislpay(type_name),
         })
         .collect()
 }

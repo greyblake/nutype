@@ -469,4 +469,14 @@ mod traits {
         let err: AgeParseError = "101".parse::<Age>().unwrap_err();
         assert_eq!(err.to_string(), "Failed to parse Age: too big");
     }
+
+    #[test]
+    fn test_trait_display() {
+        #[nutype]
+        #[derive(Display)]
+        pub struct Age(i64);
+
+        let age = Age::new(35);
+        assert_eq!(age.to_string(), "35");
+    }
 }

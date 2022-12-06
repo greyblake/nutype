@@ -155,6 +155,7 @@ fn to_string_derive_trait(
 ) -> Result<StringDeriveTrait, syn::Error> {
     match tr {
         NormalDeriveTrait::Debug => Ok(StringDeriveTrait::Debug),
+        NormalDeriveTrait::Display => Ok(StringDeriveTrait::Display),
         NormalDeriveTrait::Clone => Ok(StringDeriveTrait::Clone),
         NormalDeriveTrait::PartialEq => Ok(StringDeriveTrait::PartialEq),
         NormalDeriveTrait::Eq => Ok(StringDeriveTrait::Eq),

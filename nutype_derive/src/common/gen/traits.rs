@@ -27,6 +27,17 @@ pub fn gen_impl_trait_as_ref(type_name: impl ToTokens, inner_type: impl ToTokens
     }
 }
 
+pub fn gen_impl_trait_dislpay(type_name: impl ToTokens) -> TokenStream {
+    quote! {
+        impl ::core::fmt::Display for #type_name {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                use ::core::fmt::Display;
+                self.0.fmt(f)
+            }
+        }
+    }
+}
+
 pub fn gen_impl_trait_borrow(
     type_name: impl ToTokens,
     borrowed_type: impl ToTokens,

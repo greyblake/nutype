@@ -258,6 +258,7 @@ fn parse_token_into_derive_trait(
 fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn::Error> {
     let normal_derive_trait = match ident.to_string().as_ref() {
         "Debug" => NormalDeriveTrait::Debug,
+        "Display" => NormalDeriveTrait::Display,
         "Clone" => NormalDeriveTrait::Clone,
         "Copy" => NormalDeriveTrait::Copy,
         "PartialEq" => NormalDeriveTrait::PartialEq,
