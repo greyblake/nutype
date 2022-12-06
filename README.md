@@ -1,10 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Validate and show helpful error on on attempt to make inner field public. E.g. `Value(pub i32)`
-* Add #[repr(transparent)]
-* Add #[allow(non_snake_case)] for module names
-* Try to find a way to hide private module docs: Use #[doc(hidden)] on the module!
 * Derive Display
 * Support serde
   * Serialize
@@ -13,15 +9,29 @@
   * https://crates.io/crates/rust_decimal
 * Regex
   * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
-* Support time libraries (e.g. chrono, time)
-* Impl  "did you mean" hints:
-  * E.g. unknown validation rule `min`. Did you mean `min_len`?
-* Finalize syntax!
-* Setup CI
-* Address TODO, todo!(), unimplemented!(), etc.
 * Refactor parsers
 * Number sanitizers:
   * Replace `clamp(a, b)` with something like `min = a, max = b`
+* Rename nutype_derive to nutype_macro or something else?
+* Rename nutype_test_suite to `test_suite ` ?
+* Finalize syntax!
+
+### TODO Refactor:
+* Address TODO, todo!(), unimplemented!(), etc.
+* Reduce duplications: the types share mainly same structure
+* Introduce newtypes for type_name, error_type_name, etc.
+
+### TODO UI:
+* Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
+* Try to find a way to hide private module docs: Use #[doc(hidden)] on the module!
+* Impl  "did you mean" hints:
+  * E.g. unknown validation rule `min`. Did you mean `min_len`?
+* Generate documentation automatically.
+* Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
+
+### Later
+* Support Arbitrary
+* Setup CI
 * String sanitizers:
   * capitalize
   * truncate
@@ -29,11 +39,11 @@
 * Extra validations for floats:
   * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
   * This should allow to derive Eq and Ord
-* Generate documentation automatically.
-* Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
-* Rename nutype_derive to nutype_macros or something else?
-* Rename nutype_test_suite to `test_suite ` ?
-* Support Arbitrary
+
+### Maybe
+* Add #[repr(transparent)]
+* Add #[allow(non_snake_case)] for module names
+* Support time libraries (e.g. chrono, time)
 
 
 ### Done
