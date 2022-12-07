@@ -231,7 +231,7 @@ mod visibility {
 #[cfg(test)]
 mod traits {
     use super::*;
-    use nutype_test_suite::test_helpers::traits::*;
+    use test_suite::test_helpers::traits::*;
 
     #[test]
     fn test_without_validation() {

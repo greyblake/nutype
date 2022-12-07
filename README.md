@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Rename nutype_test_suite to `test_suite`
 * Support serde
   * Serialize
   * Deserialize
@@ -79,6 +78,7 @@
 * Impl FromStr for integer
 * Derive Display
 * Rename nutype_derive to nutype_macros
+* Rename nutype_test_suite to `test_suite`
 
 
 

@@ -3,6 +3,6 @@
 members = [
     "nutype",
     "nutype_macros",
-    "nutype_test_suite",
+    "test_suite",
     "dummy",
 ]

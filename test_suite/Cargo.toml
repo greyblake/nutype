@@ -1,5 +1,5 @@
 [package]
-name = "nutype_test_suite"
+name = "test_suite"
 version = "0.1.0"
 edition = "2021"
 
