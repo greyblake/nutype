@@ -1,5 +1,5 @@
 [package]
-name = "nutype_derive"
+name = "nutype_macros"
 version = "0.1.0"
 edition = "2021"
 

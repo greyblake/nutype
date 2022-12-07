@@ -1,4 +1,4 @@
-pub use nutype_derive::nutype;
+pub use nutype_macros::nutype;
 
 #[cfg(test)]
 mod tests {

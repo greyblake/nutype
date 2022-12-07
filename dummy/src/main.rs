@@ -1,4 +1,4 @@
-use nutype_derive::nutype;
+use nutype::nutype;
 
 #[nutype(validate(max = 12.34))]
 #[derive(FromStr)]

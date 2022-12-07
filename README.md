@@ -1,6 +1,7 @@
 ## Roadmap
 
 ### TODO:
+* Rename nutype_test_suite to `test_suite`
 * Support serde
   * Serialize
   * Deserialize
@@ -11,8 +12,6 @@
 * Refactor parsers
 * Number sanitizers:
   * Replace `clamp(a, b)` with something like `min = a, max = b`
-* Rename nutype_derive to nutype_macro or something else?
-* Rename nutype_test_suite to `test_suite ` ?
 * Finalize syntax!
 
 ### TODO Refactor:
@@ -21,12 +20,12 @@
 * Introduce newtypes for type_name, error_type_name, etc.
 
 ### TODO UI:
-* Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
-* Try to find a way to hide private module docs: Use #[doc(hidden)] on the module!
-* Impl  "did you mean" hints:
-  * E.g. unknown validation rule `min`. Did you mean `min_len`?
-* Generate documentation automatically.
-* Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
+* UI: Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
+* UI: Try to find a way to hide private module docs: Use #[doc(hidden)] on the module!
+* UI: Impl  "did you mean" hints:
+  UI: * E.g. unknown validation rule `min`. Did you mean `min_len`?
+* UI: Generate documentation automatically.
+* UI: Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
 
 ### Later
 * Support Arbitrary
@@ -79,6 +78,7 @@
 * Improve Display for parse error of float: src/common/gen/parse_error.rs
 * Impl FromStr for integer
 * Derive Display
+* Rename nutype_derive to nutype_macros
 
 
 

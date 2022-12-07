@@ -2,7 +2,7 @@
 
 members = [
     "nutype",
-    "nutype_derive",
+    "nutype_macros",
     "nutype_test_suite",
     "dummy",
 ]
