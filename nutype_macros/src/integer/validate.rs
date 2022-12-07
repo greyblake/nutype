@@ -83,24 +83,6 @@ where
         format!("Duplicated sanitizer `{kind}`.\nIt happens, don't worry. We still love you!")
     })?;
 
-    // Validate Clamp (min VS max)
-    let maybe_clamp = sanitizers
-        .iter()
-        .flat_map(|san| match &san.item {
-            IntegerSanitizer::Clamp { ref min, ref max } => {
-                Some((san.span, (min.clone(), max.clone())))
-            }
-            _ => None,
-        })
-        .next();
-    if let Some((span, (min, max))) = maybe_clamp {
-        if min > max {
-            let msg = "Min cannot be creater than max in `clamp`";
-            let err = syn::Error::new(span, msg);
-            return Err(err);
-        }
-    }
-
     let sanitizers: Vec<_> = sanitizers.into_iter().map(|s| s.item).collect();
     Ok(sanitizers)
 }

@@ -1,6 +1,7 @@
 ## Roadmap
 
 ### TODO:
+* Remove sanitizer `clamp(a, b)` from float
 * Support serde
   * Serialize
   * Deserialize
@@ -9,8 +10,6 @@
 * Regex
   * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
 * Refactor parsers
-* Number sanitizers:
-  * Replace `clamp(a, b)` with something like `min = a, max = b`
 * Finalize syntax!
 
 ### TODO Refactor:
@@ -79,6 +78,7 @@
 * Derive Display
 * Rename nutype_derive to nutype_macros
 * Rename nutype_test_suite to `test_suite`
+* Remove sanitizer `clamp(a, b)` from integer
 
 
 

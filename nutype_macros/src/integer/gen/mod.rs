@@ -176,11 +176,6 @@ where
     let transformations: TokenStream = sanitizers
         .iter()
         .map(|san| match san {
-            IntegerSanitizer::Clamp { min, max } => {
-                quote!(
-                    value = value.clamp(#min, #max);
-                )
-            }
             IntegerSanitizer::With(token_stream) => {
                 let tp = Ident::new(std::any::type_name::<T>(), Span::call_site());
                 let tp = quote!(#tp);
@@ -188,6 +183,9 @@ where
                 quote!(
                     value = (#custom_sanitizer)(value);
                 )
+            }
+            IntegerSanitizer::_Phantom(_) => {
+                unreachable!("integer::gen: IntegerSanitizer::_Phantom must not be used")
             }
         })
         .collect();

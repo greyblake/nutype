@@ -4,15 +4,6 @@ use nutype::nutype;
 mod sanitizers {
     use super::*;
 
-    #[test]
-    fn test_clamp() {
-        #[nutype(sanitize(clamp(18, 99)))]
-        struct Age(u8);
-
-        assert_eq!(Age::new(17).into_inner(), 18);
-        assert_eq!(Age::new(100).into_inner(), 99);
-    }
-
     #[cfg(test)]
     mod with {
         use super::*;
@@ -168,7 +159,7 @@ mod types {
     #[test]
     fn test_u8_validate() {
         #[nutype(
-            sanitize(clamp(0, 200))
+            sanitize(with = |n| n.clamp(0, 200))
             validate(min = 18, max = 99)
         )]
         #[derive(*)]
@@ -181,7 +172,7 @@ mod types {
 
     #[test]
     fn test_u8_sanitize() {
-        #[nutype(sanitize(clamp(10, 100)))]
+        #[nutype(sanitize(with = |n| n.clamp(10, 100)))]
         #[derive(*)]
         struct Percentage(u8);
 
@@ -239,7 +230,7 @@ mod types {
 
     #[test]
     fn test_i8_sanitize() {
-        #[nutype(sanitize(clamp(0, 100)))]
+        #[nutype(sanitize(with = |n| n.clamp(0, 100)))]
         #[derive(*)]
         struct Percentage(i8);
 
@@ -289,7 +280,7 @@ mod types {
     #[test]
     fn test_i32_negative() {
         #[nutype(
-            sanitize(clamp(-200, -5))
+            sanitize(with = |n| n.clamp(-200, -5))
             validate(min = -100, max = -50)
         )]
         #[derive(*)]

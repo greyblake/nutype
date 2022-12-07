@@ -10,22 +10,20 @@ use crate::{
 
 #[derive(Debug)]
 pub enum IntegerSanitizer<T> {
-    Clamp { min: T, max: T },
     With(TokenStream),
+    _Phantom(std::marker::PhantomData<T>),
 }
 
 pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum IntegerSanitizerKind {
-    Clamp,
     With,
 }
 
 impl std::fmt::Display for IntegerSanitizerKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Clamp => write!(f, "clamp"),
             Self::With => write!(f, "with"),
         }
     }
@@ -36,8 +34,10 @@ impl<T> Kind for IntegerSanitizer<T> {
 
     fn kind(&self) -> IntegerSanitizerKind {
         match self {
-            Self::Clamp { .. } => IntegerSanitizerKind::Clamp,
             Self::With(_) => IntegerSanitizerKind::With,
+            Self::_Phantom(_) => {
+                unreachable!("Kind::kind(): IntegerSanitizer::_Phantom must not be used")
+            }
         }
     }
 }
