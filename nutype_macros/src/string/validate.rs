@@ -139,11 +139,6 @@ fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = StringDe
         StringDeriveTrait::FromStr,
         StringDeriveTrait::AsRef,
         StringDeriveTrait::Hash,
-        // TODO: should depend on features
-        //
-        // StringDeriveTrait::Serialize,
-        // StringDeriveTrait::Deserialize,
-        // StringDeriveTrait::Arbitrary,
     ]
     .into_iter()
 }

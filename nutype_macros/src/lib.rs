@@ -132,7 +132,6 @@ where
         attrs,
         derive_traits,
     } = params;
-    // TODO: validate derive_traits
     let meta = float::parse::parse_attributes::<T>(attrs)?;
     let traits = validate_float_derive_traits(derive_traits, meta.has_validation())?;
     Ok(float::gen::gen_nutype_for_float(

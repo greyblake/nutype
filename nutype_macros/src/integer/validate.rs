@@ -128,11 +128,6 @@ fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = IntegerD
         IntegerDeriveTrait::FromStr,
         IntegerDeriveTrait::AsRef,
         IntegerDeriveTrait::Hash,
-        // TODO: should depend on features
-        //
-        // IntegerDeriveTrait::Serialize,
-        // IntegerDeriveTrait::Deserialize,
-        // IntegerDeriveTrait::Arbitrary,
     ]
     .into_iter()
 }

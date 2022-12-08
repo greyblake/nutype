@@ -146,7 +146,6 @@ pub enum NormalDeriveTrait {
     Hash,
     Borrow,
     Display,
-
     // External crates
     // Serialize,
     // Deserialize,

@@ -244,8 +244,7 @@ mod traits {
 
         should_implement_debug::<Dist>();
         should_implement_try_from::<Dist, f64>();
-        // TODO: implement FromStr with validation
-        // should_implement_from_str::<Name>();
+        should_implement_from_str::<Dist>();
         should_implement_borrow::<Dist, f64>();
     }
 

@@ -240,14 +240,15 @@ mod types {
 
     #[test]
     fn test_i8_validate() {
-        // TODO: use negative numbers
-        #[nutype(validate(min = 18, max = 99))]
+        #[nutype(validate(min = -20, max = 100))]
         #[derive(*)]
-        struct Age(i8);
+        struct Offset(i8);
 
-        assert_eq!(Age::new(17), Err(AgeError::TooSmall));
-        assert_eq!(Age::new(100), Err(AgeError::TooBig));
-        assert!(Age::new(20).is_ok());
+        assert_eq!(Offset::new(-21), Err(OffsetError::TooSmall));
+        assert_eq!(Offset::new(101), Err(OffsetError::TooBig));
+        assert!(Offset::new(100).is_ok());
+        assert!(Offset::new(-20).is_ok());
+        assert!(Offset::new(0).is_ok());
     }
 
     #[test]
