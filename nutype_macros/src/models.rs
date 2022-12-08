@@ -148,9 +148,9 @@ pub enum NormalDeriveTrait {
     Display,
 
     // External crates
-    Serialize,
-    Deserialize,
-    Arbitrary,
+    // Serialize,
+    // Deserialize,
+    // Arbitrary,
 }
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;

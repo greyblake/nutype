@@ -166,18 +166,6 @@ fn to_string_derive_trait(
         NormalDeriveTrait::Hash => Ok(StringDeriveTrait::Hash),
         NormalDeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
         NormalDeriveTrait::Into => Ok(StringDeriveTrait::Into),
-        NormalDeriveTrait::Serialize => {
-            unimplemented!("Serialize is not yet implemented");
-            // traits.insert(StringDeriveTrait::Serialize)
-        }
-        NormalDeriveTrait::Deserialize => {
-            unimplemented!("Deserialize is not yet implemented");
-            // traits.insert(StringDeriveTrait::Deserialize)
-        }
-        NormalDeriveTrait::Arbitrary => {
-            unimplemented!("Arbitrary is not yet implemented");
-            // traits.insert(StringDeriveTrait::Arbitrary)
-        }
         NormalDeriveTrait::Copy => Err(syn::Error::new(
             span,
             "Copy trait cannot be derived for a String based type",

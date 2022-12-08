@@ -155,18 +155,6 @@ fn to_integer_derive_trait(
         NormalDeriveTrait::AsRef => Ok(IntegerDeriveTrait::AsRef),
         NormalDeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),
         NormalDeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
-        NormalDeriveTrait::Serialize => {
-            unimplemented!("Serialize is not yet implemented");
-            // traits.insert(IntegerDeriveTrait::Serialize)
-        }
-        NormalDeriveTrait::Deserialize => {
-            unimplemented!("Deserialize is not yet implemented");
-            // traits.insert(IntegerDeriveTrait::Deserialize)
-        }
-        NormalDeriveTrait::Arbitrary => {
-            unimplemented!("Arbitrary is not yet implemented");
-            // traits.insert(IntegerDeriveTrait::Arbitrary)
-        }
         NormalDeriveTrait::Copy => Err(syn::Error::new(
             span,
             "Copy trait cannot be derived for a String based type",

@@ -125,11 +125,6 @@ fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = FloatDer
         FloatDeriveTrait::PartialOrd,
         FloatDeriveTrait::FromStr,
         FloatDeriveTrait::AsRef,
-        // TODO: should depend on features
-        //
-        // FloatDeriveTrait::Serialize,
-        // FloatDeriveTrait::Deserialize,
-        // FloatDeriveTrait::Arbitrary,
     ]
     .into_iter()
 }
@@ -161,15 +156,6 @@ fn to_float_derive_trait(
             "#[nutype] cannot derive `Hash` trait for float types.",
         )),
         NormalDeriveTrait::Borrow => Ok(FloatDeriveTrait::Borrow),
-        NormalDeriveTrait::Serialize => {
-            unimplemented!("Serialize is not yet implemented");
-        }
-        NormalDeriveTrait::Deserialize => {
-            unimplemented!("Deserialize is not yet implemented");
-        }
-        NormalDeriveTrait::Arbitrary => {
-            unimplemented!("Arbitrary is not yet implemented");
-        }
         NormalDeriveTrait::Copy => Err(syn::Error::new(
             span,
             "Copy trait cannot be derived for a String based type",

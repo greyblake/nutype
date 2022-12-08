@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Remove sanitizer `clamp(a, b)` from float
 * Support serde
   * Serialize
   * Deserialize
@@ -79,6 +78,7 @@
 * Rename nutype_derive to nutype_macros
 * Rename nutype_test_suite to `test_suite`
 * Remove sanitizer `clamp(a, b)` from integer
+* Remove sanitizer `clamp(a, b)` from float
 
 
 
