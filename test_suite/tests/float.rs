@@ -4,15 +4,6 @@ use nutype::nutype;
 mod sanitizers {
     use super::*;
 
-    #[test]
-    fn test_clamp() {
-        #[nutype(sanitize(clamp(18.0, 99.0)))]
-        struct Age(f64);
-
-        assert_eq!(Age::new(17.0).into_inner(), 18.0);
-        assert_eq!(Age::new(100.0).into_inner(), 99.0);
-    }
-
     #[cfg(test)]
     mod with {
         use super::*;
@@ -198,7 +189,7 @@ mod types {
     #[test]
     fn test_f64_negative() {
         #[nutype(
-            sanitize(clamp(-200.25, -5))
+            sanitize(with = |n| n.clamp(-200.25, -5.0))
             validate(min = -100.25, max = -50.1)
         )]
         #[derive(*)]

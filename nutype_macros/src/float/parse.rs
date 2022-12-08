@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 use crate::common::parse::{
     is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
-    split_and_parse, try_unwrap_group,
+    split_and_parse,
 };
 use proc_macro2::{Span, TokenStream, TokenTree};
 
@@ -49,26 +49,6 @@ where
     let token = token_iter.next();
     if let Some(TokenTree::Ident(ident)) = token {
         match ident.to_string().as_ref() {
-            "clamp" => {
-                let t = token_iter.next().expect("clamp() cannot be empty");
-                let span = ident.span();
-                let group = try_unwrap_group(t.clone())?;
-                let list: Vec<T> = parse_list_of_numbers(group.stream());
-                if list.len() != 2 {
-                    let msg = "Invalid parameters for clamp()";
-                    let error = syn::Error::new(span, msg);
-                    return Err(error);
-                }
-
-                let mut iter = list.into_iter();
-                let min = iter.next().unwrap();
-                let max = iter.next().unwrap();
-                let sanitizer = FloatSanitizer::Clamp { min, max };
-                Ok(SpannedFloatSanitizer {
-                    span,
-                    item: sanitizer,
-                })
-            }
             "with" => {
                 // Preserve the rest as `custom_sanitizer_fn`
                 let stream = parse_with_token_stream(token_iter, ident.span())?;
@@ -145,35 +125,4 @@ where
     } else {
         Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
     }
-}
-
-// TODO: Refactor
-fn parse_list_of_numbers<T>(stream: TokenStream) -> Vec<T>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    let mut output: Vec<T> = Vec::new();
-    let mut cur = String::new();
-
-    for token in stream.into_iter() {
-        let t = token.to_string();
-        if t == "," {
-            if !cur.is_empty() {
-                // TODO: result an Result and error
-                let val: T = cur.parse().unwrap();
-                output.push(val);
-                cur = String::new();
-            }
-        } else {
-            cur.push_str(&t);
-        }
-    }
-    if !cur.is_empty() {
-        // TODO: result an Result and error
-        let val: T = cur.parse().unwrap();
-        output.push(val);
-    }
-
-    output
 }
