@@ -33,10 +33,7 @@ where
 {
     let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_implementation(type_name, number_type, &meta);
-
-    // TODO: refactor: inject InnerType, that implements ToString
-    let tp: TokenStream =
-        syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
+    let inner_type: TokenStream = quote!(#number_type);
 
     let maybe_error_type_name: Option<Ident> = match meta {
         NewtypeIntegerMeta::From { .. } => None,
@@ -60,7 +57,7 @@ where
     let GeneratedTraits {
         derive_standard_traits,
         implement_traits,
-    } = gen_traits(type_name, &tp, maybe_error_type_name, traits);
+    } = gen_traits(type_name, &inner_type, maybe_error_type_name, traits);
 
     quote!(
         mod #module_name {
@@ -68,7 +65,7 @@ where
 
             #(#doc_attrs)*
             #derive_standard_traits
-            pub struct #type_name(#tp);
+            pub struct #type_name(#inner_type);
 
             #implementation
             #implement_traits
