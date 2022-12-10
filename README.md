@@ -13,8 +13,6 @@
 * Run UI tests only against stable
 
 ### TODO Refactor:
-* Address TODO, todo!(), unimplemented!(), etc.
-* Reduce duplications: the types share mainly same structure
 * Introduce newtypes for type_name, error_type_name, etc.
 
 ### TODO UI:
@@ -35,6 +33,7 @@
 * Extra validations for floats:
   * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
   * This should allow to derive Eq and Ord
+* Consider extending errors to keep the invalid value?
 
 ### Maybe
 * Add #[repr(transparent)]
@@ -80,6 +79,8 @@
 * Rename nutype_test_suite to `test_suite`
 * Remove sanitizer `clamp(a, b)` from integer
 * Remove sanitizer `clamp(a, b)` from float
+* Address TODO, todo!(), unimplemented!(), etc.
+* Reduce duplications: the types share mainly same structure
 
 
 
