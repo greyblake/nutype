@@ -13,7 +13,7 @@ use syn::Visibility;
 ///   |s| s.trim().to_lowercase()
 /// Output:
 ///   |s: String| s.trim().to_lowercase()
-pub fn type_custom_sanitizier_closure(
+pub fn type_custom_closure(
     closure_or_func_path: &TokenStream,
     inner_type: impl ToTokens,
 ) -> TokenStream {

@@ -15,7 +15,7 @@ use super::models::{IntegerDeriveTrait, IntegerSanitizer, IntegerValidator, Newt
 use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-        parse_error::gen_parse_error_name, type_custom_sanitizier_closure,
+        parse_error::gen_parse_error_name, type_custom_closure,
     },
     models::IntegerType,
 };
@@ -169,7 +169,7 @@ where
         .iter()
         .map(|san| match san {
             IntegerSanitizer::With(token_stream) => {
-                let custom_sanitizer = type_custom_sanitizier_closure(token_stream, inner_type);
+                let custom_sanitizer = type_custom_closure(token_stream, inner_type);
                 quote!(
                     value = (#custom_sanitizer)(value);
                 )
@@ -216,9 +216,7 @@ where
                 )
             }
             IntegerValidator::With(is_valid_fn) => {
-                // TODO: rename type_custom_sanitizier_closure, cause it's used NOT only for
-                // sanitizers
-                let is_valid_fn = type_custom_sanitizier_closure(is_valid_fn, inner_type);
+                let is_valid_fn = type_custom_closure(is_valid_fn, inner_type);
                 quote!(
                     if !(#is_valid_fn)(&val) {
                         return Err(#error_name::Invalid);

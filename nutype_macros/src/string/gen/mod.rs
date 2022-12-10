@@ -9,8 +9,7 @@ use syn::Attribute;
 
 use crate::{
     common::gen::{
-        error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-        type_custom_sanitizier_closure,
+        error::gen_error_type_name, gen_module_name_for_type, gen_reimports, type_custom_closure,
     },
     models::{StringSanitizer, StringValidator},
 };
@@ -156,8 +155,7 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
             StringSanitizer::With(custom_sanitizer_token_stream) => {
                 let tp = Ident::new("String", Span::call_site());
                 let tp = quote!(#tp);
-                let custom_sanitizer =
-                    type_custom_sanitizier_closure(custom_sanitizer_token_stream, tp);
+                let custom_sanitizer = type_custom_closure(custom_sanitizer_token_stream, tp);
                 quote!(
                     let value: String = (#custom_sanitizer)(value);
                 )
@@ -202,7 +200,7 @@ pub fn gen_string_validate_fn(type_name: &Ident, validators: &[StringValidator])
             }
             StringValidator::With(is_valid_fn) => {
                 let tp = quote!(&str);
-                let is_valid_fn = type_custom_sanitizier_closure(is_valid_fn, tp);
+                let is_valid_fn = type_custom_closure(is_valid_fn, tp);
                 quote!(
                     if !(#is_valid_fn)(&val) {
                         return Err(#error_name::Invalid);
