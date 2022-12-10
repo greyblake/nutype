@@ -8,17 +8,15 @@ use crate::{
 };
 
 use super::models::{
-    IntegerDeriveTrait, IntegerSanitizer, IntegerValidator, NewtypeIntegerMeta,
-    RawNewtypeIntegerMeta, SpannedIntegerSanitizer, SpannedIntegerValidator,
+    IntegerDeriveTrait, IntegerGuard, IntegerRawGuard, IntegerSanitizer, IntegerValidator,
+    SpannedIntegerSanitizer, SpannedIntegerValidator,
 };
 
-pub fn validate_number_meta<T>(
-    raw_meta: RawNewtypeIntegerMeta<T>,
-) -> Result<NewtypeIntegerMeta<T>, syn::Error>
+pub fn validate_number_meta<T>(raw_meta: IntegerRawGuard<T>) -> Result<IntegerGuard<T>, syn::Error>
 where
     T: PartialOrd + Clone,
 {
-    let RawNewtypeIntegerMeta {
+    let IntegerRawGuard {
         sanitizers,
         validators,
     } = raw_meta;
@@ -27,9 +25,9 @@ where
     let sanitizers = validate_sanitizers(sanitizers)?;
 
     if validators.is_empty() {
-        Ok(NewtypeIntegerMeta::WithoutValidation { sanitizers })
+        Ok(IntegerGuard::WithoutValidation { sanitizers })
     } else {
-        Ok(NewtypeIntegerMeta::WithValidation {
+        Ok(IntegerGuard::WithValidation {
             sanitizers,
             validators,
         })

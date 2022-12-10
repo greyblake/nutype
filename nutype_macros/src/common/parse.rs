@@ -3,7 +3,7 @@ use std::{any::type_name, fmt::Debug, str::FromStr};
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
 use syn::spanned::Spanned;
 
-use crate::models::{DeriveTrait, NormalDeriveTrait, RawNewtypeMeta, SpannedDeriveTrait};
+use crate::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait};
 
 /// ## Example
 /// Input (token stream):
@@ -76,9 +76,9 @@ pub fn try_unwrap_group(token: TokenTree) -> Result<Group, syn::Error> {
 pub fn parse_nutype_attributes<S, V>(
     parse_sanitize_attrs: impl Fn(TokenStream) -> Result<Vec<S>, syn::Error>,
     parse_validate_attrs: impl Fn(TokenStream) -> Result<Vec<V>, syn::Error>,
-) -> impl FnOnce(TokenStream) -> Result<RawNewtypeMeta<S, V>, syn::Error> {
+) -> impl FnOnce(TokenStream) -> Result<RawGuard<S, V>, syn::Error> {
     move |input: TokenStream| {
-        let mut output = RawNewtypeMeta {
+        let mut output = RawGuard {
             sanitizers: vec![],
             validators: vec![],
         };

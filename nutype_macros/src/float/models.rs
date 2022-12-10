@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 
 use crate::{
     base::{Kind, SpannedItem},
-    models::{NewtypeMeta, RawNewtypeMeta},
+    models::{Guard, RawGuard},
 };
 
 // Sanitizer
@@ -110,6 +110,5 @@ pub enum FloatDeriveTrait {
 // Meta
 //
 
-pub type RawNewtypeFloatMeta<T> =
-    RawNewtypeMeta<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
-pub type NewtypeFloatMeta<T> = NewtypeMeta<FloatSanitizer<T>, FloatValidator<T>>;
+pub type FloatRawGuard<T> = RawGuard<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
+pub type FloatGuard<T> = Guard<FloatSanitizer<T>, FloatValidator<T>>;

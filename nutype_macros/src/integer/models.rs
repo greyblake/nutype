@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 
 use crate::{
     base::{Kind, SpannedItem},
-    models::{NewtypeMeta, RawNewtypeMeta},
+    models::{Guard, RawGuard},
 };
 
 // Sanitizer
@@ -113,6 +113,5 @@ pub enum IntegerDeriveTrait {
 // Meta
 //
 
-pub type RawNewtypeIntegerMeta<T> =
-    RawNewtypeMeta<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;
-pub type NewtypeIntegerMeta<T> = NewtypeMeta<IntegerSanitizer<T>, IntegerValidator<T>>;
+pub type IntegerRawGuard<T> = RawGuard<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;
+pub type IntegerGuard<T> = Guard<IntegerSanitizer<T>, IntegerValidator<T>>;

@@ -3,18 +3,18 @@ use crate::common::parse::{
     split_and_parse,
 };
 use crate::models::{StringSanitizer, StringValidator};
-use crate::string::models::NewtypeStringMeta;
-use crate::string::models::RawNewtypeStringMeta;
+use crate::string::models::StringGuard;
+use crate::string::models::StringRawGuard;
 use proc_macro2::{Span, TokenStream, TokenTree};
 
 use super::models::{SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
-pub fn parse_attributes(input: TokenStream) -> Result<NewtypeStringMeta, syn::Error> {
+pub fn parse_attributes(input: TokenStream) -> Result<StringGuard, syn::Error> {
     parse_raw_attributes(input).and_then(validate_string_meta)
 }
 
-fn parse_raw_attributes(input: TokenStream) -> Result<RawNewtypeStringMeta, syn::Error> {
+fn parse_raw_attributes(input: TokenStream) -> Result<StringRawGuard, syn::Error> {
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
 

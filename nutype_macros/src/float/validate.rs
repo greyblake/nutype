@@ -8,17 +8,15 @@ use crate::{
 };
 
 use super::models::{
-    FloatDeriveTrait, FloatSanitizer, FloatValidator, NewtypeFloatMeta, RawNewtypeFloatMeta,
+    FloatDeriveTrait, FloatGuard, FloatRawGuard, FloatSanitizer, FloatValidator,
     SpannedFloatSanitizer, SpannedFloatValidator,
 };
 
-pub fn validate_number_meta<T>(
-    raw_meta: RawNewtypeFloatMeta<T>,
-) -> Result<NewtypeFloatMeta<T>, syn::Error>
+pub fn validate_number_meta<T>(raw_meta: FloatRawGuard<T>) -> Result<FloatGuard<T>, syn::Error>
 where
     T: PartialOrd + Clone,
 {
-    let RawNewtypeFloatMeta {
+    let FloatRawGuard {
         sanitizers,
         validators,
     } = raw_meta;
@@ -27,9 +25,9 @@ where
     let sanitizers = validate_sanitizers(sanitizers)?;
 
     if validators.is_empty() {
-        Ok(NewtypeFloatMeta::WithoutValidation { sanitizers })
+        Ok(FloatGuard::WithoutValidation { sanitizers })
     } else {
-        Ok(NewtypeFloatMeta::WithValidation {
+        Ok(FloatGuard::WithValidation {
             sanitizers,
             validators,
         })

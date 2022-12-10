@@ -7,6 +7,7 @@ use crate::{
     models::{InnerType, TypeNameAndInnerType},
 };
 
+// TODO: rename
 pub fn parse_type_name_and_inner_type(
     token_stream: TokenStream,
 ) -> Result<TypeNameAndInnerType, syn::Error> {

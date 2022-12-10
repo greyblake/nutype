@@ -95,7 +95,7 @@ pub struct TypeNameAndInnerType {
 
 /// Validated model, that represents precisly what needs to be generated.
 #[derive(Debug)]
-pub enum NewtypeMeta<Sanitizer, Validator> {
+pub enum Guard<Sanitizer, Validator> {
     WithoutValidation {
         sanitizers: Vec<Sanitizer>,
     },
@@ -105,7 +105,7 @@ pub enum NewtypeMeta<Sanitizer, Validator> {
     },
 }
 
-impl<Sanitizer, Validator> NewtypeMeta<Sanitizer, Validator> {
+impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
     pub fn has_validation(&self) -> bool {
         match self {
             Self::WithoutValidation { .. } => false,
@@ -116,7 +116,7 @@ impl<Sanitizer, Validator> NewtypeMeta<Sanitizer, Validator> {
 
 /// Parsed by not yet validated
 #[derive(Debug)]
-pub struct RawNewtypeMeta<Sanitizer, Validator> {
+pub struct RawGuard<Sanitizer, Validator> {
     pub sanitizers: Vec<Sanitizer>,
     pub validators: Vec<Validator>,
 }

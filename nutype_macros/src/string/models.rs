@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 
 use crate::{
     base::{Kind, SpannedItem},
-    models::{NewtypeMeta, RawNewtypeMeta},
+    models::{Guard, RawGuard},
 };
 
 // Sanitizer
@@ -122,5 +122,5 @@ pub enum StringDeriveTrait {
 
 // Meta
 
-pub type RawNewtypeStringMeta = RawNewtypeMeta<SpannedStringSanitizer, SpannedStringValidator>;
-pub type NewtypeStringMeta = NewtypeMeta<StringSanitizer, StringValidator>;
+pub type StringRawGuard = RawGuard<SpannedStringSanitizer, SpannedStringValidator>;
+pub type StringGuard = Guard<StringSanitizer, StringValidator>;

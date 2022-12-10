@@ -7,17 +7,15 @@ use crate::common::validate::validate_duplicates;
 use crate::models::{
     DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait, StringSanitizer, StringValidator,
 };
-use crate::string::models::NewtypeStringMeta;
-use crate::string::models::RawNewtypeStringMeta;
+use crate::string::models::StringGuard;
+use crate::string::models::StringRawGuard;
 
 use super::models::{
     SpannedStringSanitizer, SpannedStringValidator, StringDeriveTrait, StringSanitizerKind,
 };
 
-pub fn validate_string_meta(
-    raw_meta: RawNewtypeStringMeta,
-) -> Result<NewtypeStringMeta, syn::Error> {
-    let RawNewtypeStringMeta {
+pub fn validate_string_meta(raw_meta: StringRawGuard) -> Result<StringGuard, syn::Error> {
+    let StringRawGuard {
         sanitizers,
         validators,
     } = raw_meta;
@@ -26,9 +24,9 @@ pub fn validate_string_meta(
     let sanitizers = validate_sanitizers(sanitizers)?;
 
     if validators.is_empty() {
-        Ok(NewtypeStringMeta::WithoutValidation { sanitizers })
+        Ok(StringGuard::WithoutValidation { sanitizers })
     } else {
-        Ok(NewtypeStringMeta::WithValidation {
+        Ok(StringGuard::WithValidation {
             sanitizers,
             validators,
         })
@@ -99,7 +97,7 @@ fn validate_sanitizers(
 }
 
 pub fn validate_string_derive_traits(
-    meta: &NewtypeStringMeta,
+    meta: &StringGuard,
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
 ) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
     let mut traits = HashSet::with_capacity(24);

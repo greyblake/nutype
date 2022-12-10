@@ -9,13 +9,13 @@ use proc_macro2::{Span, TokenStream, TokenTree};
 
 use super::{
     models::{
-        FloatSanitizer, FloatValidator, NewtypeFloatMeta, RawNewtypeFloatMeta,
-        SpannedFloatSanitizer, SpannedFloatValidator,
+        FloatGuard, FloatRawGuard, FloatSanitizer, FloatValidator, SpannedFloatSanitizer,
+        SpannedFloatValidator,
     },
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream) -> Result<NewtypeFloatMeta<T>, syn::Error>
+pub fn parse_attributes<T>(input: TokenStream) -> Result<FloatGuard<T>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
@@ -23,7 +23,7 @@ where
     parse_raw_attributes(input).and_then(validate_number_meta)
 }
 
-fn parse_raw_attributes<T>(input: TokenStream) -> Result<RawNewtypeFloatMeta<T>, syn::Error>
+fn parse_raw_attributes<T>(input: TokenStream) -> Result<FloatRawGuard<T>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,

@@ -8,7 +8,7 @@ use quote::{quote, ToTokens};
 use syn::Visibility;
 
 use self::error::gen_validation_error_type;
-use super::models::{FloatDeriveTrait, FloatSanitizer, FloatValidator, NewtypeFloatMeta};
+use super::models::{FloatDeriveTrait, FloatGuard, FloatSanitizer, FloatValidator};
 use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
@@ -23,7 +23,7 @@ pub fn gen_nutype_for_float<T>(
     vis: Visibility,
     inner_type: FloatType,
     type_name: &Ident,
-    meta: NewtypeFloatMeta<T>,
+    meta: FloatGuard<T>,
     traits: HashSet<FloatDeriveTrait>,
 ) -> TokenStream
 where
@@ -33,8 +33,8 @@ where
     let implementation = gen_implementation(type_name, inner_type, &meta);
 
     let maybe_error_type_name: Option<Ident> = match meta {
-        NewtypeFloatMeta::WithoutValidation { .. } => None,
-        NewtypeFloatMeta::WithValidation { .. } => Some(gen_error_type_name(type_name)),
+        FloatGuard::WithoutValidation { .. } => None,
+        FloatGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
 
     let maybe_parse_error_type_name = if traits.contains(&FloatDeriveTrait::FromStr) {
@@ -74,16 +74,16 @@ where
 pub fn gen_implementation<T>(
     type_name: &Ident,
     inner_type: FloatType,
-    meta: &NewtypeFloatMeta<T>,
+    meta: &FloatGuard<T>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
     let convert_implementation = match meta {
-        NewtypeFloatMeta::WithoutValidation { sanitizers } => {
+        FloatGuard::WithoutValidation { sanitizers } => {
             gen_new_without_validation(type_name, inner_type, sanitizers)
         }
-        NewtypeFloatMeta::WithValidation {
+        FloatGuard::WithValidation {
             sanitizers,
             validators,
         } => gen_new_with_validation(type_name, inner_type, sanitizers, validators),

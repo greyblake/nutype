@@ -17,21 +17,21 @@ use crate::{
 
 use self::{error::gen_validation_error_type, traits::gen_traits};
 
-use super::models::{NewtypeStringMeta, StringDeriveTrait};
+use super::models::{StringDeriveTrait, StringGuard};
 
 pub fn gen_nutype_for_string(
     doc_attrs: Vec<Attribute>,
     traits: HashSet<StringDeriveTrait>,
     vis: syn::Visibility,
     type_name: &Ident,
-    meta: NewtypeStringMeta,
+    meta: StringGuard,
 ) -> TokenStream {
     let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_string_implementation(type_name, &meta);
 
     let maybe_error_type_name: Option<Ident> = match meta {
-        NewtypeStringMeta::WithoutValidation { .. } => None,
-        NewtypeStringMeta::WithValidation { .. } => Some(gen_error_type_name(type_name)),
+        StringGuard::WithoutValidation { .. } => None,
+        StringGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
 
     let reimports = gen_reimports(
@@ -62,13 +62,13 @@ pub fn gen_nutype_for_string(
     )
 }
 
-pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) -> TokenStream {
+pub fn gen_string_implementation(type_name: &Ident, meta: &StringGuard) -> TokenStream {
     let methods = gen_impl_methods(type_name);
     let convert_implementation = match meta {
-        NewtypeStringMeta::WithoutValidation { sanitizers } => {
+        StringGuard::WithoutValidation { sanitizers } => {
             gen_new_without_validation(type_name, sanitizers)
         }
-        NewtypeStringMeta::WithValidation {
+        StringGuard::WithValidation {
             sanitizers,
             validators,
         } => gen_new_and_with_validation(type_name, sanitizers, validators),

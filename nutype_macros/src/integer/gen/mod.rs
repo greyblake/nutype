@@ -8,7 +8,7 @@ use quote::{quote, ToTokens};
 use syn::Visibility;
 
 use self::{error::gen_validation_error_type, traits::gen_traits};
-use super::models::{IntegerDeriveTrait, IntegerSanitizer, IntegerValidator, NewtypeIntegerMeta};
+use super::models::{IntegerDeriveTrait, IntegerGuard, IntegerSanitizer, IntegerValidator};
 use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
@@ -22,7 +22,7 @@ pub fn gen_nutype_for_integer<T>(
     vis: Visibility,
     number_type: IntegerType,
     type_name: &Ident,
-    meta: NewtypeIntegerMeta<T>,
+    meta: IntegerGuard<T>,
     traits: HashSet<IntegerDeriveTrait>,
 ) -> TokenStream
 where
@@ -33,8 +33,8 @@ where
     let inner_type: TokenStream = quote!(#number_type);
 
     let maybe_error_type_name: Option<Ident> = match meta {
-        NewtypeIntegerMeta::WithoutValidation { .. } => None,
-        NewtypeIntegerMeta::WithValidation { .. } => Some(gen_error_type_name(type_name)),
+        IntegerGuard::WithoutValidation { .. } => None,
+        IntegerGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
 
     let maybe_parse_error_type_name = if traits.contains(&IntegerDeriveTrait::FromStr) {
@@ -74,16 +74,16 @@ where
 pub fn gen_implementation<T>(
     type_name: &Ident,
     inner_type: IntegerType,
-    meta: &NewtypeIntegerMeta<T>,
+    meta: &IntegerGuard<T>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
     let convert_implementation = match meta {
-        NewtypeIntegerMeta::WithoutValidation { sanitizers } => {
+        IntegerGuard::WithoutValidation { sanitizers } => {
             gen_new_without_validation(type_name, inner_type, sanitizers)
         }
-        NewtypeIntegerMeta::WithValidation {
+        IntegerGuard::WithValidation {
             sanitizers,
             validators,
         } => gen_new_with_validation(type_name, inner_type, sanitizers, validators),
