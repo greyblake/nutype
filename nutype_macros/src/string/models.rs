@@ -120,7 +120,5 @@ pub enum StringDeriveTrait {
     // Arbitrary,
 }
 
-// Meta
-
 pub type StringRawGuard = RawGuard<SpannedStringSanitizer, SpannedStringValidator>;
 pub type StringGuard = Guard<StringSanitizer, StringValidator>;

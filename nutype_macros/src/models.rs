@@ -83,9 +83,8 @@ impl ToTokens for FloatType {
     }
 }
 
-// TODO: Rename
 #[derive(Debug)]
-pub struct TypeNameAndInnerType {
+pub struct NewtypeMeta {
     pub type_name: Ident,
     pub inner_type: InnerType,
     pub vis: syn::Visibility,

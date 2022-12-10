@@ -107,8 +107,5 @@ pub enum FloatDeriveTrait {
     // Arbitrary,
 }
 
-// Meta
-//
-
 pub type FloatRawGuard<T> = RawGuard<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
 pub type FloatGuard<T> = Guard<FloatSanitizer<T>, FloatValidator<T>>;

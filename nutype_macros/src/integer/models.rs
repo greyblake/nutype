@@ -110,8 +110,5 @@ pub enum IntegerDeriveTrait {
     // Arbitrary,
 }
 
-// Meta
-//
-
 pub type IntegerRawGuard<T> = RawGuard<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;
 pub type IntegerGuard<T> = Guard<IntegerSanitizer<T>, IntegerValidator<T>>;

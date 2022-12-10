@@ -4,13 +4,10 @@ use syn::{spanned::Spanned, Attribute, DeriveInput};
 
 use crate::{
     common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
-    models::{InnerType, TypeNameAndInnerType},
+    models::{InnerType, NewtypeMeta},
 };
 
-// TODO: rename
-pub fn parse_type_name_and_inner_type(
-    token_stream: TokenStream,
-) -> Result<TypeNameAndInnerType, syn::Error> {
+pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> {
     let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
 
     let input_span = input.span();
@@ -84,7 +81,7 @@ pub fn parse_type_name_and_inner_type(
         }
     };
 
-    Ok(TypeNameAndInnerType {
+    Ok(NewtypeMeta {
         doc_attrs,
         type_name,
         inner_type,

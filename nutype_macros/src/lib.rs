@@ -10,8 +10,8 @@ use std::{fmt::Debug, str::FromStr};
 
 use float::validate::validate_float_derive_traits;
 use integer::validate::validate_integer_derive_traits;
-use models::{FloatType, InnerType, IntegerType, SpannedDeriveTrait, TypeNameAndInnerType};
-use parse::parse_type_name_and_inner_type;
+use models::{FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait};
+use parse::parse_meta;
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use string::{gen::gen_nutype_for_string, validate::validate_string_derive_traits};
@@ -31,13 +31,13 @@ fn expand_nutype(
     attrs: TokenStream,
     type_definition: TokenStream,
 ) -> Result<TokenStream, syn::Error> {
-    let TypeNameAndInnerType {
+    let NewtypeMeta {
         doc_attrs,
         type_name,
         inner_type,
         vis,
         derive_traits,
-    } = parse_type_name_and_inner_type(type_definition)?;
+    } = parse_meta(type_definition)?;
 
     match inner_type {
         InnerType::String => {
