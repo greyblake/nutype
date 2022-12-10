@@ -213,7 +213,8 @@ where
                 )
             }
             FloatValidator::With(is_valid_fn) => {
-                let is_valid_fn = type_custom_closure(is_valid_fn, inner_type);
+                let inner_type_ref = quote!(&#inner_type);
+                let is_valid_fn = type_custom_closure(is_valid_fn, inner_type_ref);
                 quote!(
                     if !(#is_valid_fn)(&val) {
                         return Err(#error_name::Invalid);

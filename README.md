@@ -10,6 +10,7 @@
   * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
 * Refactor parsers
 * Finalize syntax!
+* Run UI tests only against stable
 
 ### TODO Refactor:
 * Address TODO, todo!(), unimplemented!(), etc.
