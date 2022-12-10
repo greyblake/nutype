@@ -6,16 +6,10 @@ use quote::{quote, ToTokens};
 use crate::{
     common::gen::traits::{
         gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from,
+        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from, GeneratedTraits,
     },
     integer::models::IntegerDeriveTrait,
 };
-
-// TODO: this can be shared structure among all the types
-pub struct GeneratedTraits {
-    pub derive_standard_traits: TokenStream,
-    pub implement_traits: TokenStream,
-}
 
 pub fn gen_traits(
     type_name: &Ident,

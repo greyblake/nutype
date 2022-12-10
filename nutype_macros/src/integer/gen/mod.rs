@@ -7,15 +7,12 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
-use self::{
-    error::gen_validation_error_type,
-    traits::{gen_traits, GeneratedTraits},
-};
+use self::{error::gen_validation_error_type, traits::gen_traits};
 use super::models::{IntegerDeriveTrait, IntegerSanitizer, IntegerValidator, NewtypeIntegerMeta};
 use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-        parse_error::gen_parse_error_name, type_custom_closure,
+        parse_error::gen_parse_error_name, traits::GeneratedTraits, type_custom_closure,
     },
     models::IntegerType,
 };

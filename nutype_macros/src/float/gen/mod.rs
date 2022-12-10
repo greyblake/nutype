@@ -12,11 +12,11 @@ use super::models::{FloatDeriveTrait, FloatSanitizer, FloatValidator, NewtypeFlo
 use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-        parse_error::gen_parse_error_name, type_custom_closure,
+        parse_error::gen_parse_error_name, traits::GeneratedTraits, type_custom_closure,
     },
     models::FloatType,
 };
-use traits::{gen_traits, GeneratedTraits};
+use traits::gen_traits;
 
 pub fn gen_nutype_for_float<T>(
     doc_attrs: Vec<syn::Attribute>,

@@ -9,15 +9,13 @@ use syn::Attribute;
 
 use crate::{
     common::gen::{
-        error::gen_error_type_name, gen_module_name_for_type, gen_reimports, type_custom_closure,
+        error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
+        traits::GeneratedTraits, type_custom_closure,
     },
     models::{StringSanitizer, StringValidator},
 };
 
-use self::{
-    error::gen_validation_error_type,
-    traits::{gen_traits, GeneratedTraits},
-};
+use self::{error::gen_validation_error_type, traits::gen_traits};
 
 use super::models::{NewtypeStringMeta, StringDeriveTrait};
 

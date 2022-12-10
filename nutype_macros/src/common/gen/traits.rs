@@ -3,6 +3,15 @@ use quote::{quote, ToTokens};
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
+/// Generated implementation of traits.
+pub struct GeneratedTraits {
+    /// Standard traits that are simply derived.
+    pub derive_standard_traits: TokenStream,
+
+    /// Implementation of traits.
+    pub implement_traits: TokenStream,
+}
+
 pub fn gen_impl_trait_into(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
     // NOTE: We're getting blank implementation of
     //     Into<Inner> for Type
