@@ -6,8 +6,8 @@ use quote::{quote, ToTokens};
 use crate::{
     common::gen::traits::{
         gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from, GeneratableTrait,
-        GeneratedTraits,
+        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from,
+        split_into_generatable_traits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
     float::models::FloatDeriveTrait,
     models::FloatType,
@@ -88,7 +88,10 @@ pub fn gen_traits(
     maybe_error_type_name: Option<Ident>,
     traits: HashSet<FloatDeriveTrait>,
 ) -> GeneratedTraits {
-    let (standard_traits, impl_traits) = split_traits(traits);
+    let GeneratableTraits {
+        standard_traits,
+        irregular_traits,
+    } = split_into_generatable_traits(traits);
 
     let derive_standard_traits = quote! {
         #[derive(
@@ -96,30 +99,17 @@ pub fn gen_traits(
         )]
     };
 
-    let implement_traits =
-        gen_implemented_traits(type_name, inner_type, maybe_error_type_name, impl_traits);
+    let implement_traits = gen_implemented_traits(
+        type_name,
+        inner_type,
+        maybe_error_type_name,
+        irregular_traits,
+    );
 
     GeneratedTraits {
         derive_standard_traits,
         implement_traits,
     }
-}
-
-// TODO: consider resuing this function over different types
-fn split_traits(
-    input_traits: HashSet<FloatDeriveTrait>,
-) -> (Vec<FloatStandardTrait>, Vec<FloatIrregularTrait>) {
-    let mut derive_traits: Vec<FloatStandardTrait> = Vec::with_capacity(24);
-    let mut impl_traits: Vec<FloatIrregularTrait> = Vec::with_capacity(24);
-
-    for input_trait in input_traits {
-        match FloatGeneratableTrait::from(input_trait) {
-            FloatGeneratableTrait::Standard(dt) => derive_traits.push(dt),
-            FloatGeneratableTrait::Irregular(it) => impl_traits.push(it),
-        };
-    }
-
-    (derive_traits, impl_traits)
 }
 
 fn gen_implemented_traits(

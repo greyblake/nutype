@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
@@ -18,6 +20,33 @@ pub struct GeneratedTraits {
 pub enum GeneratableTrait<StandardTrait, IrregularTrait> {
     Standard(StandardTrait),
     Irregular(IrregularTrait),
+}
+
+pub struct GeneratableTraits<StandardTrait, IrregularTrait> {
+    pub standard_traits: Vec<StandardTrait>,
+    pub irregular_traits: Vec<IrregularTrait>,
+}
+
+pub fn split_into_generatable_traits<InputTrait, StandardTrait, IrregularTrait>(
+    input_traits: HashSet<InputTrait>,
+) -> GeneratableTraits<StandardTrait, IrregularTrait>
+where
+    GeneratableTrait<StandardTrait, IrregularTrait>: From<InputTrait>,
+{
+    let mut standard_traits: Vec<StandardTrait> = Vec::with_capacity(24);
+    let mut irregular_traits: Vec<IrregularTrait> = Vec::with_capacity(24);
+
+    for input_trait in input_traits {
+        match GeneratableTrait::from(input_trait) {
+            GeneratableTrait::Standard(st) => standard_traits.push(st),
+            GeneratableTrait::Irregular(it) => irregular_traits.push(it),
+        };
+    }
+
+    GeneratableTraits {
+        standard_traits,
+        irregular_traits,
+    }
 }
 
 pub fn gen_impl_trait_into(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
