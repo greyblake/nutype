@@ -12,6 +12,14 @@ pub struct GeneratedTraits {
     pub implement_traits: TokenStream,
 }
 
+/// Split traits into 2 groups for generatation:
+/// * Standard traits can be simply derived, e.g. `derive(Debug)`.
+/// * Irregular traits requires implementation to be generated.
+pub enum GeneratableTrait<StandardTrait, IrregularTrait> {
+    Standard(StandardTrait),
+    Irregular(IrregularTrait),
+}
+
 pub fn gen_impl_trait_into(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
     // NOTE: We're getting blank implementation of
     //     Into<Inner> for Type

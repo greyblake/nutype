@@ -6,10 +6,95 @@ use quote::{quote, ToTokens};
 use crate::{
     common::gen::traits::{
         gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_into, gen_impl_trait_try_from, GeneratedTraits,
+        gen_impl_trait_into, gen_impl_trait_try_from, GeneratableTrait, GeneratedTraits,
     },
     string::models::StringDeriveTrait,
 };
+
+type StringGeneratableTrait = GeneratableTrait<StringStandardTrait, StringIrregularTrait>;
+
+/// A trait that can be automatically derived.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+enum StringStandardTrait {
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+}
+
+/// A trait that can not be automatically derived and we need to generate
+/// an implementation for it.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+enum StringIrregularTrait {
+    FromStr,
+    AsRef,
+    Into,
+    From,
+    TryFrom,
+    Borrow,
+    Display,
+}
+
+impl From<StringDeriveTrait> for StringGeneratableTrait {
+    fn from(derive_trait: StringDeriveTrait) -> StringGeneratableTrait {
+        match derive_trait {
+            StringDeriveTrait::Debug => {
+                StringGeneratableTrait::Standard(StringStandardTrait::Debug)
+            }
+            StringDeriveTrait::Clone => {
+                StringGeneratableTrait::Standard(StringStandardTrait::Clone)
+            }
+            StringDeriveTrait::PartialEq => {
+                StringGeneratableTrait::Standard(StringStandardTrait::PartialEq)
+            }
+            StringDeriveTrait::Eq => StringGeneratableTrait::Standard(StringStandardTrait::Eq),
+            StringDeriveTrait::PartialOrd => {
+                StringGeneratableTrait::Standard(StringStandardTrait::PartialOrd)
+            }
+            StringDeriveTrait::Ord => StringGeneratableTrait::Standard(StringStandardTrait::Ord),
+            StringDeriveTrait::Hash => StringGeneratableTrait::Standard(StringStandardTrait::Hash),
+            StringDeriveTrait::FromStr => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::FromStr)
+            }
+            StringDeriveTrait::AsRef => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::AsRef)
+            }
+            StringDeriveTrait::Into => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::Into)
+            }
+            StringDeriveTrait::From => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::From)
+            }
+            StringDeriveTrait::TryFrom => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::TryFrom)
+            }
+            StringDeriveTrait::Borrow => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::Borrow)
+            }
+            StringDeriveTrait::Display => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::Display)
+            }
+        }
+    }
+}
+
+impl ToTokens for StringStandardTrait {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        let tokens = match self {
+            Self::Debug => quote!(Debug),
+            Self::Clone => quote!(Clone),
+            Self::PartialEq => quote!(PartialEq),
+            Self::Eq => quote!(Eq),
+            Self::PartialOrd => quote!(PartialOrd),
+            Self::Ord => quote!(Ord),
+            Self::Hash => quote!(Hash),
+        };
+        tokens.to_tokens(token_stream)
+    }
+}
 
 pub fn gen_traits(
     type_name: &Ident,
@@ -32,82 +117,17 @@ pub fn gen_traits(
     }
 }
 
-enum Trait {
-    Derived(DerivedTrait),
-    Implemented(ImplementedTrait),
-}
-
-impl From<StringDeriveTrait> for Trait {
-    fn from(derive_trait: StringDeriveTrait) -> Trait {
-        match derive_trait {
-            StringDeriveTrait::Debug => Trait::Derived(DerivedTrait::Debug),
-            StringDeriveTrait::Clone => Trait::Derived(DerivedTrait::Clone),
-            StringDeriveTrait::PartialEq => Trait::Derived(DerivedTrait::PartialEq),
-            StringDeriveTrait::Eq => Trait::Derived(DerivedTrait::Eq),
-            StringDeriveTrait::PartialOrd => Trait::Derived(DerivedTrait::PartialOrd),
-            StringDeriveTrait::Ord => Trait::Derived(DerivedTrait::Ord),
-            StringDeriveTrait::Hash => Trait::Derived(DerivedTrait::Hash),
-            StringDeriveTrait::FromStr => Trait::Implemented(ImplementedTrait::FromStr),
-            StringDeriveTrait::AsRef => Trait::Implemented(ImplementedTrait::AsRef),
-            StringDeriveTrait::Into => Trait::Implemented(ImplementedTrait::Into),
-            StringDeriveTrait::From => Trait::Implemented(ImplementedTrait::From),
-            StringDeriveTrait::TryFrom => Trait::Implemented(ImplementedTrait::TryFrom),
-            StringDeriveTrait::Borrow => Trait::Implemented(ImplementedTrait::Borrow),
-            StringDeriveTrait::Display => Trait::Implemented(ImplementedTrait::Display),
-        }
-    }
-}
-
-/// A trait that can be automatically derived.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-enum DerivedTrait {
-    Debug,
-    Clone,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-}
-
-/// A trait that can not be automatically derived and we need to generate
-/// an implementation for it.
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-enum ImplementedTrait {
-    FromStr,
-    AsRef,
-    Into,
-    From,
-    TryFrom,
-    Borrow,
-    Display,
-}
-
-impl ToTokens for DerivedTrait {
-    fn to_tokens(&self, token_stream: &mut TokenStream) {
-        let tokens = match self {
-            Self::Debug => quote!(Debug),
-            Self::Clone => quote!(Clone),
-            Self::PartialEq => quote!(PartialEq),
-            Self::Eq => quote!(Eq),
-            Self::PartialOrd => quote!(PartialOrd),
-            Self::Ord => quote!(Ord),
-            Self::Hash => quote!(Hash),
-        };
-        tokens.to_tokens(token_stream)
-    }
-}
-
+// TODO: consider reusing over different types
 fn split_traits(
     input_traits: HashSet<StringDeriveTrait>,
-) -> (Vec<DerivedTrait>, Vec<ImplementedTrait>) {
-    let mut derive_traits: Vec<DerivedTrait> = Vec::with_capacity(24);
-    let mut impl_traits: Vec<ImplementedTrait> = Vec::with_capacity(24);
+) -> (Vec<StringStandardTrait>, Vec<StringIrregularTrait>) {
+    let mut derive_traits: Vec<StringStandardTrait> = Vec::with_capacity(24);
+    let mut impl_traits: Vec<StringIrregularTrait> = Vec::with_capacity(24);
 
     for input_trait in input_traits {
-        match Trait::from(input_trait) {
-            Trait::Derived(dt) => derive_traits.push(dt),
-            Trait::Implemented(it) => impl_traits.push(it),
+        match StringGeneratableTrait::from(input_trait) {
+            StringGeneratableTrait::Standard(dt) => derive_traits.push(dt),
+            StringGeneratableTrait::Irregular(it) => impl_traits.push(it),
         };
     }
 
@@ -117,25 +137,25 @@ fn split_traits(
 fn gen_implemented_traits(
     type_name: &Ident,
     maybe_error_type_name: Option<Ident>,
-    impl_traits: Vec<ImplementedTrait>,
+    impl_traits: Vec<StringIrregularTrait>,
 ) -> TokenStream {
     impl_traits
         .iter()
         .map(|t| match t {
-            ImplementedTrait::AsRef => gen_impl_trait_as_ref(type_name, quote!(str)),
-            ImplementedTrait::FromStr => {
+            StringIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, quote!(str)),
+            StringIrregularTrait::FromStr => {
                 gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
             }
-            ImplementedTrait::From => gen_impl_from_str_and_string(type_name),
-            ImplementedTrait::Into => gen_impl_trait_into(type_name, quote!(String)),
-            ImplementedTrait::TryFrom => {
+            StringIrregularTrait::From => gen_impl_from_str_and_string(type_name),
+            StringIrregularTrait::Into => gen_impl_trait_into(type_name, quote!(String)),
+            StringIrregularTrait::TryFrom => {
                 let error_type_name = maybe_error_type_name
                     .as_ref()
                     .expect("TryFrom for String is expected to have error_type_name");
                 gen_impl_try_from(type_name, error_type_name)
             }
-            ImplementedTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
-            ImplementedTrait::Display => gen_impl_trait_dislpay(type_name),
+            StringIrregularTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
+            StringIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
         })
         .collect()
 }

@@ -6,10 +6,13 @@ use quote::{quote, ToTokens};
 use crate::{
     common::gen::traits::{
         gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from, GeneratedTraits,
+        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from, GeneratableTrait,
+        GeneratedTraits,
     },
     integer::models::IntegerDeriveTrait,
 };
+
+type IntegerGeneratableTrait = GeneratableTrait<IntegerStandardTrait, IntegerIrregularTrait>;
 
 pub fn gen_traits(
     type_name: &Ident,
@@ -34,37 +37,57 @@ pub fn gen_traits(
     }
 }
 
-// TODO: this can be shared generic enum for all the types
-enum Trait {
-    Derived(DerivedTrait),
-    Implemented(ImplementedTrait),
-}
-
-impl From<IntegerDeriveTrait> for Trait {
-    fn from(derive_trait: IntegerDeriveTrait) -> Trait {
+impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
+    fn from(derive_trait: IntegerDeriveTrait) -> IntegerGeneratableTrait {
         match derive_trait {
-            IntegerDeriveTrait::Debug => Trait::Derived(DerivedTrait::Debug),
-            IntegerDeriveTrait::Clone => Trait::Derived(DerivedTrait::Clone),
-            IntegerDeriveTrait::Copy => Trait::Derived(DerivedTrait::Copy),
-            IntegerDeriveTrait::PartialEq => Trait::Derived(DerivedTrait::PartialEq),
-            IntegerDeriveTrait::Eq => Trait::Derived(DerivedTrait::Eq),
-            IntegerDeriveTrait::PartialOrd => Trait::Derived(DerivedTrait::PartialOrd),
-            IntegerDeriveTrait::Ord => Trait::Derived(DerivedTrait::Ord),
-            IntegerDeriveTrait::Hash => Trait::Derived(DerivedTrait::Hash),
-            IntegerDeriveTrait::FromStr => Trait::Implemented(ImplementedTrait::FromStr),
-            IntegerDeriveTrait::AsRef => Trait::Implemented(ImplementedTrait::AsRef),
-            IntegerDeriveTrait::Into => Trait::Implemented(ImplementedTrait::Into),
-            IntegerDeriveTrait::From => Trait::Implemented(ImplementedTrait::From),
-            IntegerDeriveTrait::TryFrom => Trait::Implemented(ImplementedTrait::TryFrom),
-            IntegerDeriveTrait::Borrow => Trait::Implemented(ImplementedTrait::Borrow),
-            IntegerDeriveTrait::Display => Trait::Implemented(ImplementedTrait::Display),
+            IntegerDeriveTrait::Debug => {
+                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Debug)
+            }
+            IntegerDeriveTrait::Clone => {
+                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Clone)
+            }
+            IntegerDeriveTrait::Copy => {
+                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Copy)
+            }
+            IntegerDeriveTrait::PartialEq => {
+                IntegerGeneratableTrait::Standard(IntegerStandardTrait::PartialEq)
+            }
+            IntegerDeriveTrait::Eq => IntegerGeneratableTrait::Standard(IntegerStandardTrait::Eq),
+            IntegerDeriveTrait::PartialOrd => {
+                IntegerGeneratableTrait::Standard(IntegerStandardTrait::PartialOrd)
+            }
+            IntegerDeriveTrait::Ord => IntegerGeneratableTrait::Standard(IntegerStandardTrait::Ord),
+            IntegerDeriveTrait::Hash => {
+                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Hash)
+            }
+            IntegerDeriveTrait::FromStr => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::FromStr)
+            }
+            IntegerDeriveTrait::AsRef => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::AsRef)
+            }
+            IntegerDeriveTrait::Into => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::Into)
+            }
+            IntegerDeriveTrait::From => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::From)
+            }
+            IntegerDeriveTrait::TryFrom => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::TryFrom)
+            }
+            IntegerDeriveTrait::Borrow => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::Borrow)
+            }
+            IntegerDeriveTrait::Display => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::Display)
+            }
         }
     }
 }
 
 /// A trait that can be automatically derived.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-enum DerivedTrait {
+enum IntegerStandardTrait {
     Debug,
     Clone,
     Copy,
@@ -78,7 +101,7 @@ enum DerivedTrait {
 /// A trait that can not be automatically derived and we need to generate
 /// an implementation for it.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-enum ImplementedTrait {
+enum IntegerIrregularTrait {
     FromStr,
     AsRef,
     From,
@@ -88,7 +111,7 @@ enum ImplementedTrait {
     Display,
 }
 
-impl ToTokens for DerivedTrait {
+impl ToTokens for IntegerStandardTrait {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let tokens = match self {
             Self::Debug => quote!(Debug),
@@ -104,16 +127,17 @@ impl ToTokens for DerivedTrait {
     }
 }
 
+// TODO: Reuse over different types
 fn split_traits(
     input_traits: HashSet<IntegerDeriveTrait>,
-) -> (Vec<DerivedTrait>, Vec<ImplementedTrait>) {
-    let mut derive_traits: Vec<DerivedTrait> = Vec::with_capacity(24);
-    let mut impl_traits: Vec<ImplementedTrait> = Vec::with_capacity(24);
+) -> (Vec<IntegerStandardTrait>, Vec<IntegerIrregularTrait>) {
+    let mut derive_traits: Vec<IntegerStandardTrait> = Vec::with_capacity(24);
+    let mut impl_traits: Vec<IntegerIrregularTrait> = Vec::with_capacity(24);
 
     for input_trait in input_traits {
-        match Trait::from(input_trait) {
-            Trait::Derived(dt) => derive_traits.push(dt),
-            Trait::Implemented(it) => impl_traits.push(it),
+        match IntegerGeneratableTrait::from(input_trait) {
+            IntegerGeneratableTrait::Standard(dt) => derive_traits.push(dt),
+            IntegerGeneratableTrait::Irregular(it) => impl_traits.push(it),
         };
     }
 
@@ -124,25 +148,25 @@ fn gen_implemented_traits(
     type_name: &Ident,
     inner_type: &TokenStream,
     maybe_error_type_name: Option<Ident>,
-    impl_traits: Vec<ImplementedTrait>,
+    impl_traits: Vec<IntegerIrregularTrait>,
 ) -> TokenStream {
     impl_traits
         .iter()
         .map(|t| match t {
-            ImplementedTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
-            ImplementedTrait::FromStr => {
+            IntegerIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
+            IntegerIrregularTrait::FromStr => {
                 gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
             }
-            ImplementedTrait::From => gen_impl_trait_from(type_name, inner_type),
-            ImplementedTrait::Into => gen_impl_trait_into(type_name, inner_type),
-            ImplementedTrait::TryFrom => {
+            IntegerIrregularTrait::From => gen_impl_trait_from(type_name, inner_type),
+            IntegerIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
+            IntegerIrregularTrait::TryFrom => {
                 let error_type_name = maybe_error_type_name
                     .as_ref()
                     .expect("TryFrom for integer is expected to have error_type_name");
                 gen_impl_trait_try_from(type_name, inner_type, error_type_name)
             }
-            ImplementedTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
-            ImplementedTrait::Display => gen_impl_trait_dislpay(type_name),
+            IntegerIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
+            IntegerIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
         })
         .collect()
 }
