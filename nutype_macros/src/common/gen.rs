@@ -3,7 +3,7 @@ pub mod parse_error;
 pub mod traits;
 
 use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::Visibility;
 
 /// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
@@ -15,8 +15,9 @@ use syn::Visibility;
 ///   |s: String| s.trim().to_lowercase()
 pub fn type_custom_sanitizier_closure(
     closure_or_func_path: &TokenStream,
-    typ: TokenStream,
+    inner_type: impl ToTokens,
 ) -> TokenStream {
+    let inner_type_tokens = quote!(#inner_type);
     let mut ts: Vec<TokenTree> = closure_or_func_path.clone().into_iter().collect();
 
     // Check if the tokens match `|s|` pattern
@@ -24,7 +25,7 @@ pub fn type_custom_sanitizier_closure(
     if ts.len() >= 3 && is_pipe(&ts[0]) && is_ident(&ts[1]) && is_pipe(&ts[2]) {
         let colon = TokenTree::Punct(Punct::new(':', Spacing::Alone));
         ts.insert(2, colon);
-        for (index, tok) in typ.into_iter().enumerate() {
+        for (index, tok) in inner_type_tokens.into_iter().enumerate() {
             let pos = index + 3;
             ts.insert(pos, tok);
         }

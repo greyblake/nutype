@@ -9,6 +9,7 @@ use crate::{
         gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from,
     },
     float::models::FloatDeriveTrait,
+    models::FloatType,
 };
 
 // TODO: this can be a shared structure among all the types
@@ -19,7 +20,7 @@ pub struct GeneratedTraits {
 
 pub fn gen_traits(
     type_name: &Ident,
-    inner_type: &TokenStream,
+    inner_type: FloatType,
     maybe_error_type_name: Option<Ident>,
     traits: HashSet<FloatDeriveTrait>,
 ) -> GeneratedTraits {
@@ -119,7 +120,7 @@ fn split_traits(
 
 fn gen_implemented_traits(
     type_name: &Ident,
-    inner_type: &TokenStream,
+    inner_type: FloatType,
     maybe_error_type_name: Option<Ident>,
     impl_traits: Vec<ImplementedTrait>,
 ) -> TokenStream {

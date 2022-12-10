@@ -80,12 +80,12 @@ pub fn gen_impl_trait_try_from(
 /// Generate implementation of FromStr trait for non-string types (e.g. integers or floats).
 pub fn gen_impl_trait_from_str(
     type_name: &Ident,
-    inner_type: &TokenStream,
+    inner_type: impl ToTokens,
     maybe_error_type_name: Option<&Ident>,
 ) -> TokenStream {
     let parse_error_type_name = gen_parse_error_name(type_name);
     let def_parse_error = gen_def_parse_error(
-        inner_type,
+        &inner_type,
         type_name,
         maybe_error_type_name,
         &parse_error_type_name,

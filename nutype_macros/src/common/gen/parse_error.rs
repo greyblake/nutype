@@ -1,5 +1,5 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
+use quote::{quote, ToTokens};
 
 /// Generate a name for the error which is used for FromStr trait implementation.
 pub fn gen_parse_error_name(type_name: &Ident) -> Ident {
@@ -10,7 +10,7 @@ pub fn gen_parse_error_name(type_name: &Ident) -> Ident {
 /// Generate an error which is used for FromStr trait implementation of non-string types (e.g.
 /// floats or integers)
 pub fn gen_def_parse_error(
-    inner_type: &TokenStream,
+    inner_type: impl ToTokens,
     type_name: &Ident,
     maybe_error_type_name: Option<&Ident>,
     parse_error_type_name: &Ident,

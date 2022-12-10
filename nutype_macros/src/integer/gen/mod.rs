@@ -3,7 +3,7 @@ pub mod traits;
 
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
@@ -84,12 +84,12 @@ where
 {
     let convert_implementation = match meta {
         NewtypeIntegerMeta::From { sanitizers } => {
-            gen_new_without_validation(type_name, sanitizers)
+            gen_new_without_validation(type_name, inner_type, sanitizers)
         }
         NewtypeIntegerMeta::TryFrom {
             sanitizers,
             validators,
-        } => gen_new_with_validation(type_name, sanitizers, validators),
+        } => gen_new_with_validation(type_name, inner_type, sanitizers, validators),
     };
     let methods = gen_impl_methods(type_name, inner_type);
 
@@ -111,17 +111,15 @@ fn gen_impl_methods(type_name: &Ident, inner_type: IntegerType) -> TokenStream {
 
 fn gen_new_without_validation<T>(
     type_name: &Ident,
+    inner_type: IntegerType,
     sanitizers: &[IntegerSanitizer<T>],
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
-    let inner_type: TokenStream =
-        syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
-    let sanitize = gen_sanitize_fn(sanitizers);
+    let sanitize = gen_sanitize_fn(inner_type, sanitizers);
 
     quote!(
-
         impl #type_name {
             pub fn new(raw_value: #inner_type) -> Self {
                 #sanitize
@@ -133,18 +131,17 @@ where
 
 fn gen_new_with_validation<T>(
     type_name: &Ident,
+    inner_type: IntegerType,
     sanitizers: &[IntegerSanitizer<T>],
     validators: &[IntegerValidator<T>],
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
-    let inner_type: TokenStream =
-        syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
-    let sanitize = gen_sanitize_fn(sanitizers);
+    let sanitize = gen_sanitize_fn(inner_type, sanitizers);
     let validation_error = gen_validation_error_type(type_name, validators);
     let error_type_name = gen_error_type_name(type_name);
-    let validate = gen_validate_fn(type_name, validators);
+    let validate = gen_validate_fn(type_name, inner_type, validators);
 
     quote!(
         #validation_error
@@ -164,19 +161,15 @@ where
     )
 }
 
-fn gen_sanitize_fn<T>(sanitizers: &[IntegerSanitizer<T>]) -> TokenStream
+fn gen_sanitize_fn<T>(inner_type: IntegerType, sanitizers: &[IntegerSanitizer<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
-    let tp: TokenStream =
-        syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
     let transformations: TokenStream = sanitizers
         .iter()
         .map(|san| match san {
             IntegerSanitizer::With(token_stream) => {
-                let tp = Ident::new(std::any::type_name::<T>(), Span::call_site());
-                let tp = quote!(#tp);
-                let custom_sanitizer = type_custom_sanitizier_closure(token_stream, tp);
+                let custom_sanitizer = type_custom_sanitizier_closure(token_stream, inner_type);
                 quote!(
                     value = (#custom_sanitizer)(value);
                 )
@@ -188,20 +181,22 @@ where
         .collect();
 
     quote!(
-        fn sanitize(mut value: #tp) -> #tp {
+        fn sanitize(mut value: #inner_type) -> #inner_type {
             #transformations
             value
         }
     )
 }
 
-fn gen_validate_fn<T>(type_name: &Ident, validators: &[IntegerValidator<T>]) -> TokenStream
+fn gen_validate_fn<T>(
+    type_name: &Ident,
+    inner_type: IntegerType,
+    validators: &[IntegerValidator<T>],
+) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
     let error_name = gen_error_type_name(type_name);
-    let tp: TokenStream =
-        syn::parse_str(std::any::type_name::<T>()).expect("Expected to parse a type");
 
     let validations: TokenStream = validators
         .iter()
@@ -221,11 +216,9 @@ where
                 )
             }
             IntegerValidator::With(is_valid_fn) => {
-                let tp = Ident::new(std::any::type_name::<T>(), Span::call_site());
-                let tp = quote!(&#tp);
-                // TODO: rename type_custom_sanitizier_closure, cause it's used only for
+                // TODO: rename type_custom_sanitizier_closure, cause it's used NOT only for
                 // sanitizers
-                let is_valid_fn = type_custom_sanitizier_closure(is_valid_fn, tp);
+                let is_valid_fn = type_custom_sanitizier_closure(is_valid_fn, inner_type);
                 quote!(
                     if !(#is_valid_fn)(&val) {
                         return Err(#error_name::Invalid);
@@ -236,7 +229,7 @@ where
         .collect();
 
     quote!(
-        fn validate(val: #tp) -> ::core::result::Result<(), #error_name> {
+        fn validate(val: #inner_type) -> ::core::result::Result<(), #error_name> {
             #validations
             Ok(())
         }
