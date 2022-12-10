@@ -26,9 +26,9 @@ pub fn validate_string_meta(
     let sanitizers = validate_sanitizers(sanitizers)?;
 
     if validators.is_empty() {
-        Ok(NewtypeStringMeta::From { sanitizers })
+        Ok(NewtypeStringMeta::WithoutValidation { sanitizers })
     } else {
-        Ok(NewtypeStringMeta::TryFrom {
+        Ok(NewtypeStringMeta::WithValidation {
             sanitizers,
             validators,
         })

@@ -33,8 +33,8 @@ where
     let inner_type: TokenStream = quote!(#number_type);
 
     let maybe_error_type_name: Option<Ident> = match meta {
-        NewtypeIntegerMeta::From { .. } => None,
-        NewtypeIntegerMeta::TryFrom { .. } => Some(gen_error_type_name(type_name)),
+        NewtypeIntegerMeta::WithoutValidation { .. } => None,
+        NewtypeIntegerMeta::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
 
     let maybe_parse_error_type_name = if traits.contains(&IntegerDeriveTrait::FromStr) {
@@ -80,10 +80,10 @@ where
     T: ToTokens + PartialOrd,
 {
     let convert_implementation = match meta {
-        NewtypeIntegerMeta::From { sanitizers } => {
+        NewtypeIntegerMeta::WithoutValidation { sanitizers } => {
             gen_new_without_validation(type_name, inner_type, sanitizers)
         }
-        NewtypeIntegerMeta::TryFrom {
+        NewtypeIntegerMeta::WithValidation {
             sanitizers,
             validators,
         } => gen_new_with_validation(type_name, inner_type, sanitizers, validators),

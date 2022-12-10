@@ -27,9 +27,9 @@ where
     let sanitizers = validate_sanitizers(sanitizers)?;
 
     if validators.is_empty() {
-        Ok(NewtypeFloatMeta::From { sanitizers })
+        Ok(NewtypeFloatMeta::WithoutValidation { sanitizers })
     } else {
-        Ok(NewtypeFloatMeta::TryFrom {
+        Ok(NewtypeFloatMeta::WithValidation {
             sanitizers,
             validators,
         })

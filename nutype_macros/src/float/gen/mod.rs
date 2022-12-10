@@ -33,8 +33,8 @@ where
     let implementation = gen_implementation(type_name, inner_type, &meta);
 
     let maybe_error_type_name: Option<Ident> = match meta {
-        NewtypeFloatMeta::From { .. } => None,
-        NewtypeFloatMeta::TryFrom { .. } => Some(gen_error_type_name(type_name)),
+        NewtypeFloatMeta::WithoutValidation { .. } => None,
+        NewtypeFloatMeta::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
 
     let maybe_parse_error_type_name = if traits.contains(&FloatDeriveTrait::FromStr) {
@@ -80,10 +80,10 @@ where
     T: ToTokens + PartialOrd,
 {
     let convert_implementation = match meta {
-        NewtypeFloatMeta::From { sanitizers } => {
+        NewtypeFloatMeta::WithoutValidation { sanitizers } => {
             gen_new_without_validation(type_name, inner_type, sanitizers)
         }
-        NewtypeFloatMeta::TryFrom {
+        NewtypeFloatMeta::WithValidation {
             sanitizers,
             validators,
         } => gen_new_with_validation(type_name, inner_type, sanitizers, validators),

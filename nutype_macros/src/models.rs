@@ -96,11 +96,10 @@ pub struct TypeNameAndInnerType {
 /// Validated model, that represents precisly what needs to be generated.
 #[derive(Debug)]
 pub enum NewtypeMeta<Sanitizer, Validator> {
-    // TODO: rename variants
-    From {
+    WithoutValidation {
         sanitizers: Vec<Sanitizer>,
     },
-    TryFrom {
+    WithValidation {
         sanitizers: Vec<Sanitizer>,
         validators: Vec<Validator>,
     },
@@ -109,8 +108,8 @@ pub enum NewtypeMeta<Sanitizer, Validator> {
 impl<Sanitizer, Validator> NewtypeMeta<Sanitizer, Validator> {
     pub fn has_validation(&self) -> bool {
         match self {
-            Self::From { .. } => false,
-            Self::TryFrom { .. } => true,
+            Self::WithoutValidation { .. } => false,
+            Self::WithValidation { .. } => true,
         }
     }
 }

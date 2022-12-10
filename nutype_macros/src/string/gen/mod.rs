@@ -30,8 +30,8 @@ pub fn gen_nutype_for_string(
     let implementation = gen_string_implementation(type_name, &meta);
 
     let maybe_error_type_name: Option<Ident> = match meta {
-        NewtypeStringMeta::From { .. } => None,
-        NewtypeStringMeta::TryFrom { .. } => Some(gen_error_type_name(type_name)),
+        NewtypeStringMeta::WithoutValidation { .. } => None,
+        NewtypeStringMeta::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
 
     let reimports = gen_reimports(
@@ -65,8 +65,10 @@ pub fn gen_nutype_for_string(
 pub fn gen_string_implementation(type_name: &Ident, meta: &NewtypeStringMeta) -> TokenStream {
     let methods = gen_impl_methods(type_name);
     let convert_implementation = match meta {
-        NewtypeStringMeta::From { sanitizers } => gen_new_without_validation(type_name, sanitizers),
-        NewtypeStringMeta::TryFrom {
+        NewtypeStringMeta::WithoutValidation { sanitizers } => {
+            gen_new_without_validation(type_name, sanitizers)
+        }
+        NewtypeStringMeta::WithValidation {
             sanitizers,
             validators,
         } => gen_new_and_with_validation(type_name, sanitizers, validators),

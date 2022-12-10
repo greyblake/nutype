@@ -27,9 +27,9 @@ where
     let sanitizers = validate_sanitizers(sanitizers)?;
 
     if validators.is_empty() {
-        Ok(NewtypeIntegerMeta::From { sanitizers })
+        Ok(NewtypeIntegerMeta::WithoutValidation { sanitizers })
     } else {
-        Ok(NewtypeIntegerMeta::TryFrom {
+        Ok(NewtypeIntegerMeta::WithValidation {
             sanitizers,
             validators,
         })
