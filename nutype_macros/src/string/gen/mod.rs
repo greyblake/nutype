@@ -24,12 +24,12 @@ pub fn gen_nutype_for_string(
     traits: HashSet<StringDeriveTrait>,
     vis: syn::Visibility,
     type_name: &Ident,
-    meta: StringGuard,
+    guard: StringGuard,
 ) -> TokenStream {
     let module_name = gen_module_name_for_type(type_name);
-    let implementation = gen_string_implementation(type_name, &meta);
+    let implementation = gen_string_implementation(type_name, &guard);
 
-    let maybe_error_type_name: Option<Ident> = match meta {
+    let maybe_error_type_name: Option<Ident> = match guard {
         StringGuard::WithoutValidation { .. } => None,
         StringGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
@@ -48,6 +48,7 @@ pub fn gen_nutype_for_string(
     } = gen_traits(type_name, maybe_error_type_name, traits);
 
     quote!(
+        #[doc(hidden)]
         mod #module_name {
             use super::*;
 

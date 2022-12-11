@@ -57,6 +57,7 @@ where
     } = gen_traits(type_name, inner_type, maybe_error_type_name, traits);
 
     quote!(
+        #[doc(hidden)]
         mod #module_name {
             use super::*;
 
