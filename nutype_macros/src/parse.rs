@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{spanned::Spanned, Attribute, DeriveInput};
+use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 
 use crate::{
     common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
@@ -20,6 +20,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
     } = input;
 
     validate_supported_attrs(&attrs)?;
+
     let derive_traits = parse_derive_traits(&attrs)?;
     let doc_attrs: Vec<Attribute> = attrs.into_iter().filter(is_doc_attribute).collect();
 
@@ -41,7 +42,10 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
         }
     };
 
+
     let seg = fields_unnamed.unnamed.iter().next().unwrap();
+
+    validate_inner_field_visibility(&seg.vis)?;
 
     let type_path = match seg.ty.clone() {
         syn::Type::Path(tp) => tp,
@@ -105,4 +109,14 @@ fn validate_supported_attrs(attrs: &[syn::Attribute]) -> Result<(), syn::Error> 
     }
 
     Ok(())
+}
+
+fn validate_inner_field_visibility(vis: &Visibility) -> Result<(), syn::Error> {
+    match vis {
+        Visibility::Inherited => Ok(()),
+        Visibility::Public(_) | Visibility::Crate(_) | Visibility::Restricted(_) => {
+            let msg = "Oh, setting visibility for the inner field is forbidden by #[nutype].\nThe whole point is to guarantee that no value can be created without passing the guards (sanitizers and validators).\nI hope for your understanding and wishing you a good sunny day!";
+            Err(syn::Error::new(vis.span(), msg))
+        }
+    }
 }

@@ -1,0 +1,7 @@
+error: Oh, setting visibility for the inner field is forbidden by #[nutype].
+       The whole point is to guarantee that no value can be created without passing the guards (sanitizers and validators).
+       I hope for your understanding and wishing you a good sunny day!
+ --> tests/ui/string/visibility/inner_field.rs:4:13
+  |
+4 | struct Name(pub String);
+  |             ^^^

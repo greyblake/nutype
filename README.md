@@ -16,7 +16,6 @@
 * Introduce newtypes for type_name, error_type_name, etc.
 
 ### TODO UI:
-* UI: Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
 * UI: Impl  "did you mean" hints:
   UI: * E.g. unknown validation rule `min`. Did you mean `min_len`?
 * UI: Generate documentation automatically.
@@ -81,6 +80,7 @@
 * Address TODO, todo!(), unimplemented!(), etc.
 * Reduce duplications: the types share mainly same structure
 * UI: Hide private module docs: Use #[doc(hidden)] on the module!
+* UI: Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
 
 
 
