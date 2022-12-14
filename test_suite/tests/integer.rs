@@ -470,4 +470,16 @@ mod traits {
         let age = Age::new(35);
         assert_eq!(age.to_string(), "35");
     }
+
+    #[cfg(feature = "serde1")]
+    #[test]
+    fn test_trait_serialize() {
+        #[nutype]
+        #[derive(Serialize)]
+        pub struct Offset(i64);
+
+        let offset = Offset::new(-280);
+        let offset_json = serde_json::to_string(&offset).unwrap();
+        assert_eq!(offset_json, "-280");
+    }
 }

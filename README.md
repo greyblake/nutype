@@ -1,9 +1,12 @@
 ## Roadmap
 
 ### TODO:
-* Support serde
-  * Serialize
-  * Deserialize
+* Impl Serialize tests for: integer, float, string
+* Impl Copy tests for: integer, float
+* Support serde: Deserialize
+* Impl Deserialize tests for: integer, float, string
+* Impl little integration tests for serde: serialize -> deserialize
+
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
 * Regex
@@ -11,6 +14,14 @@
 * Refactor parsers
 * Finalize syntax!
 * Run UI tests only against stable
+* Write a good detailed README
+  * Quickstart
+  * Philosophy
+  * For devs
+* Add LICENSE
+* Add all Meta info to Cargo.toml and github repo
+* Maybe: rename nutype_macros -> nutype_macro ?
+* Create a logo?
 
 ### TODO Refactor:
 * Introduce newtypes for type_name, error_type_name, etc.
@@ -81,6 +92,8 @@
 * Reduce duplications: the types share mainly same structure
 * UI: Hide private module docs: Use #[doc(hidden)] on the module!
 * UI: Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
+* Find a way to bypass serde1 feature flag from `nutype` to `nutype_macros`.
+* Support serde: impl Serialize
 
 
 

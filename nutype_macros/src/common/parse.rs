@@ -272,6 +272,13 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Into" => NormalDeriveTrait::Into,
         "Hash" => NormalDeriveTrait::Hash,
         "Borrow" => NormalDeriveTrait::Borrow,
+        "Serialize" => {
+            #[cfg(not(feature = "serde1"))]
+            return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde1` of the crate `nutype` needs to be enabled."));
+
+            #[cfg(feature = "serde1")]
+            NormalDeriveTrait::SerdeSerialize
+        }
         _ => {
             return Err(syn::Error::new(
                 ident.span(),

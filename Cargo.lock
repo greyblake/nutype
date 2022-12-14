@@ -13,6 +13,8 @@ name = "dummy"
 version = "0.1.0"
 dependencies = [
  "nutype",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -75,9 +77,9 @@ checksum = "4501abdff3ae82a1c1b477a17252eb69cee9e66eb915c1abaa4f44d873df9f09"
 
 [[package]]
 name = "serde"
-version = "1.0.147"
+version = "1.0.150"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d193d69bae983fc11a79df82342761dfbf28a99fc8d203dca4c3c1b590948965"
+checksum = "e326c9ec8042f1b5da33252c8a37e9ffbd2c9bef0155215b6e6c80c790e05f91"
 
 [[package]]
 name = "serde_derive"
@@ -92,9 +94,9 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.87"
+version = "1.0.89"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ce777b7b150d76b9cf60d28b55f5847135a003f7d7350c6be7a773508ce7d45"
+checksum = "020ff22c755c2ed3f8cf162dbb41a7268d934702f3ed3631656ea597e08fc3db"
 dependencies = [
  "itoa",
  "ryu",
@@ -126,6 +128,8 @@ name = "test_suite"
 version = "0.1.0"
 dependencies = [
  "nutype",
+ "serde",
+ "serde_json",
  "trybuild",
 ]
 

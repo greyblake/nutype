@@ -11,3 +11,6 @@ license = "MIT"
 
 [dependencies]
 nutype_macros = { path = "../nutype_macros" }
+
+[features]
+serde1 = ["nutype_macros/serde1"]

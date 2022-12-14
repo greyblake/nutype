@@ -167,3 +167,17 @@ pub fn gen_impl_trait_from_str(
         }
     }
 }
+
+pub fn gen_impl_trait_serde_serialize(type_name: &Ident) -> TokenStream {
+    let type_name_str = type_name.to_string();
+    quote! {
+        impl ::serde::Serialize for #type_name {
+            fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
+            where
+                S: ::serde::Serializer
+            {
+                serializer.serialize_newtype_struct(#type_name_str, &self.0)
+            }
+        }
+    }
+}

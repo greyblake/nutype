@@ -386,4 +386,16 @@ mod derives {
         let name = Name::new("Serhii");
         assert_eq!(name.to_string(), "Serhii");
     }
+
+    #[cfg(feature = "serde1")]
+    #[test]
+    fn test_trait_serialize() {
+        #[nutype]
+        #[derive(Serialize)]
+        pub struct Email(String);
+
+        let email = Email::new("my@example.com");
+        let email_json = serde_json::to_string(&email).unwrap();
+        assert_eq!(email_json, "\"my@example.com\"");
+    }
 }

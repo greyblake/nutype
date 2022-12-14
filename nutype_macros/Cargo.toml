@@ -12,3 +12,6 @@ syn = { version = "1.0", features = ["extra-traits"] }
 
 [lib]
 proc-macro = true
+
+[features]
+serde1 = []

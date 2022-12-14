@@ -6,8 +6,8 @@ use quote::{quote, ToTokens};
 use crate::{
     common::gen::traits::{
         gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_into, gen_impl_trait_try_from, split_into_generatable_traits,
-        GeneratableTrait, GeneratableTraits, GeneratedTraits,
+        gen_impl_trait_into, gen_impl_trait_serde_serialize, gen_impl_trait_try_from,
+        split_into_generatable_traits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
     string::models::StringDeriveTrait,
 };
@@ -37,6 +37,7 @@ enum StringIrregularTrait {
     TryFrom,
     Borrow,
     Display,
+    SerdeSerialize,
 }
 
 impl From<StringDeriveTrait> for StringGeneratableTrait {
@@ -77,6 +78,9 @@ impl From<StringDeriveTrait> for StringGeneratableTrait {
             }
             StringDeriveTrait::Display => {
                 StringGeneratableTrait::Irregular(StringIrregularTrait::Display)
+            }
+            StringDeriveTrait::SerdeSerialize => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::SerdeSerialize)
             }
         }
     }
@@ -144,6 +148,7 @@ fn gen_implemented_traits(
             }
             StringIrregularTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
             StringIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
+            StringIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
         })
         .collect()
 }

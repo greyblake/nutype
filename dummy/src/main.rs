@@ -1,22 +1,26 @@
 use nutype::nutype;
 
 #[nutype(validate(max = 12.34))]
-#[derive(FromStr, Display)]
+#[derive(FromStr, Display, Clone, Copy, Serialize)]
 pub struct Dist(f64);
+
+#[nutype(validate(min = 18, max = 99))]
+#[derive(FromStr, Display, Clone, Copy, Serialize)]
+pub struct Age(u8);
+
+#[nutype]
+#[derive(FromStr, Display, Clone, Serialize)]
+pub struct Username(String);
 
 fn main() {
     let dist: Dist = "11.4".parse().unwrap();
     println!("dist = {}", dist.into_inner());
 
-    let dresult = "12.0".parse::<Dist>();
+    let age: Age = "77".parse().unwrap();
+    let json = serde_json::to_string(&age).unwrap();
+    println!("AGE JSON = {json}");
 
-    match dresult {
-        Ok(d) => println!("dist = {d}"),
-        Err(DistParseError::Validate(ve)) => {
-            println!("ve = {ve:?}");
-        }
-        Err(DistParseError::Parse(pe)) => {
-            println!("pe = {pe:?}");
-        }
-    }
+    let username: Username = "greyblake".parse().unwrap();
+    let json = serde_json::to_string(&username).unwrap();
+    println!("USERNAME JSON = {json}");
 }

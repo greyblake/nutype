@@ -103,9 +103,9 @@ pub enum IntegerDeriveTrait {
     Hash,
     Borrow,
     Display,
+
     // // External crates
-    //
-    // Serialize,
+    SerdeSerialize,
     // Deserialize,
     // Arbitrary,
 }

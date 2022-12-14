@@ -352,4 +352,16 @@ mod traits {
         let size = Size::new(35.7);
         assert_eq!(size.to_string(), "35.7");
     }
+
+    #[cfg(feature = "serde1")]
+    #[test]
+    fn test_trait_serialize() {
+        #[nutype]
+        #[derive(Serialize)]
+        pub struct Offset(f64);
+
+        let offset = Offset::new(-33.5);
+        let offset_json = serde_json::to_string(&offset).unwrap();
+        assert_eq!(offset_json, "-33.5");
+    }
 }

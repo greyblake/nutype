@@ -154,10 +154,7 @@ fn to_float_derive_trait(
             "#[nutype] cannot derive `Hash` trait for float types.",
         )),
         NormalDeriveTrait::Borrow => Ok(FloatDeriveTrait::Borrow),
-        NormalDeriveTrait::Copy => Err(syn::Error::new(
-            span,
-            "Copy trait cannot be derived for a String based type",
-        )),
+        NormalDeriveTrait::Copy => Ok(FloatDeriveTrait::Copy),
         NormalDeriveTrait::From => {
             if has_validation {
                 Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
@@ -172,5 +169,6 @@ fn to_float_derive_trait(
                 Err(syn::Error::new(span, "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead."))
             }
         }
+        NormalDeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
     }
 }

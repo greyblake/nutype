@@ -42,7 +42,6 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
         }
     };
 
-
     let seg = fields_unnamed.unnamed.iter().next().unwrap();
 
     validate_inner_field_visibility(&seg.vis)?;

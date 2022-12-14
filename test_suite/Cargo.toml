@@ -8,3 +8,9 @@ edition = "2021"
 [dependencies]
 nutype = { path = "../nutype" }
 trybuild = { version = "1.0.71", features = ["diff"] }
+
+serde = { version = "1.0.150", optional = true }
+serde_json = { version = "1.0.89", optional = true }
+
+[features]
+serde1 = ["nutype/serde1", "serde", "serde_json"]

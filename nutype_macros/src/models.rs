@@ -145,9 +145,13 @@ pub enum NormalDeriveTrait {
     Borrow,
     Display,
     // External crates
+    //
     // Serialize,
     // Deserialize,
     // Arbitrary,
+    //
+    #[cfg_attr(not(feature = "serde1"), allow(dead_code))]
+    SerdeSerialize,
 }
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;

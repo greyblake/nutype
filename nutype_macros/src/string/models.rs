@@ -115,7 +115,7 @@ pub enum StringDeriveTrait {
     Display,
     // // External crates
     //
-    // Serialize,
+    SerdeSerialize,
     // Deserialize,
     // Arbitrary,
 }

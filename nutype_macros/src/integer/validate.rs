@@ -148,10 +148,8 @@ fn to_integer_derive_trait(
         NormalDeriveTrait::AsRef => Ok(IntegerDeriveTrait::AsRef),
         NormalDeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),
         NormalDeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
-        NormalDeriveTrait::Copy => Err(syn::Error::new(
-            span,
-            "Copy trait cannot be derived for a String based type",
-        )),
+        NormalDeriveTrait::Copy => Ok(IntegerDeriveTrait::Copy),
+        NormalDeriveTrait::SerdeSerialize => Ok(IntegerDeriveTrait::SerdeSerialize),
         NormalDeriveTrait::From => {
             if has_validation {
                 Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
