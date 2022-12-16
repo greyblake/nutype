@@ -1,12 +1,9 @@
 ## Roadmap
 
 ### TODO:
-* Impl Serialize tests for: integer, float, string
-* Impl Copy tests for: integer, float
 * Support serde: Deserialize
 * Impl Deserialize tests for: integer, float, string
 * Impl little integration tests for serde: serialize -> deserialize
-
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
 * Regex
@@ -22,6 +19,7 @@
 * Add all Meta info to Cargo.toml and github repo
 * Maybe: rename nutype_macros -> nutype_macro ?
 * Create a logo?
+  * Use this font: https://www.fontspace.com/stoner-font-f81576
 
 ### TODO Refactor:
 * Introduce newtypes for type_name, error_type_name, etc.
@@ -31,6 +29,10 @@
   UI: * E.g. unknown validation rule `min`. Did you mean `min_len`?
 * UI: Generate documentation automatically.
 * UI: Intercept derive of DerefMut, AsMut, BorrowMut and print an explaining error message
+* UI: On derive handle the following dependencies:
+  * Copy requires Clone
+  * Ord requires PartialOrd
+  * Eq requires PartialEq
 
 ### Later
 * Support Arbitrary
@@ -94,6 +96,9 @@
 * UI: Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
 * Find a way to bypass serde1 feature flag from `nutype` to `nutype_macros`.
 * Support serde: impl Serialize
+* Impl Serialize tests for: integer, float, string
+* Impl Clone tests for: integer, float, string
+* Impl Copy tests for: integer, float
 
 
 
@@ -102,3 +107,10 @@
 * bounded_integer
 * semval
 * refinement
+
+
+## Why to use nutype
+
+## Why not to use nutype?
+* Meta programming can hit you sometimes by surprise and it could be too much magic.
+* IDEs might not be smart enough to handle some refactoring of a code generated with proc macro.

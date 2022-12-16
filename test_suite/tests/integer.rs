@@ -365,6 +365,35 @@ mod visibility {
 #[cfg(test)]
 mod traits {
     use super::*;
+    use test_suite::test_helpers::traits::*;
+
+    #[test]
+    fn test_without_validation() {
+        #[nutype]
+        #[derive(Debug, From, FromStr, Borrow, Clone, Copy)]
+        pub struct Number(i8);
+
+        should_implement_debug::<Number>();
+        should_implement_from::<Number, i8>();
+        should_implement_from_str::<Number>();
+        should_implement_borrow::<Number, i8>();
+        should_implement_clone::<Number>();
+        should_implement_copy::<Number>();
+    }
+
+    #[test]
+    fn test_with_validaiton() {
+        #[nutype(validate(max = 1000))]
+        #[derive(Debug, TryFrom, FromStr, Borrow, Clone, Copy)]
+        pub struct Number(u128);
+
+        should_implement_debug::<Number>();
+        should_implement_try_from::<Number, u128>();
+        should_implement_from_str::<Number>();
+        should_implement_borrow::<Number, u128>();
+        should_implement_clone::<Number>();
+        should_implement_copy::<Number>();
+    }
 
     #[test]
     fn test_trait_into() {
