@@ -1,11 +1,11 @@
 use nutype::nutype;
 
 #[nutype(validate(max = 12.34))]
-#[derive(FromStr, Display, Clone, Copy, Serialize)]
+#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize)]
 pub struct Dist(f64);
 
 #[nutype(validate(min = 18, max = 99))]
-#[derive(FromStr, Display, Clone, Copy, Serialize)]
+#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize)]
 pub struct Age(u8);
 
 #[nutype]
@@ -23,4 +23,7 @@ fn main() {
     let username: Username = "greyblake".parse().unwrap();
     let json = serde_json::to_string(&username).unwrap();
     println!("USERNAME JSON = {json}");
+
+    let dist: Dist = serde_json::from_str("12.339999999999").unwrap();
+    println!("Dist = {dist}");
 }

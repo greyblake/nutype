@@ -160,6 +160,7 @@ fn to_string_derive_trait(
         NormalDeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
         NormalDeriveTrait::Into => Ok(StringDeriveTrait::Into),
         NormalDeriveTrait::SerdeSerialize => Ok(StringDeriveTrait::SerdeSerialize),
+        NormalDeriveTrait::SerdeDeserialize => Ok(StringDeriveTrait::SerdeDeserialize),
         NormalDeriveTrait::Copy => Err(syn::Error::new(
             span,
             "Copy trait cannot be derived for a String based type",

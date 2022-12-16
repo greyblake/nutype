@@ -368,4 +368,45 @@ mod traits {
         let offset_json = serde_json::to_string(&offset).unwrap();
         assert_eq!(offset_json, "-33.5");
     }
+
+    #[cfg(feature = "serde1")]
+    #[test]
+    fn test_trait_deserialize_without_validation() {
+        #[nutype]
+        #[derive(Deserialize)]
+        pub struct Offset(f64);
+
+        {
+            let res: Result<Offset, _> = serde_json::from_str("three");
+            assert!(res.is_err());
+        }
+
+        {
+            let offset: Offset = serde_json::from_str("-259.28").unwrap();
+            assert_eq!(offset.into_inner(), -259.28);
+        }
+    }
+
+    #[cfg(feature = "serde1")]
+    #[test]
+    fn test_trait_deserialize_with_validation() {
+        #[nutype(validate(min = 13.3))]
+        #[derive(Deserialize)]
+        pub struct Offset(f32);
+
+        {
+            let res: Result<Offset, _> = serde_json::from_str("three");
+            assert!(res.is_err());
+        }
+
+        {
+            let res: Result<Offset, _> = serde_json::from_str("13.2");
+            assert!(res.is_err());
+        }
+
+        {
+            let offset: Offset = serde_json::from_str("13.3").unwrap();
+            assert_eq!(offset.into_inner(), 13.3);
+        }
+    }
 }

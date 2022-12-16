@@ -103,7 +103,7 @@ pub enum FloatDeriveTrait {
 
     // External crates
     SerdeSerialize,
-    // Deserialize,
+    SerdeDeserialize,
     // Arbitrary,
 }
 

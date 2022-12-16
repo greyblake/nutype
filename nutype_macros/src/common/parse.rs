@@ -279,6 +279,13 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
             #[cfg(feature = "serde1")]
             NormalDeriveTrait::SerdeSerialize
         }
+        "Deserialize" => {
+            #[cfg(not(feature = "serde1"))]
+            return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde1` of the crate `nutype` needs to be enabled."));
+
+            #[cfg(feature = "serde1")]
+            NormalDeriveTrait::SerdeDeserialize
+        }
         _ => {
             return Err(syn::Error::new(
                 ident.span(),

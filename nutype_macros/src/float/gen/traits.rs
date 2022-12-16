@@ -6,9 +6,9 @@ use quote::{quote, ToTokens};
 use crate::{
     common::gen::traits::{
         gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_serialize,
-        gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
-        GeneratableTraits, GeneratedTraits,
+        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
+        gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
+        GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
     float::models::FloatDeriveTrait,
     models::FloatType,
@@ -38,6 +38,7 @@ enum FloatIrregularTrait {
     Borrow,
     Display,
     SerdeSerialize,
+    SerdeDeserialize,
 }
 
 impl From<FloatDeriveTrait> for FloatGeneratableTrait {
@@ -69,6 +70,9 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             }
             FloatDeriveTrait::SerdeSerialize => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::SerdeSerialize)
+            }
+            FloatDeriveTrait::SerdeDeserialize => {
+                FloatGeneratableTrait::Irregular(FloatIrregularTrait::SerdeDeserialize)
             }
         }
     }
@@ -141,6 +145,11 @@ fn gen_implemented_traits(
             FloatIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
             FloatIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
             FloatIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
+            FloatIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
+                type_name,
+                inner_type,
+                maybe_error_type_name.as_ref(),
+            ),
         })
         .collect()
 }

@@ -152,6 +152,9 @@ pub enum NormalDeriveTrait {
     //
     #[cfg_attr(not(feature = "serde1"), allow(dead_code))]
     SerdeSerialize,
+
+    #[cfg_attr(not(feature = "serde1"), allow(dead_code))]
+    SerdeDeserialize,
 }
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;

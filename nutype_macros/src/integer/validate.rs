@@ -150,6 +150,7 @@ fn to_integer_derive_trait(
         NormalDeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
         NormalDeriveTrait::Copy => Ok(IntegerDeriveTrait::Copy),
         NormalDeriveTrait::SerdeSerialize => Ok(IntegerDeriveTrait::SerdeSerialize),
+        NormalDeriveTrait::SerdeDeserialize => Ok(IntegerDeriveTrait::SerdeDeserialize),
         NormalDeriveTrait::From => {
             if has_validation {
                 Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))

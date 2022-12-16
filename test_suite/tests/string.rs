@@ -400,4 +400,37 @@ mod derives {
         let email_json = serde_json::to_string(&email).unwrap();
         assert_eq!(email_json, "\"my@example.com\"");
     }
+
+    #[cfg(feature = "serde1")]
+    #[test]
+    fn test_trait_deserialize_without_validation() {
+        #[nutype]
+        #[derive(Deserialize)]
+        pub struct NaiveEmail(String);
+
+        {
+            let email: NaiveEmail = serde_json::from_str("\"foobar\"").unwrap();
+            assert_eq!(email.into_inner(), "foobar");
+        }
+    }
+
+    #[cfg(feature = "serde1")]
+    #[test]
+    fn test_trait_deserialize_with_validation() {
+        #[nutype(
+            validate(with = |address| address.contains('@') )
+        )]
+        #[derive(Deserialize)]
+        pub struct NaiveEmail(String);
+
+        {
+            let res: Result<NaiveEmail, _> = serde_json::from_str("\"foobar\"");
+            assert!(res.is_err());
+        }
+
+        {
+            let email: NaiveEmail = serde_json::from_str("\"foo@bar.com\"").unwrap();
+            assert_eq!(email.into_inner(), "foo@bar.com");
+        }
+    }
 }

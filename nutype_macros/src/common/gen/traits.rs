@@ -181,3 +181,28 @@ pub fn gen_impl_trait_serde_serialize(type_name: &Ident) -> TokenStream {
         }
     }
 }
+
+pub fn gen_impl_trait_serde_deserialize(
+    type_name: &Ident,
+    inner_type: impl ToTokens,
+    maybe_error_type_name: Option<&Ident>,
+) -> TokenStream {
+    let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
+        quote! {
+            #type_name::new(raw_value).map_err(<D::Error as serde::de::Error>::custom)
+        }
+    } else {
+        quote! {
+            Ok(#type_name::new(raw_value))
+        }
+    };
+
+    quote! {
+        impl<'de> ::serde::Deserialize<'de> for #type_name {
+            fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+                let raw_value = #inner_type::deserialize(deserializer)?;
+                #raw_value_to_result
+            }
+        }
+    }
+}
