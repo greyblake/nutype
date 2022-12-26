@@ -8,7 +8,7 @@ use crate::{
 };
 
 pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> {
-    let input: DeriveInput = syn::parse(token_stream.into()).unwrap();
+    let input: DeriveInput = syn::parse(token_stream.into())?;
 
     let input_span = input.span();
     let DeriveInput {
@@ -114,7 +114,7 @@ fn validate_inner_field_visibility(vis: &Visibility) -> Result<(), syn::Error> {
     match vis {
         Visibility::Inherited => Ok(()),
         Visibility::Public(_) | Visibility::Crate(_) | Visibility::Restricted(_) => {
-            let msg = "Oh, setting visibility for the inner field is forbidden by #[nutype].\nThe whole point is to guarantee that no value can be created without passing the guards (sanitizers and validators).\nI hope for your understanding and wishing you a good sunny day!";
+            let msg = "Oh, setting visibility for the inner field is forbidden by #[nutype].\nThe whole point is to guarantee that no value can be created without passing the guards (sanitizers and validators).\nWe do hope for your understanding and wish you a good sunny day!";
             Err(syn::Error::new(vis.span(), msg))
         }
     }

@@ -1,6 +1,6 @@
 error: Oh, setting visibility for the inner field is forbidden by #[nutype].
        The whole point is to guarantee that no value can be created without passing the guards (sanitizers and validators).
-       I hope for your understanding and wishing you a good sunny day!
+       We do hope for your understanding and wish you a good sunny day!
  --> tests/ui/float/visibility/inner_field.rs:4:17
   |
 4 | struct Distance(pub f32);
