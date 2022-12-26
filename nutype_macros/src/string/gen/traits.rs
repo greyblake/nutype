@@ -177,7 +177,7 @@ fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
     } else {
         quote! {
             impl core::str::FromStr for #type_name {
-                type Err = ();
+                type Err = ::core::convert::Infallible;
 
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     Ok(#type_name::new(raw_string))

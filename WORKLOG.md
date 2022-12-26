@@ -1,13 +1,8 @@
 ## Roadmap
 
 ### TODO:
-* Support serde: Deserialize
-* Impl Deserialize tests for: integer, float, string
-* Impl little integration tests for serde: serialize -> deserialize
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
-* Regex
-  * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
 * Refactor parsers
 * Finalize syntax!
 * Run UI tests only against stable
@@ -45,6 +40,8 @@
   * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
   * This should allow to derive Eq and Ord
 * Consider extending errors to keep the invalid value?
+* Regex
+  * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
 
 ### Maybe
 * Add #[repr(transparent)]
@@ -99,6 +96,8 @@
 * Impl Serialize tests for: integer, float, string
 * Impl Clone tests for: integer, float, string
 * Impl Copy tests for: integer, float
+* Support serde: Deserialize
+* Use `Infallible` type
 
 
 
