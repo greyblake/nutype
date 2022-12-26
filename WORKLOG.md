@@ -1,6 +1,8 @@
 ## Roadmap
 
 ### TODO:
+* Address unwraps: replace with returning an error or expect()
+* Rearrange models
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
 * Refactor parsers
@@ -98,6 +100,7 @@
 * Impl Copy tests for: integer, float
 * Support serde: Deserialize
 * Use `Infallible` type
+* Rearrange parsing modules
 
 
 

@@ -1,3 +1,5 @@
+pub mod meta;
+
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};

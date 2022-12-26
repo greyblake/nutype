@@ -42,8 +42,19 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
         }
     };
 
-    let seg = fields_unnamed.unnamed.iter().next().unwrap();
-
+    let seg = fields_unnamed.unnamed.iter().next().ok_or_else(|| {
+        let suggested_struct = quote::quote!(
+            #vis #type_name(i32)
+        )
+        .to_string();
+        let msg = format!(
+            "Your wish to use #[nutype] with an empty tuple struct is respected.\n\
+             But how about NO?\n\
+             I bet you'll be luckier trying out something like this:\n\n\
+             {suggested_struct};\n\n"
+        );
+        syn::Error::new(fields_unnamed.span(), &msg)
+    })?;
     validate_inner_field_visibility(&seg.vis)?;
 
     let type_path = match seg.ty.clone() {
@@ -78,7 +89,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
         tp => {
             let error = syn::Error::new(
                 seg.span(),
-                format!("#[nutype] does not support `{tp}` as inner type"),
+                format!("#[nutype] does not support `{tp}` as inner type."),
             );
             return Err(error);
         }
@@ -102,7 +113,7 @@ fn validate_supported_attrs(attrs: &[syn::Attribute]) -> Result<(), syn::Error> 
         if !is_supported_attr(attr) {
             return Err(syn::Error::new(
                 attr.span(),
-                "#[nutype] does not support this attribute",
+                "#[nutype] does not support this attribute.",
             ));
         }
     }
