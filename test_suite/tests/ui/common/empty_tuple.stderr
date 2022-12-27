@@ -4,7 +4,6 @@ error: Your wish to use #[nutype] with an empty tuple struct is respected.
 
        pub EmptyTuple(i32);
 
- --> tests/ui/empty_tuple.rs:4:22
+ --> tests/ui/common/empty_tuple.rs:4:22
   |
 4 | pub struct EmptyTuple();
-  |                      ^^
