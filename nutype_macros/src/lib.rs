@@ -1,7 +1,6 @@
 mod common;
 mod float;
 mod integer;
-mod models;
 mod string;
 
 use std::{fmt::Debug, str::FromStr};

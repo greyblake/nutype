@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO:
-* Rearrange models
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
 * Refactor parsers
@@ -101,6 +100,7 @@
 * Use `Infallible` type
 * Rearrange parsing modules
 * Address unwraps: replace with returning an error or expect()
+* Rearrange models
 
 
 
