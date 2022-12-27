@@ -3,8 +3,8 @@ use std::collections::HashSet;
 use proc_macro2::Span;
 
 use crate::{
+    common::models::{DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait},
     common::validate::validate_duplicates,
-    models::{DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait},
 };
 
 use super::models::{

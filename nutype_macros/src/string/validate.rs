@@ -2,13 +2,10 @@ use std::collections::HashSet;
 
 use proc_macro2::Span;
 
-use crate::base::Kind;
+use crate::common::models::Kind;
+use crate::common::models::{DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait};
 use crate::common::validate::validate_duplicates;
-use crate::models::{
-    DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait, StringSanitizer, StringValidator,
-};
-use crate::string::models::StringGuard;
-use crate::string::models::StringRawGuard;
+use crate::string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator};
 
 use super::models::{
     SpannedStringSanitizer, SpannedStringValidator, StringDeriveTrait, StringSanitizerKind,

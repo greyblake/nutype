@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
 
 use crate::{
-    base::{Kind, SpannedItem},
-    models::{Guard, RawGuard},
+    common::models::{Guard, RawGuard},
+    common::models::{Kind, SpannedItem},
 };
 
 // Sanitizer

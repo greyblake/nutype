@@ -5,7 +5,7 @@ use std::{any::type_name, fmt::Debug, str::FromStr};
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
 use syn::spanned::Spanned;
 
-use crate::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait};
+use crate::common::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait};
 
 /// ## Example
 /// Input (token stream):

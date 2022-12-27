@@ -1,4 +1,3 @@
-mod base;
 mod common;
 mod float;
 mod integer;
@@ -7,10 +6,10 @@ mod string;
 
 use std::{fmt::Debug, str::FromStr};
 
+use common::models::{FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait};
 use common::parse::meta::parse_meta;
 use float::validate::validate_float_derive_traits;
 use integer::validate::validate_integer_derive_traits;
-use models::{FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait};
 use proc_macro2::{Ident, TokenStream};
 use quote::ToTokens;
 use string::{gen::gen_nutype_for_string, validate::validate_string_derive_traits};

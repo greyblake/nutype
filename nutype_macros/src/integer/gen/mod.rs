@@ -14,7 +14,7 @@ use crate::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
         parse_error::gen_parse_error_name, traits::GeneratedTraits, type_custom_closure,
     },
-    models::IntegerType,
+    common::models::IntegerType,
 };
 
 pub fn gen_nutype_for_integer<T>(

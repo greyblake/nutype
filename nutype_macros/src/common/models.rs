@@ -1,10 +1,36 @@
-/*
+use std::fmt::Debug;
+
+use proc_macro2::Span;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
+use syn::spanned::Spanned;
 use syn::Attribute;
 
-use crate::common::models::SpannedItem;
-pub use crate::string::models::{StringSanitizer, StringValidator};
+pub trait Kind {
+    type Kind: PartialEq + Debug;
+
+    fn kind(&self) -> Self::Kind;
+}
+
+#[derive(Debug)]
+pub struct SpannedItem<T> {
+    pub item: T,
+    pub span: Span,
+}
+
+impl<T> Spanned for SpannedItem<T> {
+    fn span(&self) -> Span {
+        self.span
+    }
+}
+
+impl<T: Kind> Kind for SpannedItem<T> {
+    type Kind = <T as Kind>::Kind;
+
+    fn kind(&self) -> Self::Kind {
+        self.item.kind()
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TypeName(String);
@@ -158,6 +184,4 @@ pub enum NormalDeriveTrait {
     SerdeDeserialize,
 }
 
-
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
-*/

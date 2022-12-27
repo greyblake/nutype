@@ -1,7 +1,7 @@
 use proc_macro2::Span;
 use syn::spanned::Spanned;
 
-use crate::base::Kind;
+use crate::common::models::Kind;
 
 pub fn validate_duplicates<T>(
     items: &[T],

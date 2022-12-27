@@ -10,8 +10,8 @@ use crate::{
         gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
         GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
+    common::models::FloatType,
     float::models::FloatDeriveTrait,
-    models::FloatType,
 };
 
 type FloatGeneratableTrait = GeneratableTrait<FloatStandardTrait, FloatIrregularTrait>;
