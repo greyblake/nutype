@@ -1,7 +1,9 @@
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::quote;
 
-pub fn gen_error_type_name(type_name: &Ident) -> Ident {
+use crate::common::models::TypeName;
+
+pub fn gen_error_type_name(type_name: &TypeName) -> Ident {
     let error_name_str = format!("{type_name}Error");
     Ident::new(&error_name_str, Span::call_site())
 }

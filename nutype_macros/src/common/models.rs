@@ -112,8 +112,29 @@ impl ToTokens for FloatType {
 }
 
 #[derive(Debug)]
+pub struct TypeName(Ident);
+
+impl TypeName {
+    pub fn new(name: Ident) -> Self {
+        Self(name)
+    }
+}
+
+impl core::fmt::Display for TypeName {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl ToTokens for TypeName {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        self.0.to_tokens(token_stream)
+    }
+}
+
+#[derive(Debug)]
 pub struct NewtypeMeta {
-    pub type_name: Ident,
+    pub type_name: TypeName,
     pub inner_type: InnerType,
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,

@@ -14,7 +14,7 @@ use crate::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
         parse_error::gen_parse_error_name, traits::GeneratedTraits, type_custom_closure,
     },
-    common::models::FloatType,
+    common::models::{FloatType, TypeName},
 };
 use traits::gen_traits;
 
@@ -22,7 +22,7 @@ pub fn gen_nutype_for_float<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
     inner_type: FloatType,
-    type_name: &Ident,
+    type_name: &TypeName,
     meta: FloatGuard<T>,
     traits: HashSet<FloatDeriveTrait>,
 ) -> TokenStream
@@ -73,7 +73,7 @@ where
 }
 
 pub fn gen_implementation<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: FloatType,
     meta: &FloatGuard<T>,
 ) -> TokenStream
@@ -97,7 +97,7 @@ where
     }
 }
 
-fn gen_impl_methods(type_name: &Ident, inner_type: FloatType) -> TokenStream {
+fn gen_impl_methods(type_name: &TypeName, inner_type: FloatType) -> TokenStream {
     quote! {
         impl #type_name {
             pub fn into_inner(self) -> #inner_type {
@@ -108,7 +108,7 @@ fn gen_impl_methods(type_name: &Ident, inner_type: FloatType) -> TokenStream {
 }
 
 fn gen_new_without_validation<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: FloatType,
     sanitizers: &[FloatSanitizer<T>],
 ) -> TokenStream
@@ -128,7 +128,7 @@ where
 }
 
 fn gen_new_with_validation<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: FloatType,
     sanitizers: &[FloatSanitizer<T>],
     validators: &[FloatValidator<T>],
@@ -187,7 +187,7 @@ where
 }
 
 fn gen_validate_fn<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: FloatType,
     validators: &[FloatValidator<T>],
 ) -> TokenStream

@@ -1,12 +1,15 @@
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
-use crate::common::gen::error::{gen_error_type_name, gen_impl_error_trait};
+use crate::common::{
+    gen::error::{gen_error_type_name, gen_impl_error_trait},
+    models::TypeName,
+};
 
 use super::super::models::FloatValidator;
 
 pub fn gen_validation_error_type<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     validators: &[FloatValidator<T>],
 ) -> TokenStream {
     let error_type_name = gen_error_type_name(type_name);

@@ -2,6 +2,7 @@ pub mod error;
 pub mod parse_error;
 pub mod traits;
 
+use super::models::TypeName;
 use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::Visibility;
@@ -45,14 +46,14 @@ fn is_ident(token: &TokenTree) -> bool {
     matches!(token, TokenTree::Ident(_))
 }
 
-pub fn gen_module_name_for_type(type_name: &Ident) -> Ident {
+pub fn gen_module_name_for_type(type_name: &TypeName) -> Ident {
     let module_name = format!("__nutype_private_{type_name}__");
     Ident::new(&module_name, Span::call_site())
 }
 
 pub fn gen_reimports(
     vis: Visibility,
-    type_name: &Ident,
+    type_name: &TypeName,
     module_name: &Ident,
     maybe_error_type_name: Option<&Ident>,
     maybe_parse_error_type_name: Option<&Ident>,

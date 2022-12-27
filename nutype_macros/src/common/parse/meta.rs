@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 
-use crate::common::models::{FloatType, IntegerType};
+use crate::common::models::{FloatType, IntegerType, TypeName};
 use crate::{
     common::models::{InnerType, NewtypeMeta},
     common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
@@ -19,6 +19,8 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
         ident: type_name,
         generics: _,
     } = input;
+
+    let type_name = TypeName::new(type_name);
 
     validate_supported_attrs(&attrs)?;
 

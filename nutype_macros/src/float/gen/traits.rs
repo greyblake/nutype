@@ -10,7 +10,7 @@ use crate::{
         gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
         GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
-    common::models::FloatType,
+    common::models::{FloatType, TypeName},
     float::models::FloatDeriveTrait,
 };
 
@@ -92,7 +92,7 @@ impl ToTokens for FloatStandardTrait {
 }
 
 pub fn gen_traits(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: FloatType,
     maybe_error_type_name: Option<Ident>,
     traits: HashSet<FloatDeriveTrait>,
@@ -122,7 +122,7 @@ pub fn gen_traits(
 }
 
 fn gen_implemented_traits(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: FloatType,
     maybe_error_type_name: Option<Ident>,
     impl_traits: Vec<FloatIrregularTrait>,

@@ -3,6 +3,8 @@ use std::collections::HashSet;
 use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
+use crate::common::models::TypeName;
+
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
 /// Generated implementation of traits.
@@ -49,7 +51,7 @@ where
     }
 }
 
-pub fn gen_impl_trait_into(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
     // NOTE: We're getting blank implementation of
     //     Into<Inner> for Type
     // by implementing
@@ -63,7 +65,7 @@ pub fn gen_impl_trait_into(type_name: impl ToTokens, inner_type: impl ToTokens) 
     }
 }
 
-pub fn gen_impl_trait_as_ref(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_as_ref(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
     quote! {
         impl ::core::convert::AsRef<#inner_type> for #type_name {
             fn as_ref(&self) -> &#inner_type {
@@ -73,7 +75,7 @@ pub fn gen_impl_trait_as_ref(type_name: impl ToTokens, inner_type: impl ToTokens
     }
 }
 
-pub fn gen_impl_trait_dislpay(type_name: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_dislpay(type_name: &TypeName) -> TokenStream {
     quote! {
         impl ::core::fmt::Display for #type_name {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
@@ -125,7 +127,7 @@ pub fn gen_impl_trait_try_from(
 
 /// Generate implementation of FromStr trait for non-string types (e.g. integers or floats).
 pub fn gen_impl_trait_from_str(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: impl ToTokens,
     maybe_error_type_name: Option<&Ident>,
 ) -> TokenStream {
@@ -168,7 +170,7 @@ pub fn gen_impl_trait_from_str(
     }
 }
 
-pub fn gen_impl_trait_serde_serialize(type_name: &Ident) -> TokenStream {
+pub fn gen_impl_trait_serde_serialize(type_name: &TypeName) -> TokenStream {
     let type_name_str = type_name.to_string();
     quote! {
         impl ::serde::Serialize for #type_name {
@@ -183,7 +185,7 @@ pub fn gen_impl_trait_serde_serialize(type_name: &Ident) -> TokenStream {
 }
 
 pub fn gen_impl_trait_serde_deserialize(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: impl ToTokens,
     maybe_error_type_name: Option<&Ident>,
 ) -> TokenStream {

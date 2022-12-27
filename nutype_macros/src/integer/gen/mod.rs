@@ -14,14 +14,14 @@ use crate::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
         parse_error::gen_parse_error_name, traits::GeneratedTraits, type_custom_closure,
     },
-    common::models::IntegerType,
+    common::models::{IntegerType, TypeName},
 };
 
 pub fn gen_nutype_for_integer<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
     number_type: IntegerType,
-    type_name: &Ident,
+    type_name: &TypeName,
     meta: IntegerGuard<T>,
     traits: HashSet<IntegerDeriveTrait>,
 ) -> TokenStream
@@ -73,7 +73,7 @@ where
 }
 
 pub fn gen_implementation<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: IntegerType,
     meta: &IntegerGuard<T>,
 ) -> TokenStream
@@ -97,7 +97,7 @@ where
     }
 }
 
-fn gen_impl_methods(type_name: &Ident, inner_type: IntegerType) -> TokenStream {
+fn gen_impl_methods(type_name: &TypeName, inner_type: IntegerType) -> TokenStream {
     quote! {
         impl #type_name {
             pub fn into_inner(self) -> #inner_type {
@@ -108,7 +108,7 @@ fn gen_impl_methods(type_name: &Ident, inner_type: IntegerType) -> TokenStream {
 }
 
 fn gen_new_without_validation<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: IntegerType,
     sanitizers: &[IntegerSanitizer<T>],
 ) -> TokenStream
@@ -128,7 +128,7 @@ where
 }
 
 fn gen_new_with_validation<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: IntegerType,
     sanitizers: &[IntegerSanitizer<T>],
     validators: &[IntegerValidator<T>],
@@ -187,7 +187,7 @@ where
 }
 
 fn gen_validate_fn<T>(
-    type_name: &Ident,
+    type_name: &TypeName,
     inner_type: IntegerType,
     validators: &[IntegerValidator<T>],
 ) -> TokenStream

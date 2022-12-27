@@ -1,9 +1,10 @@
 ## Roadmap
 
 ### TODO:
+* Refactor parsers
+* Try to generelize the parsing, validation and generation over types
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
-* Refactor parsers
 * Finalize syntax!
 * Run UI tests only against stable
 * Write a good detailed README
@@ -30,6 +31,7 @@
   * Eq requires PartialEq
 
 ### Later
+* Refactor: Use newtype for errors (e.g. error_type_name, etc)
 * Support Arbitrary
 * Setup CI
 * String sanitizers:
@@ -101,6 +103,7 @@
 * Rearrange parsing modules
 * Address unwraps: replace with returning an error or expect()
 * Rearrange models
+* Use newtype for type name
 
 
 

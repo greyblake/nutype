@@ -5,11 +5,13 @@ mod string;
 
 use std::{fmt::Debug, str::FromStr};
 
-use common::models::{FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait};
+use common::models::{
+    FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait, TypeName,
+};
 use common::parse::meta::parse_meta;
 use float::validate::validate_float_derive_traits;
 use integer::validate::validate_integer_derive_traits;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use string::{gen::gen_nutype_for_string, validate::validate_string_derive_traits};
 use syn::Visibility;
@@ -89,7 +91,7 @@ struct NumberParams<NumberType> {
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
     tp: NumberType,
-    type_name: Ident,
+    type_name: TypeName,
     attrs: TokenStream,
     derive_traits: Vec<SpannedDeriveTrait>,
 }

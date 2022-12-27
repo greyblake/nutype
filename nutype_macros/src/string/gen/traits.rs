@@ -4,11 +4,14 @@ use proc_macro2::{Ident, TokenStream};
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::gen::traits::{
-        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_into, gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
-        gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
-        GeneratableTraits, GeneratedTraits,
+    common::{
+        gen::traits::{
+            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay,
+            gen_impl_trait_from, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
+            gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
+            GeneratableTrait, GeneratableTraits, GeneratedTraits,
+        },
+        models::TypeName,
     },
     string::models::StringDeriveTrait,
 };
@@ -107,7 +110,7 @@ impl ToTokens for StringStandardTrait {
 }
 
 pub fn gen_traits(
-    type_name: &Ident,
+    type_name: &TypeName,
     maybe_error_type_name: Option<Ident>,
     traits: HashSet<StringDeriveTrait>,
 ) -> GeneratedTraits {
@@ -132,7 +135,7 @@ pub fn gen_traits(
 }
 
 fn gen_implemented_traits(
-    type_name: &Ident,
+    type_name: &TypeName,
     maybe_error_type_name: Option<Ident>,
     impl_traits: Vec<StringIrregularTrait>,
 ) -> TokenStream {
@@ -163,7 +166,7 @@ fn gen_implemented_traits(
         .collect()
 }
 
-fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -> TokenStream {
+fn gen_impl_from_str(type_name: &TypeName, maybe_error_type_name: Option<&Ident>) -> TokenStream {
     if let Some(error_type_name) = maybe_error_type_name {
         quote! {
             impl core::str::FromStr for #type_name {
@@ -187,7 +190,7 @@ fn gen_impl_from_str(type_name: &Ident, maybe_error_type_name: Option<&Ident>) -
     }
 }
 
-fn gen_impl_from_str_and_string(type_name: &Ident) -> TokenStream {
+fn gen_impl_from_str_and_string(type_name: &TypeName) -> TokenStream {
     let impl_from_string = gen_impl_trait_from(type_name, quote!(String));
     let impl_from_str = gen_impl_trait_from(type_name, quote!(&str));
 
@@ -197,7 +200,7 @@ fn gen_impl_from_str_and_string(type_name: &Ident) -> TokenStream {
     }
 }
 
-fn gen_impl_try_from(type_name: &Ident, error_type_name: &Ident) -> TokenStream {
+fn gen_impl_try_from(type_name: &TypeName, error_type_name: &Ident) -> TokenStream {
     let impl_try_from_string = gen_impl_trait_try_from(type_name, quote!(String), error_type_name);
     let impl_try_from_str = gen_impl_trait_try_from(type_name, quote!(&str), error_type_name);
 
@@ -207,7 +210,7 @@ fn gen_impl_try_from(type_name: &Ident, error_type_name: &Ident) -> TokenStream 
     }
 }
 
-fn gen_impl_borrow_str_and_string(type_name: &Ident) -> TokenStream {
+fn gen_impl_borrow_str_and_string(type_name: &TypeName) -> TokenStream {
     let impl_borrow_string = gen_impl_trait_borrow(type_name, quote!(String));
     let impl_borrow_str = gen_impl_trait_borrow(type_name, quote!(str));
 

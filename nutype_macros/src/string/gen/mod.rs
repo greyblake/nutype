@@ -8,9 +8,12 @@ use quote::quote;
 use syn::Attribute;
 
 use crate::{
-    common::gen::{
-        error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-        traits::GeneratedTraits, type_custom_closure,
+    common::{
+        gen::{
+            error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
+            traits::GeneratedTraits, type_custom_closure,
+        },
+        models::TypeName,
     },
     string::models::{StringSanitizer, StringValidator},
 };
@@ -23,7 +26,7 @@ pub fn gen_nutype_for_string(
     doc_attrs: Vec<Attribute>,
     traits: HashSet<StringDeriveTrait>,
     vis: syn::Visibility,
-    type_name: &Ident,
+    type_name: &TypeName,
     guard: StringGuard,
 ) -> TokenStream {
     let module_name = gen_module_name_for_type(type_name);
@@ -63,7 +66,7 @@ pub fn gen_nutype_for_string(
     )
 }
 
-pub fn gen_string_implementation(type_name: &Ident, meta: &StringGuard) -> TokenStream {
+pub fn gen_string_implementation(type_name: &TypeName, meta: &StringGuard) -> TokenStream {
     let methods = gen_impl_methods(type_name);
     let convert_implementation = match meta {
         StringGuard::WithoutValidation { sanitizers } => {
@@ -81,7 +84,7 @@ pub fn gen_string_implementation(type_name: &Ident, meta: &StringGuard) -> Token
     }
 }
 
-fn gen_impl_methods(type_name: &Ident) -> TokenStream {
+fn gen_impl_methods(type_name: &TypeName) -> TokenStream {
     quote! {
         impl #type_name {
             pub fn into_inner(self) -> String {
@@ -91,7 +94,7 @@ fn gen_impl_methods(type_name: &Ident) -> TokenStream {
     }
 }
 
-fn gen_new_without_validation(type_name: &Ident, sanitizers: &[StringSanitizer]) -> TokenStream {
+fn gen_new_without_validation(type_name: &TypeName, sanitizers: &[StringSanitizer]) -> TokenStream {
     let sanitize = gen_string_sanitize_fn(sanitizers);
 
     quote!(
@@ -105,7 +108,7 @@ fn gen_new_without_validation(type_name: &Ident, sanitizers: &[StringSanitizer])
 }
 
 fn gen_new_and_with_validation(
-    type_name: &Ident,
+    type_name: &TypeName,
     sanitizers: &[StringSanitizer],
     validators: &[StringValidator],
 ) -> TokenStream {
@@ -172,7 +175,7 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
     )
 }
 
-pub fn gen_string_validate_fn(type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
+pub fn gen_string_validate_fn(type_name: &TypeName, validators: &[StringValidator]) -> TokenStream {
     let error_name = gen_error_type_name(type_name);
 
     let validations: TokenStream = validators

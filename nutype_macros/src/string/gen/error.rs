@@ -2,11 +2,17 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 
 use crate::{
-    common::gen::error::{gen_error_type_name, gen_impl_error_trait},
+    common::{
+        gen::error::{gen_error_type_name, gen_impl_error_trait},
+        models::TypeName,
+    },
     string::models::StringValidator,
 };
 
-pub fn gen_validation_error_type(type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
+pub fn gen_validation_error_type(
+    type_name: &TypeName,
+    validators: &[StringValidator],
+) -> TokenStream {
     let error_type_name = gen_error_type_name(type_name);
     let definition = gen_definition(&error_type_name, validators);
     let impl_display_trait = gen_impl_display_trait(&error_type_name, validators);
