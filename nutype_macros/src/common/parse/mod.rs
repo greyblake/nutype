@@ -108,7 +108,10 @@ pub fn parse_nutype_attributes<S, V>(
                     output.sanitizers = parse_sanitize_attrs(sanitize_stream)?;
                 }
                 "validate" => {
-                    let token = iter.next().unwrap();
+                    let token = iter.next().ok_or_else(|| {
+                        let msg = format!("`validate` must be used with parenthesis.\nFor example:\n\n    validate(max = 99)\n\n");
+                        syn::Error::new(ident.span(), msg)
+                    })?;
                     let group = try_unwrap_group(token)?;
                     let validate_stream = group.stream();
                     output.validators = parse_validate_attrs(validate_stream)?;

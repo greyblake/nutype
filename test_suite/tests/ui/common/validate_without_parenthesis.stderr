@@ -1,0 +1,9 @@
+error: `validate` must be used with parenthesis.
+       For example:
+
+           validate(max = 99)
+
+ --> tests/ui/common/validate_without_parenthesis.rs:3:10
+  |
+3 | #[nutype(validate)]
+  |          ^^^^^^^^
