@@ -1,17 +1,20 @@
 use std::fmt::Debug;
 
-use proc_macro2::Span;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
 use syn::Attribute;
 
+/// A trait that may be implemented by enums with payload.
+/// It's mostly used to detect duplicates of validators and sanitizers regardless of their payload.
 pub trait Kind {
-    type Kind: PartialEq + Debug;
+    type Kind: PartialEq + Eq + Debug + Clone + Copy;
 
     fn kind(&self) -> Self::Kind;
 }
 
+/// A spanned item. An item can be anything that cares a domain value.
+/// Keeping a span allows to throw good precise error messages at the validation stage.
 #[derive(Debug)]
 pub struct SpannedItem<T> {
     pub item: T,
@@ -32,9 +35,7 @@ impl<T: Kind> Kind for SpannedItem<T> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct TypeName(String);
-
+/// Represents the inner type of a newtype.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InnerType {
     String,
@@ -119,7 +120,7 @@ pub struct NewtypeMeta {
     pub derive_traits: Vec<SpannedDeriveTrait>,
 }
 
-/// Validated model, that represents precisly what needs to be generated.
+/// Validated model, that represents precisely what needs to be generated.
 #[derive(Debug)]
 pub enum Guard<Sanitizer, Validator> {
     WithoutValidation {
@@ -171,11 +172,8 @@ pub enum NormalDeriveTrait {
     Hash,
     Borrow,
     Display,
+
     // External crates
-    //
-    // Serialize,
-    // Deserialize,
-    // Arbitrary,
     //
     #[cfg_attr(not(feature = "serde1"), allow(dead_code))]
     SerdeSerialize,

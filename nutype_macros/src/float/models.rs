@@ -16,7 +16,7 @@ pub enum FloatSanitizer<T> {
 
 pub type SpannedFloatSanitizer<T> = SpannedItem<FloatSanitizer<T>>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum FloatSanitizerKind {
     With,
 }
@@ -54,7 +54,7 @@ pub enum FloatValidator<T> {
 
 pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum FloatValidatorKind {
     Min,
     Max,

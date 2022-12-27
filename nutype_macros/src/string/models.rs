@@ -30,7 +30,7 @@ impl Kind for StringSanitizer {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum StringSanitizerKind {
     Trim,
     Lowercase,
@@ -75,7 +75,7 @@ impl Kind for StringValidator {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum StringValidatorKind {
     MinLen,
     MaxLen,

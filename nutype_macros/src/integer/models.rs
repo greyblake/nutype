@@ -16,7 +16,7 @@ pub enum IntegerSanitizer<T> {
 
 pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum IntegerSanitizerKind {
     With,
 }
@@ -54,7 +54,7 @@ pub enum IntegerValidator<T> {
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum IntegerValidatorKind {
     Min,
     Max,
