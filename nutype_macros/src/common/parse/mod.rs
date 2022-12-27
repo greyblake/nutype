@@ -99,9 +99,11 @@ pub fn parse_nutype_attributes<S, V>(
 
             match ident.to_string().as_ref() {
                 "sanitize" => {
-                    let token = iter.next().unwrap();
+                    let token = iter.next().ok_or_else(|| {
+                        let msg = format!("`sanitize` must be used with parenthesis.\nFor example:\n\n    sanitize(trim)\n\n");
+                        syn::Error::new(ident.span(), msg)
+                    })?;
                     let group = try_unwrap_group(token)?;
-
                     let sanitize_stream = group.stream();
                     output.sanitizers = parse_sanitize_attrs(sanitize_stream)?;
                 }

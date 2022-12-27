@@ -1,0 +1,9 @@
+error: `sanitize` must be used with parenthesis.
+       For example:
+
+           sanitize(trim)
+
+ --> tests/ui/common/sanitize_without_parenthesis.rs:3:10
+  |
+3 | #[nutype(sanitize)]
+  |          ^^^^^^^^
