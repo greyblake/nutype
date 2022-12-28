@@ -1,12 +1,7 @@
 ## Roadmap
 
 ### TODO:
-* Refactor parsers
-* Try to generelize the parsing, validation and generation over types
-* Support decimals libraries:
-  * https://crates.io/crates/rust_decimal
 * Finalize syntax!
-* Run UI tests only against stable
 * Write a good detailed README
   * Quickstart
   * Philosophy
@@ -18,7 +13,9 @@
   * Use this font: https://www.fontspace.com/stoner-font-f81576
 
 ### TODO Refactor:
-* Introduce newtypes for type_name, error_type_name, etc.
+* Refactor: Use newtype for errors (e.g. error_type_name, etc)
+* Refactor parsers
+* Try to generelize the parsing, validation and generation over types
 
 ### TODO UI:
 * UI: Impl  "did you mean" hints:
@@ -31,7 +28,8 @@
   * Eq requires PartialEq
 
 ### Later
-* Refactor: Use newtype for errors (e.g. error_type_name, etc)
+* Support decimals libraries:
+  * https://crates.io/crates/rust_decimal
 * Support Arbitrary
 * Setup CI
 * String sanitizers:
@@ -104,7 +102,7 @@
 * Address unwraps: replace with returning an error or expect()
 * Rearrange models
 * Use newtype for type name
-
+* Run UI tests only against stable
 
 
 ## Similar crates
