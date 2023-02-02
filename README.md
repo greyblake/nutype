@@ -10,24 +10,144 @@ use nutype::nutype;
 
 #[nutype(
     sanitize(trim, lowercase)
-    validate(present)
+    validate(present, max_len = 20)
 )]
-#[derive(Debug)]
 pub struct Username(String);
 
-assert_eq!(Username::new("  ").unwrap_err(), UsernameError::Missing);
-assert_eq!(Username::new("  FOObar\n").unwrap().into_inner(), "foobar");
+assert_eq!(
+    Username::new("   FooBar  ").unwrap().into_inner(),
+    "foobar"
+);
+
+assert_eq!(
+    Username::new("   "),
+    Err(UsernameError::Missing),
+);
+
+assert_eq!(
+    Username::new("TheUserNameIsVeryVeryLong"),
+    Err(UsernameError::TooLong),
+);
 ```
+
+
+Ok, but let's try to obtain an instance of `Username` that violates the validation rules:
+
+```rust
+let username = Username("".to_string())
+
+// error[E0423]: cannot initialize a tuple struct which contains private fields
+```
+
+```rust
+let mut username = Username::new("foo").unwrap();
+username.0 = "".to_string();
+
+// error[E0616]: field `0` of struct `Username` is private
+```
+
+Haha. It's does not seem to be easy!
+
+
+## How it works?
+
+
+The example above generates a code that resembles the following:
+
+```rust
+// Everything is wrapped into module,
+// so the internal tuple value of Username is private and cannot be directly manipulated.
+mod __nutype_private_Username__ {
+    pub struct Username(String);
+
+    pub enum UsernameError {
+        // Occurres when a string is not present
+        Missing,
+
+        // Occurres when a string is longer than 255 chars.
+        TooLong,
+    }
+
+    impl Username {
+        // The only legit way to construct Username.
+        // All other constructors (From, FromStr, Deserialize, etc.)
+        // are built on top of this one.
+        pub fn new(raw_username: impl Into<String>) -> Result<Username, UsernameError> {
+            // Sanitize
+            let sanitized_username = raw_username.into().trim().lowercase();
+
+            // Validate
+            if sanitized_username.empty() {
+                Err(UsernameError::Missing)
+            } else if (sanitized_username.len() > 40 {
+                Err(UsernameError::TooLong)
+            } else {
+                Ok(Username(sanitized_username))
+            }
+        }
+
+        // Convert back to the inner type.
+        pub fn into_inner(self) -> String {
+            self.0
+        }
+    }
+}
+
+pub use __nutype_private_Username__::{Username, UsernameError};
+```
+
+As you can see, `#[nutype]`  macro gets sanitization and validation rules and turns them into Rust code.
+
+The `Username::new()` constructor performs sanitization and validation and in case of success returns an instance of `Username`.
+
+The `Username::into_inner(self)` allows to convert `Username` back into the inner type (`String`).
+
+And of course the variants of `UsernameError` are derived from the validation rules.
+
+**But the whole point of the `nutype` crate is that there is no legit way to obtain an instance of `Username` that violates the sanitization or validation rules.**
+The author put a lot of effort into this. If you find a way to obtain the instance of a newtype bypassing the validation rules, please open an issue.
+
+
+## A few more examples
+
+Here are some other examples of what you can do with `nutype`.
+
+You can skip `sanitize` and use a custom validator `with`:
+
+```rust
+#[nutype(validate(with = |n| n % 2 == 1))]
+struct OddNumber(i64);
+```
+
+You can skip validation, if you need sanitization only:
+
+```rust
+#[nutype(sanitize(trim, lowercase))]
+struct Username(String);
+```
+
+In that case `Username::new(String)` simply returns `Username`, not `Result`.
+
+You can derive traits. A lot of traits! For example:
+
+```rust
+#[nutype]
+#[derive(*)]
+struct Username(String);
+```
+
+The code above derives the following traits for `Username`: `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Hash`.
+`*` is just a syntax sugar for "derive whatever makes sense to derive by default", which is very subjective and opinionated. It's rather an experimental feature that was born
+from the fact that `#[nutype]` has to mess with `#[derive]` anyway, because users are not supposed to be able to derive traits like `DerefMut` or `BorrowMut`.
+That would allow to mutate the inner (protected) value which undermines the entire idea of nutype.
+
 
 ## Inner types
 
-The following three categories of the inner types are supported:
-
-* `String`
-* Integer: `u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`, `usize`, `isize`
-* Float: `f32`, `f64`
-
-An inner type category determines set of available sanitizers, validators and derivable traits.
+Available sanitizers, validators and derivable traits are determined by the inner type, which falls into the following categories:
+* String
+* Integer (`u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`, `usize`, `isize`)
+* Float (`f32`, `f64`)
 
 ## String
 
@@ -109,6 +229,57 @@ The following traits can be derived for a float-based type:
 
 * `serde1` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
 
+## When nutype is a good fit for you?
+
+* If you enjoy [newtype](https://doc.rust-lang.org/book/ch19-04-advanced-types.html#using-the-newtype-pattern-for-type-safety-and-abstraction)
+  pattern and you like the idea of leveraging Rust type system to enforce correctness of the business logic.
+* If you're a DDD fan, nutype is a great helper to make your domain models even more expressive.
+* You want to prototype quickly without sacrificing quality.
+
+## When nutype is not that good?
+
+* You care too much about compiler time (nutype relies on heavy usage of proc macros).
+* You think metaprogramming is too much implicit magic.
+* IDEs may not be very helpful at giving you hints about proc macros.
+* Design of nutype may enforce you to run unnecessary validation (e.g. on loading data from DB), which may have a negative impact if you aim for an extreme performance.
+
+## A note about #[derive(...)]
+
+You've got to know that the `#[nutype]` macro intercepts `#[derive(...)]` macro.
+It's done on purpose to ensure that anything like `DerefMut` or `BorrowMut`, that can lead to violation of the validation rules is excluded.
+The library takes a conservative approach and it has it's downside: deriving traits which are not known to the library is disallowed.
+
+## Roadmap
+
+* [ ] refactor the parser logic
+* [ ] friendlier error messages:
+  * [ ] `did you mean ...?` hints
+  * [ ] intercept and explain why `DerefMut` and co cannot be derived
+* [ ] for floats: add `finite` validator and allow to derive `Eq` and `Ord`
+* [ ] integration with [diesel](https://github.com/diesel-rs/diesel)
+* [ ] integration with [sqlx](https://github.com/launchbadge/sqlx)
+* [ ] integration with [envconfig](https://github.com/greyblake/envconfig-rs)
+* [ ] integration with [arbitrary](https://github.com/rust-fuzz/arbitrary)
+* [ ] support `regex` to validate string types
+
+## You can support this project by support the Ukrainian military forces
+
+Today I live in Berlin, I have a luxury to live a physically safe life.
+But I am Ukrainian. The first 25 years of my life I spent in [Kharkiv](https://en.wikipedia.org/wiki/Kharkiv),
+the second-largest city in Ukraine, 60km away from the border with russia. Today about [a third of my home city is destroyed](https://www.youtube.com/watch?v=ihoufBFSZds) by russians.
+My parents, my relatives and my friends had to survive the artillery and air attack, living for over a month in basements.
+
+Some of them have managed to evacuate to EU. Some others are trying to live "normal lifes" in Kharkiv, doing there daily duties.
+And there are some who are at the front line right now, risking their lives every second to protect the rest.
+
+I encourage you to donate to [Charity foundation of Serhiy Prytula](https://prytulafoundation.org/en).
+Just pick the project you like and donate. This is one of the best known foundations, you can watch a [little documentary](https://www.youtube.com/watch?v=VlmWqoeub1Q) about it.
+Your contribution to the Ukrainian military force is a contribution to my calmness, so I can spend more time developing the project.
+
+Thank you.
+
+
+
 ## License
 
-TODO
+MIT © Sergey Potapov

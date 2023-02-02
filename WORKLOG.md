@@ -1,13 +1,20 @@
 ## Roadmap
 
+## For the initial release:
+
+* Add the arts to the repo and add the logo to README
+* Add all Meta info to Cargo.toml and github repo
+* Add "Support Ukraine" banner
+* Write a blog article
+
+
+
 ### TODO:
 * Finalize syntax!
 * Write a good detailed README
   * Quickstart
   * Philosophy
   * For devs
-* Add LICENSE
-* Add all Meta info to Cargo.toml and github repo
 * Maybe: rename nutype_macros -> nutype_macro ?
 * Create a logo?
   * Use this font: https://www.fontspace.com/stoner-font-f81576
@@ -103,6 +110,7 @@
 * Rearrange models
 * Use newtype for type name
 * Run UI tests only against stable
+* Add LICENSE
 
 
 ## Similar crates
