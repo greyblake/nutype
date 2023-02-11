@@ -2,8 +2,6 @@
 
 ## For the initial release:
 * CI: github actions
-* Add a CHANGELOG.md
-* Publish to crates.io
 * Write a blog article
 
 
@@ -107,11 +105,5 @@
 * Write about custom validators and sanitizers
 * Add all Meta info to Cargo.toml and github repo
 * Add the docs to lib.rs
-
-
-## Similar crates
-
-* bounded_integer
-* semval
-* refinement
-* validator
+* Add a CHANGELOG.md
+* Publish to crates.io
