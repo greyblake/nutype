@@ -2,10 +2,11 @@
 
 ## For the initial release:
 
+* Write about custom validators and sanitizers
 * Add all Meta info to Cargo.toml and github repo
-* Write a blog article
-* Add section with the similar projects
+* Add the docs to lib.rs
 * CI: github actions
+* Write a blog article
 
 
 ### TODO Refactor:
@@ -104,6 +105,7 @@
 * Create a logo?
   * Use this font: https://www.fontspace.com/stoner-font-f81576
 * Add a tiny philosophy section to README
+* Add section with the similar projects
 
 
 ## Similar crates

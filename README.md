@@ -5,7 +5,7 @@
 
 Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
 
-If a piece of data was once sanitized and validated we can rely on the types which reflect this.
+If a piece of data was once sanitized and validated we can rely on the types instead of sanitizing and validating again and again.
 
 
 ## Quick start
@@ -304,6 +304,13 @@ Just pick the project you like and donate. This is one of the best known foundat
 Your contribution to the Ukrainian military force is a contribution to my calmness, so I can spend more time developing the project.
 
 Thank you.
+
+## Similar projects
+
+* [bounded-integer](https://github.com/Kestrer/bounded-integer) - Bounded integers for Rust.
+* [refinement](https://docs.rs/refinement/latest/refinement/) - Convenient creation of type-safe refinement types (based on generics).
+* [semval](https://github.com/slowtec/semval) - Semantic validation for Rust.
+* [validator](https://github.com/Keats/validator) - Simple validation for Rust structs (powered by macros).
 
 
 
