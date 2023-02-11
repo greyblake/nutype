@@ -2,22 +2,11 @@
 
 ## For the initial release:
 
-* Add the arts to the repo and add the logo to README
 * Add all Meta info to Cargo.toml and github repo
-* Add "Support Ukraine" banner
 * Write a blog article
+* Add section with the similar projects
+* CI: github actions
 
-
-
-### TODO:
-* Finalize syntax!
-* Write a good detailed README
-  * Quickstart
-  * Philosophy
-  * For devs
-* Maybe: rename nutype_macros -> nutype_macro ?
-* Create a logo?
-  * Use this font: https://www.fontspace.com/stoner-font-f81576
 
 ### TODO Refactor:
 * Refactor: Use newtype for errors (e.g. error_type_name, etc)
@@ -111,6 +100,10 @@
 * Use newtype for type name
 * Run UI tests only against stable
 * Add LICENSE
+* Add the arts to the repo and add the logo to README
+* Create a logo?
+  * Use this font: https://www.fontspace.com/stoner-font-f81576
+* Add a tiny philosophy section to README
 
 
 ## Similar crates
@@ -118,10 +111,4 @@
 * bounded_integer
 * semval
 * refinement
-
-
-## Why to use nutype
-
-## Why not to use nutype?
-* Meta programming can hit you sometimes by surprise and it could be too much magic.
-* IDEs might not be smart enough to handle some refactoring of a code generated with proc macro.
+* validator

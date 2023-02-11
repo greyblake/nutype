@@ -1,6 +1,12 @@
 <p align="center"><img width="300" src="https://raw.githubusercontent.com/greyblake/nutype/master/art/rust_nutype.png" alt="Rust Nutype Logo"></p>
 <h2 align="center">The newtype with guarantees.</h2>
 
+## Philosphy
+
+Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
+
+If a piece of data was once sanitized and validated we can rely on the types which reflect this.
+
 
 ## Quick start
 
@@ -12,12 +18,20 @@ use nutype::nutype;
     validate(present, max_len = 20)
 )]
 pub struct Username(String);
+```
 
+Now we can create usernames:
+
+```rust
 assert_eq!(
     Username::new("   FooBar  ").unwrap().into_inner(),
     "foobar"
 );
+```
 
+But we cannot create invalid ones:
+
+```rust
 assert_eq!(
     Username::new("   "),
     Err(UsernameError::Missing),
@@ -28,6 +42,10 @@ assert_eq!(
     Err(UsernameError::TooLong),
 );
 ```
+
+Note, that we also explicitly got `UsernameError` enum generated.
+
+I encourage to you run `cargo doc --open --no-deps` to see what you get.
 
 
 Ok, but let's try to obtain an instance of `Username` that violates the validation rules:
@@ -47,64 +65,6 @@ username.0 = "".to_string();
 
 Haha. It's does not seem to be easy!
 
-
-## How it works?
-
-
-The example above generates a code that resembles the following:
-
-```rust
-// Everything is wrapped into module,
-// so the internal tuple value of Username is private and cannot be directly manipulated.
-mod __nutype_private_Username__ {
-    pub struct Username(String);
-
-    pub enum UsernameError {
-        // Occurres when a string is not present
-        Missing,
-
-        // Occurres when a string is longer than 255 chars.
-        TooLong,
-    }
-
-    impl Username {
-        // The only legit way to construct Username.
-        // All other constructors (From, FromStr, Deserialize, etc.)
-        // are built on top of this one.
-        pub fn new(raw_username: impl Into<String>) -> Result<Username, UsernameError> {
-            // Sanitize
-            let sanitized_username = raw_username.into().trim().lowercase();
-
-            // Validate
-            if sanitized_username.empty() {
-                Err(UsernameError::Missing)
-            } else if (sanitized_username.len() > 40 {
-                Err(UsernameError::TooLong)
-            } else {
-                Ok(Username(sanitized_username))
-            }
-        }
-
-        // Convert back to the inner type.
-        pub fn into_inner(self) -> String {
-            self.0
-        }
-    }
-}
-
-pub use __nutype_private_Username__::{Username, UsernameError};
-```
-
-As you can see, `#[nutype]`  macro gets sanitization and validation rules and turns them into Rust code.
-
-The `Username::new()` constructor performs sanitization and validation and in case of success returns an instance of `Username`.
-
-The `Username::into_inner(self)` allows to convert `Username` back into the inner type (`String`).
-
-And of course the variants of `UsernameError` are derived from the validation rules.
-
-**But the whole point of the `nutype` crate is that there is no legit way to obtain an instance of `Username` that violates the sanitization or validation rules.**
-The author put a lot of effort into this. If you find a way to obtain the instance of a newtype bypassing the validation rules, please open an issue.
 
 
 ## A few more examples
@@ -242,11 +202,79 @@ The following traits can be derived for a float-based type:
 * IDEs may not be very helpful at giving you hints about proc macros.
 * Design of nutype may enforce you to run unnecessary validation (e.g. on loading data from DB), which may have a negative impact if you aim for an extreme performance.
 
+## How it works?
+
+
+The following snippet
+
+```rust
+#[nutype(
+    sanitize(trim, lowercase)
+    validate(present, max_len = 20)
+)]
+pub struct Username(String);
+```
+
+eventually is transformed into something similar to this:
+
+```rust
+// Everything is wrapped into module,
+// so the internal tuple value of Username is private and cannot be directly manipulated.
+mod __nutype_private_Username__ {
+    pub struct Username(String);
+
+    pub enum UsernameError {
+        // Occurres when a string is not present
+        Missing,
+
+        // Occurres when a string is longer than 255 chars.
+        TooLong,
+    }
+
+    impl Username {
+        // The only legit way to construct Username.
+        // All other constructors (From, FromStr, Deserialize, etc.)
+        // are built on top of this one.
+        pub fn new(raw_username: impl Into<String>) -> Result<Username, UsernameError> {
+            // Sanitize
+            let sanitized_username = raw_username.into().trim().lowercase();
+
+            // Validate
+            if sanitized_username.empty() {
+                Err(UsernameError::Missing)
+            } else if (sanitized_username.len() > 40 {
+                Err(UsernameError::TooLong)
+            } else {
+                Ok(Username(sanitized_username))
+            }
+        }
+
+        // Convert back to the inner type.
+        pub fn into_inner(self) -> String {
+            self.0
+        }
+    }
+}
+
+pub use __nutype_private_Username__::{Username, UsernameError};
+```
+
+As you can see, `#[nutype]`  macro gets sanitization and validation rules and turns them into Rust code.
+
+The `Username::new()` constructor performs sanitization and validation and in case of success returns an instance of `Username`.
+
+The `Username::into_inner(self)` allows to convert `Username` back into the inner type (`String`).
+
+And of course the variants of `UsernameError` are derived from the validation rules.
+
+**But the whole point of the `nutype` crate is that there is no legit way to obtain an instance of `Username` that violates the sanitization or validation rules.**
+The author put a lot of effort into this. If you find a way to obtain the instance of a newtype bypassing the validation rules, please open an issue.
+
 ## A note about #[derive(...)]
 
 You've got to know that the `#[nutype]` macro intercepts `#[derive(...)]` macro.
 It's done on purpose to ensure that anything like `DerefMut` or `BorrowMut`, that can lead to violation of the validation rules is excluded.
-The library takes a conservative approach and it has it's downside: deriving traits which are not known to the library is disallowed.
+The library takes a conservative approach and it has its downside: deriving traits which are not known to the library is not possible.
 
 ## Roadmap
 
@@ -261,7 +289,7 @@ The library takes a conservative approach and it has it's downside: deriving tra
 * [ ] integration with [arbitrary](https://github.com/rust-fuzz/arbitrary)
 * [ ] support `regex` to validate string types
 
-## You can support this project by support the Ukrainian military forces
+## Support Ukrainian military forces 🇺🇦
 
 Today I live in Berlin, I have a luxury to live a physically safe life.
 But I am Ukrainian. The first 25 years of my life I spent in [Kharkiv](https://en.wikipedia.org/wiki/Kharkiv),
