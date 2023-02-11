@@ -1,7 +1,6 @@
 ## Roadmap
 
 ## For the initial release:
-* CI: github actions
 * Write a blog article
 
 
@@ -107,3 +106,4 @@
 * Add the docs to lib.rs
 * Add a CHANGELOG.md
 * Publish to crates.io
+* CI: github actions

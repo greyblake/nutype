@@ -10,7 +10,7 @@
 
 Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
 
-If a piece of data was once sanitized and validated we can rely on the types instead of sanitizing and validating again and again.
+If a piece of data was once sanitized and validated we can rely on the types instead of sanitizing and validating again and again when we're in doubt.
 
 
 ## Quick start
