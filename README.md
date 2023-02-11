@@ -45,9 +45,6 @@ assert_eq!(
 
 Note, that we also explicitly got `UsernameError` enum generated.
 
-I encourage to you run `cargo doc --open --no-deps` to see what you get.
-
-
 Ok, but let's try to obtain an instance of `Username` that violates the validation rules:
 
 ```rust
@@ -182,6 +179,51 @@ The float inner types are: `f32`, `f64`.
 
 The following traits can be derived for a float-based type:
 `Debug`, `Clone`, `Copy`, `PartialEq`, `PartialOrd`, `FromStr`, `AsRef`, `Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Serialize`, `Deserialize`.
+
+## Custom sanitizers
+
+You can set custom sanitizers using option `with`.
+A custom sanitizer is a function or closure that receives a value of an inner type with ownership and returns a sanitized value back.
+
+For example, this one
+
+```rust
+#[nutype(sanitize(with = new_to_old))]
+pub struct CityName(String);
+
+fn new_to_old(s: String) -> String {
+    s.replace("New", "Old")
+}
+```
+
+is equal to the following one:
+
+```rust
+#[nutype(sanitize(with = |s| s.replace("New", "Old") ))]
+pub struct CityName(String);
+```
+
+And works the same way:
+
+```rust
+let city = CityName::new("New York");
+assert_eq!(city.into_inner(), "Old York");
+```
+
+## Custom validators
+
+In similar fashion it's possible to define custom validators, but a validation function receives a reference and returns `bool`.
+Think of it as a predicate.
+
+```rust
+#[nutype(validate(with = is_valid_name))]
+pub struct Name(String);
+
+fn is_valid_name(name: &str) -> bool {
+    // A fancy way to verify if the first character is uppercase
+    name.chars().next().map(char::is_uppercase).unwrap_or(false)
+}
+```
 
 
 ## Feature flags

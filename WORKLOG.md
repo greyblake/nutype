@@ -2,7 +2,6 @@
 
 ## For the initial release:
 
-* Write about custom validators and sanitizers
 * Add all Meta info to Cargo.toml and github repo
 * Add the docs to lib.rs
 * CI: github actions
@@ -106,6 +105,7 @@
   * Use this font: https://www.fontspace.com/stoner-font-f81576
 * Add a tiny philosophy section to README
 * Add section with the similar projects
+* Write about custom validators and sanitizers
 
 
 ## Similar crates
