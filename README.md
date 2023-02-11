@@ -1,6 +1,11 @@
 <p align="center"><img width="300" src="https://raw.githubusercontent.com/greyblake/nutype/master/art/rust_nutype.png" alt="Rust Nutype Logo"></p>
 <h2 align="center">The newtype with guarantees.</h2>
 
+<p align="center">
+<a href="https://github.com/greyblake/nutype/actions/workflows/ci.yml" rel="nofollow"><img src="https://github.com/greyblake/nutype/actions/workflows/ci.yml/badge.svg" alt="Nutype Build Status"></a>
+<a href="https://docs.rs/nutype" rel="nofollow"><img src="https://docs.rs/nutype/badge.svg" alt="Nutype Documentation"></a>
+<p>
+
 ## Philosphy
 
 Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
