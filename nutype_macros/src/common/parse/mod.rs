@@ -100,7 +100,7 @@ pub fn parse_nutype_attributes<S, V>(
             match ident.to_string().as_ref() {
                 "sanitize" => {
                     let token = iter.next().ok_or_else(|| {
-                        let msg = format!("`sanitize` must be used with parenthesis.\nFor example:\n\n    sanitize(trim)\n\n");
+                        let msg = "`sanitize` must be used with parenthesis.\nFor example:\n\n    sanitize(trim)\n\n";
                         syn::Error::new(ident.span(), msg)
                     })?;
                     let group = try_unwrap_group(token)?;
@@ -109,7 +109,7 @@ pub fn parse_nutype_attributes<S, V>(
                 }
                 "validate" => {
                     let token = iter.next().ok_or_else(|| {
-                        let msg = format!("`validate` must be used with parenthesis.\nFor example:\n\n    validate(max = 99)\n\n");
+                        let msg = "`validate` must be used with parenthesis.\nFor example:\n\n    validate(max = 99)\n\n";
                         syn::Error::new(ident.span(), msg)
                     })?;
                     let group = try_unwrap_group(token)?;

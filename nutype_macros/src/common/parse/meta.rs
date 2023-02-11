@@ -56,7 +56,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
              I bet you'll be luckier trying out something like this:\n\n\
              {suggested_struct};\n\n"
         );
-        syn::Error::new(fields_unnamed.span(), &msg)
+        syn::Error::new(fields_unnamed.span(), msg)
     })?;
     validate_inner_field_visibility(&seg.vis)?;
 
