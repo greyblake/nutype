@@ -1,6 +1,5 @@
-# Nutype
-
-The newtype with guarantees.
+<p align="center"><img width="300" src="https://raw.githubusercontent.com/greyblake/nutype/master/art/rust_nutype.png" alt="Rust Nutype Logo"></p>
+<h2 align="center">The newtype with guarantees.</h2>
 
 
 ## Quick start
