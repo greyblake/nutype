@@ -1,16 +1,21 @@
 [package]
 name = "nutype"
-version = "0.1.0"
+version = "0.1.1"
+authors = ["Sergey Potapov <blake131313@gmail.com>"]
 edition = "2021"
-
-description = "Newtype library"
-keywords = ["newtype"]
+description = "The newtype with guarantees."
+keywords = ["newtype", "validation", "sanitization", "derive"]
 license = "MIT"
+repository = "https://github.com/greyblake/nutype"
+homepage = "https://github.com/greyblake/nutype"
+documentation = "https://docs.rs/nutype"
+readme = "README.md"
+categories = ["data-structures", "rust-patterns"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nutype_macros = { path = "../nutype_macros" }
+nutype_macros = { version = "0.1.1", path = "../nutype_macros" }
 
 [features]
 serde1 = ["nutype_macros/serde1"]

@@ -5,6 +5,8 @@
 * Add all Meta info to Cargo.toml and github repo
 * Add the docs to lib.rs
 * CI: github actions
+* Add a CHANGELOG.md
+* Publish to crates.io
 * Write a blog article
 
 
