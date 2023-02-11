@@ -68,14 +68,18 @@
 //!
 //! You can skip `sanitize` and use a custom validator `with`:
 //!
-//! ```ignore
+//! ```
+//! use nutype::nutype;
+//!
 //! #[nutype(validate(with = |n| n % 2 == 1))]
 //! struct OddNumber(i64);
 //! ```
 //!
 //! You can skip validation, if you need sanitization only:
 //!
-//! ```ignore
+//! ```
+//! use nutype::nutype;
+//!
 //! #[nutype(sanitize(trim, lowercase))]
 //! struct Username(String);
 //! ```
@@ -84,7 +88,9 @@
 //!
 //! You can derive traits. A lot of traits! For example:
 //!
-//! ```ignore
+//! ```
+//! use nutype::nutype;
+//!
 //! #[nutype]
 //! #[derive(*)]
 //! struct Username(String);
@@ -186,19 +192,23 @@
 //! For example, this one
 //!
 //! ```ignore
-//! #[nutype(sanitize(with = new_to_old))]
-//! pub struct CityName(String);
+//! use nutype::nutype;
 //!
 //! fn new_to_old(s: String) -> String {
 //!     s.replace("New", "Old")
 //! }
+//!
+//! #[nutype(sanitize(with = new_to_old))]
+//! struct CityName(String);
 //! ```
 //!
 //! is equal to the following one:
 //!
-//! ```ignore
+//! ```
+//! use nutype::nutype;
+//!
 //! #[nutype(sanitize(with = |s| s.replace("New", "Old") ))]
-//! pub struct CityName(String);
+//! struct CityName(String);
 //! ```
 //!
 //! And works the same way:
@@ -214,6 +224,8 @@
 //! Think of it as a predicate.
 //!
 //! ```ignore
+//! use nutype::nutype;
+//!
 //! #[nutype(validate(with = is_valid_name))]
 //! pub struct Name(String);
 //!
