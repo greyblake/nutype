@@ -1,9 +1,6 @@
 ## Roadmap
 
 ## For the initial release:
-
-* Add all Meta info to Cargo.toml and github repo
-* Add the docs to lib.rs
 * CI: github actions
 * Add a CHANGELOG.md
 * Publish to crates.io
@@ -108,6 +105,8 @@
 * Add a tiny philosophy section to README
 * Add section with the similar projects
 * Write about custom validators and sanitizers
+* Add all Meta info to Cargo.toml and github repo
+* Add the docs to lib.rs
 
 
 ## Similar crates

@@ -63,7 +63,6 @@ username.0 = "".to_string();
 Haha. It's does not seem to be easy!
 
 
-
 ## A few more examples
 
 Here are some other examples of what you can do with `nutype`.
