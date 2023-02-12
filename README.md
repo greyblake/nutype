@@ -49,7 +49,7 @@ assert_eq!(
 );
 ```
 
-Note, that we also explicitly got `UsernameError` enum generated.
+Note, that we also got `UsernameError` enum generated implicitly.
 
 Ok, but let's try to obtain an instance of `Username` that violates the validation rules:
 
