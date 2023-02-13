@@ -1,11 +1,5 @@
 ## Roadmap
 
-## For the initial release:
-* Fix typos in README and `lib.rs`
-* Missing -> Blank?
-* Release 0.2.0
-
-
 ### TODO Refactor:
 * Refactor: Use newtype for errors (e.g. error_type_name, etc)
 * Refactor parsers
@@ -110,3 +104,4 @@
 * Publish to crates.io
 * CI: github actions
 * Write a blog article
+* Fix typos in README and `lib.rs`
