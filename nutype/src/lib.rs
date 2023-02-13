@@ -1,7 +1,7 @@
 //! <p align="center"><img width="300" src="https://raw.githubusercontent.com/greyblake/nutype/master/art/rust_nutype.png" alt="Rust Nutype Logo"></p>
 //! <h2 align="center">The newtype with guarantees.</h2>
 //!
-//! ## Philosphy
+//! ## Philosophy
 //!
 //! Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
 //!
@@ -84,7 +84,7 @@
 //! struct Username(String);
 //! ```
 //!
-//! In that case `Username::new(String)` simply returns `Username`, not `Result`.
+//! In that case, `Username::new(String)` simply returns `Username`, not `Result`.
 //!
 //! You can derive traits. A lot of traits! For example:
 //!
@@ -98,13 +98,13 @@
 //!
 //! The code above derives the following traits for `Username`: `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Hash`.
 //! `*` is just a syntax sugar for "derive whatever makes sense to derive by default", which is very subjective and opinionated. It's rather an experimental feature that was born
-//! from the fact that `#[nutype]` has to mess with `#[derive]` anyway, because users are not supposed to be able to derive traits like `DerefMut` or `BorrowMut`.
-//! That would allow to mutate the inner (protected) value which undermines the entire idea of nutype.
+//! from the fact that `#[nutype]` has to mess with `#[derive]` anyway because users are not supposed to be able to derive traits like `DerefMut` or `BorrowMut`.
+//! That would allow mutating the inner (protected) value which undermines the entire idea of nutype.
 //!
 //!
 //! ## Inner types
 //!
-//! Available sanitizers, validators and derivable traits are determined by the inner type, which falls into the following categories:
+//! Available sanitizers, validators, and derivable traits are determined by the inner type, which falls into the following categories:
 //! * String
 //! * Integer (`u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`, `usize`, `isize`)
 //! * Float (`f32`, `f64`)
@@ -186,7 +186,7 @@
 //!
 //! ## Custom sanitizers
 //!
-//! You can set custom sanitizers using option `with`.
+//! You can set custom sanitizers using the `with` option.
 //! A custom sanitizer is a function or closure that receives a value of an inner type with ownership and returns a sanitized value back.
 //!
 //! For example, this one
@@ -242,16 +242,16 @@
 //!
 //! ## Support Ukrainian military forces 🇺🇦
 //!
-//! Today I live in Berlin, I have a luxury to live a physically safe life.
+//! Today I live in Berlin, I have the luxury to live a physically safe life.
 //! But I am Ukrainian. The first 25 years of my life I spent in [Kharkiv](https://en.wikipedia.org/wiki/Kharkiv),
 //! the second-largest city in Ukraine, 60km away from the border with russia. Today about [a third of my home city is destroyed](https://www.youtube.com/watch?v=ihoufBFSZds) by russians.
 //! My parents, my relatives and my friends had to survive the artillery and air attack, living for over a month in basements.
 //!
 //! Some of them have managed to evacuate to EU. Some others are trying to live "normal lifes" in Kharkiv, doing there daily duties.
-//! And there are some who are at the front line right now, risking their lives every second to protect the rest.
+//! And some are at the front line right now, risking their lives every second to protect the rest.
 //!
 //! I encourage you to donate to [Charity foundation of Serhiy Prytula](https://prytulafoundation.org/en).
-//! Just pick the project you like and donate. This is one of the best known foundations, you can watch a [little documentary](https://www.youtube.com/watch?v=VlmWqoeub1Q) about it.
+//! Just pick the project you like and donate. This is one of the best-known foundations, you can watch a [little documentary](https://www.youtube.com/watch?v=VlmWqoeub1Q) about it.
 //! Your contribution to the Ukrainian military force is a contribution to my calmness, so I can spend more time developing the project.
 //!
 //! Thank you.

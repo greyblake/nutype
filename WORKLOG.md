@@ -1,7 +1,9 @@
 ## Roadmap
 
 ## For the initial release:
-* Write a blog article
+* Fix typos in README and `lib.rs`
+* Missing -> Blank?
+* Release 0.2.0
 
 
 ### TODO Refactor:
@@ -107,3 +109,4 @@
 * Add a CHANGELOG.md
 * Publish to crates.io
 * CI: github actions
+* Write a blog article
