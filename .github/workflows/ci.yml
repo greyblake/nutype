@@ -73,3 +73,24 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+
+  readme:
+    name: Readme
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+
+      - name: Generate readme
+        run: |
+          cargo install cargo-readme
+          make build-readme
+
+      - name: Validate readme changes are checked in
+        run: git diff --exit-code
