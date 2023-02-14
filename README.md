@@ -21,7 +21,7 @@ use nutype::nutype;
 
 #[nutype(
     sanitize(trim, lowercase)
-    validate(present, max_len = 20)
+    validate(not_empty, max_len = 20)
 )]
 pub struct Username(String);
 ```
@@ -125,12 +125,12 @@ At the moment the string inner type supports only `String` (owned) type.
 
 ### String validators
 
-| Validator | Description                                                                     | Error variant | Example                              |
-|-----------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
-| `max_len` | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
-| `min_len` | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
-| `present` | Rejects an empty string                                                         | `Missing`     | `present`                            |
-| `with`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
+| Validator   | Description                                                                     | Error variant | Example                              |
+|-------------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
+| `max_len`   | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
+| `min_len`   | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
+| `not_empty` | Rejects an empty string                                                         | `Missing`     | `not_empty`                          |
+| `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
 
 ### String derivable traits
 
@@ -257,7 +257,7 @@ The following snippet
 ```rust
 #[nutype(
     sanitize(trim, lowercase)
-    validate(present, max_len = 20)
+    validate(not_empty, max_len = 20)
 )]
 pub struct Username(String);
 ```
@@ -271,10 +271,10 @@ mod __nutype_private_Username__ {
     pub struct Username(String);
 
     pub enum UsernameError {
-        // Occurres when a string is not present
+        // Occurs when a string is not not_empty
         Missing,
 
-        // Occurres when a string is longer than 255 chars.
+        // Occurs when a string is longer than 255 chars.
         TooLong,
     }
 
@@ -358,8 +358,6 @@ Thank you.
 * [refinement](https://docs.rs/refinement/latest/refinement/) - Convenient creation of type-safe refinement types (based on generics).
 * [semval](https://github.com/slowtec/semval) - Semantic validation for Rust.
 * [validator](https://github.com/Keats/validator) - Simple validation for Rust structs (powered by macros).
-
-
 
 ## License
 

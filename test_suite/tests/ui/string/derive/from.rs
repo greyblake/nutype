@@ -1,6 +1,6 @@
 use nutype::nutype;
 
-#[nutype(validate(present))]
+#[nutype(validate(not_empty))]
 #[derive(From)]
 struct Name(String);
 

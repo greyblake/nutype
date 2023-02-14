@@ -112,8 +112,8 @@ mod validators {
     }
 
     #[test]
-    fn test_present() {
-        #[nutype(validate(present))]
+    fn test_not_empty() {
+        #[nutype(validate(not_empty))]
         #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
@@ -183,7 +183,7 @@ mod validators {
 
     #[test]
     fn test_try_from_trait() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, PartialEq, TryFrom)]
         pub struct Name(String);
 
@@ -195,7 +195,7 @@ mod validators {
     fn test_error() {
         fn ensure_type_implements_error<T: std::error::Error>() {}
 
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, PartialEq)]
         pub struct Email(String);
 
@@ -204,7 +204,7 @@ mod validators {
 
     #[test]
     fn test_error_display() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         pub struct Email(String);
 
         assert_eq!(EmailError::Missing.to_string(), "missing");
@@ -221,7 +221,7 @@ mod complex {
         /// goes here.
         #[nutype(
             sanitize(trim, with = |s| s.to_uppercase())
-            validate(present, max_len = 6)
+            validate(not_empty, max_len = 6)
         )]
         #[derive(Debug, PartialEq)]
         pub struct Name(String);
@@ -271,7 +271,7 @@ mod derives {
 
     #[test]
     fn test_with_validaiton() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, Hash, TryFrom, FromStr, Borrow, Clone)]
         pub struct Name(String);
 
@@ -355,7 +355,7 @@ mod derives {
 
     #[test]
     fn test_trait_try_from_str() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, TryFrom)]
         pub struct Name(String);
 
@@ -368,7 +368,7 @@ mod derives {
 
     #[test]
     fn test_trait_try_from_string() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, TryFrom)]
         pub struct Name(String);
 

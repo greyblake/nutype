@@ -58,7 +58,7 @@ pub type SpannedStringValidator = SpannedItem<StringValidator>;
 pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
-    Present,
+    NotEmpty,
     With(TokenStream),
 }
 
@@ -69,7 +69,7 @@ impl Kind for StringValidator {
         match self {
             Self::MinLen(_) => StringValidatorKind::MinLen,
             Self::MaxLen(_) => StringValidatorKind::MaxLen,
-            Self::Present => StringValidatorKind::Present,
+            Self::NotEmpty => StringValidatorKind::NotEmpty,
             Self::With(_) => StringValidatorKind::With,
         }
     }
@@ -79,7 +79,7 @@ impl Kind for StringValidator {
 pub enum StringValidatorKind {
     MinLen,
     MaxLen,
-    Present,
+    NotEmpty,
     With,
 }
 
@@ -88,7 +88,7 @@ impl std::fmt::Display for StringValidatorKind {
         match self {
             Self::MinLen => write!(f, "min_len"),
             Self::MaxLen => write!(f, "max_len"),
-            Self::Present => write!(f, "present"),
+            Self::NotEmpty => write!(f, "not_empty"),
             Self::With => write!(f, "with"),
         }
     }

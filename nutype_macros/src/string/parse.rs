@@ -82,8 +82,8 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
                 };
                 Ok(parsed_validator)
             }
-            "present" => {
-                let validator = StringValidator::Present;
+            "not_empty" => {
+                let validator = StringValidator::NotEmpty;
                 let parsed_validator = SpannedStringValidator {
                     item: validator,
                     span: ident.span(),

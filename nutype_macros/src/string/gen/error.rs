@@ -37,7 +37,7 @@ fn gen_definition(error_type_name: &Ident, validators: &[StringValidator]) -> To
             StringValidator::MinLen(_len) => {
                 quote!(TooShort,)
             }
-            StringValidator::Present => {
+            StringValidator::NotEmpty => {
                 quote!(Missing,)
             }
             StringValidator::With(_) => {
@@ -61,7 +61,7 @@ fn gen_impl_display_trait(error_type_name: &Ident, validators: &[StringValidator
         StringValidator::MinLen(_len) => quote! {
              #error_type_name::TooShort => write!(f, "too short")
         },
-        StringValidator::Present => quote! {
+        StringValidator::NotEmpty => quote! {
              #error_type_name::Missing => write!(f, "missing")
         },
         StringValidator::With(_) => quote! {
