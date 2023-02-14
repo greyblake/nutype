@@ -266,6 +266,8 @@
 //! The following snippet
 //!
 //! ```rust
+//! use nutype::nutype;
+//!
 //! #[nutype(
 //!     sanitize(trim, lowercase)
 //!     validate(present, max_len = 20)
@@ -295,12 +297,12 @@
 //!         // are built on top of this one.
 //!         pub fn new(raw_username: impl Into<String>) -> Result<Username, UsernameError> {
 //!             // Sanitize
-//!             let sanitized_username = raw_username.into().trim().lowercase();
+//!             let sanitized_username = raw_username.into().trim().to_lowercase();
 //!
 //!             // Validate
-//!             if sanitized_username.empty() {
+//!             if sanitized_username.is_empty() {
 //!                 Err(UsernameError::Missing)
-//!             } else if (sanitized_username.len() > 40 {
+//!             } else if sanitized_username.len() > 40 {
 //!                 Err(UsernameError::TooLong)
 //!             } else {
 //!                 Ok(Username(sanitized_username))
