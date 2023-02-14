@@ -14,7 +14,7 @@
 //!
 //! #[nutype(
 //!     sanitize(trim, lowercase)
-//!     validate(present, max_len = 20)
+//!     validate(not_empty, max_len = 20)
 //! )]
 //! pub struct Username(String);
 //! ```
@@ -33,7 +33,7 @@
 //! ```ignore
 //! assert_eq!(
 //!     Username::new("   "),
-//!     Err(UsernameError::Missing),
+//!     Err(UsernameError::Empty),
 //! );
 //!
 //! assert_eq!(
@@ -124,12 +124,12 @@
 //!
 //! ### String validators
 //!
-//! | Validator | Description                                                                     | Error variant | Example                              |
-//! |-----------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
-//! | `max_len` | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
-//! | `min_len` | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
-//! | `present` | Rejects an empty string                                                         | `Missing`     | `present`                            |
-//! | `with`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
+//! | Validator   | Description                                                                     | Error variant | Example                              |
+//! |-------------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
+//! | `max_len`   | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
+//! | `min_len`   | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
+//! | `not_empty` | Rejects an empty string                                                         | `Empty`       | `not_empty`                          |
+//! | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
 //!
 //! ### String derivable traits
 //!
@@ -266,7 +266,7 @@ mod tests {
     fn test_email_example() {
         #[nutype(
              sanitize(trim, lowercase)
-             validate(present)
+             validate(not_empty)
          )]
         #[derive(*)]
         pub struct Email(String);
@@ -274,7 +274,7 @@ mod tests {
         let email = Email::new("  OH@my.example\n\n").unwrap();
         assert_eq!(email.into_inner(), "oh@my.example");
 
-        assert_eq!(Email::new("  \n"), Err(EmailError::Missing));
+        assert_eq!(Email::new("  \n"), Err(EmailError::Empty));
     }
 
     #[test]

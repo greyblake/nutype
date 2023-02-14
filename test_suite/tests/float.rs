@@ -89,7 +89,7 @@ mod validators {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
-            #[nutype(validate(with = |&c: &f32| c >= 0.0 && c <= 100.0 ))]
+            #[nutype(validate(with = |&c: &f32| (0.0..=100.0).contains(&c) ))]
             #[derive(*)]
             pub struct Cent(f32);
 
@@ -101,7 +101,7 @@ mod validators {
 
         #[test]
         fn test_closure_with_no_type() {
-            #[nutype(validate(with = |&c| c >= 0.0 && c <= 100.0 ))]
+            #[nutype(validate(with = |&c| (0.0..=100.0).contains(&c) ))]
             #[derive(*)]
             pub struct Cent(f32);
 
@@ -112,7 +112,7 @@ mod validators {
         }
 
         fn is_cent_valid(&val: &f32) -> bool {
-            val >= 0.0 && val <= 100.0
+            (0.0..=100.0).contains(&val)
         }
 
         #[test]

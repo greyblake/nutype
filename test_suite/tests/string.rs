@@ -112,12 +112,12 @@ mod validators {
     }
 
     #[test]
-    fn test_present() {
-        #[nutype(validate(present))]
+    fn test_not_empty() {
+        #[nutype(validate(not_empty))]
         #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
-        assert_eq!(Name::new(""), Err(NameError::Missing));
+        assert_eq!(Name::new(""), Err(NameError::Empty));
         assert_eq!(Name::new(" ").unwrap().into_inner(), " ");
         assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
     }
@@ -183,11 +183,11 @@ mod validators {
 
     #[test]
     fn test_try_from_trait() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, PartialEq, TryFrom)]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from(""), Err(NameError::Missing));
+        assert_eq!(Name::try_from(""), Err(NameError::Empty));
         assert_eq!(Name::try_from("Tom").unwrap().into_inner(), "Tom");
     }
 
@@ -195,7 +195,7 @@ mod validators {
     fn test_error() {
         fn ensure_type_implements_error<T: std::error::Error>() {}
 
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, PartialEq)]
         pub struct Email(String);
 
@@ -204,10 +204,10 @@ mod validators {
 
     #[test]
     fn test_error_display() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         pub struct Email(String);
 
-        assert_eq!(EmailError::Missing.to_string(), "missing");
+        assert_eq!(EmailError::Empty.to_string(), "empty");
     }
 }
 
@@ -221,12 +221,12 @@ mod complex {
         /// goes here.
         #[nutype(
             sanitize(trim, with = |s| s.to_uppercase())
-            validate(present, max_len = 6)
+            validate(not_empty, max_len = 6)
         )]
         #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
-        assert_eq!(Name::new("    "), Err(NameError::Missing));
+        assert_eq!(Name::new("    "), Err(NameError::Empty));
         assert_eq!(Name::new("Willy Brandt"), Err(NameError::TooLong));
         assert_eq!(Name::new("   Brandt  ").unwrap().into_inner(), "BRANDT");
     }
@@ -271,7 +271,7 @@ mod derives {
 
     #[test]
     fn test_with_validaiton() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, Hash, TryFrom, FromStr, Borrow, Clone)]
         pub struct Name(String);
 
@@ -355,7 +355,7 @@ mod derives {
 
     #[test]
     fn test_trait_try_from_str() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, TryFrom)]
         pub struct Name(String);
 
@@ -363,12 +363,12 @@ mod derives {
         assert_eq!(name.into_inner(), "Anna");
 
         let error = Name::try_from("").unwrap_err();
-        assert_eq!(error, NameError::Missing);
+        assert_eq!(error, NameError::Empty);
     }
 
     #[test]
     fn test_trait_try_from_string() {
-        #[nutype(validate(present))]
+        #[nutype(validate(not_empty))]
         #[derive(Debug, TryFrom)]
         pub struct Name(String);
 
@@ -376,7 +376,7 @@ mod derives {
         assert_eq!(name.into_inner(), "Anna");
 
         let error = Name::try_from("".to_string()).unwrap_err();
-        assert_eq!(error, NameError::Missing);
+        assert_eq!(error, NameError::Empty);
     }
 
     #[test]

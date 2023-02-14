@@ -195,10 +195,10 @@ pub fn gen_string_validate_fn(type_name: &TypeName, validators: &[StringValidato
                     }
                 )
             }
-            StringValidator::Present => {
+            StringValidator::NotEmpty => {
                 quote!(
                     if val.is_empty() {
-                        return Err(#error_name::Missing);
+                        return Err(#error_name::Empty);
                     }
                 )
             }
