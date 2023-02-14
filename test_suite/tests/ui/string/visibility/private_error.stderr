@@ -8,10 +8,10 @@ note: the enum import `NameError` is defined here...
  --> tests/ui/string/visibility/private_error.rs:4:5
   |
 4 |     #[nutype(validate(not_empty))]
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: ...and refers to the enum `NameError` which is defined here
  --> tests/ui/string/visibility/private_error.rs:4:5
   |
 4 |     #[nutype(validate(not_empty))]
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider importing it directly
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider importing it directly
   = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
