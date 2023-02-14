@@ -33,7 +33,7 @@
 //! ```ignore
 //! assert_eq!(
 //!     Username::new("   "),
-//!     Err(UsernameError::Missing),
+//!     Err(UsernameError::Empty),
 //! );
 //!
 //! assert_eq!(
@@ -128,7 +128,7 @@
 //! |-------------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
 //! | `max_len`   | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
 //! | `min_len`   | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
-//! | `not_empty` | Rejects an empty string                                                         | `Missing`     | `not_empty`                          |
+//! | `not_empty` | Rejects an empty string                                                         | `Empty`       | `not_empty`                          |
 //! | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
 //!
 //! ### String derivable traits
@@ -274,7 +274,7 @@ mod tests {
         let email = Email::new("  OH@my.example\n\n").unwrap();
         assert_eq!(email.into_inner(), "oh@my.example");
 
-        assert_eq!(Email::new("  \n"), Err(EmailError::Missing));
+        assert_eq!(Email::new("  \n"), Err(EmailError::Empty));
     }
 
     #[test]

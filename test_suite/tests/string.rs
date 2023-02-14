@@ -117,7 +117,7 @@ mod validators {
         #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
-        assert_eq!(Name::new(""), Err(NameError::Missing));
+        assert_eq!(Name::new(""), Err(NameError::Empty));
         assert_eq!(Name::new(" ").unwrap().into_inner(), " ");
         assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
     }
@@ -187,7 +187,7 @@ mod validators {
         #[derive(Debug, PartialEq, TryFrom)]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from(""), Err(NameError::Missing));
+        assert_eq!(Name::try_from(""), Err(NameError::Empty));
         assert_eq!(Name::try_from("Tom").unwrap().into_inner(), "Tom");
     }
 
@@ -207,7 +207,7 @@ mod validators {
         #[nutype(validate(not_empty))]
         pub struct Email(String);
 
-        assert_eq!(EmailError::Missing.to_string(), "missing");
+        assert_eq!(EmailError::Empty.to_string(), "empty");
     }
 }
 
@@ -226,7 +226,7 @@ mod complex {
         #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
-        assert_eq!(Name::new("    "), Err(NameError::Missing));
+        assert_eq!(Name::new("    "), Err(NameError::Empty));
         assert_eq!(Name::new("Willy Brandt"), Err(NameError::TooLong));
         assert_eq!(Name::new("   Brandt  ").unwrap().into_inner(), "BRANDT");
     }
@@ -363,7 +363,7 @@ mod derives {
         assert_eq!(name.into_inner(), "Anna");
 
         let error = Name::try_from("").unwrap_err();
-        assert_eq!(error, NameError::Missing);
+        assert_eq!(error, NameError::Empty);
     }
 
     #[test]
@@ -376,7 +376,7 @@ mod derives {
         assert_eq!(name.into_inner(), "Anna");
 
         let error = Name::try_from("".to_string()).unwrap_err();
-        assert_eq!(error, NameError::Missing);
+        assert_eq!(error, NameError::Empty);
     }
 
     #[test]

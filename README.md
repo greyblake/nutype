@@ -40,7 +40,7 @@ But we cannot create invalid ones:
 ```rust
 assert_eq!(
     Username::new("   "),
-    Err(UsernameError::Missing),
+    Err(UsernameError::Empty),
 );
 
 assert_eq!(
@@ -129,7 +129,7 @@ At the moment the string inner type supports only `String` (owned) type.
 |-------------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
 | `max_len`   | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
 | `min_len`   | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
-| `not_empty` | Rejects an empty string                                                         | `Missing`     | `not_empty`                          |
+| `not_empty` | Rejects an empty string                                                         | `Empty`       | `not_empty`                          |
 | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
 
 ### String derivable traits
@@ -271,8 +271,8 @@ mod __nutype_private_Username__ {
     pub struct Username(String);
 
     pub enum UsernameError {
-        // Occurs when a string is not not_empty
-        Missing,
+        // Occurs when a string is empty
+        Empty,
 
         // Occurs when a string is longer than 255 chars.
         TooLong,
@@ -288,7 +288,7 @@ mod __nutype_private_Username__ {
 
             // Validate
             if sanitized_username.empty() {
-                Err(UsernameError::Missing)
+                Err(UsernameError::Empty)
             } else if (sanitized_username.len() > 40 {
                 Err(UsernameError::TooLong)
             } else {
