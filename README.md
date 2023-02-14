@@ -5,14 +5,13 @@
 <a href="https://github.com/greyblake/nutype/actions/workflows/ci.yml" rel="nofollow"><img src="https://github.com/greyblake/nutype/actions/workflows/ci.yml/badge.svg" alt="Nutype Build Status"></a>
 <a href="https://docs.rs/nutype" rel="nofollow"><img src="https://docs.rs/nutype/badge.svg" alt="Nutype Documentation"></a>
 <a href="https://github.com/greyblake/nutype/discussions"><img src="https://img.shields.io/github/discussions/greyblake/nutype"/></a>
-<p>
+</p>
 
 ## Philosophy
 
 Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
 
-If a piece of data was once sanitized and validated we can rely on the types instead of sanitizing and validating again and again when we're in doubt.
-
+If a piece of data was once sanitized and validated we can rely on the types instead of sanitizing and validating again and again.
 
 ## Quick start
 
@@ -76,6 +75,8 @@ Here are some other examples of what you can do with `nutype`.
 You can skip `sanitize` and use a custom validator `with`:
 
 ```rust
+use nutype::nutype;
+
 #[nutype(validate(with = |n| n % 2 == 1))]
 struct OddNumber(i64);
 ```
@@ -83,15 +84,19 @@ struct OddNumber(i64);
 You can skip validation, if you need sanitization only:
 
 ```rust
+use nutype::nutype;
+
 #[nutype(sanitize(trim, lowercase))]
 struct Username(String);
 ```
 
-In that case `Username::new(String)` simply returns `Username`, not `Result`.
+In that case, `Username::new(String)` simply returns `Username`, not `Result`.
 
 You can derive traits. A lot of traits! For example:
 
 ```rust
+use nutype::nutype;
+
 #[nutype]
 #[derive(*)]
 struct Username(String);
@@ -188,24 +193,28 @@ The following traits can be derived for a float-based type:
 ## Custom sanitizers
 
 You can set custom sanitizers using the `with` option.
-A custom sanitizer is a function or closure that receives a value of an inner type with ownership and returns a sanitized value.
+A custom sanitizer is a function or closure that receives a value of an inner type with ownership and returns a sanitized value back.
 
 For example, this one
 
 ```rust
-#[nutype(sanitize(with = new_to_old))]
-pub struct CityName(String);
+use nutype::nutype;
 
 fn new_to_old(s: String) -> String {
     s.replace("New", "Old")
 }
+
+#[nutype(sanitize(with = new_to_old))]
+struct CityName(String);
 ```
 
 is equal to the following one:
 
 ```rust
+use nutype::nutype;
+
 #[nutype(sanitize(with = |s| s.replace("New", "Old") ))]
-pub struct CityName(String);
+struct CityName(String);
 ```
 
 And works the same way:
@@ -221,6 +230,8 @@ In similar fashion it's possible to define custom validators, but a validation f
 Think of it as a predicate.
 
 ```rust
+use nutype::nutype;
+
 #[nutype(validate(with = is_valid_name))]
 pub struct Name(String);
 
@@ -358,8 +369,6 @@ Thank you.
 * [refinement](https://docs.rs/refinement/latest/refinement/) - Convenient creation of type-safe refinement types (based on generics).
 * [semval](https://github.com/slowtec/semval) - Semantic validation for Rust.
 * [validator](https://github.com/Keats/validator) - Simple validation for Rust structs (powered by macros).
-
-
 
 ## License
 
