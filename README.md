@@ -354,6 +354,7 @@ Thank you.
 
 ## Similar projects
 
+* [prae](https://github.com/teenjuna/prae) - A very imilar crate that aims to solve the same problems but with slightly different approach.
 * [bounded-integer](https://github.com/Kestrer/bounded-integer) - Bounded integers for Rust.
 * [refinement](https://docs.rs/refinement/latest/refinement/) - Convenient creation of type-safe refinement types (based on generics).
 * [semval](https://github.com/slowtec/semval) - Semantic validation for Rust.
