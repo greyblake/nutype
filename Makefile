@@ -1,6 +1,7 @@
 test:
 	cargo test
 	cargo test --features serde1
+	cargo test --features new_unchecked
 	cargo test --all-features
 
 watch:

@@ -4,12 +4,15 @@ use nutype::nutype;
 #[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize)]
 pub struct Dist(f64);
 
-#[nutype(validate(min = 18, max = 99))]
+#[nutype(
+    new_unchecked
+    validate(min = 18, max = 99)
+)]
 #[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize)]
 pub struct Age(u8);
 
-#[nutype]
-#[derive(FromStr, Display, Clone, Serialize)]
+#[nutype(new_unchecked)]
+#[derive(Debug, FromStr, Display, Clone, Serialize)]
 pub struct Username(String);
 
 fn main() {
@@ -26,4 +29,9 @@ fn main() {
 
     let dist: Dist = serde_json::from_str("12.339999999999").unwrap();
     println!("Dist = {dist}");
+
+    let name = "Bang".to_string();
+
+    let username = unsafe { Username::new_unchecked(name) };
+    println!("{username:#?}");
 }

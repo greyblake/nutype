@@ -1,4 +1,5 @@
 pub mod error;
+pub mod new_unchecked;
 pub mod parse_error;
 pub mod traits;
 

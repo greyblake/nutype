@@ -1,9 +1,12 @@
 use std::fmt::Debug;
 use std::str::FromStr;
 
-use crate::common::parse::{
-    is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
-    split_and_parse,
+use crate::common::{
+    models::Attributes,
+    parse::{
+        is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
+        split_and_parse,
+    },
 };
 use proc_macro2::{Span, TokenStream, TokenTree};
 
@@ -15,15 +18,24 @@ use super::{
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream) -> Result<FloatGuard<T>, syn::Error>
+pub fn parse_attributes<T>(input: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
 {
-    parse_raw_attributes(input).and_then(validate_number_meta)
+    let raw_attrs = parse_raw_attributes(input)?;
+    let Attributes {
+        new_unchecked,
+        guard: raw_guard,
+    } = raw_attrs;
+    let guard = validate_number_meta(raw_guard)?;
+    Ok(Attributes {
+        new_unchecked,
+        guard,
+    })
 }
 
-fn parse_raw_attributes<T>(input: TokenStream) -> Result<FloatRawGuard<T>, syn::Error>
+fn parse_raw_attributes<T>(input: TokenStream) -> Result<Attributes<FloatRawGuard<T>>, syn::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,

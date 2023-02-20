@@ -553,3 +553,21 @@ mod traits {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "new_unchecked")]
+mod new_unchecked {
+    use super::*;
+
+    #[test]
+    fn test_new_unchecked() {
+        #[nutype(
+            new_unchecked
+            validate(min = 50)
+        )]
+        pub struct Dist(u32);
+
+        let dist = unsafe { Dist::new_unchecked(3) };
+        assert_eq!(dist.into_inner(), 3);
+    }
+}

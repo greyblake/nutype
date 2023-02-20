@@ -1,0 +1,24 @@
+use crate::common::models::NewUnchecked;
+use crate::common::models::TypeName;
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
+
+pub fn gen_new_unchecked(
+    type_name: &TypeName,
+    inner_type: impl ToTokens,
+    new_unchecked: NewUnchecked,
+) -> TokenStream {
+    match new_unchecked {
+        NewUnchecked::Off => quote! {},
+        NewUnchecked::On => quote! {
+            impl #type_name {
+                /// Creates a value of type skipping the sanitization and validation
+                /// rules. You should avoid using `::new_unchecked()` without a real need use
+                /// `::new()` instead.
+                pub unsafe fn new_unchecked(inner_value: #inner_type) -> #type_name {
+                    #type_name(inner_value)
+                }
+            }
+        },
+    }
+}
