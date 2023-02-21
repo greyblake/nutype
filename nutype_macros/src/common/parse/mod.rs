@@ -87,7 +87,8 @@ pub fn parse_nutype_attributes<S, V>(
             validators: vec![],
         };
 
-        // Either this must be really mutable or not depends on `new_unchecked` feature flag.
+        // The variable `new_unchecked` is needed to be mutable for the case when `new_unchecked`
+        // feature flag is enabled.
         #[allow(unused_mut)]
         let mut new_unchecked = NewUnchecked::Off;
 
