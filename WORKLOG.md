@@ -1,6 +1,6 @@
 ## Roadmap
-* new_unchecked: add docs to README
-* new_unchecked: add docs to lib.rs
+* new_unchecked: review the PR: https://github.com/greyblake/nutype/pull/16
+* Merge code examples in README and lib.rs into bigger chunks, so doc tests can run
 
 ### TODO Refactor:
 * Refactor: Use newtype for errors (e.g. error_type_name, etc)
@@ -110,3 +110,5 @@
 * new_unchecked: add the crate feature flag
 * new_unchecked: add the check against the flag when parsing
 * new_unchecked: add test coverage
+* new_unchecked: add docs to README
+* new_unchecked: add docs to lib.rs
