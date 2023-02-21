@@ -19,3 +19,4 @@ nutype_macros = { version = "0.2.0", path = "../nutype_macros" }
 
 [features]
 serde1 = ["nutype_macros/serde1"]
+new_unchecked = ["nutype_macros/new_unchecked"]

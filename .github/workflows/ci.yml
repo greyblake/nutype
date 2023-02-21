@@ -30,6 +30,12 @@ jobs:
           command: test
           args: --features serde1
 
+      - name: cargo test --features new_unchecked
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features new_unchecked
+
       - name: cargo test --all-features
         uses: actions-rs/cargo@v1
         with:

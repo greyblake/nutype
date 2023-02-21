@@ -153,6 +153,16 @@ pub enum Guard<Sanitizer, Validator> {
     },
 }
 
+/// Parsed attributes (`sanitize`, `validate`, `new_unchecked`).
+#[derive(Debug)]
+pub struct Attributes<G> {
+    /// Guard contains sanitizers and validators
+    pub guard: G,
+
+    /// `new_unchecked` flag
+    pub new_unchecked: NewUnchecked,
+}
+
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
     pub fn has_validation(&self) -> bool {
         match self {
@@ -204,3 +214,14 @@ pub enum NormalDeriveTrait {
 }
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
+
+/// The flag the indicates that a newtype will be generated with extra constructor,
+/// `::new_unchecked()` constructor which allows to avoid the guards.
+/// Generally, usage of `new_unchecked` is discouraged.
+#[derive(Debug)]
+pub enum NewUnchecked {
+    // `On` variant can be constructed when `new_unchecked` feature flag is enabled.
+    #[allow(dead_code)]
+    On,
+    Off,
+}

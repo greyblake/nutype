@@ -230,10 +230,34 @@ fn is_valid_name(name: &str) -> bool {
 }
 ```
 
+## How to break the constraints?
+
+First you need to know, you SHOULD NOT do it.
+
+But let's pretend for some imaginary performance reasons you really need to avoid validation when instantiating a value of newtype
+(e.g. loading earlier "validated" data from DB).
+
+You can achieve this by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:
+
+```rs
+#[nutype(
+    new_unchecked
+    sanitize(trim)
+    validate(min_len = 8)
+)]
+pub struct Name(String);
+
+// Yes, you're forced to use `unsafe` here, so everyone will point fingers at YOU.
+let name = unsafe { Name::new_unchecked(" boo ".to_string()) };
+
+// `name` violates the sanitization and validation rules!!!
+assert_eq!(name.into_inner(), " boo ");
+```
 
 ## Feature flags
 
 * `serde1` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
+* `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 
 ## When nutype is a good fit for you?
 

@@ -1,3 +1,4 @@
+use crate::common::models::Attributes;
 use crate::common::parse::{
     is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
     split_and_parse,
@@ -10,11 +11,20 @@ use proc_macro2::{Span, TokenStream, TokenTree};
 use super::models::{SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
-pub fn parse_attributes(input: TokenStream) -> Result<StringGuard, syn::Error> {
-    parse_raw_attributes(input).and_then(validate_string_meta)
+pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
+    let raw_attrs = parse_raw_attributes(input)?;
+    let Attributes {
+        new_unchecked,
+        guard: raw_guard,
+    } = raw_attrs;
+    let guard = validate_string_meta(raw_guard)?;
+    Ok(Attributes {
+        new_unchecked,
+        guard,
+    })
 }
 
-fn parse_raw_attributes(input: TokenStream) -> Result<StringRawGuard, syn::Error> {
+fn parse_raw_attributes(input: TokenStream) -> Result<Attributes<StringRawGuard>, syn::Error> {
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
 

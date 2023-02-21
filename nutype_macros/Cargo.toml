@@ -24,3 +24,4 @@ proc-macro = true
 
 [features]
 serde1 = []
+new_unchecked = []

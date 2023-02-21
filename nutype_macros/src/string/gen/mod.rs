@@ -11,9 +11,9 @@ use crate::{
     common::{
         gen::{
             error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-            traits::GeneratedTraits, type_custom_closure,
+            new_unchecked::gen_new_unchecked, traits::GeneratedTraits, type_custom_closure,
         },
-        models::TypeName,
+        models::{NewUnchecked, TypeName},
     },
     string::models::{StringSanitizer, StringValidator},
 };
@@ -28,9 +28,10 @@ pub fn gen_nutype_for_string(
     vis: syn::Visibility,
     type_name: &TypeName,
     guard: StringGuard,
+    new_unchecked: NewUnchecked,
 ) -> TokenStream {
     let module_name = gen_module_name_for_type(type_name);
-    let implementation = gen_string_implementation(type_name, &guard);
+    let implementation = gen_string_implementation(type_name, &guard, new_unchecked);
 
     let maybe_error_type_name: Option<Ident> = match guard {
         StringGuard::WithoutValidation { .. } => None,
@@ -66,9 +67,12 @@ pub fn gen_nutype_for_string(
     )
 }
 
-pub fn gen_string_implementation(type_name: &TypeName, meta: &StringGuard) -> TokenStream {
-    let methods = gen_impl_methods(type_name);
-    let convert_implementation = match meta {
+pub fn gen_string_implementation(
+    type_name: &TypeName,
+    meta: &StringGuard,
+    new_unchecked: NewUnchecked,
+) -> TokenStream {
+    let impl_new = match meta {
         StringGuard::WithoutValidation { sanitizers } => {
             gen_new_without_validation(type_name, sanitizers)
         }
@@ -77,14 +81,19 @@ pub fn gen_string_implementation(type_name: &TypeName, meta: &StringGuard) -> To
             validators,
         } => gen_new_and_with_validation(type_name, sanitizers, validators),
     };
+    let impl_into_inner = gen_impl_into_inner(type_name);
+
+    let inner_type = quote!(String);
+    let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
 
     quote! {
-        #convert_implementation
-        #methods
+        #impl_new
+        #impl_into_inner
+        #impl_new_unchecked
     }
 }
 
-fn gen_impl_methods(type_name: &TypeName) -> TokenStream {
+fn gen_impl_into_inner(type_name: &TypeName) -> TokenStream {
     quote! {
         impl #type_name {
             pub fn into_inner(self) -> String {

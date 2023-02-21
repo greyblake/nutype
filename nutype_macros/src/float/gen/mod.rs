@@ -12,9 +12,10 @@ use super::models::{FloatDeriveTrait, FloatGuard, FloatSanitizer, FloatValidator
 use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-        parse_error::gen_parse_error_name, traits::GeneratedTraits, type_custom_closure,
+        new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name,
+        traits::GeneratedTraits, type_custom_closure,
     },
-    common::models::{FloatType, TypeName},
+    common::models::{FloatType, NewUnchecked, TypeName},
 };
 use traits::gen_traits;
 
@@ -25,12 +26,13 @@ pub fn gen_nutype_for_float<T>(
     type_name: &TypeName,
     meta: FloatGuard<T>,
     traits: HashSet<FloatDeriveTrait>,
+    new_unchecked: NewUnchecked,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
     let module_name = gen_module_name_for_type(type_name);
-    let implementation = gen_implementation(type_name, inner_type, &meta);
+    let implementation = gen_implementation(type_name, inner_type, &meta, new_unchecked);
 
     let maybe_error_type_name: Option<Ident> = match meta {
         FloatGuard::WithoutValidation { .. } => None,
@@ -76,11 +78,12 @@ pub fn gen_implementation<T>(
     type_name: &TypeName,
     inner_type: FloatType,
     meta: &FloatGuard<T>,
+    new_unchecked: NewUnchecked,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
-    let convert_implementation = match meta {
+    let impl_new = match meta {
         FloatGuard::WithoutValidation { sanitizers } => {
             gen_new_without_validation(type_name, inner_type, sanitizers)
         }
@@ -89,15 +92,17 @@ where
             validators,
         } => gen_new_with_validation(type_name, inner_type, sanitizers, validators),
     };
-    let methods = gen_impl_methods(type_name, inner_type);
+    let impl_into_inner = gen_impl_into_inner(type_name, inner_type);
+    let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
 
     quote! {
-        #convert_implementation
-        #methods
+        #impl_new
+        #impl_into_inner
+        #impl_new_unchecked
     }
 }
 
-fn gen_impl_methods(type_name: &TypeName, inner_type: FloatType) -> TokenStream {
+fn gen_impl_into_inner(type_name: &TypeName, inner_type: FloatType) -> TokenStream {
     quote! {
         impl #type_name {
             pub fn into_inner(self) -> #inner_type {

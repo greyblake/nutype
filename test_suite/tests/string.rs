@@ -434,3 +434,22 @@ mod derives {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "new_unchecked")]
+mod new_unchecked {
+    use super::*;
+
+    #[test]
+    fn test_new_unchecked() {
+        #[nutype(
+            new_unchecked
+            sanitize(trim)
+            validate(min_len = 8)
+        )]
+        pub struct Name(String);
+
+        let name = unsafe { Name::new_unchecked(" boo ".to_string()) };
+        assert_eq!(name.into_inner(), " boo ");
+    }
+}

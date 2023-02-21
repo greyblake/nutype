@@ -7,6 +7,8 @@ use syn::spanned::Spanned;
 
 use crate::common::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait};
 
+use super::models::{Attributes, NewUnchecked};
+
 /// ## Example
 /// Input (token stream):
 ///     = 123
@@ -69,7 +71,7 @@ pub fn try_unwrap_group(token: TokenTree) -> Result<Group, syn::Error> {
     match token {
         TokenTree::Group(group) => Ok(group),
         _ => {
-            let error = syn::Error::new(token.span(), "#[nutype] expected ident");
+            let error = syn::Error::new(token.span(), "#[nutype] expected group");
             Err(error)
         }
     }
@@ -78,12 +80,17 @@ pub fn try_unwrap_group(token: TokenTree) -> Result<Group, syn::Error> {
 pub fn parse_nutype_attributes<S, V>(
     parse_sanitize_attrs: impl Fn(TokenStream) -> Result<Vec<S>, syn::Error>,
     parse_validate_attrs: impl Fn(TokenStream) -> Result<Vec<V>, syn::Error>,
-) -> impl FnOnce(TokenStream) -> Result<RawGuard<S, V>, syn::Error> {
+) -> impl FnOnce(TokenStream) -> Result<Attributes<RawGuard<S, V>>, syn::Error> {
     move |input: TokenStream| {
-        let mut output = RawGuard {
+        let mut raw_guard = RawGuard {
             sanitizers: vec![],
             validators: vec![],
         };
+
+        // The variable `new_unchecked` is needed to be mutable for the case when `new_unchecked`
+        // feature flag is enabled.
+        #[allow(unused_mut)]
+        let mut new_unchecked = NewUnchecked::Off;
 
         let mut iter = input.into_iter();
 
@@ -91,7 +98,11 @@ pub fn parse_nutype_attributes<S, V>(
             let token = match iter.next() {
                 Some(t) => t,
                 None => {
-                    return Ok(output);
+                    let attributes = Attributes {
+                        guard: raw_guard,
+                        new_unchecked,
+                    };
+                    return Ok(attributes);
                 }
             };
 
@@ -105,7 +116,7 @@ pub fn parse_nutype_attributes<S, V>(
                     })?;
                     let group = try_unwrap_group(token)?;
                     let sanitize_stream = group.stream();
-                    output.sanitizers = parse_sanitize_attrs(sanitize_stream)?;
+                    raw_guard.sanitizers = parse_sanitize_attrs(sanitize_stream)?;
                 }
                 "validate" => {
                     let token = iter.next().ok_or_else(|| {
@@ -114,7 +125,37 @@ pub fn parse_nutype_attributes<S, V>(
                     })?;
                     let group = try_unwrap_group(token)?;
                     let validate_stream = group.stream();
-                    output.validators = parse_validate_attrs(validate_stream)?;
+                    raw_guard.validators = parse_validate_attrs(validate_stream)?;
+                }
+                "new_unchecked" => {
+                    // The feature is not enabled, so we return an error
+                    #[cfg(not(feature = "new_unchecked"))]
+                    {
+                        let msg = "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\nBut you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it.";
+                        return Err(syn::Error::new(ident.span(), msg));
+                    }
+
+                    // The feature `new_unchecked` is enabled
+                    #[cfg(feature = "new_unchecked")]
+                    {
+                        // Try to look forward and return a good helpful error if `new_unchecked` is
+                        // used incorrectly.
+                        // Correct:
+                        //    new_unchecked
+                        // Incorrect:
+                        //    new_unchecked()
+                        //    new_unchecked(foo = 13)
+                        let maybe_next_token = iter.clone().next();
+                        match maybe_next_token.map(try_unwrap_ident) {
+                            None | Some(Ok(_)) => {
+                                new_unchecked = NewUnchecked::On;
+                            }
+                            Some(Err(err)) => {
+                                let msg = "new_unchecked does not support any options";
+                                return Err(syn::Error::new(err.span(), msg));
+                            }
+                        }
+                    }
                 }
                 unknown => {
                     let msg = format!("Unknown #[nutype] option: `{unknown}`");

@@ -6,7 +6,7 @@ mod string;
 use std::{fmt::Debug, str::FromStr};
 
 use common::models::{
-    FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait, TypeName,
+    Attributes, FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait, TypeName,
 };
 use common::parse::meta::parse_meta;
 use float::validate::validate_float_derive_traits;
@@ -37,13 +37,20 @@ fn expand_nutype(
         vis,
         derive_traits,
     } = parse_meta(type_definition)?;
-
     match inner_type {
         InnerType::String => {
-            let meta = string::parse::parse_attributes(attrs)?;
-            let traits = validate_string_derive_traits(&meta, derive_traits)?;
+            let Attributes {
+                guard,
+                new_unchecked,
+            } = string::parse::parse_attributes(attrs)?;
+            let traits = validate_string_derive_traits(&guard, derive_traits)?;
             Ok(gen_nutype_for_string(
-                doc_attrs, traits, vis, &type_name, meta,
+                doc_attrs,
+                traits,
+                vis,
+                &type_name,
+                guard,
+                new_unchecked,
             ))
         }
         InnerType::Integer(tp) => {
@@ -111,10 +118,19 @@ where
         attrs,
         derive_traits,
     } = params;
-    let meta = integer::parse::parse_attributes::<T>(attrs)?;
-    let traits = validate_integer_derive_traits(derive_traits, meta.has_validation())?;
+    let Attributes {
+        guard,
+        new_unchecked,
+    } = integer::parse::parse_attributes::<T>(attrs)?;
+    let traits = validate_integer_derive_traits(derive_traits, guard.has_validation())?;
     Ok(integer::gen::gen_nutype_for_integer(
-        doc_attrs, vis, tp, &type_name, meta, traits,
+        doc_attrs,
+        vis,
+        tp,
+        &type_name,
+        guard,
+        traits,
+        new_unchecked,
     ))
 }
 
@@ -131,9 +147,18 @@ where
         attrs,
         derive_traits,
     } = params;
-    let meta = float::parse::parse_attributes::<T>(attrs)?;
-    let traits = validate_float_derive_traits(derive_traits, meta.has_validation())?;
+    let Attributes {
+        guard,
+        new_unchecked,
+    } = float::parse::parse_attributes::<T>(attrs)?;
+    let traits = validate_float_derive_traits(derive_traits, guard.has_validation())?;
     Ok(float::gen::gen_nutype_for_float(
-        doc_attrs, vis, tp, &type_name, meta, traits,
+        doc_attrs,
+        vis,
+        tp,
+        &type_name,
+        guard,
+        traits,
+        new_unchecked,
     ))
 }

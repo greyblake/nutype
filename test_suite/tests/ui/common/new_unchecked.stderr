@@ -1,0 +1,7 @@
+error: To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.
+       But you ought to know: generally, THIS IS A BAD IDEA.
+       Use it only when you really need it.
+ --> tests/ui/common/new_unchecked.rs:4:5
+  |
+4 |     new_unchecked
+  |     ^^^^^^^^^^^^^
