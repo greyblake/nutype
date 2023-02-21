@@ -15,7 +15,10 @@ use crate::{
         new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name,
         traits::GeneratedTraits, type_custom_closure,
     },
-    common::models::{IntegerType, NewUnchecked, TypeName},
+    common::{
+        gen::gen_impl_into_inner,
+        models::{IntegerType, NewUnchecked, TypeName},
+    },
 };
 
 pub fn gen_nutype_for_integer<T>(
@@ -99,16 +102,6 @@ where
         #impl_new
         #impl_into_inner
         #impl_new_unchecked
-    }
-}
-
-fn gen_impl_into_inner(type_name: &TypeName, inner_type: IntegerType) -> TokenStream {
-    quote! {
-        impl #type_name {
-            pub fn into_inner(self) -> #inner_type {
-                self.0
-            }
-        }
     }
 }
 
