@@ -10,10 +10,11 @@ use syn::Attribute;
 use crate::{
     common::{
         gen::{
-            error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-            new_unchecked::gen_new_unchecked, traits::GeneratedTraits, type_custom_closure,
+            error::gen_error_type_name, gen_impl_into_inner, gen_module_name_for_type,
+            gen_reimports, new_unchecked::gen_new_unchecked, traits::GeneratedTraits,
+            type_custom_closure,
         },
-        models::{NewUnchecked, TypeName},
+        models::{InnerType, NewUnchecked, TypeName},
     },
     string::models::{StringSanitizer, StringValidator},
 };
@@ -81,25 +82,14 @@ pub fn gen_string_implementation(
             validators,
         } => gen_new_and_with_validation(type_name, sanitizers, validators),
     };
-    let impl_into_inner = gen_impl_into_inner(type_name);
-
-    let inner_type = quote!(String);
+    let inner_type = InnerType::String;
+    let impl_into_inner = gen_impl_into_inner(type_name, inner_type);
     let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
 
     quote! {
         #impl_new
         #impl_into_inner
         #impl_new_unchecked
-    }
-}
-
-fn gen_impl_into_inner(type_name: &TypeName) -> TokenStream {
-    quote! {
-        impl #type_name {
-            pub fn into_inner(self) -> String {
-                self.0
-            }
-        }
     }
 }
 
