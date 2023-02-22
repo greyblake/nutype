@@ -3,7 +3,7 @@ pub mod new_unchecked;
 pub mod parse_error;
 pub mod traits;
 
-use super::models::TypeName;
+use super::models::{ErrorTypeName, TypeName};
 use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use quote::{quote, ToTokens};
 use syn::Visibility;
@@ -56,7 +56,7 @@ pub fn gen_reimports(
     vis: Visibility,
     type_name: &TypeName,
     module_name: &Ident,
-    maybe_error_type_name: Option<&Ident>,
+    maybe_error_type_name: Option<&ErrorTypeName>,
     maybe_parse_error_type_name: Option<&Ident>,
 ) -> TokenStream {
     let reimport_main_type = quote! {

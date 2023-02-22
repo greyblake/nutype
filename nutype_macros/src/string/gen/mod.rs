@@ -14,7 +14,7 @@ use crate::{
             gen_reimports, new_unchecked::gen_new_unchecked, traits::GeneratedTraits,
             type_custom_closure,
         },
-        models::{InnerType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, InnerType, NewUnchecked, TypeName},
     },
     string::models::{StringSanitizer, StringValidator},
 };
@@ -34,7 +34,7 @@ pub fn gen_nutype_for_string(
     let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_string_implementation(type_name, &guard, new_unchecked);
 
-    let maybe_error_type_name: Option<Ident> = match guard {
+    let maybe_error_type_name: Option<ErrorTypeName> = match guard {
         StringGuard::WithoutValidation { .. } => None,
         StringGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };

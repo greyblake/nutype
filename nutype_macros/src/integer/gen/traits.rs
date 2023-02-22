@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::{
@@ -12,7 +12,7 @@ use crate::{
             gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
             GeneratableTraits, GeneratedTraits,
         },
-        models::TypeName,
+        models::{ErrorTypeName, TypeName},
     },
     integer::models::IntegerDeriveTrait,
 };
@@ -22,7 +22,7 @@ type IntegerGeneratableTrait = GeneratableTrait<IntegerStandardTrait, IntegerIrr
 pub fn gen_traits(
     type_name: &TypeName,
     inner_type: &TokenStream,
-    maybe_error_type_name: Option<Ident>,
+    maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<IntegerDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
@@ -150,7 +150,7 @@ impl ToTokens for IntegerStandardTrait {
 fn gen_implemented_traits(
     type_name: &TypeName,
     inner_type: &TokenStream,
-    maybe_error_type_name: Option<Ident>,
+    maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<IntegerIrregularTrait>,
 ) -> TokenStream {
     impl_traits

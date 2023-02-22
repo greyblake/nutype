@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::common::models::TypeName;
+use crate::common::models::{ErrorTypeName, TypeName};
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
@@ -129,7 +129,7 @@ pub fn gen_impl_trait_try_from(
 pub fn gen_impl_trait_from_str(
     type_name: &TypeName,
     inner_type: impl ToTokens,
-    maybe_error_type_name: Option<&Ident>,
+    maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
     let parse_error_type_name = gen_parse_error_name(type_name);
     let def_parse_error = gen_def_parse_error(
@@ -187,7 +187,7 @@ pub fn gen_impl_trait_serde_serialize(type_name: &TypeName) -> TokenStream {
 pub fn gen_impl_trait_serde_deserialize(
     type_name: &TypeName,
     inner_type: impl ToTokens,
-    maybe_error_type_name: Option<&Ident>,
+    maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
     let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
         quote! {

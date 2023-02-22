@@ -1,10 +1,10 @@
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 
 use crate::{
     common::{
         gen::error::{gen_error_type_name, gen_impl_error_trait},
-        models::TypeName,
+        models::{ErrorTypeName, TypeName},
     },
     string::models::StringValidator,
 };
@@ -27,7 +27,7 @@ pub fn gen_validation_error_type(
     }
 }
 
-fn gen_definition(error_type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
+fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator]) -> TokenStream {
     let error_variants: TokenStream = validators
         .iter()
         .map(|validator| match validator {
@@ -53,7 +53,10 @@ fn gen_definition(error_type_name: &Ident, validators: &[StringValidator]) -> To
     }
 }
 
-fn gen_impl_display_trait(error_type_name: &Ident, validators: &[StringValidator]) -> TokenStream {
+fn gen_impl_display_trait(
+    error_type_name: &ErrorTypeName,
+    validators: &[StringValidator],
+) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
         StringValidator::MaxLen(_len) => quote! {
              #error_type_name::TooLong => write!(f, "too long")

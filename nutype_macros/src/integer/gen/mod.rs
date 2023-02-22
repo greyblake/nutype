@@ -3,7 +3,7 @@ pub mod traits;
 
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
@@ -17,7 +17,7 @@ use crate::{
     },
     common::{
         gen::gen_impl_into_inner,
-        models::{IntegerType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, IntegerType, NewUnchecked, TypeName},
     },
 };
 
@@ -37,7 +37,7 @@ where
     let implementation = gen_implementation(type_name, number_type, &meta, new_unchecked);
     let inner_type: TokenStream = quote!(#number_type);
 
-    let maybe_error_type_name: Option<Ident> = match meta {
+    let maybe_error_type_name: Option<ErrorTypeName> = match meta {
         IntegerGuard::WithoutValidation { .. } => None,
         IntegerGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
