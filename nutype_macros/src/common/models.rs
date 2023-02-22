@@ -43,6 +43,18 @@ pub enum InnerType {
     Float(FloatInnerType),
 }
 
+impl From<IntegerInnerType> for InnerType {
+    fn from(tp: IntegerInnerType) -> InnerType {
+        InnerType::Integer(tp)
+    }
+}
+
+impl From<FloatInnerType> for InnerType {
+    fn from(tp: FloatInnerType) -> InnerType {
+        InnerType::Float(tp)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IntegerInnerType {
     U8,

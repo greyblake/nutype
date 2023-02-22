@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::common::models::{ErrorTypeName, TypeName};
+use crate::common::models::{ErrorTypeName, InnerType, TypeName};
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
@@ -51,7 +51,9 @@ where
     }
 }
 
-pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType>) -> TokenStream {
+    let inner_type: InnerType = inner_type.into();
+
     // NOTE: We're getting blank implementation of
     //     Into<Inner> for Type
     // by implementing
@@ -125,12 +127,13 @@ pub fn gen_impl_trait_try_from(
 /// Generate implementation of FromStr trait for non-string types (e.g. integers or floats).
 pub fn gen_impl_trait_from_str(
     type_name: &TypeName,
-    inner_type: impl ToTokens,
+    inner_type: impl Into<InnerType>,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
+    let inner_type: InnerType = inner_type.into();
     let parse_error_type_name = gen_parse_error_name(type_name);
     let def_parse_error = gen_def_parse_error(
-        &inner_type,
+        inner_type,
         type_name,
         maybe_error_type_name,
         &parse_error_type_name,
@@ -183,9 +186,10 @@ pub fn gen_impl_trait_serde_serialize(type_name: &TypeName) -> TokenStream {
 
 pub fn gen_impl_trait_serde_deserialize(
     type_name: &TypeName,
-    inner_type: impl ToTokens,
+    inner_type: impl Into<InnerType>,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
+    let inner_type: InnerType = inner_type.into();
     let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
         quote! {
             #type_name::new(raw_value).map_err(<D::Error as serde::de::Error>::custom)

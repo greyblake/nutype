@@ -1,13 +1,16 @@
+use crate::common::models::InnerType;
 use crate::common::models::NewUnchecked;
 use crate::common::models::TypeName;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 
 pub fn gen_new_unchecked(
     type_name: &TypeName,
-    inner_type: impl ToTokens,
+    inner_type: impl Into<InnerType>,
     new_unchecked: NewUnchecked,
 ) -> TokenStream {
+    let inner_type: InnerType = inner_type.into();
+
     match new_unchecked {
         NewUnchecked::Off => quote! {},
         NewUnchecked::On => quote! {

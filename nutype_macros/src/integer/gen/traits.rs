@@ -12,7 +12,7 @@ use crate::{
             gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
             GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, TypeName},
+        models::{ErrorTypeName, IntegerInnerType, TypeName},
     },
     integer::models::IntegerDeriveTrait,
 };
@@ -21,7 +21,7 @@ type IntegerGeneratableTrait = GeneratableTrait<IntegerStandardTrait, IntegerIrr
 
 pub fn gen_traits(
     type_name: &TypeName,
-    inner_type: &TokenStream,
+    inner_type: IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<IntegerDeriveTrait>,
 ) -> GeneratedTraits {
@@ -149,7 +149,7 @@ impl ToTokens for IntegerStandardTrait {
 
 fn gen_implemented_traits(
     type_name: &TypeName,
-    inner_type: &TokenStream,
+    inner_type: IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<IntegerIrregularTrait>,
 ) -> TokenStream {

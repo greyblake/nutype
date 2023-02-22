@@ -24,7 +24,7 @@ use crate::{
 pub fn gen_nutype_for_integer<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
-    number_type: IntegerInnerType,
+    inner_type: IntegerInnerType,
     type_name: &TypeName,
     meta: IntegerGuard<T>,
     traits: HashSet<IntegerDeriveTrait>,
@@ -34,8 +34,7 @@ where
     T: ToTokens + PartialOrd,
 {
     let module_name = gen_module_name_for_type(type_name);
-    let implementation = gen_implementation(type_name, number_type, &meta, new_unchecked);
-    let inner_type: TokenStream = quote!(#number_type);
+    let implementation = gen_implementation(type_name, inner_type, &meta, new_unchecked);
 
     let maybe_error_type_name: Option<ErrorTypeName> = match meta {
         IntegerGuard::WithoutValidation { .. } => None,
@@ -59,7 +58,7 @@ where
     let GeneratedTraits {
         derive_standard_traits,
         implement_traits,
-    } = gen_traits(type_name, &inner_type, maybe_error_type_name, traits);
+    } = gen_traits(type_name, inner_type, maybe_error_type_name, traits);
 
     quote!(
         #[doc(hidden)]

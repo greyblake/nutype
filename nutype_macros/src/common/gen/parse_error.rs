@@ -1,7 +1,7 @@
 use proc_macro2::{Ident, Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::quote;
 
-use crate::common::models::{ErrorTypeName, ParseErrorTypeName, TypeName};
+use crate::common::models::{ErrorTypeName, InnerType, ParseErrorTypeName, TypeName};
 
 /// Generate a name for the error which is used for FromStr trait implementation.
 pub fn gen_parse_error_name(type_name: &TypeName) -> ParseErrorTypeName {
@@ -13,11 +13,12 @@ pub fn gen_parse_error_name(type_name: &TypeName) -> ParseErrorTypeName {
 /// Generate an error which is used for FromStr trait implementation of non-string types (e.g.
 /// floats or integers)
 pub fn gen_def_parse_error(
-    inner_type: impl ToTokens,
+    inner_type: impl Into<InnerType>,
     type_name: &TypeName,
     maybe_error_type_name: Option<&ErrorTypeName>,
     parse_error_type_name: &ParseErrorTypeName,
 ) -> TokenStream {
+    let inner_type: InnerType = inner_type.into();
     let type_name_str = type_name.to_string();
 
     let definition = if let Some(error_type_name) = maybe_error_type_name {

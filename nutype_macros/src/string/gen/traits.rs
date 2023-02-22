@@ -11,7 +11,7 @@ use crate::{
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
             GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, TypeName},
+        models::{ErrorTypeName, InnerType, TypeName},
     },
     string::models::StringDeriveTrait,
 };
@@ -139,6 +139,8 @@ fn gen_implemented_traits(
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<StringIrregularTrait>,
 ) -> TokenStream {
+    let inner_type = InnerType::String;
+
     impl_traits
         .iter()
         .map(|t| match t {
@@ -147,7 +149,7 @@ fn gen_implemented_traits(
                 gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
             }
             StringIrregularTrait::From => gen_impl_from_str_and_string(type_name),
-            StringIrregularTrait::Into => gen_impl_trait_into(type_name, quote!(String)),
+            StringIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
             StringIrregularTrait::TryFrom => {
                 let error_type_name = maybe_error_type_name
                     .as_ref()
@@ -159,7 +161,7 @@ fn gen_implemented_traits(
             StringIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
             StringIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
                 type_name,
-                quote!(String),
+                inner_type,
                 maybe_error_type_name.as_ref(),
             ),
         })
