@@ -1,7 +1,6 @@
 ## Roadmap
 
 ### TODO Refactor:
-* Refactor: Use newtype for errors (e.g. error_type_name, etc)
 * Refactor parsers
 * Try to generelize the parsing, validation and generation over types
 
@@ -113,3 +112,4 @@
 * new_unchecked: review the PR: https://github.com/greyblake/nutype/pull/16
 * Merge code examples in README and lib.rs into bigger chunks, so doc tests can run
 * Reuse gen_impl_into_inner
+* Refactor: Use newtype for errors (e.g. error_type_name, etc)

@@ -39,12 +39,24 @@ impl<T: Kind> Kind for SpannedItem<T> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InnerType {
     String,
-    Integer(IntegerType),
-    Float(FloatType),
+    Integer(IntegerInnerType),
+    Float(FloatInnerType),
+}
+
+impl From<IntegerInnerType> for InnerType {
+    fn from(tp: IntegerInnerType) -> InnerType {
+        InnerType::Integer(tp)
+    }
+}
+
+impl From<FloatInnerType> for InnerType {
+    fn from(tp: FloatInnerType) -> InnerType {
+        InnerType::Float(tp)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IntegerType {
+pub enum IntegerInnerType {
     U8,
     U16,
     U32,
@@ -60,7 +72,7 @@ pub enum IntegerType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FloatType {
+pub enum FloatInnerType {
     F32,
     F64,
 }
@@ -81,7 +93,7 @@ impl ToTokens for InnerType {
     }
 }
 
-impl ToTokens for IntegerType {
+impl ToTokens for IntegerInnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let type_stream = match self {
             Self::U8 => quote!(u8),
@@ -101,7 +113,7 @@ impl ToTokens for IntegerType {
     }
 }
 
-impl ToTokens for FloatType {
+impl ToTokens for FloatInnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let type_stream = match self {
             Self::F32 => quote!(f32),
@@ -111,6 +123,8 @@ impl ToTokens for FloatType {
     }
 }
 
+/// A type that represents a newtype name.
+/// For example: `Username`, `Email`, etc.
 #[derive(Debug)]
 pub struct TypeName(Ident);
 
@@ -127,6 +141,52 @@ impl core::fmt::Display for TypeName {
 }
 
 impl ToTokens for TypeName {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        self.0.to_tokens(token_stream)
+    }
+}
+
+/// Repesents a type for a validation error.
+/// For example, if `TypeName` is `Email`, then `ErrorTypeName` would usually be `EmailError`.
+#[derive(Debug)]
+pub struct ErrorTypeName(Ident);
+
+impl ErrorTypeName {
+    pub fn new(name: Ident) -> Self {
+        Self(name)
+    }
+}
+
+impl core::fmt::Display for ErrorTypeName {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl ToTokens for ErrorTypeName {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        self.0.to_tokens(token_stream)
+    }
+}
+
+/// A type that represents an error name which is returned by `FromStr` traits.
+/// For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
+#[derive(Debug)]
+pub struct ParseErrorTypeName(Ident);
+
+impl ParseErrorTypeName {
+    pub fn new(name: Ident) -> Self {
+        Self(name)
+    }
+}
+
+impl core::fmt::Display for ParseErrorTypeName {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl ToTokens for ParseErrorTypeName {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         self.0.to_tokens(token_stream)
     }

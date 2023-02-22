@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::{
@@ -10,7 +10,7 @@ use crate::{
         gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
         GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
-    common::models::{FloatType, TypeName},
+    common::models::{ErrorTypeName, FloatInnerType, TypeName},
     float::models::FloatDeriveTrait,
 };
 
@@ -93,8 +93,8 @@ impl ToTokens for FloatStandardTrait {
 
 pub fn gen_traits(
     type_name: &TypeName,
-    inner_type: FloatType,
-    maybe_error_type_name: Option<Ident>,
+    inner_type: FloatInnerType,
+    maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<FloatDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
@@ -123,8 +123,8 @@ pub fn gen_traits(
 
 fn gen_implemented_traits(
     type_name: &TypeName,
-    inner_type: FloatType,
-    maybe_error_type_name: Option<Ident>,
+    inner_type: FloatInnerType,
+    maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<FloatIrregularTrait>,
 ) -> TokenStream {
     impl_traits

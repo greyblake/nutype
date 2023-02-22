@@ -6,7 +6,8 @@ mod string;
 use std::{fmt::Debug, str::FromStr};
 
 use common::models::{
-    Attributes, FloatType, InnerType, IntegerType, NewtypeMeta, SpannedDeriveTrait, TypeName,
+    Attributes, FloatInnerType, InnerType, IntegerInnerType, NewtypeMeta, SpannedDeriveTrait,
+    TypeName,
 };
 use common::parse::meta::parse_meta;
 use float::validate::validate_float_derive_traits;
@@ -63,18 +64,18 @@ fn expand_nutype(
                 derive_traits,
             };
             match tp {
-                IntegerType::U8 => parse_integer_attrs_and_gen::<u8>(params),
-                IntegerType::U16 => parse_integer_attrs_and_gen::<u16>(params),
-                IntegerType::U32 => parse_integer_attrs_and_gen::<u32>(params),
-                IntegerType::U64 => parse_integer_attrs_and_gen::<u64>(params),
-                IntegerType::U128 => parse_integer_attrs_and_gen::<u128>(params),
-                IntegerType::Usize => parse_integer_attrs_and_gen::<usize>(params),
-                IntegerType::I8 => parse_integer_attrs_and_gen::<i8>(params),
-                IntegerType::I16 => parse_integer_attrs_and_gen::<i16>(params),
-                IntegerType::I32 => parse_integer_attrs_and_gen::<i32>(params),
-                IntegerType::I64 => parse_integer_attrs_and_gen::<i64>(params),
-                IntegerType::I128 => parse_integer_attrs_and_gen::<i128>(params),
-                IntegerType::Isize => parse_integer_attrs_and_gen::<isize>(params),
+                IntegerInnerType::U8 => parse_integer_attrs_and_gen::<u8>(params),
+                IntegerInnerType::U16 => parse_integer_attrs_and_gen::<u16>(params),
+                IntegerInnerType::U32 => parse_integer_attrs_and_gen::<u32>(params),
+                IntegerInnerType::U64 => parse_integer_attrs_and_gen::<u64>(params),
+                IntegerInnerType::U128 => parse_integer_attrs_and_gen::<u128>(params),
+                IntegerInnerType::Usize => parse_integer_attrs_and_gen::<usize>(params),
+                IntegerInnerType::I8 => parse_integer_attrs_and_gen::<i8>(params),
+                IntegerInnerType::I16 => parse_integer_attrs_and_gen::<i16>(params),
+                IntegerInnerType::I32 => parse_integer_attrs_and_gen::<i32>(params),
+                IntegerInnerType::I64 => parse_integer_attrs_and_gen::<i64>(params),
+                IntegerInnerType::I128 => parse_integer_attrs_and_gen::<i128>(params),
+                IntegerInnerType::Isize => parse_integer_attrs_and_gen::<isize>(params),
             }
         }
         InnerType::Float(tp) => {
@@ -87,8 +88,8 @@ fn expand_nutype(
                 derive_traits,
             };
             match tp {
-                FloatType::F32 => parse_float_attrs_and_gen::<f32>(params),
-                FloatType::F64 => parse_float_attrs_and_gen::<f64>(params),
+                FloatInnerType::F32 => parse_float_attrs_and_gen::<f32>(params),
+                FloatInnerType::F64 => parse_float_attrs_and_gen::<f64>(params),
             }
         }
     }
@@ -104,7 +105,7 @@ struct NumberParams<NumberType> {
 }
 
 fn parse_integer_attrs_and_gen<T>(
-    params: NumberParams<IntegerType>,
+    params: NumberParams<IntegerInnerType>,
 ) -> Result<TokenStream, syn::Error>
 where
     T: FromStr + ToTokens + PartialOrd + Clone,
@@ -134,7 +135,9 @@ where
     ))
 }
 
-fn parse_float_attrs_and_gen<T>(params: NumberParams<FloatType>) -> Result<TokenStream, syn::Error>
+fn parse_float_attrs_and_gen<T>(
+    params: NumberParams<FloatInnerType>,
+) -> Result<TokenStream, syn::Error>
 where
     T: FromStr + ToTokens + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,

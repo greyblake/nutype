@@ -3,7 +3,7 @@ pub mod traits;
 
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
@@ -17,7 +17,7 @@ use crate::{
     },
     common::{
         gen::gen_impl_into_inner,
-        models::{FloatType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, FloatInnerType, NewUnchecked, TypeName},
     },
 };
 use traits::gen_traits;
@@ -25,7 +25,7 @@ use traits::gen_traits;
 pub fn gen_nutype_for_float<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
-    inner_type: FloatType,
+    inner_type: FloatInnerType,
     type_name: &TypeName,
     meta: FloatGuard<T>,
     traits: HashSet<FloatDeriveTrait>,
@@ -37,7 +37,7 @@ where
     let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_implementation(type_name, inner_type, &meta, new_unchecked);
 
-    let maybe_error_type_name: Option<Ident> = match meta {
+    let maybe_error_type_name: Option<ErrorTypeName> = match meta {
         FloatGuard::WithoutValidation { .. } => None,
         FloatGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
@@ -79,7 +79,7 @@ where
 
 pub fn gen_implementation<T>(
     type_name: &TypeName,
-    inner_type: FloatType,
+    inner_type: FloatInnerType,
     meta: &FloatGuard<T>,
     new_unchecked: NewUnchecked,
 ) -> TokenStream
@@ -107,7 +107,7 @@ where
 
 fn gen_new_without_validation<T>(
     type_name: &TypeName,
-    inner_type: FloatType,
+    inner_type: FloatInnerType,
     sanitizers: &[FloatSanitizer<T>],
 ) -> TokenStream
 where
@@ -127,7 +127,7 @@ where
 
 fn gen_new_with_validation<T>(
     type_name: &TypeName,
-    inner_type: FloatType,
+    inner_type: FloatInnerType,
     sanitizers: &[FloatSanitizer<T>],
     validators: &[FloatValidator<T>],
 ) -> TokenStream
@@ -157,7 +157,7 @@ where
     )
 }
 
-fn gen_sanitize_fn<T>(inner_type: FloatType, sanitizers: &[FloatSanitizer<T>]) -> TokenStream
+fn gen_sanitize_fn<T>(inner_type: FloatInnerType, sanitizers: &[FloatSanitizer<T>]) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -186,7 +186,7 @@ where
 
 fn gen_validate_fn<T>(
     type_name: &TypeName,
-    inner_type: FloatType,
+    inner_type: FloatInnerType,
     validators: &[FloatValidator<T>],
 ) -> TokenStream
 where

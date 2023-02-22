@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
             GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
-        models::TypeName,
+        models::{ErrorTypeName, InnerType, TypeName},
     },
     string::models::StringDeriveTrait,
 };
@@ -111,7 +111,7 @@ impl ToTokens for StringStandardTrait {
 
 pub fn gen_traits(
     type_name: &TypeName,
-    maybe_error_type_name: Option<Ident>,
+    maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<StringDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
@@ -136,9 +136,11 @@ pub fn gen_traits(
 
 fn gen_implemented_traits(
     type_name: &TypeName,
-    maybe_error_type_name: Option<Ident>,
+    maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<StringIrregularTrait>,
 ) -> TokenStream {
+    let inner_type = InnerType::String;
+
     impl_traits
         .iter()
         .map(|t| match t {
@@ -147,7 +149,7 @@ fn gen_implemented_traits(
                 gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
             }
             StringIrregularTrait::From => gen_impl_from_str_and_string(type_name),
-            StringIrregularTrait::Into => gen_impl_trait_into(type_name, quote!(String)),
+            StringIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
             StringIrregularTrait::TryFrom => {
                 let error_type_name = maybe_error_type_name
                     .as_ref()
@@ -159,14 +161,17 @@ fn gen_implemented_traits(
             StringIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
             StringIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
                 type_name,
-                quote!(String),
+                inner_type,
                 maybe_error_type_name.as_ref(),
             ),
         })
         .collect()
 }
 
-fn gen_impl_from_str(type_name: &TypeName, maybe_error_type_name: Option<&Ident>) -> TokenStream {
+fn gen_impl_from_str(
+    type_name: &TypeName,
+    maybe_error_type_name: Option<&ErrorTypeName>,
+) -> TokenStream {
     if let Some(error_type_name) = maybe_error_type_name {
         quote! {
             impl core::str::FromStr for #type_name {
@@ -200,7 +205,7 @@ fn gen_impl_from_str_and_string(type_name: &TypeName) -> TokenStream {
     }
 }
 
-fn gen_impl_try_from(type_name: &TypeName, error_type_name: &Ident) -> TokenStream {
+fn gen_impl_try_from(type_name: &TypeName, error_type_name: &ErrorTypeName) -> TokenStream {
     let impl_try_from_string = gen_impl_trait_try_from(type_name, quote!(String), error_type_name);
     let impl_try_from_str = gen_impl_trait_try_from(type_name, quote!(&str), error_type_name);
 

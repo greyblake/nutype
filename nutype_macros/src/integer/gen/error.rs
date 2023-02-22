@@ -1,10 +1,10 @@
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 
 use super::super::models::IntegerValidator;
 use crate::common::{
     gen::error::{gen_error_type_name, gen_impl_error_trait},
-    models::TypeName,
+    models::{ErrorTypeName, TypeName},
 };
 
 pub fn gen_validation_error_type<T>(
@@ -25,7 +25,10 @@ pub fn gen_validation_error_type<T>(
     }
 }
 
-fn gen_definition<T>(error_type_name: &Ident, validators: &[IntegerValidator<T>]) -> TokenStream {
+fn gen_definition<T>(
+    error_type_name: &ErrorTypeName,
+    validators: &[IntegerValidator<T>],
+) -> TokenStream {
     let error_variants: TokenStream = validators
         .iter()
         .map(|validator| match validator {
@@ -49,7 +52,7 @@ fn gen_definition<T>(error_type_name: &Ident, validators: &[IntegerValidator<T>]
 }
 
 fn gen_impl_display_trait<T>(
-    error_type_name: &Ident,
+    error_type_name: &ErrorTypeName,
     validators: &[IntegerValidator<T>],
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {

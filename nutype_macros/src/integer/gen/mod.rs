@@ -3,7 +3,7 @@ pub mod traits;
 
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::Visibility;
 
@@ -17,14 +17,14 @@ use crate::{
     },
     common::{
         gen::gen_impl_into_inner,
-        models::{IntegerType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, IntegerInnerType, NewUnchecked, TypeName},
     },
 };
 
 pub fn gen_nutype_for_integer<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
-    number_type: IntegerType,
+    inner_type: IntegerInnerType,
     type_name: &TypeName,
     meta: IntegerGuard<T>,
     traits: HashSet<IntegerDeriveTrait>,
@@ -34,10 +34,9 @@ where
     T: ToTokens + PartialOrd,
 {
     let module_name = gen_module_name_for_type(type_name);
-    let implementation = gen_implementation(type_name, number_type, &meta, new_unchecked);
-    let inner_type: TokenStream = quote!(#number_type);
+    let implementation = gen_implementation(type_name, inner_type, &meta, new_unchecked);
 
-    let maybe_error_type_name: Option<Ident> = match meta {
+    let maybe_error_type_name: Option<ErrorTypeName> = match meta {
         IntegerGuard::WithoutValidation { .. } => None,
         IntegerGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };
@@ -59,7 +58,7 @@ where
     let GeneratedTraits {
         derive_standard_traits,
         implement_traits,
-    } = gen_traits(type_name, &inner_type, maybe_error_type_name, traits);
+    } = gen_traits(type_name, inner_type, maybe_error_type_name, traits);
 
     quote!(
         #[doc(hidden)]
@@ -79,7 +78,7 @@ where
 
 pub fn gen_implementation<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     meta: &IntegerGuard<T>,
     new_unchecked: NewUnchecked,
 ) -> TokenStream
@@ -107,7 +106,7 @@ where
 
 fn gen_new_without_validation<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     sanitizers: &[IntegerSanitizer<T>],
 ) -> TokenStream
 where
@@ -127,7 +126,7 @@ where
 
 fn gen_new_with_validation<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     sanitizers: &[IntegerSanitizer<T>],
     validators: &[IntegerValidator<T>],
 ) -> TokenStream
@@ -157,7 +156,10 @@ where
     )
 }
 
-fn gen_sanitize_fn<T>(inner_type: IntegerType, sanitizers: &[IntegerSanitizer<T>]) -> TokenStream
+fn gen_sanitize_fn<T>(
+    inner_type: IntegerInnerType,
+    sanitizers: &[IntegerSanitizer<T>],
+) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -186,7 +188,7 @@ where
 
 fn gen_validate_fn<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     validators: &[IntegerValidator<T>],
 ) -> TokenStream
 where
