@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 
-use crate::common::models::{FloatType, IntegerType, TypeName};
+use crate::common::models::{FloatInnerType, IntegerInnerType, TypeName};
 use crate::{
     common::models::{InnerType, NewtypeMeta},
     common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
@@ -75,20 +75,20 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
 
     let inner_type = match type_path_str.as_ref() {
         "String" => InnerType::String,
-        "u8" => InnerType::Integer(IntegerType::U8),
-        "u16" => InnerType::Integer(IntegerType::U16),
-        "u32" => InnerType::Integer(IntegerType::U32),
-        "u64" => InnerType::Integer(IntegerType::U64),
-        "u128" => InnerType::Integer(IntegerType::U128),
-        "usize" => InnerType::Integer(IntegerType::Usize),
-        "i8" => InnerType::Integer(IntegerType::I8),
-        "i16" => InnerType::Integer(IntegerType::I16),
-        "i32" => InnerType::Integer(IntegerType::I32),
-        "i64" => InnerType::Integer(IntegerType::I64),
-        "i128" => InnerType::Integer(IntegerType::I128),
-        "isize" => InnerType::Integer(IntegerType::Isize),
-        "f32" => InnerType::Float(FloatType::F32),
-        "f64" => InnerType::Float(FloatType::F64),
+        "u8" => InnerType::Integer(IntegerInnerType::U8),
+        "u16" => InnerType::Integer(IntegerInnerType::U16),
+        "u32" => InnerType::Integer(IntegerInnerType::U32),
+        "u64" => InnerType::Integer(IntegerInnerType::U64),
+        "u128" => InnerType::Integer(IntegerInnerType::U128),
+        "usize" => InnerType::Integer(IntegerInnerType::Usize),
+        "i8" => InnerType::Integer(IntegerInnerType::I8),
+        "i16" => InnerType::Integer(IntegerInnerType::I16),
+        "i32" => InnerType::Integer(IntegerInnerType::I32),
+        "i64" => InnerType::Integer(IntegerInnerType::I64),
+        "i128" => InnerType::Integer(IntegerInnerType::I128),
+        "isize" => InnerType::Integer(IntegerInnerType::Isize),
+        "f32" => InnerType::Float(FloatInnerType::F32),
+        "f64" => InnerType::Float(FloatInnerType::F64),
         tp => {
             let error = syn::Error::new(
                 seg.span(),

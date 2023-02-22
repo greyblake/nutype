@@ -17,14 +17,14 @@ use crate::{
     },
     common::{
         gen::gen_impl_into_inner,
-        models::{ErrorTypeName, IntegerType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, IntegerInnerType, NewUnchecked, TypeName},
     },
 };
 
 pub fn gen_nutype_for_integer<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
-    number_type: IntegerType,
+    number_type: IntegerInnerType,
     type_name: &TypeName,
     meta: IntegerGuard<T>,
     traits: HashSet<IntegerDeriveTrait>,
@@ -79,7 +79,7 @@ where
 
 pub fn gen_implementation<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     meta: &IntegerGuard<T>,
     new_unchecked: NewUnchecked,
 ) -> TokenStream
@@ -107,7 +107,7 @@ where
 
 fn gen_new_without_validation<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     sanitizers: &[IntegerSanitizer<T>],
 ) -> TokenStream
 where
@@ -127,7 +127,7 @@ where
 
 fn gen_new_with_validation<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     sanitizers: &[IntegerSanitizer<T>],
     validators: &[IntegerValidator<T>],
 ) -> TokenStream
@@ -157,7 +157,10 @@ where
     )
 }
 
-fn gen_sanitize_fn<T>(inner_type: IntegerType, sanitizers: &[IntegerSanitizer<T>]) -> TokenStream
+fn gen_sanitize_fn<T>(
+    inner_type: IntegerInnerType,
+    sanitizers: &[IntegerSanitizer<T>],
+) -> TokenStream
 where
     T: ToTokens + PartialOrd,
 {
@@ -186,7 +189,7 @@ where
 
 fn gen_validate_fn<T>(
     type_name: &TypeName,
-    inner_type: IntegerType,
+    inner_type: IntegerInnerType,
     validators: &[IntegerValidator<T>],
 ) -> TokenStream
 where

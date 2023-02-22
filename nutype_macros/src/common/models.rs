@@ -39,12 +39,12 @@ impl<T: Kind> Kind for SpannedItem<T> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InnerType {
     String,
-    Integer(IntegerType),
-    Float(FloatType),
+    Integer(IntegerInnerType),
+    Float(FloatInnerType),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IntegerType {
+pub enum IntegerInnerType {
     U8,
     U16,
     U32,
@@ -60,7 +60,7 @@ pub enum IntegerType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FloatType {
+pub enum FloatInnerType {
     F32,
     F64,
 }
@@ -81,7 +81,7 @@ impl ToTokens for InnerType {
     }
 }
 
-impl ToTokens for IntegerType {
+impl ToTokens for IntegerInnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let type_stream = match self {
             Self::U8 => quote!(u8),
@@ -101,7 +101,7 @@ impl ToTokens for IntegerType {
     }
 }
 
-impl ToTokens for FloatType {
+impl ToTokens for FloatInnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let type_stream = match self {
             Self::F32 => quote!(f32),
