@@ -86,10 +86,7 @@ pub fn gen_impl_trait_dislpay(type_name: &TypeName) -> TokenStream {
     }
 }
 
-pub fn gen_impl_trait_borrow(
-    type_name: impl ToTokens,
-    borrowed_type: impl ToTokens,
-) -> TokenStream {
+pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens) -> TokenStream {
     quote! {
         impl ::core::borrow::Borrow<#borrowed_type> for #type_name {
             fn borrow(&self) -> &#borrowed_type {
@@ -99,7 +96,7 @@ pub fn gen_impl_trait_borrow(
     }
 }
 
-pub fn gen_impl_trait_from(type_name: impl ToTokens, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_from(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
     quote! {
         impl ::core::convert::From<#inner_type> for #type_name {
             fn from(raw_value: #inner_type) -> Self {
@@ -110,9 +107,9 @@ pub fn gen_impl_trait_from(type_name: impl ToTokens, inner_type: impl ToTokens) 
 }
 
 pub fn gen_impl_trait_try_from(
-    type_name: impl ToTokens,
+    type_name: &TypeName,
     inner_type: impl ToTokens,
-    error_type_name: impl ToTokens,
+    error_type_name: &ErrorTypeName,
 ) -> TokenStream {
     quote! {
         impl ::core::convert::TryFrom<#inner_type> for #type_name {
