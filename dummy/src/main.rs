@@ -1,18 +1,18 @@
 use nutype::nutype;
 
 #[nutype(validate(max = 12.34))]
-#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize)]
+#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize, JsonSchema)]
 pub struct Dist(f64);
 
 #[nutype(
     new_unchecked
     validate(min = 18, max = 99)
 )]
-#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize)]
+#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize, JsonSchema)]
 pub struct Age(u8);
 
 #[nutype(new_unchecked)]
-#[derive(Debug, FromStr, Display, Clone, Serialize)]
+#[derive(Debug, FromStr, Display, Clone, Serialize, JsonSchema)]
 pub struct Username(String);
 
 fn main() {

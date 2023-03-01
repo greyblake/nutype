@@ -104,6 +104,7 @@ pub enum FloatDeriveTrait {
     // External crates
     SerdeSerialize,
     SerdeDeserialize,
+    SchemarsJsonSchema,
     // Arbitrary,
 }
 

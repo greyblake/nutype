@@ -99,6 +99,9 @@ impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
             IntegerDeriveTrait::SerdeDeserialize => {
                 IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::SerdeDeserialize)
             }
+            IntegerDeriveTrait::SchemarsJsonSchema => {
+                IntegerGeneratableTrait::Standard(IntegerStandardTrait::SchemarsJsonSchema)
+            }
         }
     }
 }
@@ -114,6 +117,7 @@ enum IntegerStandardTrait {
     PartialOrd,
     Ord,
     Hash,
+    SchemarsJsonSchema,
 }
 
 /// A trait that can not be automatically derived and we need to generate
@@ -142,6 +146,7 @@ impl ToTokens for IntegerStandardTrait {
             Self::PartialOrd => quote!(PartialOrd),
             Self::Ord => quote!(Ord),
             Self::Hash => quote!(Hash),
+            Self::SchemarsJsonSchema => quote!(::schemars::JsonSchema),
         };
         tokens.to_tokens(token_stream)
     }

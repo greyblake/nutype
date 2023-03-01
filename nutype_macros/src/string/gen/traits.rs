@@ -28,6 +28,7 @@ enum StringStandardTrait {
     PartialOrd,
     Ord,
     Hash,
+    SchemarsJsonSchema,
 }
 
 /// A trait that can not be automatically derived and we need to generate
@@ -90,6 +91,9 @@ impl From<StringDeriveTrait> for StringGeneratableTrait {
             StringDeriveTrait::SerdeDeserialize => {
                 StringGeneratableTrait::Irregular(StringIrregularTrait::SerdeDeserialize)
             }
+            StringDeriveTrait::SchemarsJsonSchema => {
+                StringGeneratableTrait::Standard(StringStandardTrait::SchemarsJsonSchema)
+            }
         }
     }
 }
@@ -104,6 +108,7 @@ impl ToTokens for StringStandardTrait {
             Self::PartialOrd => quote!(PartialOrd),
             Self::Ord => quote!(Ord),
             Self::Hash => quote!(Hash),
+            Self::SchemarsJsonSchema => quote!(::schemars::JsonSchema),
         };
         tokens.to_tokens(token_stream)
     }
