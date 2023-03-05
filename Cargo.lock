@@ -173,6 +173,7 @@ name = "test_suite"
 version = "0.1.0"
 dependencies = [
  "nutype",
+ "schemars",
  "serde",
  "serde_json",
  "trybuild",

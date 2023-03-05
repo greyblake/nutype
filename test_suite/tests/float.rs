@@ -428,3 +428,21 @@ mod new_unchecked {
         assert_eq!(dist.into_inner(), 3.0);
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "schemars08")]
+mod derive_schemars_json_schema {
+    use super::*;
+    use schemars::{schema_for, JsonSchema};
+
+    #[test]
+    fn test_json_schema_derive() {
+        #[nutype]
+        #[derive(JsonSchema)]
+        pub struct ProductWeight(f64);
+
+        assert_eq!(ProductWeight::schema_name(), "ProductWeight");
+        // Make sure it compiles
+        let _schema = schema_for!(ProductWeight);
+    }
+}

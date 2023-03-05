@@ -1,4 +1,5 @@
 use nutype::nutype;
+use schemars::JsonSchema;
 
 #[nutype(validate(max = 12.34))]
 #[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize, JsonSchema)]
