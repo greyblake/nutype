@@ -1,7 +1,8 @@
 ## Roadmap
-* JsonSchema: UI test
 * JsonSchema: add README, lib docs
-* In test_suite/Cargo.toml  pass `new_unchecked = ["nutype/new_unchecked"]`
+
+## Tech debt
+* Make individual UI tests possible to opt-out depending on the feature flags.
 
 ### TODO Refactor:
 * Refactor parsers
@@ -117,3 +118,4 @@
 * Reuse gen_impl_into_inner
 * Refactor: Use newtype for errors (e.g. error_type_name, etc)
 * JsonSchema: Add unit tests
+* JsonSchema: UI test

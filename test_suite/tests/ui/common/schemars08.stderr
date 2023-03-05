@@ -1,0 +1,5 @@
+error: To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled.
+ --> tests/ui/common/schemars08.rs:4:10
+  |
+4 | #[derive(JsonSchema)]
+  |          ^^^^^^^^^^

@@ -15,6 +15,6 @@ schemars = { version = "0.8", optional = true }
 
 [features]
 serde1 = ["nutype/serde1", "serde", "serde_json"]
-schemars08 = ["nutype/schemars08", "schemars"]
+schemars08 = ["schemars"]
 new_unchecked = []
 ui = []
