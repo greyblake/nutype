@@ -117,6 +117,7 @@ pub enum StringDeriveTrait {
     //
     SerdeSerialize,
     SerdeDeserialize,
+    SchemarsJsonSchema,
     // Arbitrary,
 }
 

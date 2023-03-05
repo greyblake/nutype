@@ -2,6 +2,7 @@ test:
 	cargo test
 	cargo test --features serde1
 	cargo test --features new_unchecked
+	cargo test --features schemars08
 	cargo test --all-features
 
 watch:

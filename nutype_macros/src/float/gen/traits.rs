@@ -16,6 +16,7 @@ use crate::{
 
 type FloatGeneratableTrait = GeneratableTrait<FloatStandardTrait, FloatIrregularTrait>;
 
+// TODO: Consider renaming Standard -> Proxy ?
 /// A trait that can be automatically derived.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 enum FloatStandardTrait {
@@ -24,6 +25,7 @@ enum FloatStandardTrait {
     Copy,
     PartialEq,
     PartialOrd,
+    SchemarsJsonSchema,
 }
 
 /// A trait that can not be automatically derived and we need to generate
@@ -74,6 +76,9 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             FloatDeriveTrait::SerdeDeserialize => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::SerdeDeserialize)
             }
+            FloatDeriveTrait::SchemarsJsonSchema => {
+                FloatGeneratableTrait::Standard(FloatStandardTrait::SchemarsJsonSchema)
+            }
         }
     }
 }
@@ -86,6 +91,7 @@ impl ToTokens for FloatStandardTrait {
             Self::Copy => quote!(Copy),
             Self::PartialEq => quote!(PartialEq),
             Self::PartialOrd => quote!(PartialOrd),
+            Self::SchemarsJsonSchema => quote!(::schemars::JsonSchema),
         };
         tokens.to_tokens(token_stream)
     }

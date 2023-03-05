@@ -1,4 +1,8 @@
 ## Roadmap
+* JsonSchema: add README, lib docs
+
+## Tech debt
+* Make individual UI tests possible to opt-out depending on the feature flags.
 
 ### TODO Refactor:
 * Refactor parsers
@@ -113,3 +117,5 @@
 * Merge code examples in README and lib.rs into bigger chunks, so doc tests can run
 * Reuse gen_impl_into_inner
 * Refactor: Use newtype for errors (e.g. error_type_name, etc)
+* JsonSchema: Add unit tests
+* JsonSchema: UI test

@@ -171,5 +171,6 @@ fn to_float_derive_trait(
         }
         NormalDeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
         NormalDeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),
+        NormalDeriveTrait::SchemarsJsonSchema => Ok(FloatDeriveTrait::SchemarsJsonSchema),
     }
 }
