@@ -27,7 +27,6 @@ regex = { version = "1", optional = true }
 proc-macro = true
 
 [features]
-serde1 = []
-regex1 = ["regex"]
+serde = []
 schemars08 = []
 new_unchecked = []

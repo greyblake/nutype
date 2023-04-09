@@ -60,11 +60,11 @@ pub enum StringValidator {
     MaxLen(usize),
     NotEmpty,
     With(TokenStream),
-    #[cfg_attr(not(feature = "regex1"), allow(dead_code))]
+    #[cfg_attr(not(feature = "regex"), allow(dead_code))]
     Regex(RegexDef),
 }
 
-#[cfg_attr(not(feature = "regex1"), allow(dead_code))]
+#[cfg_attr(not(feature = "regex"), allow(dead_code))]
 #[derive(Debug)]
 pub enum RegexDef {
     /// The case, when regex is defined with string literal inlined, e.g.:

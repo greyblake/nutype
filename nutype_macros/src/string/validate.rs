@@ -68,7 +68,7 @@ fn validate_validators(
 
     // Validate regex
     //
-    #[cfg(feature = "regex1")]
+    #[cfg(feature = "regex")]
     for v in validators.iter() {
         if let StringValidator::Regex(ref regex_def) = v.item {
             regex_validation::validate_regex_def(regex_def, v.span)?;
@@ -191,7 +191,7 @@ fn to_string_derive_trait(
     }
 }
 
-#[cfg(feature = "regex1")]
+#[cfg(feature = "regex")]
 mod regex_validation {
     use super::*;
     use crate::string::models::RegexDef;

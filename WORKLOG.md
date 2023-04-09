@@ -82,7 +82,7 @@
 * Reduce duplications: the types share mainly same structure
 * UI: Hide private module docs: Use #[doc(hidden)] on the module!
 * UI: Validate and show helpful error on attempt to make inner field public. E.g. `Value(pub i32)`
-* Find a way to bypass serde1 feature flag from `nutype` to `nutype_macros`.
+* Find a way to bypass serde feature flag from `nutype` to `nutype_macros`.
 * Support serde: impl Serialize
 * Impl Serialize tests for: integer, float, string
 * Impl Clone tests for: integer, float, string

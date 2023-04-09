@@ -124,7 +124,7 @@
 //! | `max_len`   | Max length of the string                                                        | `TooLong`       | `max_len = 255`                              |
 //! | `min_len`   | Min length of the string                                                        | `TooShort`      | `min_len = 5`                                |
 //! | `not_empty` | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
-//! | `regex`     | Validates format with a regex. Requires `regex1` feature.                       | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
+//! | `regex`     | Validates format with a regex. Requires `regex` feature.                        | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
 //! | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
 //!
 //! #### Regex validation
@@ -303,10 +303,10 @@
 //!
 //! ## Feature flags
 //!
-//! * `serde1` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
+//! * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
 //! * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 //! * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
-//! * `regex1` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` and `lazy_static` within dependencies.
+//! * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` and `lazy_static` within dependencies.
 //!
 //! ## Support Ukrainian military forces 🇺🇦
 //!

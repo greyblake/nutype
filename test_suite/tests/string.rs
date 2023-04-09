@@ -389,7 +389,7 @@ mod derives {
         assert_eq!(name.to_string(), "Serhii");
     }
 
-    #[cfg(feature = "serde1")]
+    #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {
         #[nutype]
@@ -401,7 +401,7 @@ mod derives {
         assert_eq!(email_json, "\"my@example.com\"");
     }
 
-    #[cfg(feature = "serde1")]
+    #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_without_validation() {
         #[nutype]
@@ -414,7 +414,7 @@ mod derives {
         }
     }
 
-    #[cfg(feature = "serde1")]
+    #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_with_validation() {
         #[nutype(
@@ -473,7 +473,7 @@ mod derive_schemars_json_schema {
 }
 
 #[cfg(test)]
-#[cfg(feature = "regex1")]
+#[cfg(feature = "regex")]
 mod validation_with_regex {
     use super::*;
     use lazy_static::lazy_static;

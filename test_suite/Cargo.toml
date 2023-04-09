@@ -17,8 +17,8 @@ regex = { version = "1", optional = true }
 once_cell = { version = "1", optional = true }
 
 [features]
-serde1 = ["nutype/serde1", "serde", "serde_json"]
-regex1 = ["nutype/regex1", "regex", "lazy_static", "once_cell"]
+serde = ["nutype/serde", "dep:serde", "dep:serde_json"]
+regex = ["nutype/regex", "dep:regex", "dep:lazy_static", "dep:once_cell"]
 schemars08 = ["schemars"]
 new_unchecked = []
 ui = []

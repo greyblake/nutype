@@ -111,17 +111,17 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
                 Ok(parsed_validator)
             }
             "regex" => {
-                #[cfg(not(feature = "regex1"))]
+                #[cfg(not(feature = "regex"))]
                 {
                     let msg = concat!(
-                        "To validate string types with regex, the feature `regex1` of the crate `nutype` must be enabled.\n",
+                        "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
                         "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
                         "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
                     );
                     return Err(syn::Error::new(ident.span(), msg));
                 }
 
-                #[cfg(feature = "regex1")]
+                #[cfg(feature = "regex")]
                 {
                     let rest_tokens: Vec<_> = token_iter.collect();
                     let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
@@ -145,7 +145,7 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
     }
 }
 
-#[cfg_attr(not(feature = "regex1"), allow(dead_code))]
+#[cfg_attr(not(feature = "regex"), allow(dead_code))]
 fn parse_regex(
     stream: TokenStream,
     span: proc_macro2::Span,
