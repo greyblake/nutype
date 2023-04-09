@@ -357,7 +357,7 @@ mod traits {
         assert_eq!(size.to_string(), "35.7");
     }
 
-    #[cfg(feature = "serde1")]
+    #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {
         #[nutype]
@@ -369,7 +369,7 @@ mod traits {
         assert_eq!(offset_json, "-33.5");
     }
 
-    #[cfg(feature = "serde1")]
+    #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_without_validation() {
         #[nutype]
@@ -387,7 +387,7 @@ mod traits {
         }
     }
 
-    #[cfg(feature = "serde1")]
+    #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_with_validation() {
         #[nutype(validate(min = 13.3))]

@@ -321,17 +321,17 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Hash" => NormalDeriveTrait::Hash,
         "Borrow" => NormalDeriveTrait::Borrow,
         "Serialize" => {
-            #[cfg(not(feature = "serde1"))]
-            return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde1` of the crate `nutype` needs to be enabled."));
+            #[cfg(not(feature = "serde"))]
+            return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
 
-            #[cfg(feature = "serde1")]
+            #[cfg(feature = "serde")]
             NormalDeriveTrait::SerdeSerialize
         }
         "Deserialize" => {
-            #[cfg(not(feature = "serde1"))]
-            return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde1` of the crate `nutype` needs to be enabled."));
+            #[cfg(not(feature = "serde"))]
+            return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled."));
 
-            #[cfg(feature = "serde1")]
+            #[cfg(feature = "serde")]
             NormalDeriveTrait::SerdeDeserialize
         }
         "JsonSchema" => {

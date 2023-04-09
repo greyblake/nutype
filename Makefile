@@ -1,6 +1,6 @@
 test: clippy
 	cargo test
-	cargo test --features serde1
+	cargo test --features serde
 	cargo test --features regex
 	cargo test --features new_unchecked
 	cargo test --features schemars08

@@ -301,10 +301,10 @@ assert_eq!(name.into_inner(), " boo ");
 
 ## Feature flags
 
-* `serde1` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
-* `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
+* `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
 * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` and `lazy_static` within dependencies.
 * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
+* `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 
 ## When nutype is a good fit for you?
 

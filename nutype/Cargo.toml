@@ -18,7 +18,7 @@ categories = ["data-structures", "rust-patterns"]
 nutype_macros = { version = "0.2.0", path = "../nutype_macros" }
 
 [features]
-serde1 = ["nutype_macros/serde1"]
+serde = ["nutype_macros/serde"]
 regex = ["nutype_macros/regex"]
 schemars08 = ["nutype_macros/schemars08"]
 new_unchecked = ["nutype_macros/new_unchecked"]

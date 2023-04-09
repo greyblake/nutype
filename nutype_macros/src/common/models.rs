@@ -266,9 +266,9 @@ pub enum NormalDeriveTrait {
 
     // External crates
     //
-    #[cfg_attr(not(feature = "serde1"), allow(dead_code))]
+    #[cfg_attr(not(feature = "serde"), allow(dead_code))]
     SerdeSerialize,
-    #[cfg_attr(not(feature = "serde1"), allow(dead_code))]
+    #[cfg_attr(not(feature = "serde"), allow(dead_code))]
     SerdeDeserialize,
 
     #[cfg_attr(not(feature = "schemars08"), allow(dead_code))]
