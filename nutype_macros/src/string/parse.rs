@@ -145,6 +145,7 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
     }
 }
 
+#[cfg_attr(not(feature = "regex1"), allow(dead_code))]
 fn parse_regex(
     stream: TokenStream,
     span: proc_macro2::Span,

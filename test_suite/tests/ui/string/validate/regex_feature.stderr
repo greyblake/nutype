@@ -1,7 +1,0 @@
-error: To validate string types with regex, the feature `regex1` of the crate `nutype` must be enabled.
-       IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.
-       And... don't forget to take care of yourself and your beloved ones. That is even more important.
- --> tests/ui/string/validate/regex_feature.rs:3:19
-  |
-3 | #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"))]
-  |                   ^^^^^
