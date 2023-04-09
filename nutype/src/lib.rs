@@ -9,28 +9,23 @@
 //!
 //! ## Quick start
 //!
-//! ```rust
+//! ```
 //! use nutype::nutype;
 //!
 //! #[nutype(
 //!     sanitize(trim, lowercase)
 //!     validate(not_empty, max_len = 20)
 //! )]
+//! #[derive(Debug, PartialEq)]
 //! pub struct Username(String);
-//! ```
 //!
-//! Now we can create usernames:
-//!
-//! ```ignore
+//! // Now we can create usernames:
 //! assert_eq!(
 //!     Username::new("   FooBar  ").unwrap().into_inner(),
 //!     "foobar"
 //! );
-//! ```
 //!
-//! But we cannot create invalid ones:
-//!
-//! ```ignore
+//! // But we cannot create invalid ones:
 //! assert_eq!(
 //!     Username::new("   "),
 //!     Err(UsernameError::Empty),
@@ -124,12 +119,60 @@
 //!
 //! ### String validators
 //!
-//! | Validator   | Description                                                                     | Error variant | Example                              |
-//! |-------------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
-//! | `max_len`   | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
-//! | `min_len`   | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
-//! | `not_empty` | Rejects an empty string                                                         | `Empty`       | `not_empty`                          |
-//! | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
+//! | Validator   | Description                                                                     | Error variant   | Example                                      |
+//! |-------------|---------------------------------------------------------------------------------|-----------------|----------------------------------------------|
+//! | `max_len`   | Max length of the string                                                        | `TooLong`       | `max_len = 255`                              |
+//! | `min_len`   | Min length of the string                                                        | `TooShort`      | `min_len = 5`                                |
+//! | `not_empty` | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
+//! | `regex`     | Validates format with a regex. Requires `regex1` feature.                       | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
+//! | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
+//!
+//! #### Regex validation
+//!
+//! Requirements:
+//! * `regex` feature of `nutype` is enabled.
+//! * You crate have to explicitly include `regex` and `lazy_static` dependencies.
+//!
+//! There are a number of ways you can use regex.
+//!
+//! A regular expression can be defined right in place:
+//!
+//! ```ignore
+//! use nutype::nutype;
+//!
+//! #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"))]
+//! pub struct PhoneNumber(String);
+//! ```
+//!
+//! or it can be defined with `lazy_static`:
+//!
+//! ```ignore
+//! use nutype::nutype;
+//! use lazy_static::lazy_static;
+//! use regex::Regex;
+//!
+//! lazy_static! {
+//!     static ref PHONE_NUMBER_REGEX: Regex = Regex::new("^[0-9]{3}-[0-9]{3}$").unwrap();
+//! }
+//!
+//! #[nutype(validate(regex = PHONE_NUMBER_REGEX))]
+//! pub struct PhoneNumber(String);
+//! ```
+//!
+//! or `once_cell`:
+//!
+//! ```ignore
+//! use nutype::nutype;
+//! use once_cell::sync::Lazy;
+//! use regex::Regex;
+//!
+//! static PHONE_NUMBER_REGEX: Lazy<Regex> =
+//!     Lazy::new(|| Regex::new("[0-9]{3}-[0-9]{3}$").unwrap());
+//!
+//! #[nutype(validate(regex = PHONE_NUMBER_REGEX))]
+//! pub struct PhoneNumber(String);
+//! ```
+//!
 //!
 //! ### String derivable traits
 //!
@@ -191,7 +234,7 @@
 //!
 //! For example, this one
 //!
-//! ```ignore
+//! ```ignroe
 //! use nutype::nutype;
 //!
 //! fn new_to_old(s: String) -> String {
@@ -209,11 +252,8 @@
 //!
 //! #[nutype(sanitize(with = |s| s.replace("New", "Old") ))]
 //! struct CityName(String);
-//! ```
 //!
-//! And works the same way:
-//!
-//! ```ignore
+//! // And works the same way:
 //! let city = CityName::new("New York");
 //! assert_eq!(city.into_inner(), "Old York");
 //! ```
@@ -244,7 +284,7 @@
 //!
 //! You can achieve this by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:
 //!
-//! ```
+//! ```ignore
 //! use nutype::nutype;
 //!
 //! #[nutype(
@@ -266,6 +306,7 @@
 //! * `serde1` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
 //! * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 //! * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
+//! * `regex1` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` and `lazy_static` within dependencies.
 //!
 //! ## Support Ukrainian military forces 🇺🇦
 //!

@@ -60,6 +60,18 @@ pub enum StringValidator {
     MaxLen(usize),
     NotEmpty,
     With(TokenStream),
+    Regex(RegexDef),
+}
+
+#[derive(Debug)]
+pub enum RegexDef {
+    /// The case, when regex is defined with string literal inlined, e.g.:
+    ///     regex = "^[0-9]{9}$"
+    StringLiteral(proc_macro2::Literal),
+
+    /// The case, when regex is with an ident, that refers to regex constant:
+    ///     regex = SSN_REGEX
+    Ident(proc_macro2::Ident),
 }
 
 impl Kind for StringValidator {
@@ -71,6 +83,7 @@ impl Kind for StringValidator {
             Self::MaxLen(_) => StringValidatorKind::MaxLen,
             Self::NotEmpty => StringValidatorKind::NotEmpty,
             Self::With(_) => StringValidatorKind::With,
+            Self::Regex(_) => StringValidatorKind::Regex,
         }
     }
 }
@@ -81,6 +94,7 @@ pub enum StringValidatorKind {
     MaxLen,
     NotEmpty,
     With,
+    Regex,
 }
 
 impl std::fmt::Display for StringValidatorKind {
@@ -90,6 +104,7 @@ impl std::fmt::Display for StringValidatorKind {
             Self::MaxLen => write!(f, "max_len"),
             Self::NotEmpty => write!(f, "not_empty"),
             Self::With => write!(f, "with"),
+            Self::Regex => write!(f, "regex"),
         }
     }
 }

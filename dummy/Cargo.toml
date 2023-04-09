@@ -6,7 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nutype = { path = "../nutype", features = ["serde1", "new_unchecked", "schemars08"] }
+nutype = { path = "../nutype", features = ["serde1", "new_unchecked", "schemars08", "regex1"] }
 serde = "*"
 serde_json = "*"
 schemars = "*"
+regex = "*"
+once_cell = "*"
+lazy_static = "*"

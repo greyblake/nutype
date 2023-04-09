@@ -16,7 +16,7 @@ use crate::{
         },
         models::{ErrorTypeName, InnerType, NewUnchecked, TypeName},
     },
-    string::models::{StringSanitizer, StringValidator},
+    string::models::{RegexDef, StringSanitizer, StringValidator},
 };
 
 use self::{error::gen_validation_error_type, traits::gen_traits};
@@ -209,6 +209,30 @@ pub fn gen_string_validate_fn(type_name: &TypeName, validators: &[StringValidato
                         return Err(#error_name::Invalid);
                     }
                 )
+            }
+            StringValidator::Regex(regex_def) => {
+                match regex_def {
+                    RegexDef::StringLiteral(regex_str_lit) => {
+                        quote!(
+                            lazy_static::lazy_static! {
+                                // Make up a sufficiently unique regex name to ensure that it does
+                                // not clashes with anything import with `use super::*`.
+                                static ref __NUTYPE_REGEX__: ::regex::Regex = ::regex::Regex::new(#regex_str_lit).expect("Nutype failed to a build a regex");
+                            }
+                            if !__NUTYPE_REGEX__.is_match(&val) {
+                                return Err(#error_name::RegexMismatch);
+                            }
+                        )
+
+                    }
+                    RegexDef::Ident(regex_ident) => {
+                        quote!(
+                            if !#regex_ident.is_match(&val) {
+                                return Err(#error_name::RegexMismatch);
+                            }
+                        )
+                    }
+                }
             }
         })
         .collect();

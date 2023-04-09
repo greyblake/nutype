@@ -34,11 +34,13 @@ fn validate_validators(
     validators: Vec<SpannedStringValidator>,
 ) -> Result<Vec<StringValidator>, syn::Error> {
     // Check duplicates
+    //
     validate_duplicates(&validators, |kind| {
         format!("Duplicated validators `{kind}`.\nDon't worry, you still remain ingenious!")
     })?;
 
     // max_len VS min_len
+    //
     let maybe_min_len = validators
         .iter()
         .flat_map(|v| match v.item {
@@ -61,6 +63,15 @@ fn validate_validators(
             let span = max_len_span;
             let err = syn::Error::new(span, msg);
             return Err(err);
+        }
+    }
+
+    // Validate regex
+    //
+    #[cfg(feature = "regex1")]
+    for v in validators.iter() {
+        if let StringValidator::Regex(ref regex_def) = v.item {
+            regex_validation::validate_regex_def(regex_def, v.span)?;
         }
     }
 
@@ -177,5 +188,74 @@ fn to_string_derive_trait(
                 Err(syn::Error::new(span, "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead."))
             }
         }
+    }
+}
+
+#[cfg(feature = "regex1")]
+mod regex_validation {
+    use super::*;
+    use crate::string::models::RegexDef;
+    use proc_macro2::Literal;
+    use std::collections::VecDeque;
+
+    pub fn validate_regex_def(regex_def: &RegexDef, span: Span) -> Result<(), syn::Error> {
+        match regex_def {
+            RegexDef::StringLiteral(lit) => {
+                // Try to validate regex at compile time if it's a string literal
+                let regex_str = literal_to_string(lit)?;
+                match regex::Regex::new(&regex_str) {
+                    Ok(_re) => Ok(()),
+                    Err(err) => Err(syn::Error::new(span, format!("{err}"))),
+                }
+            }
+            RegexDef::Ident(_) => Ok(()),
+        }
+    }
+
+    // TODO: write unit tests
+    fn literal_to_string(lit: &Literal) -> Result<String, syn::Error> {
+        let value = lit.to_string();
+        if let Some(s) = unquote_double_quotes(&value) {
+            Ok(s)
+        } else if let Some(s) = unoquote_inline_doc(&value) {
+            Ok(s)
+        } else {
+            let msg = format!("Could not obtain regex string from the literal: {lit}");
+            Err(syn::Error::new(lit.span(), msg))
+        }
+    }
+
+    // Input:
+    //     "^bar{2}$"
+    // Output:
+    //     ^bar{2}$
+    // TODO: write unit tests
+    fn unquote_double_quotes(input: &str) -> Option<String> {
+        let len = input.len();
+        if len > 1 && input.starts_with('"') && input.ends_with('"') {
+            let output = input[1..(len - 1)].to_string();
+            Some(output)
+        } else {
+            None
+        }
+    }
+
+    // Input:
+    //     r##"^bar{2}$"##
+    // Output:
+    //     ^bar{2}$
+    // TODO: write unit tests
+    fn unoquote_inline_doc(input: &str) -> Option<String> {
+        let mut chars: VecDeque<char> = input.chars().collect();
+
+        chars.pop_front(); // get rid of `r`
+        while let Some(front_ch) = chars.pop_front() {
+            chars.pop_back();
+            if front_ch == '"' {
+                let output: String = chars.into_iter().collect();
+                return Some(output);
+            }
+        }
+        None
     }
 }

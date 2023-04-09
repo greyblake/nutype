@@ -125,12 +125,57 @@ At the moment the string inner type supports only `String` (owned) type.
 
 ### String validators
 
-| Validator   | Description                                                                     | Error variant | Example                              |
-|-------------|---------------------------------------------------------------------------------|---------------|--------------------------------------|
-| `max_len`   | Max length of the string                                                        | `TooLong`     | `max_len = 255`                      |
-| `min_len`   | Min length of the string                                                        | `TooShort`    | `min_len = 5`                        |
-| `not_empty` | Rejects an empty string                                                         | `Empty`       | `not_empty`                          |
-| `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`     | `with = \|s: &str\| s.contains('@')` |
+| Validator   | Description                                                                     | Error variant   | Example                                      |
+|-------------|---------------------------------------------------------------------------------|-----------------|----------------------------------------------|
+| `max_len`   | Max length of the string                                                        | `TooLong`       | `max_len = 255`                              |
+| `min_len`   | Min length of the string                                                        | `TooShort`      | `min_len = 5`                                |
+| `not_empty` | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
+| `regex`     | Validates format with a regex. Requires `regex1` feature.                       | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
+| `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
+
+
+#### Regex validation
+
+Requirements:
+* `regex` feature of `nutype` is enabled.
+* You crate have to explicitly include `regex` and `lazy_static` dependencies.
+
+There are a number of ways you can use regex.
+
+A regular expression can be defined right in place:
+
+```rs
+#[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"))]
+pub struct PhoneNumber(String);
+```
+
+or it can be defined with `lazy_static`:
+
+```rs
+use lazy_static::lazy_static;
+use regex::Regex;
+
+lazy_static! {
+    static ref PHONE_NUMBER_REGEX: Regex = Regex::new("^[0-9]{3}-[0-9]{3}$").unwrap();
+}
+
+#[nutype(validate(regex = PHONE_NUMBER_REGEX))]
+pub struct PhoneNumber(String);
+```
+
+or `once_cell`:
+
+```rs
+use once_cell::sync::Lazy;
+use regex::Regex;
+
+static PHONE_NUMBER_REGEX: Lazy<Regex> =
+    Lazy::new(|| Regex::new("[0-9]{3}-[0-9]{3}$").unwrap());
+
+#[nutype(validate(regex = PHONE_NUMBER_REGEX))]
+pub struct PhoneNumber(String);
+```
+
 
 ### String derivable traits
 
@@ -258,6 +303,7 @@ assert_eq!(name.into_inner(), " boo ");
 
 * `serde1` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
 * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
+* `regex1` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` and `lazy_static` within dependencies.
 * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
 
 ## When nutype is a good fit for you?
@@ -347,19 +393,6 @@ The author put a lot of effort into this. If you find a way to obtain the instan
 You've got to know that the `#[nutype]` macro intercepts `#[derive(...)]` macro.
 It's done on purpose to ensure that anything like `DerefMut` or `BorrowMut`, that can lead to a violation of the validation rules is excluded.
 The library takes a conservative approach and it has its downside: deriving traits that are not known to the library is not possible.
-
-## Roadmap
-
-* [ ] refactor the parser logic
-* [ ] friendlier error messages:
-  * [ ] `did you mean ...?` hints
-  * [ ] intercept and explain why `DerefMut` and co cannot be derived
-* [ ] for floats: add `finite` validator and allow to derive `Eq` and `Ord`
-* [ ] integration with [diesel](https://github.com/diesel-rs/diesel)
-* [ ] integration with [sqlx](https://github.com/launchbadge/sqlx)
-* [ ] integration with [envconfig](https://github.com/greyblake/envconfig-rs)
-* [ ] integration with [arbitrary](https://github.com/rust-fuzz/arbitrary)
-* [ ] support `regex` to validate string types
 
 ## Support Ukrainian military forces 🇺🇦
 
