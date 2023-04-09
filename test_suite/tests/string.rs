@@ -473,7 +473,7 @@ mod derive_schemars_json_schema {
 }
 
 #[cfg(test)]
-#[cfg(feature = "regex1")]
+#[cfg(feature = "regex")]
 mod validation_with_regex {
     use super::*;
     use lazy_static::lazy_static;

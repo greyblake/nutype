@@ -28,6 +28,5 @@ proc-macro = true
 
 [features]
 serde1 = []
-regex1 = ["regex"]
 schemars08 = []
 new_unchecked = []
