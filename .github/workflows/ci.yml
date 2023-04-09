@@ -24,11 +24,17 @@ jobs:
         with:
           command: test
 
-      - name: cargo test --features serde1
+      - name: cargo test --features serde
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --features serde1
+          args: --features serde
+
+      - name: cargo test --features regex
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features regex
 
       - name: cargo test --features new_unchecked
         uses: actions-rs/cargo@v1
