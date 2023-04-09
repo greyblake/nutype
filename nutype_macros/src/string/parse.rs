@@ -116,7 +116,7 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
                     let msg = concat!(
                         "To validate string types with regex, the feature `regex1` of the crate `nutype` must be enabled.\n",
                         "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
-                        "And... don't forget to take of yourself and your beloved ones. That is even more important.",
+                        "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
                     );
                     return Err(syn::Error::new(ident.span(), msg));
                 }
