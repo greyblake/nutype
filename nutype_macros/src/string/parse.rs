@@ -8,7 +8,7 @@ use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
 use proc_macro2::{Span, TokenStream, TokenTree};
 
-use super::models::{SpannedStringSanitizer, SpannedStringValidator};
+use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
 pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
@@ -110,6 +110,30 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
                 };
                 Ok(parsed_validator)
             }
+            "regex" => {
+                #[cfg(not(feature = "regex1"))]
+                {
+                    let msg = concat!(
+                        "To validate string types with regex, the feature `regex1` of the crate `nutype` must be enabled.\n",
+                        "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
+                        "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
+                }
+
+                #[cfg(feature = "regex1")]
+                {
+                    let rest_tokens: Vec<_> = token_iter.collect();
+                    let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
+                    let (regex_def, span) = parse_regex(stream, ident.span())?;
+                    let validator = StringValidator::Regex(regex_def);
+                    let parsed_validator = SpannedStringValidator {
+                        item: validator,
+                        span,
+                    };
+                    Ok(parsed_validator)
+                }
+            }
             validator => {
                 let msg = format!("Unknown validation rule `{validator}`");
                 let error = syn::Error::new(ident.span(), msg);
@@ -118,5 +142,25 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
         }
     } else {
         Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+    }
+}
+
+#[cfg_attr(not(feature = "regex1"), allow(dead_code))]
+fn parse_regex(
+    stream: TokenStream,
+    span: proc_macro2::Span,
+) -> Result<(RegexDef, Span), syn::Error> {
+    let token = stream.into_iter().next().ok_or_else(|| {
+        syn::Error::new(span, "Expected a regex or an ident that refers to regex.")
+    })?;
+    let span = token.span();
+
+    match token {
+        TokenTree::Literal(lit) => Ok((RegexDef::StringLiteral(lit), span)),
+        TokenTree::Ident(ident) => Ok((RegexDef::Ident(ident), span)),
+        TokenTree::Group(..) | TokenTree::Punct(..) => Err(syn::Error::new(
+            span,
+            "regex must be a string or an ident that refers to Regex constant",
+        )),
     }
 }

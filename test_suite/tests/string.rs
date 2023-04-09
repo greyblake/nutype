@@ -471,3 +471,70 @@ mod derive_schemars_json_schema {
         let _schema = schema_for!(CustomerIdentifier);
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "regex1")]
+mod validation_with_regex {
+    use super::*;
+    use lazy_static::lazy_static;
+    use once_cell::sync::Lazy;
+    use regex::Regex;
+
+    lazy_static! {
+        static ref PHONE_REGEX_LAZY_STATIC: Regex = Regex::new("^[0-9]{3}-[0-9]{3}$").unwrap();
+    }
+
+    static PHONE_REGEX_ONCE_CELL: Lazy<Regex> =
+        Lazy::new(|| Regex::new("[0-9]{3}-[0-9]{3}$").unwrap());
+
+    #[test]
+    fn test_regex_as_string() {
+        #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"))]
+        #[derive(Debug, PartialEq)]
+        pub struct PhoneNumber(String);
+
+        // Invalid
+        assert_eq!(
+            PhoneNumber::new("123456"),
+            Err(PhoneNumberError::RegexMismatch)
+        );
+
+        // Valid
+        let inner = PhoneNumber::new("123-456").unwrap().into_inner();
+        assert_eq!(inner, "123-456".to_string());
+    }
+
+    #[test]
+    fn test_regex_with_lazy_static() {
+        #[nutype(validate(regex = PHONE_REGEX_LAZY_STATIC))]
+        #[derive(Debug, PartialEq)]
+        pub struct PhoneNumber(String);
+
+        // Invalid
+        assert_eq!(
+            PhoneNumber::new("123456"),
+            Err(PhoneNumberError::RegexMismatch)
+        );
+
+        // Valid
+        let inner = PhoneNumber::new("123-456").unwrap().into_inner();
+        assert_eq!(inner, "123-456".to_string());
+    }
+
+    #[test]
+    fn test_regex_with_once_cell_lazy() {
+        #[nutype(validate(regex = PHONE_REGEX_ONCE_CELL))]
+        #[derive(Debug, PartialEq)]
+        pub struct PhoneNumber(String);
+
+        // Invalid
+        assert_eq!(
+            PhoneNumber::new("123456"),
+            Err(PhoneNumberError::RegexMismatch)
+        );
+
+        // Valid
+        let inner = PhoneNumber::new("123-456").unwrap().into_inner();
+        assert_eq!(inner, "123-456".to_string());
+    }
+}

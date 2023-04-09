@@ -1,5 +1,6 @@
 ## Roadmap
 * JsonSchema: add README, lib docs
+* Use `enum-kind` crate
 
 ## Tech debt
 * Make individual UI tests possible to opt-out depending on the feature flags.
@@ -22,6 +23,7 @@
 * Support decimals libraries:
   * https://crates.io/crates/rust_decimal
 * Support Arbitrary
+* See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
 * Setup CI
 * String sanitizers:
   * capitalize
@@ -31,8 +33,6 @@
   * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
   * This should allow to derive Eq and Ord
 * Consider extending errors to keep the invalid value?
-* Regex
-  * See https://github.com/CryptArchy/regex_generate to impl support with arbitrary
 
 ### Maybe
 * Add #[repr(transparent)]
@@ -119,3 +119,4 @@
 * Refactor: Use newtype for errors (e.g. error_type_name, etc)
 * JsonSchema: Add unit tests
 * JsonSchema: UI test
+* Validation with regex

@@ -43,6 +43,9 @@ fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator
             StringValidator::With(_) => {
                 quote!(Invalid,)
             }
+            StringValidator::Regex(_) => {
+                quote!(RegexMismatch,)
+            }
         })
         .collect();
 
@@ -69,6 +72,9 @@ fn gen_impl_display_trait(
         },
         StringValidator::With(_) => quote! {
              #error_type_name::Invalid => write!(f, "invalid")
+        },
+        StringValidator::Regex(_) => quote! {
+             #error_type_name::RegexMismatch => write!(f, "regex mismatch")
         },
     });
 
