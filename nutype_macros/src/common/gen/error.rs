@@ -1,11 +1,10 @@
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::quote;
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
 
 use crate::common::models::{ErrorTypeName, TypeName};
 
 pub fn gen_error_type_name(type_name: &TypeName) -> ErrorTypeName {
-    let error_name_str = format!("{type_name}Error");
-    let ident = Ident::new(&error_name_str, Span::call_site());
+    let ident = format_ident!("{type_name}Error");
     ErrorTypeName::new(ident)
 }
 
