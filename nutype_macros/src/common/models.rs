@@ -157,12 +157,6 @@ impl ErrorTypeName {
     }
 }
 
-impl core::fmt::Display for ErrorTypeName {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
 impl ToTokens for ErrorTypeName {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         self.0.to_tokens(token_stream)
@@ -177,12 +171,6 @@ pub struct ParseErrorTypeName(Ident);
 impl ParseErrorTypeName {
     pub fn new(name: Ident) -> Self {
         Self(name)
-    }
-}
-
-impl core::fmt::Display for ParseErrorTypeName {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "{}", self.0)
     }
 }
 
