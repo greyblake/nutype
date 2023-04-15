@@ -4,8 +4,8 @@ pub mod parse_error;
 pub mod traits;
 
 use super::models::{ErrorTypeName, ParseErrorTypeName, TypeName};
-use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-use quote::{quote, ToTokens};
+use proc_macro2::{Ident, Punct, Spacing, TokenStream, TokenTree};
+use quote::{format_ident, quote, ToTokens};
 use syn::Visibility;
 
 /// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
@@ -48,8 +48,7 @@ fn is_ident(token: &TokenTree) -> bool {
 }
 
 pub fn gen_module_name_for_type(type_name: &TypeName) -> Ident {
-    let module_name = format!("__nutype_private_{type_name}__");
-    Ident::new(&module_name, Span::call_site())
+    format_ident!("__nutype_private_{type_name}__")
 }
 
 pub fn gen_reimports(
