@@ -4,7 +4,8 @@ pub mod parse_error;
 pub mod traits;
 
 use super::models::{ErrorTypeName, ParseErrorTypeName, TypeName};
-use proc_macro2::{Ident, Punct, Spacing, TokenStream, TokenTree};
+use crate::common::models::ModuleName;
+use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
 use quote::{format_ident, quote, ToTokens};
 use syn::Visibility;
 
@@ -47,14 +48,15 @@ fn is_ident(token: &TokenTree) -> bool {
     matches!(token, TokenTree::Ident(_))
 }
 
-pub fn gen_module_name_for_type(type_name: &TypeName) -> Ident {
-    format_ident!("__nutype_private_{type_name}__")
+pub fn gen_module_name_for_type(type_name: &TypeName) -> ModuleName {
+    let ident = format_ident!("__nutype_private_{type_name}__");
+    ModuleName::new(ident)
 }
 
 pub fn gen_reimports(
     vis: Visibility,
     type_name: &TypeName,
-    module_name: &Ident,
+    module_name: &ModuleName,
     maybe_error_type_name: Option<&ErrorTypeName>,
     maybe_parse_error_type_name: Option<&ParseErrorTypeName>,
 ) -> TokenStream {

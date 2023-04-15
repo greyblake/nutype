@@ -160,6 +160,9 @@ define_ident_type!(ErrorTypeName);
 // For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
 define_ident_type!(ParseErrorTypeName);
 
+// Module name, where the type is placed.
+define_ident_type!(ModuleName);
+
 #[derive(Debug)]
 pub struct NewtypeMeta {
     pub type_name: TypeName,
