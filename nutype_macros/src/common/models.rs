@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
 use syn::Attribute;
@@ -123,62 +123,42 @@ impl ToTokens for FloatInnerType {
     }
 }
 
-/// A type that represents a newtype name.
-/// For example: `Username`, `Email`, etc.
-#[derive(Debug)]
-pub struct TypeName(Ident);
+macro_rules! define_ident_type {
+    ($tp_name:ident) => {
+        #[derive(Debug)]
+        pub struct $tp_name(proc_macro2::Ident);
 
-impl TypeName {
-    pub fn new(name: Ident) -> Self {
-        Self(name)
-    }
+        impl $tp_name {
+            pub fn new(name: proc_macro2::Ident) -> Self {
+                Self(name)
+            }
+        }
+
+        impl core::fmt::Display for $tp_name {
+            fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+                write!(f, "{}", self.0)
+            }
+        }
+
+        impl ::quote::ToTokens for $tp_name {
+            fn to_tokens(&self, token_stream: &mut TokenStream) {
+                self.0.to_tokens(token_stream)
+            }
+        }
+    };
 }
 
-impl core::fmt::Display for TypeName {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+// A type that represents a newtype name.
+// For example: `Username`, `Email`, etc.
+define_ident_type!(TypeName);
 
-impl ToTokens for TypeName {
-    fn to_tokens(&self, token_stream: &mut TokenStream) {
-        self.0.to_tokens(token_stream)
-    }
-}
+// Repesents a type for a validation error.
+// For example, if `TypeName` is `Email`, then `ErrorTypeName` would usually be `EmailError`.
+define_ident_type!(ErrorTypeName);
 
-/// Repesents a type for a validation error.
-/// For example, if `TypeName` is `Email`, then `ErrorTypeName` would usually be `EmailError`.
-#[derive(Debug)]
-pub struct ErrorTypeName(Ident);
-
-impl ErrorTypeName {
-    pub fn new(name: Ident) -> Self {
-        Self(name)
-    }
-}
-
-impl ToTokens for ErrorTypeName {
-    fn to_tokens(&self, token_stream: &mut TokenStream) {
-        self.0.to_tokens(token_stream)
-    }
-}
-
-/// A type that represents an error name which is returned by `FromStr` traits.
-/// For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
-#[derive(Debug)]
-pub struct ParseErrorTypeName(Ident);
-
-impl ParseErrorTypeName {
-    pub fn new(name: Ident) -> Self {
-        Self(name)
-    }
-}
-
-impl ToTokens for ParseErrorTypeName {
-    fn to_tokens(&self, token_stream: &mut TokenStream) {
-        self.0.to_tokens(token_stream)
-    }
-}
+// A type that represents an error name which is returned by `FromStr` traits.
+// For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
+define_ident_type!(ParseErrorTypeName);
 
 #[derive(Debug)]
 pub struct NewtypeMeta {
