@@ -128,6 +128,14 @@ where
                     item: validator,
                 })
             }
+            "finite" => {
+                let validator = FloatValidator::Finite;
+                let parsed_validator = SpannedFloatValidator {
+                    item: validator,
+                    span: ident.span(),
+                };
+                Ok(parsed_validator)
+            }
             unknown_validator => {
                 let msg = format!("Unknown validation rule `{unknown_validator}`");
                 let error = syn::Error::new(ident.span(), msg);
