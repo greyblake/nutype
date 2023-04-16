@@ -57,7 +57,7 @@ where
     );
 
     let GeneratedTraits {
-        derive_standard_traits,
+        derive_transparent_traits,
         implement_traits,
     } = gen_traits(type_name, inner_type, maybe_error_type_name, traits);
 
@@ -67,7 +67,7 @@ where
             use super::*;
 
             #(#doc_attrs)*
-            #derive_standard_traits
+            #derive_transparent_traits
             pub struct #type_name(#inner_type);
 
             #implementation

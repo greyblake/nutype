@@ -16,11 +16,11 @@ use crate::{
     string::models::StringDeriveTrait,
 };
 
-type StringGeneratableTrait = GeneratableTrait<StringStandardTrait, StringIrregularTrait>;
+type StringGeneratableTrait = GeneratableTrait<StringTransparentTrait, StringIrregularTrait>;
 
 /// A trait that can be automatically derived.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-enum StringStandardTrait {
+enum StringTransparentTrait {
     Debug,
     Clone,
     PartialEq,
@@ -50,20 +50,26 @@ impl From<StringDeriveTrait> for StringGeneratableTrait {
     fn from(derive_trait: StringDeriveTrait) -> StringGeneratableTrait {
         match derive_trait {
             StringDeriveTrait::Debug => {
-                StringGeneratableTrait::Standard(StringStandardTrait::Debug)
+                StringGeneratableTrait::Transparent(StringTransparentTrait::Debug)
             }
             StringDeriveTrait::Clone => {
-                StringGeneratableTrait::Standard(StringStandardTrait::Clone)
+                StringGeneratableTrait::Transparent(StringTransparentTrait::Clone)
             }
             StringDeriveTrait::PartialEq => {
-                StringGeneratableTrait::Standard(StringStandardTrait::PartialEq)
+                StringGeneratableTrait::Transparent(StringTransparentTrait::PartialEq)
             }
-            StringDeriveTrait::Eq => StringGeneratableTrait::Standard(StringStandardTrait::Eq),
+            StringDeriveTrait::Eq => {
+                StringGeneratableTrait::Transparent(StringTransparentTrait::Eq)
+            }
             StringDeriveTrait::PartialOrd => {
-                StringGeneratableTrait::Standard(StringStandardTrait::PartialOrd)
+                StringGeneratableTrait::Transparent(StringTransparentTrait::PartialOrd)
             }
-            StringDeriveTrait::Ord => StringGeneratableTrait::Standard(StringStandardTrait::Ord),
-            StringDeriveTrait::Hash => StringGeneratableTrait::Standard(StringStandardTrait::Hash),
+            StringDeriveTrait::Ord => {
+                StringGeneratableTrait::Transparent(StringTransparentTrait::Ord)
+            }
+            StringDeriveTrait::Hash => {
+                StringGeneratableTrait::Transparent(StringTransparentTrait::Hash)
+            }
             StringDeriveTrait::FromStr => {
                 StringGeneratableTrait::Irregular(StringIrregularTrait::FromStr)
             }
@@ -92,13 +98,13 @@ impl From<StringDeriveTrait> for StringGeneratableTrait {
                 StringGeneratableTrait::Irregular(StringIrregularTrait::SerdeDeserialize)
             }
             StringDeriveTrait::SchemarsJsonSchema => {
-                StringGeneratableTrait::Standard(StringStandardTrait::SchemarsJsonSchema)
+                StringGeneratableTrait::Transparent(StringTransparentTrait::SchemarsJsonSchema)
             }
         }
     }
 }
 
-impl ToTokens for StringStandardTrait {
+impl ToTokens for StringTransparentTrait {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let tokens = match self {
             Self::Debug => quote!(Debug),
@@ -120,13 +126,13 @@ pub fn gen_traits(
     traits: HashSet<StringDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
-        standard_traits,
+        transparent_traits,
         irregular_traits,
     } = split_into_generatable_traits(traits);
 
-    let derive_standard_traits = quote! {
+    let derive_transparent_traits = quote! {
         #[derive(
-            #(#standard_traits,)*
+            #(#transparent_traits,)*
         )]
     };
 
@@ -134,7 +140,7 @@ pub fn gen_traits(
         gen_implemented_traits(type_name, maybe_error_type_name, irregular_traits);
 
     GeneratedTraits {
-        derive_standard_traits,
+        derive_transparent_traits,
         implement_traits,
     }
 }

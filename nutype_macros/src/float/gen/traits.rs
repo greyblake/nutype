@@ -14,12 +14,11 @@ use crate::{
     float::models::FloatDeriveTrait,
 };
 
-type FloatGeneratableTrait = GeneratableTrait<FloatStandardTrait, FloatIrregularTrait>;
+type FloatGeneratableTrait = GeneratableTrait<FloatTransparentTrait, FloatIrregularTrait>;
 
-// TODO: Consider renaming Standard -> Proxy ?
 /// A trait that can be automatically derived.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-enum FloatStandardTrait {
+enum FloatTransparentTrait {
     Debug,
     Clone,
     Copy,
@@ -46,14 +45,20 @@ enum FloatIrregularTrait {
 impl From<FloatDeriveTrait> for FloatGeneratableTrait {
     fn from(derive_trait: FloatDeriveTrait) -> FloatGeneratableTrait {
         match derive_trait {
-            FloatDeriveTrait::Debug => FloatGeneratableTrait::Standard(FloatStandardTrait::Debug),
-            FloatDeriveTrait::Clone => FloatGeneratableTrait::Standard(FloatStandardTrait::Clone),
-            FloatDeriveTrait::Copy => FloatGeneratableTrait::Standard(FloatStandardTrait::Copy),
+            FloatDeriveTrait::Debug => {
+                FloatGeneratableTrait::Transparent(FloatTransparentTrait::Debug)
+            }
+            FloatDeriveTrait::Clone => {
+                FloatGeneratableTrait::Transparent(FloatTransparentTrait::Clone)
+            }
+            FloatDeriveTrait::Copy => {
+                FloatGeneratableTrait::Transparent(FloatTransparentTrait::Copy)
+            }
             FloatDeriveTrait::PartialEq => {
-                FloatGeneratableTrait::Standard(FloatStandardTrait::PartialEq)
+                FloatGeneratableTrait::Transparent(FloatTransparentTrait::PartialEq)
             }
             FloatDeriveTrait::PartialOrd => {
-                FloatGeneratableTrait::Standard(FloatStandardTrait::PartialOrd)
+                FloatGeneratableTrait::Transparent(FloatTransparentTrait::PartialOrd)
             }
             FloatDeriveTrait::FromStr => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::FromStr)
@@ -77,13 +82,13 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::SerdeDeserialize)
             }
             FloatDeriveTrait::SchemarsJsonSchema => {
-                FloatGeneratableTrait::Standard(FloatStandardTrait::SchemarsJsonSchema)
+                FloatGeneratableTrait::Transparent(FloatTransparentTrait::SchemarsJsonSchema)
             }
         }
     }
 }
 
-impl ToTokens for FloatStandardTrait {
+impl ToTokens for FloatTransparentTrait {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let tokens = match self {
             Self::Debug => quote!(Debug),
@@ -104,13 +109,13 @@ pub fn gen_traits(
     traits: HashSet<FloatDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
-        standard_traits,
+        transparent_traits,
         irregular_traits,
     } = split_into_generatable_traits(traits);
 
-    let derive_standard_traits = quote! {
+    let derive_transparent_traits = quote! {
         #[derive(
-            #(#standard_traits,)*
+            #(#transparent_traits,)*
         )]
     };
 
@@ -122,7 +127,7 @@ pub fn gen_traits(
     );
 
     GeneratedTraits {
-        derive_standard_traits,
+        derive_transparent_traits,
         implement_traits,
     }
 }
