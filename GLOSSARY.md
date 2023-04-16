@@ -10,5 +10,5 @@ Example: ensure that an email address contains `@` character. Validators come wi
 * _Inner Type_ - typically a simple type that is wrapped by a newtype.
 Example: consider `Email` type defined as `Email(String)`. We have say that `Email` has inner type `String`.
 
-* _Standard trait_ - a trait that can be simply derived without any extra libraries (e.g. `Debug`, `Clone`).
+* _Transparent trait_ - a trait that can be simply derived (e.g. `Debug`, `Clone`).
 * _Irregular trait_ a trait that requires a custom implementation to be generated (e.g. `TryFrom`).

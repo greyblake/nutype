@@ -17,7 +17,7 @@ use crate::{
     integer::models::IntegerDeriveTrait,
 };
 
-type IntegerGeneratableTrait = GeneratableTrait<IntegerStandardTrait, IntegerIrregularTrait>;
+type IntegerGeneratableTrait = GeneratableTrait<IntegerTransparentTrait, IntegerIrregularTrait>;
 
 pub fn gen_traits(
     type_name: &TypeName,
@@ -26,13 +26,13 @@ pub fn gen_traits(
     traits: HashSet<IntegerDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
-        standard_traits,
+        transparent_traits,
         irregular_traits,
     } = split_into_generatable_traits(traits);
 
-    let derive_standard_traits = quote! {
+    let derive_transparent_traits = quote! {
         #[derive(
-            #(#standard_traits,)*
+            #(#transparent_traits,)*
         )]
     };
 
@@ -44,7 +44,7 @@ pub fn gen_traits(
     );
 
     GeneratedTraits {
-        derive_standard_traits,
+        derive_transparent_traits,
         implement_traits,
     }
 }
@@ -53,24 +53,28 @@ impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
     fn from(derive_trait: IntegerDeriveTrait) -> IntegerGeneratableTrait {
         match derive_trait {
             IntegerDeriveTrait::Debug => {
-                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Debug)
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::Debug)
             }
             IntegerDeriveTrait::Clone => {
-                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Clone)
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::Clone)
             }
             IntegerDeriveTrait::Copy => {
-                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Copy)
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::Copy)
             }
             IntegerDeriveTrait::PartialEq => {
-                IntegerGeneratableTrait::Standard(IntegerStandardTrait::PartialEq)
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::PartialEq)
             }
-            IntegerDeriveTrait::Eq => IntegerGeneratableTrait::Standard(IntegerStandardTrait::Eq),
+            IntegerDeriveTrait::Eq => {
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::Eq)
+            }
             IntegerDeriveTrait::PartialOrd => {
-                IntegerGeneratableTrait::Standard(IntegerStandardTrait::PartialOrd)
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::PartialOrd)
             }
-            IntegerDeriveTrait::Ord => IntegerGeneratableTrait::Standard(IntegerStandardTrait::Ord),
+            IntegerDeriveTrait::Ord => {
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::Ord)
+            }
             IntegerDeriveTrait::Hash => {
-                IntegerGeneratableTrait::Standard(IntegerStandardTrait::Hash)
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::Hash)
             }
             IntegerDeriveTrait::FromStr => {
                 IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::FromStr)
@@ -100,7 +104,7 @@ impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
                 IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::SerdeDeserialize)
             }
             IntegerDeriveTrait::SchemarsJsonSchema => {
-                IntegerGeneratableTrait::Standard(IntegerStandardTrait::SchemarsJsonSchema)
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::SchemarsJsonSchema)
             }
         }
     }
@@ -108,7 +112,7 @@ impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
 
 /// A trait that can be automatically derived.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-enum IntegerStandardTrait {
+enum IntegerTransparentTrait {
     Debug,
     Clone,
     Copy,
@@ -135,7 +139,7 @@ enum IntegerIrregularTrait {
     SerdeDeserialize,
 }
 
-impl ToTokens for IntegerStandardTrait {
+impl ToTokens for IntegerTransparentTrait {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         let tokens = match self {
             Self::Debug => quote!(Debug),

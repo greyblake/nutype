@@ -9,44 +9,44 @@ use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
 /// Generated implementation of traits.
 pub struct GeneratedTraits {
-    /// Standard traits that are simply derived.
-    pub derive_standard_traits: TokenStream,
+    /// Transparent traits that are simply derived.
+    pub derive_transparent_traits: TokenStream,
 
     /// Implementation of traits.
     pub implement_traits: TokenStream,
 }
 
 /// Split traits into 2 groups for generatation:
-/// * Standard traits can be simply derived, e.g. `derive(Debug)`.
+/// * Transparent traits can be simply derived, e.g. `derive(Debug)`.
 /// * Irregular traits requires implementation to be generated.
-pub enum GeneratableTrait<StandardTrait, IrregularTrait> {
-    Standard(StandardTrait),
+pub enum GeneratableTrait<TransparentTrait, IrregularTrait> {
+    Transparent(TransparentTrait),
     Irregular(IrregularTrait),
 }
 
-pub struct GeneratableTraits<StandardTrait, IrregularTrait> {
-    pub standard_traits: Vec<StandardTrait>,
+pub struct GeneratableTraits<TransparentTrait, IrregularTrait> {
+    pub transparent_traits: Vec<TransparentTrait>,
     pub irregular_traits: Vec<IrregularTrait>,
 }
 
-pub fn split_into_generatable_traits<InputTrait, StandardTrait, IrregularTrait>(
+pub fn split_into_generatable_traits<InputTrait, TransparentTrait, IrregularTrait>(
     input_traits: HashSet<InputTrait>,
-) -> GeneratableTraits<StandardTrait, IrregularTrait>
+) -> GeneratableTraits<TransparentTrait, IrregularTrait>
 where
-    GeneratableTrait<StandardTrait, IrregularTrait>: From<InputTrait>,
+    GeneratableTrait<TransparentTrait, IrregularTrait>: From<InputTrait>,
 {
-    let mut standard_traits: Vec<StandardTrait> = Vec::with_capacity(24);
+    let mut transparent_traits: Vec<TransparentTrait> = Vec::with_capacity(24);
     let mut irregular_traits: Vec<IrregularTrait> = Vec::with_capacity(24);
 
     for input_trait in input_traits {
         match GeneratableTrait::from(input_trait) {
-            GeneratableTrait::Standard(st) => standard_traits.push(st),
+            GeneratableTrait::Transparent(st) => transparent_traits.push(st),
             GeneratableTrait::Irregular(it) => irregular_traits.push(it),
         };
     }
 
     GeneratableTraits {
-        standard_traits,
+        transparent_traits,
         irregular_traits,
     }
 }
