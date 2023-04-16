@@ -50,6 +50,7 @@ pub enum FloatValidator<T> {
     Min(T),
     Max(T),
     With(TokenStream),
+    Finite,
 }
 
 pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
@@ -59,6 +60,7 @@ pub enum FloatValidatorKind {
     Min,
     Max,
     With,
+    Finite,
 }
 
 impl std::fmt::Display for FloatValidatorKind {
@@ -67,6 +69,7 @@ impl std::fmt::Display for FloatValidatorKind {
             Self::Min => write!(f, "min"),
             Self::Max => write!(f, "max"),
             Self::With => write!(f, "with"),
+            Self::Finite => write!(f, "finite"),
         }
     }
 }
@@ -79,6 +82,7 @@ impl<T> Kind for FloatValidator<T> {
             Self::Min(_) => FloatValidatorKind::Min,
             Self::Max(_) => FloatValidatorKind::Max,
             Self::With(_) => FloatValidatorKind::With,
+            Self::Finite => FloatValidatorKind::Finite,
         }
     }
 }

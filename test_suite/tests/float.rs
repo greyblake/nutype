@@ -83,6 +83,41 @@ mod validators {
         assert_eq!(Age::new(25.0).unwrap().into_inner(), 25.0);
     }
 
+    #[test]
+    fn test_finite_f64() {
+        #[nutype(validate(finite))]
+        #[derive(Debug, PartialEq)]
+        struct Dist(f64);
+
+        // invalid
+        assert_eq!(Dist::new(f64::INFINITY), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(f64::NEG_INFINITY), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(f64::NAN), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::NotFinite));
+
+        // valid
+        assert_eq!(Dist::new(12.345).unwrap().into_inner(), 12.345);
+        assert_eq!(Dist::new(-999.12).unwrap().into_inner(), -999.12);
+    }
+
+    #[test]
+    fn test_finite_f32() {
+        #[nutype(validate(finite))]
+        #[derive(*)]
+        struct Dist(f32);
+
+        // invalid
+        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::NotFinite));
+
+        // valid
+        assert_eq!(Dist::new(12.345).unwrap().into_inner(), 12.345);
+        assert_eq!(Dist::new(-999.12).unwrap().into_inner(), -999.12);
+    }
+
     #[cfg(test)]
     mod with {
         use super::*;

@@ -42,6 +42,9 @@ fn gen_definition<T>(
             FloatValidator::With(_) => {
                 quote!(Invalid,)
             }
+            FloatValidator::Finite => {
+                quote!(NotFinite,)
+            }
         })
         .collect();
 
@@ -65,6 +68,9 @@ fn gen_impl_display_trait<T>(
         },
         FloatValidator::With(_) => quote! {
              #error_type_name::Invalid => write!(f, "invalid")
+        },
+        FloatValidator::Finite => quote! {
+             #error_type_name::NotFinite => write!(f, "not finite")
         },
     });
 

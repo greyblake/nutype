@@ -220,6 +220,13 @@ where
                     }
                 )
             }
+            FloatValidator::Finite => {
+                quote!(
+                    if !val.is_finite() {
+                        return Err(#error_name::NotFinite);
+                    }
+                )
+            }
         })
         .collect();
 

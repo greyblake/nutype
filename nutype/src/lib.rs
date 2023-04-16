@@ -216,11 +216,12 @@
 //!
 //! ### Float validators
 //!
-//! | Validator | Description         | Error variant | Example                       |
-//! |-----------|---------------------|---------------|-------------------------------|
-//! | `max`     | Maximum valid value | `TooBig`      | `max = 100.0`                 |
-//! | `min`     | Minimum valid value | `TooSmall`    | `min = 0.0`                   |
-//! | `with`    | Custom validator    | `Invalid`     | `with = \|val\| val != 50.0`  |
+//! | Validator | Description                    | Error variant | Example                      |
+//! |-----------|--------------------------------|---------------|------------------------------|
+//! | `max`     | Maximum valid value            | `TooBig`      | `max = 100.0`                |
+//! | `min`     | Minimum valid value            | `TooSmall`    | `min = 0.0`                  |
+//! | `finite`  | Check against NaN and infinity | `NotFinite`   | `finite`                     |
+//! | `with`    | Custom validator               | `Invalid`     | `with = \|val\| val != 50.0` |
 //!
 //! ### Float derivable traits
 //!
