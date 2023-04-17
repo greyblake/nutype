@@ -91,8 +91,7 @@ fn has_validation_against_nan<T>(guard: &FloatGuard<T>) -> bool {
         FloatGuard::WithoutValidation { .. } => false,
         FloatGuard::WithValidation { ref validators, .. } => validators
             .iter()
-            .find(|&v| v.kind() == FloatValidatorKind::Finite)
-            .is_some(),
+            .any(|v| v.kind() == FloatValidatorKind::Finite)
     }
 }
 
@@ -143,7 +142,7 @@ pub fn validate_float_derive_traits<T>(
                 DeriveTrait::Asterisk => None,
             })
             .next()
-            .unwrap_or_else(|| Span::call_site());
+            .unwrap_or_else(Span::call_site);
         let msg = "Trait Eq requires PartialEq.\nEvery expert was once a beginner.";
         return Err(syn::Error::new(eq_trait_span, msg));
     }
