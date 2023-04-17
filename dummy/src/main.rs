@@ -1,7 +1,7 @@
 use nutype::nutype;
 use schemars::JsonSchema;
-#[nutype(validate(max = 12.34))]
-#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize, JsonSchema)]
+#[nutype(validate(finite, max = 12.34))]
+#[derive(FromStr, Display, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 pub struct Dist(f64);
 
 #[nutype(

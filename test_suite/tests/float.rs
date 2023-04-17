@@ -392,6 +392,32 @@ mod traits {
         assert_eq!(size.to_string(), "35.7");
     }
 
+    #[test]
+    fn test_trait_eq() {
+        #[nutype(validate(finite))]
+        #[derive(PartialEq, Eq, Debug)]
+        pub struct Size(f64);
+
+        should_implement_eq::<Size>();
+
+        let size1 = Size::new(35.7).unwrap();
+        let size2 = Size::new(357.0 / 10.0).unwrap();
+        assert_eq!(size1, size2);
+    }
+
+    #[test]
+    fn test_trait_eq_with_asterisk() {
+        #[nutype(validate(finite))]
+        #[derive(*)]
+        pub struct Size(f32);
+
+        should_implement_eq::<Size>();
+
+        let size1 = Size::new(35.7).unwrap();
+        let size2 = Size::new(357.0 / 10.0).unwrap();
+        assert_eq!(size1, size2);
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {

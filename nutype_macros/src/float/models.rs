@@ -104,6 +104,7 @@ pub enum FloatDeriveTrait {
     TryFrom,
     Borrow,
     Display,
+    Eq,
 
     // External crates
     SerdeSerialize,

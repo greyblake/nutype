@@ -35,6 +35,7 @@ enum FloatIrregularTrait {
     AsRef,
     Into,
     From,
+    Eq,
     TryFrom,
     Borrow,
     Display,
@@ -57,6 +58,7 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             FloatDeriveTrait::PartialEq => {
                 FloatGeneratableTrait::Transparent(FloatTransparentTrait::PartialEq)
             }
+            FloatDeriveTrait::Eq => FloatGeneratableTrait::Irregular(FloatIrregularTrait::Eq),
             FloatDeriveTrait::PartialOrd => {
                 FloatGeneratableTrait::Transparent(FloatTransparentTrait::PartialOrd)
             }
@@ -161,6 +163,13 @@ fn gen_implemented_traits(
                 inner_type,
                 maybe_error_type_name.as_ref(),
             ),
+            FloatIrregularTrait::Eq => gen_impl_trait_eq(type_name),
         })
         .collect()
+}
+
+fn gen_impl_trait_eq(type_name: &TypeName) -> TokenStream {
+    quote! {
+        impl Eq for #type_name { }
+    }
 }
