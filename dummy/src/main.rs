@@ -27,6 +27,13 @@ lazy_static! {
 #[derive(Debug)]
 pub struct PinCode(String);
 
+#[nutype(
+    new_unchecked
+    validate(finite)
+)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+pub struct Coefficient(f64);
+
 fn main() {
     let dist: Dist = "11.4".parse().unwrap();
     println!("dist = {}", dist.into_inner());
@@ -49,4 +56,12 @@ fn main() {
 
     let pin_result = PinCode::new("1223  ");
     println!("\npin_result = {pin_result:?}\n");
+
+    let k1 = Coefficient::new(0.0).unwrap();
+    let k2 = Coefficient::new(1.21).unwrap();
+    let k3 = Coefficient::new(3.21).unwrap();
+
+    let mut ks = [k3, k1, k2, k1, k3];
+    ks.sort();
+    println!("{ks:?}");
 }

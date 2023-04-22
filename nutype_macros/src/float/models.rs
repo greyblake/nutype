@@ -96,7 +96,9 @@ pub enum FloatDeriveTrait {
     Clone,
     Copy,
     PartialEq,
+    Eq,
     PartialOrd,
+    Ord,
     FromStr,
     AsRef,
     Into,
@@ -104,7 +106,6 @@ pub enum FloatDeriveTrait {
     TryFrom,
     Borrow,
     Display,
-    Eq,
 
     // External crates
     SerdeSerialize,

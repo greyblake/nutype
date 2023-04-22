@@ -418,6 +418,73 @@ mod traits {
         assert_eq!(size1, size2);
     }
 
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use std::cmp::Ordering;
+
+        #[test]
+        fn test_trait_ord_f32() {
+            #[nutype(validate(finite))]
+            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            pub struct Size(f32);
+
+            let a: Size = Size::new(2.5).unwrap();
+            let b: Size = Size::new(3.3).unwrap();
+            let c: Size = Size::new(3.3).unwrap();
+
+            assert_eq!(a.cmp(&b), Ordering::Less);
+            assert_eq!(b.cmp(&a), Ordering::Greater);
+            assert_eq!(b.cmp(&c), Ordering::Equal);
+        }
+
+        #[test]
+        fn test_trait_ord_f64() {
+            #[nutype(validate(finite))]
+            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            pub struct Size(f64);
+
+            let a: Size = Size::new(2.5).unwrap();
+            let b: Size = Size::new(3.3).unwrap();
+            let c: Size = Size::new(3.3).unwrap();
+
+            assert_eq!(a.cmp(&b), Ordering::Less);
+            assert_eq!(b.cmp(&a), Ordering::Greater);
+            assert_eq!(b.cmp(&c), Ordering::Equal);
+        }
+
+        #[test]
+        fn test_trait_ord_with_asterisk() {
+            #[nutype(validate(finite))]
+            #[derive(*)]
+            pub struct Size(f32);
+
+            let a: Size = Size::new(2.5).unwrap();
+            let b: Size = Size::new(3.3).unwrap();
+            let c: Size = Size::new(3.3).unwrap();
+
+            assert_eq!(a.cmp(&b), Ordering::Less);
+            assert_eq!(b.cmp(&a), Ordering::Greater);
+            assert_eq!(b.cmp(&c), Ordering::Equal);
+        }
+
+        #[test]
+        fn test_sort() {
+            #[nutype(validate(finite))]
+            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            pub struct Size(f64);
+
+            let initial_raw_sizes = vec![5.5, 2.0, 15.0, 44.5, 3.5];
+            let mut sizes: Vec<Size> = initial_raw_sizes
+                .into_iter()
+                .map(|s| Size::new(s).unwrap())
+                .collect();
+            sizes.sort();
+            let sorted_raw_sizes: Vec<f64> = sizes.into_iter().map(Size::into_inner).collect();
+            assert_eq!(sorted_raw_sizes, vec![2.0, 3.5, 5.5, 15.0, 44.5],);
+        }
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {

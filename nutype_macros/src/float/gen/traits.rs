@@ -36,6 +36,7 @@ enum FloatIrregularTrait {
     Into,
     From,
     Eq,
+    Ord,
     TryFrom,
     Borrow,
     Display,
@@ -62,6 +63,7 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             FloatDeriveTrait::PartialOrd => {
                 FloatGeneratableTrait::Transparent(FloatTransparentTrait::PartialOrd)
             }
+            FloatDeriveTrait::Ord => FloatGeneratableTrait::Irregular(FloatIrregularTrait::Ord),
             FloatDeriveTrait::FromStr => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::FromStr)
             }
@@ -164,12 +166,30 @@ fn gen_implemented_traits(
                 maybe_error_type_name.as_ref(),
             ),
             FloatIrregularTrait::Eq => gen_impl_trait_eq(type_name),
+            FloatIrregularTrait::Ord => gen_impl_trait_ord(type_name),
         })
         .collect()
 }
 
 fn gen_impl_trait_eq(type_name: &TypeName) -> TokenStream {
     quote! {
-        impl Eq for #type_name { }
+        impl ::core::cmp::Eq for #type_name { }
+    }
+}
+
+fn gen_impl_trait_ord(type_name: &TypeName) -> TokenStream {
+    let tp = type_name.to_string();
+    quote! {
+        // Make clippy ignore this manual implementation of Ord even when PartialOrd is derived.
+        #[allow(clippy::derive_ord_xor_partial_ord)]
+        impl ::core::cmp::Ord for #type_name {
+            fn cmp(&self, other: &Self) -> ::core::cmp::Ordering {
+                self.partial_cmp(other)
+                    .unwrap_or_else(|| {
+                        let tp = #tp;
+                        panic!("{tp}::cmp() panicked, because partial_cmp() returned None. Could it be that you're using unsafe {tp}::new_unchecked() ?", tp=tp);
+                    })
+            }
+        }
     }
 }

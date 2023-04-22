@@ -1,9 +1,13 @@
-## Roadmap
-* JsonSchema: add README, lib docs
-* Use `enum-kind` crate
+## TODO
+* Implement UI tests for derive(Ord), cover cases:
+  * When finite is not set
+  * When Eq is not derived
+  * When PartialOrd is not derived
+* Prop-based tests for Ord?
 
 ## Tech debt
 * Make individual UI tests possible to opt-out depending on the feature flags.
+* Use `enum-kind` crate
 
 ### TODO Refactor:
 * Refactor parsers
@@ -120,3 +124,7 @@
 * JsonSchema: Add unit tests
 * JsonSchema: UI test
 * Validation with regex
+* JsonSchema: add README, lib docs
+* Implement unit tests for float Ord
+  * Test cmp
+  * Test sort()
