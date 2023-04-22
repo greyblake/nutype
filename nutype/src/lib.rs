@@ -229,7 +229,7 @@
 //! `Debug`, `Clone`, `Copy`, `PartialEq`, `PartialOrd`, `FromStr`, `AsRef`, `Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Serialize`, `Deserialize`.
 //!
 //! It's also possible to derive `Eq` and `Ord` if the validation rules guarantee that `NaN` is excluded.
-//! This can be done applying `finite` validation. For example:
+//! This can be done by applying `finite` validation. For example:
 //!
 //! ```rust
 //! use nutype::nutype;
