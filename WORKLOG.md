@@ -1,5 +1,5 @@
 ## TODO
-* Prop-based tests for Ord?
+* Update to Rust 1.69
 * Update CHANGELOG
 * Add recipes to README
 
@@ -130,3 +130,4 @@
   * When finite is not set
   * When Eq is not derived
   * When PartialOrd is not derived
+* Prop-based tests for Ord

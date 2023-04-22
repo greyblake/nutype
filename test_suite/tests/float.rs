@@ -483,6 +483,51 @@ mod traits {
             let sorted_raw_sizes: Vec<f64> = sizes.into_iter().map(Size::into_inner).collect();
             assert_eq!(sorted_raw_sizes, vec![2.0, 3.5, 5.5, 15.0, 44.5],);
         }
+
+        #[cfg(test)]
+        mod prop_tests {
+            use super::*;
+            use arbitrary::Error;
+            use arbitrary::Unstructured;
+
+            #[test]
+            fn cmp_never_panics_f32() {
+                #[nutype(validate(finite))]
+                #[derive(PartialEq, Eq, PartialOrd, Ord)]
+                pub struct Size(f32);
+
+                fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
+                    let raw_a: f32 = u.arbitrary()?;
+                    let a = Size::new(raw_a).map_err(|_| Error::IncorrectFormat)?;
+                    let raw_b: f32 = u.arbitrary()?;
+                    let b = Size::new(raw_b).map_err(|_| Error::IncorrectFormat)?;
+                    let _ = a.cmp(&b);
+                    let _ = b.cmp(&a);
+                    Ok(())
+                }
+
+                arbtest::builder().run(|u| prop(u));
+            }
+
+            #[test]
+            fn cmp_never_panics_f64() {
+                #[nutype(validate(finite))]
+                #[derive(PartialEq, Eq, PartialOrd, Ord)]
+                pub struct Size(f64);
+
+                fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
+                    let raw_a: f64 = u.arbitrary()?;
+                    let a = Size::new(raw_a).map_err(|_| Error::IncorrectFormat)?;
+                    let raw_b: f64 = u.arbitrary()?;
+                    let b = Size::new(raw_b).map_err(|_| Error::IncorrectFormat)?;
+                    let _ = a.cmp(&b);
+                    let _ = b.cmp(&a);
+                    Ok(())
+                }
+
+                arbtest::builder().run(|u| prop(u));
+            }
+        }
     }
 
     #[cfg(feature = "serde")]
