@@ -1,7 +1,5 @@
 ## TODO
 * Update to Rust 1.69
-* Update CHANGELOG
-* Add recipes to README
 
 ## Tech debt
 * Make individual UI tests possible to opt-out depending on the feature flags.
@@ -20,6 +18,11 @@
   * Copy requires Clone
   * Ord requires PartialOrd
   * Eq requires PartialEq
+
+## Ideas for recipes (docs)
+* Derive Eq and Ord on float based type if `finite` validation is set
+* Validating strings with regex
+
 
 ### Later
 * Support decimals libraries:
@@ -131,3 +134,5 @@
   * When Eq is not derived
   * When PartialOrd is not derived
 * Prop-based tests for Ord
+* Add note about Eq and Ord on floats in README
+* Update CHANGELOG

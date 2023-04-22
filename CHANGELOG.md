@@ -1,5 +1,6 @@
 ### v0.3.0 - 2023-??-??
 * Add `finite` validation for float types which checks against NaN and infinity.
+* Enable deriving of `Eq` and `Ord` on float types (if `finite` validation is present)
 
 ### v0.2.0 - 2023-04-13
 
