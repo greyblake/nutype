@@ -177,6 +177,10 @@ fn gen_impl_trait_eq(type_name: &TypeName) -> TokenStream {
     }
 }
 
+// The implementation below may panic.
+// Function `partial_cmp` returns `None` only for `NaN` values, but
+// `NaN` values are supposed to be exluded by `finite` validation rule.
+// Without `finite` validation deriving `Ord` is not allowed.
 fn gen_impl_trait_ord(type_name: &TypeName) -> TokenStream {
     let tp = type_name.to_string();
     quote! {
