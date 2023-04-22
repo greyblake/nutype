@@ -7,4 +7,5 @@ pub mod traits {
     pub fn should_implement_borrow<T: std::borrow::Borrow<Borrowed>, Borrowed: ?Sized>() {}
     pub fn should_implement_clone<T: Clone>() {}
     pub fn should_implement_copy<T: Copy>() {}
+    pub fn should_implement_eq<T: Eq>() {}
 }

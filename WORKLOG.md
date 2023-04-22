@@ -1,9 +1,9 @@
-## Roadmap
-* JsonSchema: add README, lib docs
-* Use `enum-kind` crate
+## TODO
+* Update to Rust 1.69
 
 ## Tech debt
 * Make individual UI tests possible to opt-out depending on the feature flags.
+* Use `enum-kind` crate
 
 ### TODO Refactor:
 * Refactor parsers
@@ -18,6 +18,11 @@
   * Copy requires Clone
   * Ord requires PartialOrd
   * Eq requires PartialEq
+
+## Ideas for recipes (docs)
+* Derive Eq and Ord on float based type if `finite` validation is set
+* Validating strings with regex
+
 
 ### Later
 * Support decimals libraries:
@@ -120,3 +125,14 @@
 * JsonSchema: Add unit tests
 * JsonSchema: UI test
 * Validation with regex
+* JsonSchema: add README, lib docs
+* Implement unit tests for float Ord
+  * Test cmp
+  * Test sort()
+* Implement UI tests for derive(Ord), cover cases:
+  * When finite is not set
+  * When Eq is not derived
+  * When PartialOrd is not derived
+* Prop-based tests for Ord
+* Add note about Eq and Ord on floats in README
+* Update CHANGELOG

@@ -1,0 +1,7 @@
+error: To derive Eq trait on float-based type there must be validation that proves that inner value is not NaN.
+       Consider adding:
+           validate(finite)
+ --> tests/ui/float/derive/eq_without_finite.rs:4:21
+  |
+4 | #[derive(PartialEq, Eq)]
+  |                     ^^

@@ -392,6 +392,144 @@ mod traits {
         assert_eq!(size.to_string(), "35.7");
     }
 
+    #[test]
+    fn test_trait_eq() {
+        #[nutype(validate(finite))]
+        #[derive(PartialEq, Eq, Debug)]
+        pub struct Size(f64);
+
+        should_implement_eq::<Size>();
+
+        let size1 = Size::new(35.7).unwrap();
+        let size2 = Size::new(357.0 / 10.0).unwrap();
+        assert_eq!(size1, size2);
+    }
+
+    #[test]
+    fn test_trait_eq_with_asterisk() {
+        #[nutype(validate(finite))]
+        #[derive(*)]
+        pub struct Size(f32);
+
+        should_implement_eq::<Size>();
+
+        let size1 = Size::new(35.7).unwrap();
+        let size2 = Size::new(357.0 / 10.0).unwrap();
+        assert_eq!(size1, size2);
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+        use std::cmp::Ordering;
+
+        #[test]
+        fn test_trait_ord_f32() {
+            #[nutype(validate(finite))]
+            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            pub struct Size(f32);
+
+            let a: Size = Size::new(2.5).unwrap();
+            let b: Size = Size::new(3.3).unwrap();
+            let c: Size = Size::new(3.3).unwrap();
+
+            assert_eq!(a.cmp(&b), Ordering::Less);
+            assert_eq!(b.cmp(&a), Ordering::Greater);
+            assert_eq!(b.cmp(&c), Ordering::Equal);
+        }
+
+        #[test]
+        fn test_trait_ord_f64() {
+            #[nutype(validate(finite))]
+            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            pub struct Size(f64);
+
+            let a: Size = Size::new(2.5).unwrap();
+            let b: Size = Size::new(3.3).unwrap();
+            let c: Size = Size::new(3.3).unwrap();
+
+            assert_eq!(a.cmp(&b), Ordering::Less);
+            assert_eq!(b.cmp(&a), Ordering::Greater);
+            assert_eq!(b.cmp(&c), Ordering::Equal);
+        }
+
+        #[test]
+        fn test_trait_ord_with_asterisk() {
+            #[nutype(validate(finite))]
+            #[derive(*)]
+            pub struct Size(f32);
+
+            let a: Size = Size::new(2.5).unwrap();
+            let b: Size = Size::new(3.3).unwrap();
+            let c: Size = Size::new(3.3).unwrap();
+
+            assert_eq!(a.cmp(&b), Ordering::Less);
+            assert_eq!(b.cmp(&a), Ordering::Greater);
+            assert_eq!(b.cmp(&c), Ordering::Equal);
+        }
+
+        #[test]
+        fn test_sort() {
+            #[nutype(validate(finite))]
+            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            pub struct Size(f64);
+
+            let initial_raw_sizes = vec![5.5, 2.0, 15.0, 44.5, 3.5];
+            let mut sizes: Vec<Size> = initial_raw_sizes
+                .into_iter()
+                .map(|s| Size::new(s).unwrap())
+                .collect();
+            sizes.sort();
+            let sorted_raw_sizes: Vec<f64> = sizes.into_iter().map(Size::into_inner).collect();
+            assert_eq!(sorted_raw_sizes, vec![2.0, 3.5, 5.5, 15.0, 44.5],);
+        }
+
+        #[cfg(test)]
+        mod prop_tests {
+            use super::*;
+            use arbitrary::Error;
+            use arbitrary::Unstructured;
+
+            #[test]
+            fn cmp_never_panics_f32() {
+                #[nutype(validate(finite))]
+                #[derive(PartialEq, Eq, PartialOrd, Ord)]
+                pub struct Size(f32);
+
+                fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
+                    let raw_a: f32 = u.arbitrary()?;
+                    let a = Size::new(raw_a).map_err(|_| Error::IncorrectFormat)?;
+                    let raw_b: f32 = u.arbitrary()?;
+                    let b = Size::new(raw_b).map_err(|_| Error::IncorrectFormat)?;
+                    let _ = a.cmp(&b);
+                    let _ = b.cmp(&a);
+                    Ok(())
+                }
+
+                arbtest::builder().run(|u| prop(u));
+            }
+
+            #[test]
+            fn cmp_never_panics_f64() {
+                #[nutype(validate(finite))]
+                #[derive(PartialEq, Eq, PartialOrd, Ord)]
+                pub struct Size(f64);
+
+                fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
+                    let raw_a: f64 = u.arbitrary()?;
+                    let a = Size::new(raw_a).map_err(|_| Error::IncorrectFormat)?;
+                    let raw_b: f64 = u.arbitrary()?;
+                    let b = Size::new(raw_b).map_err(|_| Error::IncorrectFormat)?;
+                    let _ = a.cmp(&b);
+                    let _ = b.cmp(&a);
+                    Ok(())
+                }
+
+                arbtest::builder().run(|u| prop(u));
+            }
+        }
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {

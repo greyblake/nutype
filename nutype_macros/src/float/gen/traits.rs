@@ -35,6 +35,8 @@ enum FloatIrregularTrait {
     AsRef,
     Into,
     From,
+    Eq,
+    Ord,
     TryFrom,
     Borrow,
     Display,
@@ -57,9 +59,11 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             FloatDeriveTrait::PartialEq => {
                 FloatGeneratableTrait::Transparent(FloatTransparentTrait::PartialEq)
             }
+            FloatDeriveTrait::Eq => FloatGeneratableTrait::Irregular(FloatIrregularTrait::Eq),
             FloatDeriveTrait::PartialOrd => {
                 FloatGeneratableTrait::Transparent(FloatTransparentTrait::PartialOrd)
             }
+            FloatDeriveTrait::Ord => FloatGeneratableTrait::Irregular(FloatIrregularTrait::Ord),
             FloatDeriveTrait::FromStr => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::FromStr)
             }
@@ -161,6 +165,35 @@ fn gen_implemented_traits(
                 inner_type,
                 maybe_error_type_name.as_ref(),
             ),
+            FloatIrregularTrait::Eq => gen_impl_trait_eq(type_name),
+            FloatIrregularTrait::Ord => gen_impl_trait_ord(type_name),
         })
         .collect()
+}
+
+fn gen_impl_trait_eq(type_name: &TypeName) -> TokenStream {
+    quote! {
+        impl ::core::cmp::Eq for #type_name { }
+    }
+}
+
+// The implementation below may panic.
+// Function `partial_cmp` returns `None` only for `NaN` values, but
+// `NaN` values are supposed to be exluded by `finite` validation rule.
+// Without `finite` validation deriving `Ord` is not allowed.
+fn gen_impl_trait_ord(type_name: &TypeName) -> TokenStream {
+    let tp = type_name.to_string();
+    quote! {
+        // Make clippy ignore this manual implementation of Ord even when PartialOrd is derived.
+        #[allow(clippy::derive_ord_xor_partial_ord)]
+        impl ::core::cmp::Ord for #type_name {
+            fn cmp(&self, other: &Self) -> ::core::cmp::Ordering {
+                self.partial_cmp(other)
+                    .unwrap_or_else(|| {
+                        let tp = #tp;
+                        panic!("{tp}::cmp() panicked, because partial_cmp() returned None. Could it be that you're using unsafe {tp}::new_unchecked() ?", tp=tp);
+                    })
+            }
+        }
+    }
 }

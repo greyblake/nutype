@@ -1,0 +1,6 @@
+error: Trait Eq requires PartialEq.
+       Every expert was once a beginner.
+ --> tests/ui/float/derive/eq_without_partial_eq.rs:4:10
+  |
+4 | #[derive(Eq)]
+  |          ^^

@@ -231,6 +231,15 @@ The float inner types are: `f32`, `f64`.
 The following traits can be derived for a float-based type:
 `Debug`, `Clone`, `Copy`, `PartialEq`, `PartialOrd`, `FromStr`, `AsRef`, `Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Serialize`, `Deserialize`.
 
+It's also possible to derive `Eq` and `Ord` if the validation rules guarantee that `NaN` is excluded.
+This can be done applying by `finite` validation. For example:
+
+```rust
+#[nutype(validate(finite))]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+struct Size(f64);
+```
+
 ## Custom sanitizers
 
 You can set custom sanitizers using the `with` option.

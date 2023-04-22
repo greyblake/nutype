@@ -154,7 +154,7 @@ where
         guard,
         new_unchecked,
     } = float::parse::parse_attributes::<T>(attrs)?;
-    let traits = validate_float_derive_traits(derive_traits, guard.has_validation())?;
+    let traits = validate_float_derive_traits(derive_traits, &guard)?;
     Ok(float::gen::gen_nutype_for_float(
         doc_attrs,
         vis,
