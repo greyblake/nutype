@@ -1,9 +1,7 @@
 ## TODO
-* Implement UI tests for derive(Ord), cover cases:
-  * When finite is not set
-  * When Eq is not derived
-  * When PartialOrd is not derived
 * Prop-based tests for Ord?
+* Update CHANGELOG
+* Add recipes to README
 
 ## Tech debt
 * Make individual UI tests possible to opt-out depending on the feature flags.
@@ -128,3 +126,7 @@
 * Implement unit tests for float Ord
   * Test cmp
   * Test sort()
+* Implement UI tests for derive(Ord), cover cases:
+  * When finite is not set
+  * When Eq is not derived
+  * When PartialOrd is not derived

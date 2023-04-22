@@ -1,0 +1,6 @@
+error: Trait Ord requires Eq.
+       Festina lente.
+ --> tests/ui/float/derive/ord_without_eq.rs:4:33
+  |
+4 | #[derive(PartialEq, PartialOrd, Ord)]
+  |                                 ^^^
