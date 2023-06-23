@@ -152,18 +152,12 @@ fn to_integer_derive_trait(
         NormalDeriveTrait::SerdeSerialize => Ok(IntegerDeriveTrait::SerdeSerialize),
         NormalDeriveTrait::SerdeDeserialize => Ok(IntegerDeriveTrait::SerdeDeserialize),
         NormalDeriveTrait::SchemarsJsonSchema => Ok(IntegerDeriveTrait::SchemarsJsonSchema),
+        NormalDeriveTrait::TryFrom => Ok(IntegerDeriveTrait::TryFrom),
         NormalDeriveTrait::From => {
             if has_validation {
                 Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
             } else {
                 Ok(IntegerDeriveTrait::From)
-            }
-        }
-        NormalDeriveTrait::TryFrom => {
-            if has_validation {
-                Ok(IntegerDeriveTrait::TryFrom)
-            } else {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead."))
             }
         }
     }

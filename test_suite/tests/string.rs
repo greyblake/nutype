@@ -192,6 +192,15 @@ mod validators {
     }
 
     #[test]
+    fn test_try_from_trait_without_validation() {
+        #[nutype]
+        #[derive(Debug, PartialEq, TryFrom)]
+        pub struct Name(String);
+
+        assert_eq!(Name::try_from("Tom").unwrap().into_inner(), "Tom");
+    }
+
+    #[test]
     fn test_error() {
         fn ensure_type_implements_error<T: std::error::Error>() {}
 

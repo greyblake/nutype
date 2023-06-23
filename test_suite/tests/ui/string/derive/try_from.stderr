@@ -1,5 +1,0 @@
-error: #[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead.
- --> tests/ui/string/derive/try_from.rs:4:10
-  |
-4 | #[derive(TryFrom)]
-  |          ^^^^^^^
