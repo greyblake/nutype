@@ -1,4 +1,5 @@
 ### v0.3.0 - 2023-??-??
+* [BREAKING] `min_len` and `max_len` validators run against number of characters in a string (`val.chars().count()`), not number of bytes (`val.len()`).
 * Add `finite` validation for float types which checks against NaN and infinity.
 * Enable deriving of `Eq` and `Ord` on float types (if `finite` validation is present)
 * Enable deriving of `TryFrom` for types without validation (in this case Error type is `std::convert::Infallible`)

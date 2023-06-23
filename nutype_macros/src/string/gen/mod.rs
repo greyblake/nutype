@@ -177,19 +177,25 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
 pub fn gen_string_validate_fn(type_name: &TypeName, validators: &[StringValidator]) -> TokenStream {
     let error_name = gen_error_type_name(type_name);
 
+    // Indicates that `chars_count` variable needs to be set, which is used within
+    // min_len and max_len validations.
+    let mut requires_chars_count = false;
+
     let validations: TokenStream = validators
         .iter()
         .map(|validator| match validator {
             StringValidator::MaxLen(max_len) => {
+                requires_chars_count = true;
                 quote!(
-                    if val.len() > #max_len {
+                    if chars_count > #max_len {
                         return Err(#error_name::TooLong);
                     }
                 )
             }
             StringValidator::MinLen(min_len) => {
+                requires_chars_count = true;
                 quote!(
-                    if val.len() < #min_len {
+                    if chars_count < #min_len {
                         return Err(#error_name::TooShort);
                     }
                 )
@@ -237,8 +243,17 @@ pub fn gen_string_validate_fn(type_name: &TypeName, validators: &[StringValidato
         })
         .collect();
 
+    let chars_count_if_required = if requires_chars_count {
+        quote!(
+            let chars_count = val.chars().count();
+        )
+    } else {
+        quote!()
+    };
+
     quote!(
         fn validate(val: &str) -> ::core::result::Result<(), #error_name> {
+            #chars_count_if_required
             #validations
             Ok(())
         }
