@@ -181,13 +181,7 @@ fn to_string_derive_trait(
                 Ok(StringDeriveTrait::From)
             }
         }
-        NormalDeriveTrait::TryFrom => {
-            if has_validation {
-                Ok(StringDeriveTrait::TryFrom)
-            } else {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead."))
-            }
-        }
+        NormalDeriveTrait::TryFrom => Ok(StringDeriveTrait::TryFrom),
     }
 }
 

@@ -135,6 +135,15 @@ mod validators {
         assert_eq!(Age::try_from(18).unwrap().into_inner(), 18);
     }
 
+    #[test]
+    fn test_try_from_trait_without_validation() {
+        #[nutype]
+        #[derive(Debug, PartialEq, TryFrom)]
+        struct Age(u8);
+
+        assert_eq!(Age::try_from(78).unwrap().into_inner(), 78);
+    }
+
     #[cfg(test)]
     mod error {
         use super::*;

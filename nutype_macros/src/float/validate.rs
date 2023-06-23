@@ -241,13 +241,7 @@ fn to_float_derive_trait(
                 Ok(FloatDeriveTrait::From)
             }
         }
-        NormalDeriveTrait::TryFrom => {
-            if validation.has_validation {
-                Ok(FloatDeriveTrait::TryFrom)
-            } else {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `TryFrom`, because there is no validation. Use `From` instead."))
-            }
-        }
+        NormalDeriveTrait::TryFrom => Ok(FloatDeriveTrait::TryFrom),
         NormalDeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
         NormalDeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),
         NormalDeriveTrait::SchemarsJsonSchema => Ok(FloatDeriveTrait::SchemarsJsonSchema),

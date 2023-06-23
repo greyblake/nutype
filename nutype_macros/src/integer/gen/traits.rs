@@ -172,10 +172,7 @@ fn gen_implemented_traits(
             IntegerIrregularTrait::From => gen_impl_trait_from(type_name, inner_type),
             IntegerIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
             IntegerIrregularTrait::TryFrom => {
-                let error_type_name = maybe_error_type_name
-                    .as_ref()
-                    .expect("TryFrom for integer is expected to have error_type_name");
-                gen_impl_trait_try_from(type_name, inner_type, error_type_name)
+                gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
             }
             IntegerIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
             IntegerIrregularTrait::Display => gen_impl_trait_dislpay(type_name),

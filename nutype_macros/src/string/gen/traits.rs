@@ -162,10 +162,7 @@ fn gen_implemented_traits(
             StringIrregularTrait::From => gen_impl_from_str_and_string(type_name),
             StringIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
             StringIrregularTrait::TryFrom => {
-                let error_type_name = maybe_error_type_name
-                    .as_ref()
-                    .expect("TryFrom for String is expected to have error_type_name");
-                gen_impl_try_from(type_name, error_type_name)
+                gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
             }
             StringIrregularTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
             StringIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
@@ -216,9 +213,13 @@ fn gen_impl_from_str_and_string(type_name: &TypeName) -> TokenStream {
     }
 }
 
-fn gen_impl_try_from(type_name: &TypeName, error_type_name: &ErrorTypeName) -> TokenStream {
-    let impl_try_from_string = gen_impl_trait_try_from(type_name, quote!(String), error_type_name);
-    let impl_try_from_str = gen_impl_trait_try_from(type_name, quote!(&str), error_type_name);
+fn gen_impl_try_from(
+    type_name: &TypeName,
+    maybe_error_type_name: Option<&ErrorTypeName>,
+) -> TokenStream {
+    let impl_try_from_string =
+        gen_impl_trait_try_from(type_name, quote!(String), maybe_error_type_name);
+    let impl_try_from_str = gen_impl_trait_try_from(type_name, quote!(&str), maybe_error_type_name);
 
     quote! {
         #impl_try_from_string
