@@ -99,6 +99,9 @@ mod validators {
 
         assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
         assert_eq!(Name::new("Serhii"), Err(NameError::TooLong));
+
+        // Ukranian, Cyrillic. Every char is 2 bytes.
+        assert_eq!(Name::new("Антон").unwrap().into_inner(), "Антон");
     }
 
     #[test]
@@ -109,6 +112,9 @@ mod validators {
 
         assert_eq!(Name::new("Anton"), Err(NameError::TooShort));
         assert_eq!(Name::new("Serhii").unwrap().into_inner(), "Serhii");
+
+        // Ukranian, Cyrillic. Every char is 2 bytes.
+        assert_eq!(Name::new("Антон"), Err(NameError::TooShort));
     }
 
     #[test]

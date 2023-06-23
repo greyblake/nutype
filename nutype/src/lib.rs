@@ -121,8 +121,8 @@
 //!
 //! | Validator   | Description                                                                     | Error variant   | Example                                      |
 //! |-------------|---------------------------------------------------------------------------------|-----------------|----------------------------------------------|
-//! | `max_len`   | Max length of the string                                                        | `TooLong`       | `max_len = 255`                              |
-//! | `min_len`   | Min length of the string                                                        | `TooShort`      | `min_len = 5`                                |
+//! | `max_len`   | Max length of the string (in chars, not bytes)                                  | `TooLong`       | `max_len = 255`                              |
+//! | `min_len`   | Min length of the string (in chars, not bytes)                                  | `TooShort`      | `min_len = 5`                                |
 //! | `not_empty` | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
 //! | `regex`     | Validates format with a regex. Requires `regex` feature.                        | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
 //! | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
