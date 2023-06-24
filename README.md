@@ -180,7 +180,7 @@ pub struct PhoneNumber(String);
 ### String derivable traits
 
 The following traits can be derived for a string-based type:
-`Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `From`, `TryFrom`, `Into`, `Hash`, `Borrow`, `Display`, `Serialize`, `Deserialize`.
+`Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `From`, `TryFrom`, `Into`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`.
 
 
 ## Integer
@@ -204,7 +204,7 @@ The integer inner types are: `u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32
 ### Integer derivable traits
 
 The following traits can be derived for an integer-based type:
-`Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Serialize`, `Deserialize`.
+`Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`.
 
 
 ## Float
@@ -229,7 +229,7 @@ The float inner types are: `f32`, `f64`.
 ### Float derivable traits
 
 The following traits can be derived for a float-based type:
-`Debug`, `Clone`, `Copy`, `PartialEq`, `PartialOrd`, `FromStr`, `AsRef`, `Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Serialize`, `Deserialize`.
+`Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`.
 
 It's also possible to derive `Eq` and `Ord` if the validation rules guarantee that `NaN` is excluded.
 This can be done applying by `finite` validation. For example:
@@ -284,6 +284,28 @@ fn is_valid_name(name: &str) -> bool {
     name.chars().next().map(char::is_uppercase).unwrap_or(false)
 }
 ```
+
+## Deriving recipes
+
+### Deriving `Default`
+
+```rs
+#[nutype(default = "Anonymous")]
+#[derive(Default)]
+pub struct Name(String);
+```
+
+### Deriving `Eq` and `Ord` on float types
+
+With nutype it's possible to derive `Eq` and `Ord` if there is `finite` validation set.
+The `finite` validation ensures that the valid value excludes `NaN`.
+
+```rs
+#[nutype(validate(finite))]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct Weight(f64);
+```
+
 
 ## How to break the constraints?
 

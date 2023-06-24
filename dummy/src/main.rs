@@ -1,13 +1,8 @@
 use nutype::nutype;
 
-#[nutype(
-    validate(max_len = 6)
-    default = "FooBar"
-)]
-#[derive(Debug, Display, Default)]
-pub struct Name(String);
+#[nutype(validate(finite))]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct Weight(f64);
 
 fn main() {
-    let name = Name::default();
-    println!("name = {name}");
 }
