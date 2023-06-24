@@ -1,0 +1,7 @@
+error: custom attribute panicked
+ --> tests/ui/integer/derive/default.rs:3:1
+  |
+3 | #[nutype(validate(max = 1024))]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: message: Default trait is derived for type Count, but `default = ` parameter is missing in #[nutype] macro
