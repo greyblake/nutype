@@ -1,6 +1,7 @@
 use nutype::nutype;
 
-#[nutype(validate(min_len = 3, max_len = 255))]
-pub struct Name(String);
+#[nutype(validate(finite))]
+#[derive(PartialEq, Eq, PartialOrd, Ord)]
+pub struct Weight(f64);
 
 fn main() {}

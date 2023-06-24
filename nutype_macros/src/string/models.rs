@@ -130,6 +130,8 @@ pub enum StringDeriveTrait {
     Hash,
     Borrow,
     Display,
+    Default,
+
     // // External crates
     //
     SerdeSerialize,

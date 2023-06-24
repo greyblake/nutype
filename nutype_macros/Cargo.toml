@@ -30,3 +30,8 @@ proc-macro = true
 serde = []
 schemars08 = []
 new_unchecked = []
+
+# nutype_test is set when unit tests for nutype is running.
+# Why: we don't want to generate unit tests when we're already within a unit test, because it results
+# into warnings.
+nutype_test = []

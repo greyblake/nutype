@@ -22,6 +22,9 @@ use crate::{
 };
 use traits::gen_traits;
 
+// TODO: These are too many arguments indeed.
+// Consider refactoring.
+#[allow(clippy::too_many_arguments)]
 pub fn gen_nutype_for_float<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,
@@ -30,6 +33,7 @@ pub fn gen_nutype_for_float<T>(
     meta: FloatGuard<T>,
     traits: HashSet<FloatDeriveTrait>,
     new_unchecked: NewUnchecked,
+    maybe_default_value: Option<TokenStream>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
@@ -59,7 +63,13 @@ where
     let GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
-    } = gen_traits(type_name, inner_type, maybe_error_type_name, traits);
+    } = gen_traits(
+        type_name,
+        inner_type,
+        maybe_error_type_name,
+        maybe_default_value,
+        traits,
+    );
 
     quote!(
         #[doc(hidden)]

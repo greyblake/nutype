@@ -138,6 +138,7 @@ fn to_integer_derive_trait(
     match tr {
         NormalDeriveTrait::Debug => Ok(IntegerDeriveTrait::Debug),
         NormalDeriveTrait::Display => Ok(IntegerDeriveTrait::Display),
+        NormalDeriveTrait::Default => Ok(IntegerDeriveTrait::Default),
         NormalDeriveTrait::Clone => Ok(IntegerDeriveTrait::Clone),
         NormalDeriveTrait::PartialEq => Ok(IntegerDeriveTrait::PartialEq),
         NormalDeriveTrait::Eq => Ok(IntegerDeriveTrait::Eq),

@@ -10,7 +10,10 @@ use crate::{
         gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
         GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
-    common::models::{ErrorTypeName, FloatInnerType, TypeName},
+    common::{
+        gen::traits::gen_impl_trait_default,
+        models::{ErrorTypeName, FloatInnerType, TypeName},
+    },
     float::models::FloatDeriveTrait,
 };
 
@@ -40,6 +43,7 @@ enum FloatIrregularTrait {
     TryFrom,
     Borrow,
     Display,
+    Default,
     SerdeSerialize,
     SerdeDeserialize,
 }
@@ -79,6 +83,9 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             FloatDeriveTrait::Display => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::Display)
             }
+            FloatDeriveTrait::Default => {
+                FloatGeneratableTrait::Irregular(FloatIrregularTrait::Default)
+            }
             FloatDeriveTrait::SerdeSerialize => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::SerdeSerialize)
             }
@@ -110,6 +117,7 @@ pub fn gen_traits(
     type_name: &TypeName,
     inner_type: FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
+    maybe_default_value: Option<TokenStream>,
     traits: HashSet<FloatDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
@@ -127,6 +135,7 @@ pub fn gen_traits(
         type_name,
         inner_type,
         maybe_error_type_name,
+        maybe_default_value,
         irregular_traits,
     );
 
@@ -140,6 +149,7 @@ fn gen_implemented_traits(
     type_name: &TypeName,
     inner_type: FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
+    maybe_default_value: Option<TokenStream>,
     impl_traits: Vec<FloatIrregularTrait>,
 ) -> TokenStream {
     impl_traits
@@ -156,6 +166,17 @@ fn gen_implemented_traits(
             }
             FloatIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
             FloatIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
+            FloatIrregularTrait::Default => {
+                match maybe_default_value {
+                    Some(ref default_value) => {
+                        let has_validation = maybe_error_type_name.is_some();
+                        gen_impl_trait_default(type_name, default_value, has_validation)
+                    },
+                    None => {
+                        panic!("Default trait is derived for type {type_name}, but `default = ` is missing");
+                    }
+                }
+            }
             FloatIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
             FloatIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
                 type_name,

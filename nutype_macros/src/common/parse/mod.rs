@@ -92,6 +92,9 @@ pub fn parse_nutype_attributes<S, V>(
         #[allow(unused_mut)]
         let mut new_unchecked = NewUnchecked::Off;
 
+        // Value which is used to derive Default trait
+        let mut maybe_default_value: Option<TokenStream> = None;
+
         let mut iter = input.into_iter();
 
         loop {
@@ -101,6 +104,7 @@ pub fn parse_nutype_attributes<S, V>(
                     let attributes = Attributes {
                         guard: raw_guard,
                         new_unchecked,
+                        maybe_default_value,
                     };
                     return Ok(attributes);
                 }
@@ -126,6 +130,29 @@ pub fn parse_nutype_attributes<S, V>(
                     let group = try_unwrap_group(token)?;
                     let validate_stream = group.stream();
                     raw_guard.validators = parse_validate_attrs(validate_stream)?;
+                }
+                "default" => {
+                    {
+                        // Take `=` sign
+                        if let Some(eq_t) = iter.next() {
+                            if !is_eq(&eq_t) {
+                                return Err(syn::Error::new(
+                                    ident.span(),
+                                    "Invalid syntax for `default`. Expected `=`, got `{eq_t}`",
+                                ));
+                            }
+                        } else {
+                            return Err(syn::Error::new(
+                                ident.span(),
+                                "Invalid syntax for `default`. Missing `=`",
+                            ));
+                        }
+                    }
+                    // TODO: parse it properly till some delimeter?
+                    let default_value = iter
+                        .next()
+                        .ok_or_else(|| syn::Error::new(ident.span(), "Missing default value"))?;
+                    maybe_default_value = Some(TokenStream::from(default_value));
                 }
                 "new_unchecked" => {
                     // The feature is not enabled, so we return an error
@@ -320,6 +347,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Into" => NormalDeriveTrait::Into,
         "Hash" => NormalDeriveTrait::Hash,
         "Borrow" => NormalDeriveTrait::Borrow,
+        "Default" => NormalDeriveTrait::Default,
         "Serialize" => {
             #[cfg(not(feature = "serde"))]
             return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
