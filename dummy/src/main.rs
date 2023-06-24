@@ -1,6 +1,13 @@
 use nutype::nutype;
 
-#[nutype(validate(min_len = 3, max_len = 255))]
+#[nutype(
+    validate(max_len = 6)
+    default = "FooBar"
+)]
+#[derive(Debug, Display, Default)]
 pub struct Name(String);
 
-fn main() {}
+fn main() {
+    let name = Name::default();
+    println!("name = {name}");
+}

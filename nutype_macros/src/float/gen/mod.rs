@@ -22,6 +22,9 @@ use crate::{
 };
 use traits::gen_traits;
 
+// TODO: These are too many arguments indeed.
+// Consider refactoring.
+#[allow(clippy::too_many_arguments)]
 pub fn gen_nutype_for_float<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,

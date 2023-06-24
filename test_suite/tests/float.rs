@@ -591,6 +591,45 @@ mod traits {
             assert_eq!(offset.into_inner(), 13.3);
         }
     }
+
+    #[cfg(test)]
+    mod trait_default {
+        use super::*;
+
+        #[test]
+        fn test_default_without_validation() {
+            #[nutype(default = 13.0)]
+            #[derive(Default)]
+            pub struct Number(f32);
+
+            assert_eq!(Number::default().into_inner(), 13.0);
+        }
+
+        #[test]
+        fn test_default_with_validation_when_valid() {
+            #[nutype(
+                validate(max = 20.0)
+                default = 13.0
+            )]
+            #[derive(Default)]
+            pub struct Number(f64);
+
+            assert_eq!(Number::default().into_inner(), 13.0);
+        }
+
+        #[test]
+        #[should_panic(expected = "Default value for type Number is invalid")]
+        fn test_default_with_validation_when_invalid() {
+            #[nutype(
+                validate(max = 20.0)
+                default = 20.1
+            )]
+            #[derive(Default)]
+            pub struct Number(f64);
+
+            Number::default();
+        }
+    }
 }
 
 #[cfg(test)]

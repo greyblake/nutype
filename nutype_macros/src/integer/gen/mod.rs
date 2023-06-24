@@ -21,6 +21,9 @@ use crate::{
     },
 };
 
+// TODO: These are too many arguments indeed.
+// Consider refactoring.
+#[allow(clippy::too_many_arguments)]
 pub fn gen_nutype_for_integer<T>(
     doc_attrs: Vec<syn::Attribute>,
     vis: Visibility,

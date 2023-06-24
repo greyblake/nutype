@@ -181,7 +181,7 @@ fn gen_implemented_traits(
                 match maybe_default_value {
                     Some(ref default_value) => {
                         let has_validation = maybe_error_type_name.is_some();
-                        gen_impl_trait_default(type_name, &default_value, has_validation)
+                        gen_impl_trait_default(type_name, default_value, has_validation)
                     }
                     None => {
                         panic!("Default trait is derived for type {type_name}, but `default = ` is missing");

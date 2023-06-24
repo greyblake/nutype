@@ -404,6 +404,45 @@ mod derives {
         assert_eq!(name.to_string(), "Serhii");
     }
 
+    #[cfg(test)]
+    mod trait_default {
+        use super::*;
+
+        #[test]
+        fn test_default_without_validation() {
+            #[nutype(default = "Anonymous")]
+            #[derive(Default)]
+            pub struct Name(String);
+
+            assert_eq!(Name::default().into_inner(), "Anonymous");
+        }
+
+        #[test]
+        fn test_default_with_validation_when_valid() {
+            #[nutype(
+                validate(min_len = 5)
+                default = "Anonymous"
+            )]
+            #[derive(Default)]
+            pub struct Name(String);
+
+            assert_eq!(Name::default().into_inner(), "Anonymous");
+        }
+
+        #[test]
+        #[should_panic(expected = "Default value for type Name is invalid")]
+        fn test_default_with_validation_when_invalid() {
+            #[nutype(
+                validate(min_len = 5)
+                default = "Nope"
+            )]
+            #[derive(Default)]
+            pub struct Name(String);
+
+            Name::default();
+        }
+    }
+
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {

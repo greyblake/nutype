@@ -253,13 +253,21 @@ pub fn gen_impl_trait_default(
     // satisfy the validation rules.
     // For this purpose we generate a unit test to verify this at run time.
     let unit_test = if has_validation {
-        quote!(
-            #[test]
-            fn should_have_valid_default_value() {
-                let default_inner_value = #type_name::default().into_inner();
-                #type_name::new(default_inner_value).expect("Default value must be valid");
-            }
-        )
+        #[cfg(not(feature = "nutype_test"))]
+        {
+            quote!(
+                #[test]
+                fn should_have_valid_default_value() {
+                    let default_inner_value = #type_name::default().into_inner();
+                    #type_name::new(default_inner_value).expect("Default value must be valid");
+                }
+            )
+        }
+
+        #[cfg(feature = "nutype_test")]
+        {
+            quote!()
+        }
     } else {
         quote!()
     };
