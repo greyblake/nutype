@@ -29,6 +29,7 @@ pub fn gen_nutype_for_integer<T>(
     meta: IntegerGuard<T>,
     traits: HashSet<IntegerDeriveTrait>,
     new_unchecked: NewUnchecked,
+    maybe_default_value: Option<TokenStream>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,
@@ -58,7 +59,13 @@ where
     let GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
-    } = gen_traits(type_name, inner_type, maybe_error_type_name, traits);
+    } = gen_traits(
+        type_name,
+        inner_type,
+        maybe_error_type_name,
+        traits,
+        maybe_default_value,
+    );
 
     quote!(
         #[doc(hidden)]

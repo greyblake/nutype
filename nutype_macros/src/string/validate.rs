@@ -157,6 +157,7 @@ fn to_string_derive_trait(
     match tr {
         NormalDeriveTrait::Debug => Ok(StringDeriveTrait::Debug),
         NormalDeriveTrait::Display => Ok(StringDeriveTrait::Display),
+        NormalDeriveTrait::Default => Ok(StringDeriveTrait::Default),
         NormalDeriveTrait::Clone => Ok(StringDeriveTrait::Clone),
         NormalDeriveTrait::PartialEq => Ok(StringDeriveTrait::PartialEq),
         NormalDeriveTrait::Eq => Ok(StringDeriveTrait::Eq),

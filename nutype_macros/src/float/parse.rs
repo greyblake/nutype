@@ -27,11 +27,13 @@ where
     let Attributes {
         new_unchecked,
         guard: raw_guard,
+        maybe_default_value,
     } = raw_attrs;
     let guard = validate_number_meta(raw_guard)?;
     Ok(Attributes {
         new_unchecked,
         guard,
+        maybe_default_value,
     })
 }
 

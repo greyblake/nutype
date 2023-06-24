@@ -43,6 +43,7 @@ fn expand_nutype(
             let Attributes {
                 guard,
                 new_unchecked,
+                maybe_default_value,
             } = string::parse::parse_attributes(attrs)?;
             let traits = validate_string_derive_traits(&guard, derive_traits)?;
             Ok(gen_nutype_for_string(
@@ -52,6 +53,7 @@ fn expand_nutype(
                 &type_name,
                 guard,
                 new_unchecked,
+                maybe_default_value,
             ))
         }
         InnerType::Integer(tp) => {
@@ -122,6 +124,7 @@ where
     let Attributes {
         guard,
         new_unchecked,
+        maybe_default_value,
     } = integer::parse::parse_attributes::<T>(attrs)?;
     let traits = validate_integer_derive_traits(derive_traits, guard.has_validation())?;
     Ok(integer::gen::gen_nutype_for_integer(
@@ -132,6 +135,7 @@ where
         guard,
         traits,
         new_unchecked,
+        maybe_default_value,
     ))
 }
 
@@ -153,6 +157,7 @@ where
     let Attributes {
         guard,
         new_unchecked,
+        maybe_default_value,
     } = float::parse::parse_attributes::<T>(attrs)?;
     let traits = validate_float_derive_traits(derive_traits, &guard)?;
     Ok(float::gen::gen_nutype_for_float(
@@ -163,5 +168,6 @@ where
         guard,
         traits,
         new_unchecked,
+        maybe_default_value,
     ))
 }

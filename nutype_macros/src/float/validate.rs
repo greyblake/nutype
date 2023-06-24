@@ -206,6 +206,7 @@ fn to_float_derive_trait(
     match tr {
         NormalDeriveTrait::Debug => Ok(FloatDeriveTrait::Debug),
         NormalDeriveTrait::Display => Ok(FloatDeriveTrait::Display),
+        NormalDeriveTrait::Default => Ok(FloatDeriveTrait::Default),
         NormalDeriveTrait::Clone => Ok(FloatDeriveTrait::Clone),
         NormalDeriveTrait::PartialEq => Ok(FloatDeriveTrait::PartialEq),
         NormalDeriveTrait::Into => Ok(FloatDeriveTrait::Into),

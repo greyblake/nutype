@@ -192,6 +192,9 @@ pub struct Attributes<G> {
 
     /// `new_unchecked` flag
     pub new_unchecked: NewUnchecked,
+
+    /// Value for Default trait. Provide with `default = `
+    pub maybe_default_value: Option<TokenStream>,
 }
 
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
@@ -234,6 +237,7 @@ pub enum NormalDeriveTrait {
     Hash,
     Borrow,
     Display,
+    Default,
 
     // External crates
     //

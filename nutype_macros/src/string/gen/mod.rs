@@ -30,6 +30,7 @@ pub fn gen_nutype_for_string(
     type_name: &TypeName,
     guard: StringGuard,
     new_unchecked: NewUnchecked,
+    maybe_default_value: Option<TokenStream>,
 ) -> TokenStream {
     let module_name = gen_module_name_for_type(type_name);
     let implementation = gen_string_implementation(type_name, &guard, new_unchecked);
@@ -50,7 +51,12 @@ pub fn gen_nutype_for_string(
     let GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
-    } = gen_traits(type_name, maybe_error_type_name, traits);
+    } = gen_traits(
+        type_name,
+        maybe_error_type_name,
+        maybe_default_value,
+        traits,
+    );
 
     quote!(
         #[doc(hidden)]

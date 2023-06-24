@@ -228,3 +228,48 @@ pub fn gen_impl_trait_serde_deserialize(
         }
     }
 }
+
+pub fn gen_impl_trait_default(
+    type_name: &TypeName,
+    default_value: impl ToTokens,
+    has_validation: bool,
+) -> TokenStream {
+    let default_implementation = if has_validation {
+        let tp = type_name.to_string();
+        quote!(
+            Self::new(#default_value)
+                .unwrap_or_else(|err| {
+                    let tp = #tp;
+                    panic!("\nDefault value for type {tp} is invalid.\nERROR: {err}\n")
+                })
+        )
+    } else {
+        quote!(
+            Self::new(#default_value)
+        )
+    };
+
+    // Unfortunately it's not possible to guarantee at the compile time that the default value will always
+    // satisfy the validation rules.
+    // For this purpose we generate a unit test to verify this at run time.
+    let unit_test = if has_validation {
+        quote!(
+            #[test]
+            fn should_have_valid_default_value() {
+                let default_inner_value = #type_name::default().into_inner();
+                #type_name::new(default_inner_value).expect("Default value must be valid");
+            }
+        )
+    } else {
+        quote!()
+    };
+
+    quote!(
+        impl ::core::default::Default for #type_name {
+            fn default() -> Self {
+                #default_implementation
+            }
+        }
+        #unit_test
+    )
+}
