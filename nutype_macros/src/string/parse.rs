@@ -6,6 +6,7 @@ use crate::common::parse::{
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
+use crate::utils::match_feature;
 use proc_macro2::{Span, TokenStream, TokenTree};
 
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
@@ -113,28 +114,27 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
                 Ok(parsed_validator)
             }
             "regex" => {
-                #[cfg(not(feature = "regex"))]
-                {
-                    let msg = concat!(
-                        "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
-                        "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
-                        "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
-                    );
-                    return Err(syn::Error::new(ident.span(), msg));
-                }
-
-                #[cfg(feature = "regex")]
-                {
-                    let rest_tokens: Vec<_> = token_iter.collect();
-                    let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
-                    let (regex_def, span) = parse_regex(stream, ident.span())?;
-                    let validator = StringValidator::Regex(regex_def);
-                    let parsed_validator = SpannedStringValidator {
-                        item: validator,
-                        span,
-                    };
-                    Ok(parsed_validator)
-                }
+                match_feature!("regex",
+                    on => {
+                        let rest_tokens: Vec<_> = token_iter.collect();
+                        let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
+                        let (regex_def, span) = parse_regex(stream, ident.span())?;
+                        let validator = StringValidator::Regex(regex_def);
+                        let parsed_validator = SpannedStringValidator {
+                            item: validator,
+                            span,
+                        };
+                        Ok(parsed_validator)
+                    },
+                    off => {
+                        let msg = concat!(
+                            "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
+                            "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
+                            "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
+                        );
+                        return Err(syn::Error::new(ident.span(), msg));
+                    }
+                )
             }
             validator => {
                 let msg = format!("Unknown validation rule `{validator}`");

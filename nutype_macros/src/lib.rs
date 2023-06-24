@@ -2,6 +2,7 @@ mod common;
 mod float;
 mod integer;
 mod string;
+mod utils;
 
 use std::{fmt::Debug, str::FromStr};
 
