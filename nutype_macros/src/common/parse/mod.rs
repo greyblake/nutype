@@ -5,7 +5,10 @@ use std::{any::type_name, fmt::Debug, str::FromStr};
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
 use syn::spanned::Spanned;
 
-use crate::common::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait};
+use crate::{
+    common::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait},
+    utils::match_feature,
+};
 
 use super::models::{Attributes, NewUnchecked};
 
@@ -155,34 +158,34 @@ pub fn parse_nutype_attributes<S, V>(
                     maybe_default_value = Some(TokenStream::from(default_value));
                 }
                 "new_unchecked" => {
-                    // The feature is not enabled, so we return an error
-                    #[cfg(not(feature = "new_unchecked"))]
-                    {
-                        let msg = "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\nBut you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it.";
-                        return Err(syn::Error::new(ident.span(), msg));
-                    }
+                    match_feature!("new_unchecked",
+                        // The feature is not enabled, so we return an error
+                        on => {
+                            // Try to look forward and return a good helpful error if `new_unchecked` is
+                            // used incorrectly.
+                            // Correct:
+                            //    new_unchecked
+                            // Incorrect:
+                            //    new_unchecked()
+                            //    new_unchecked(foo = 13)
+                            let maybe_next_token = iter.clone().next();
+                            match maybe_next_token.map(try_unwrap_ident) {
+                                None | Some(Ok(_)) => {
+                                    new_unchecked = NewUnchecked::On;
+                                }
+                                Some(Err(err)) => {
+                                    let msg = "new_unchecked does not support any options";
+                                    return Err(syn::Error::new(err.span(), msg));
+                                }
+                            }
+                        },
 
-                    // The feature `new_unchecked` is enabled
-                    #[cfg(feature = "new_unchecked")]
-                    {
-                        // Try to look forward and return a good helpful error if `new_unchecked` is
-                        // used incorrectly.
-                        // Correct:
-                        //    new_unchecked
-                        // Incorrect:
-                        //    new_unchecked()
-                        //    new_unchecked(foo = 13)
-                        let maybe_next_token = iter.clone().next();
-                        match maybe_next_token.map(try_unwrap_ident) {
-                            None | Some(Ok(_)) => {
-                                new_unchecked = NewUnchecked::On;
-                            }
-                            Some(Err(err)) => {
-                                let msg = "new_unchecked does not support any options";
-                                return Err(syn::Error::new(err.span(), msg));
-                            }
+                        // The feature `new_unchecked` is enabled
+                        off => {
+                            let msg = "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\nBut you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it.";
+                            return Err(syn::Error::new(ident.span(), msg));
                         }
-                    }
+                    )
                 }
                 unknown => {
                     let msg = format!("Unknown #[nutype] option: `{unknown}`");
@@ -349,25 +352,28 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Borrow" => NormalDeriveTrait::Borrow,
         "Default" => NormalDeriveTrait::Default,
         "Serialize" => {
-            #[cfg(not(feature = "serde"))]
-            return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
-
-            #[cfg(feature = "serde")]
-            NormalDeriveTrait::SerdeSerialize
+            match_feature!("serde",
+                on => NormalDeriveTrait::SerdeSerialize,
+                off => {
+                    return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
+                },
+            )
         }
         "Deserialize" => {
-            #[cfg(not(feature = "serde"))]
-            return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled."));
-
-            #[cfg(feature = "serde")]
-            NormalDeriveTrait::SerdeDeserialize
+            match_feature!("serde",
+                on => NormalDeriveTrait::SerdeDeserialize,
+                off => {
+                    return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled."));
+                },
+            )
         }
         "JsonSchema" => {
-            #[cfg(not(feature = "schemars08"))]
-            return Err(syn::Error::new(ident.span(), "To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled."));
-
-            #[cfg(feature = "schemars08")]
-            NormalDeriveTrait::SchemarsJsonSchema
+            match_feature!("schemars08",
+                on => NormalDeriveTrait::SchemarsJsonSchema,
+                off => {
+                    return Err(syn::Error::new(ident.span(), "To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled."));
+                }
+            )
         }
         _ => {
             return Err(syn::Error::new(
