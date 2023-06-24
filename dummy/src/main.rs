@@ -4,5 +4,4 @@ use nutype::nutype;
 #[derive(PartialEq, Eq, PartialOrd, Ord)]
 pub struct Weight(f64);
 
-fn main() {
-}
+fn main() {}
