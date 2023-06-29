@@ -329,6 +329,16 @@ mod traits {
     }
 
     #[test]
+    fn test_trait_deref() {
+        #[nutype]
+        #[derive(Deref)]
+        pub struct Number(f64);
+
+        let magic = Number::new(42.0);
+        assert_eq!(*magic, 42.0);
+    }
+
+    #[test]
     fn test_trait_borrow() {
         use std::borrow::Borrow;
 

@@ -80,6 +80,18 @@ pub fn gen_impl_trait_as_ref(type_name: &TypeName, inner_type: impl ToTokens) ->
     }
 }
 
+pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+    quote! {
+        impl ::core::ops::Deref for #type_name {
+            type Target = #inner_type;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+    }
+}
+
 pub fn gen_impl_trait_dislpay(type_name: &TypeName) -> TokenStream {
     quote! {
         impl ::core::fmt::Display for #type_name {

@@ -229,6 +229,7 @@ fn to_float_derive_trait(
         }
         NormalDeriveTrait::FromStr => Ok(FloatDeriveTrait::FromStr),
         NormalDeriveTrait::AsRef => Ok(FloatDeriveTrait::AsRef),
+        NormalDeriveTrait::Deref => Ok(FloatDeriveTrait::Deref),
         NormalDeriveTrait::Hash => Err(syn::Error::new(
             span,
             "#[nutype] cannot derive `Hash` trait for float types.",

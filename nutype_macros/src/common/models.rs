@@ -238,6 +238,7 @@ pub enum NormalDeriveTrait {
     Borrow,
     Display,
     Default,
+    Deref,
 
     // External crates
     //

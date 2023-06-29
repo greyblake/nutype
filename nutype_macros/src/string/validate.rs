@@ -165,6 +165,7 @@ fn to_string_derive_trait(
         NormalDeriveTrait::Ord => Ok(StringDeriveTrait::Ord),
         NormalDeriveTrait::FromStr => Ok(StringDeriveTrait::FromStr),
         NormalDeriveTrait::AsRef => Ok(StringDeriveTrait::AsRef),
+        NormalDeriveTrait::Deref => Ok(StringDeriveTrait::Deref),
         NormalDeriveTrait::Hash => Ok(StringDeriveTrait::Hash),
         NormalDeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
         NormalDeriveTrait::Into => Ok(StringDeriveTrait::Into),

@@ -131,6 +131,7 @@ pub enum StringDeriveTrait {
     Borrow,
     Display,
     Default,
+    Deref,
 
     // // External crates
     //

@@ -11,7 +11,7 @@ use crate::{
         GeneratableTrait, GeneratableTraits, GeneratedTraits,
     },
     common::{
-        gen::traits::gen_impl_trait_default,
+        gen::traits::{gen_impl_trait_default, gen_impl_trait_deref},
         models::{ErrorTypeName, FloatInnerType, TypeName},
     },
     float::models::FloatDeriveTrait,
@@ -36,6 +36,7 @@ enum FloatTransparentTrait {
 enum FloatIrregularTrait {
     FromStr,
     AsRef,
+    Deref,
     Into,
     From,
     Eq,
@@ -72,6 +73,7 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::FromStr)
             }
             FloatDeriveTrait::AsRef => FloatGeneratableTrait::Irregular(FloatIrregularTrait::AsRef),
+            FloatDeriveTrait::Deref => FloatGeneratableTrait::Irregular(FloatIrregularTrait::Deref),
             FloatDeriveTrait::From => FloatGeneratableTrait::Irregular(FloatIrregularTrait::From),
             FloatDeriveTrait::Into => FloatGeneratableTrait::Irregular(FloatIrregularTrait::Into),
             FloatDeriveTrait::TryFrom => {
@@ -156,6 +158,7 @@ fn gen_implemented_traits(
         .iter()
         .map(|t| match t {
             FloatIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
+            FloatIrregularTrait::Deref => gen_impl_trait_deref(type_name, inner_type),
             FloatIrregularTrait::FromStr => {
                 gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
             }
