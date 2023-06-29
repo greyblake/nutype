@@ -4,19 +4,20 @@ mod integer;
 mod string;
 mod utils;
 
+use std::collections::HashSet;
 use std::{fmt::Debug, str::FromStr};
 
 use common::models::{
-    Attributes, FloatInnerType, InnerType, IntegerInnerType, NewtypeMeta, SpannedDeriveTrait,
-    TypeName,
+    Attributes, DeriveTrait, FloatInnerType, Guard, InnerType, IntegerInnerType, NewUnchecked,
+    NewtypeMeta, SpannedDeriveTrait, SpannedItem, TypeName,
 };
 use common::parse::meta::parse_meta;
 use float::validate::validate_float_derive_traits;
 use integer::validate::validate_integer_derive_traits;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use string::{gen::gen_nutype_for_string, validate::validate_string_derive_traits};
-use syn::Visibility;
+use string::StringNewtype;
+use syn::{Attribute, Visibility};
 
 #[proc_macro_attribute]
 pub fn nutype(
@@ -26,6 +27,73 @@ pub fn nutype(
     expand_nutype(attrs.into(), type_definition.into())
         .unwrap_or_else(|e| syn::Error::to_compile_error(&e))
         .into()
+}
+
+// Functions
+// * parse_attributes(attrs: TokenStream) ->   Attributes<G> { guard, new_unchecked, maybe_default_value  }
+// * validate(&gard, derive_traits) -> traits
+// * generate(
+//       doc_attrs,
+//       traits,
+//       vis,
+//       &type_name,
+//       guard,
+//       new_unchecked,
+//       maybe_default_value,
+//   ) -> TokenStream
+
+struct GenerateParams<T, G> {
+    pub doc_attrs: Vec<Attribute>,
+    pub traits: HashSet<T>,
+    pub vis: syn::Visibility,
+    pub type_name: TypeName,
+    pub guard: G,
+    pub new_unchecked: NewUnchecked,
+    pub maybe_default_value: Option<TokenStream>,
+}
+
+trait Newtype {
+    type Sanitizer;
+    type Validator;
+    type TypedTrait;
+
+    fn parse_attributes(
+        attrs: TokenStream,
+    ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>>, syn::Error>;
+
+    fn validate(
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+    ) -> Result<HashSet<Self::TypedTrait>, syn::Error>;
+
+    fn generate(
+        params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
+    ) -> TokenStream;
+
+    fn expand(
+        attrs: TokenStream,
+        doc_attrs: Vec<Attribute>,
+        type_name: TypeName,
+        vis: syn::Visibility,
+        derive_traits: Vec<SpannedDeriveTrait>,
+    ) -> Result<TokenStream, syn::Error> {
+        let Attributes {
+            guard,
+            new_unchecked,
+            maybe_default_value,
+        } = Self::parse_attributes(attrs)?;
+        let traits = Self::validate(&guard, derive_traits)?;
+        let generated_output = Self::generate(GenerateParams {
+            doc_attrs,
+            traits,
+            vis,
+            type_name,
+            guard,
+            new_unchecked,
+            maybe_default_value,
+        });
+        Ok(generated_output)
+    }
 }
 
 fn expand_nutype(
@@ -40,23 +108,7 @@ fn expand_nutype(
         derive_traits,
     } = parse_meta(type_definition)?;
     match inner_type {
-        InnerType::String => {
-            let Attributes {
-                guard,
-                new_unchecked,
-                maybe_default_value,
-            } = string::parse::parse_attributes(attrs)?;
-            let traits = validate_string_derive_traits(&guard, derive_traits)?;
-            Ok(gen_nutype_for_string(
-                doc_attrs,
-                traits,
-                vis,
-                &type_name,
-                guard,
-                new_unchecked,
-                maybe_default_value,
-            ))
-        }
+        InnerType::String => StringNewtype::expand(attrs, doc_attrs, type_name, vis, derive_traits),
         InnerType::Integer(tp) => {
             let params = NumberParams {
                 doc_attrs,
