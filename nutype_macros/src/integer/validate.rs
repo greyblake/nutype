@@ -147,6 +147,7 @@ fn to_integer_derive_trait(
         NormalDeriveTrait::Into => Ok(IntegerDeriveTrait::Into),
         NormalDeriveTrait::FromStr => Ok(IntegerDeriveTrait::FromStr),
         NormalDeriveTrait::AsRef => Ok(IntegerDeriveTrait::AsRef),
+        NormalDeriveTrait::Deref => Ok(IntegerDeriveTrait::Deref),
         NormalDeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),
         NormalDeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
         NormalDeriveTrait::Copy => Ok(IntegerDeriveTrait::Copy),

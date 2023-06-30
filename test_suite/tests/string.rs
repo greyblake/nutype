@@ -343,6 +343,19 @@ mod derives {
     }
 
     #[test]
+    fn test_trait_deref() {
+        #[nutype]
+        #[derive(Deref)]
+        pub struct Name(String);
+
+        let name = Name::new("Anna");
+
+        // Let's do something with deref-coercion:
+        assert_eq!(name.len(), 4);
+        assert_eq!(name.is_empty(), false);
+    }
+
+    #[test]
     fn test_trait_borrow_str() {
         use std::borrow::Borrow;
 

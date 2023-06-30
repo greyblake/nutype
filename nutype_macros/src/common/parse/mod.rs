@@ -345,6 +345,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Ord" => NormalDeriveTrait::Ord,
         "FromStr" => NormalDeriveTrait::FromStr,
         "AsRef" => NormalDeriveTrait::AsRef,
+        "Deref" => NormalDeriveTrait::Deref,
         "TryFrom" => NormalDeriveTrait::TryFrom,
         "From" => NormalDeriveTrait::From,
         "Into" => NormalDeriveTrait::Into,

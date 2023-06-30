@@ -1,3 +1,6 @@
+### v0.3.1 - 2023-06-29
+* Support deriving of `Deref`
+
 ### v0.3.0 - 2023-06-25
 * [BREAKING] `min_len` and `max_len` validators run against number of characters in a string (`val.chars().count()`), not number of bytes (`val.len()`).
 * Add `finite` validation for float types which checks against NaN and infinity.

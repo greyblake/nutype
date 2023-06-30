@@ -104,6 +104,7 @@ pub enum IntegerDeriveTrait {
     Borrow,
     Display,
     Default,
+    Deref,
 
     // // External crates
     SerdeSerialize,
