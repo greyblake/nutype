@@ -1,6 +1,6 @@
 [package]
 name = "nutype_macros"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 authors = ["Sergey Potapov <blake131313@gmail.com>"]
 description = "The newtype with guarantees."
