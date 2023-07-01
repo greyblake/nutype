@@ -1,4 +1,11 @@
-<p align="center"><img width="300" src="https://raw.githubusercontent.com/greyblake/nutype/master/art/rust_nutype.png" alt="Rust Nutype Logo"></p>
+<p align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./art/rust_nutype_inverted.png">
+  <source media="(prefers-color-scheme: light)" srcset="./art/rust_nutype.png">
+
+  <img width="300" alt="Rust Nutype Logo" src="./art/rust_nutype.png">
+</picture>
+</p>
 <h2 align="center">The newtype with guarantees.</h2>
 
 <p align="center">
