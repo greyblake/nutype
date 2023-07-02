@@ -30,7 +30,7 @@ fn expand_nutype(
     use IntegerInnerType::*;
 
     let meta = parse_meta(type_definition)?;
-    let (typed_meta, inner_type) = meta.to_typed_meta(attrs);
+    let (typed_meta, inner_type) = meta.into_typed_meta(attrs);
 
     match inner_type {
         InnerType::String => StringNewtype::expand(typed_meta),

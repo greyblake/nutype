@@ -125,7 +125,7 @@ pub struct Meta {
 }
 
 impl Meta {
-    pub fn to_typed_meta(self, attrs: TokenStream) -> (TypedMeta, InnerType) {
+    pub fn into_typed_meta(self, attrs: TokenStream) -> (TypedMeta, InnerType) {
         let Self {
             doc_attrs,
             type_name,
@@ -265,6 +265,7 @@ pub trait Newtype {
     type Validator;
     type TypedTrait;
 
+    #[allow(clippy::type_complexity)]
     fn parse_attributes(
         attrs: TokenStream,
     ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>>, syn::Error>;
