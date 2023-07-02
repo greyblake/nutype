@@ -116,9 +116,43 @@ define_ident_type!(ParseErrorTypeName);
 define_ident_type!(ModuleName);
 
 #[derive(Debug)]
-pub struct NewtypeMeta {
+pub struct Meta {
     pub type_name: TypeName,
     pub inner_type: InnerType,
+    pub vis: syn::Visibility,
+    pub doc_attrs: Vec<Attribute>,
+    pub derive_traits: Vec<SpannedDeriveTrait>,
+}
+
+impl Meta {
+    pub fn to_typed_meta(self, attrs: TokenStream) -> (TypedMeta, InnerType) {
+        let Self {
+            doc_attrs,
+            type_name,
+            inner_type,
+            vis,
+            derive_traits,
+        } = self;
+        let typed_meta = TypedMeta {
+            doc_attrs,
+            type_name,
+            attrs,
+            vis,
+            derive_traits,
+        };
+        (typed_meta, inner_type)
+    }
+}
+
+/// Meta information with attributes that can be given to Newtype::expand to generate an
+/// implementation for a particular type.
+#[derive(Debug)]
+pub struct TypedMeta {
+    pub type_name: TypeName,
+
+    /// Attributes given to #[nutype] macro
+    pub attrs: TokenStream,
+
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
     pub derive_traits: Vec<SpannedDeriveTrait>,
@@ -244,13 +278,14 @@ pub trait Newtype {
         params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
     ) -> TokenStream;
 
-    fn expand(
-        attrs: TokenStream,
-        doc_attrs: Vec<Attribute>,
-        type_name: TypeName,
-        vis: syn::Visibility,
-        derive_traits: Vec<SpannedDeriveTrait>,
-    ) -> Result<TokenStream, syn::Error> {
+    fn expand(typed_meta: TypedMeta) -> Result<TokenStream, syn::Error> {
+        let TypedMeta {
+            doc_attrs,
+            type_name,
+            attrs,
+            vis,
+            derive_traits,
+        } = typed_meta;
         let Attributes {
             guard,
             new_unchecked,
