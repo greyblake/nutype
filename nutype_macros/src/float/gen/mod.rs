@@ -17,8 +17,9 @@ use crate::{
     },
     common::{
         gen::gen_impl_into_inner,
-        models::{ErrorTypeName, FloatInnerType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, NewUnchecked, TypeName},
     },
+    float::models::FloatInnerType,
 };
 use traits::gen_traits;
 

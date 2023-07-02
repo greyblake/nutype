@@ -5,15 +5,14 @@ pub mod validate;
 
 use std::collections::HashSet;
 
-use crate::{
-    common::models::{Attributes, DeriveTrait, Guard, SpannedItem},
-    GenerateParams, Newtype,
-};
+use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Newtype, SpannedItem};
 
 use models::{StringDeriveTrait, StringSanitizer, StringValidator};
 use proc_macro2::TokenStream;
 
-use self::{gen::gen_nutype_for_string, validate::validate_string_derive_traits};
+use self::{
+    gen::gen_nutype_for_string, models::StringGuard, validate::validate_string_derive_traits,
+};
 
 pub struct StringNewtype;
 
@@ -22,22 +21,18 @@ impl Newtype for StringNewtype {
     type Validator = StringValidator;
     type TypedTrait = StringDeriveTrait;
 
-    fn parse_attributes(
-        attrs: TokenStream,
-    ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>>, syn::Error> {
+    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
         parse::parse_attributes(attrs)
     }
 
     fn validate(
-        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        guard: &StringGuard,
         derive_traits: Vec<SpannedItem<DeriveTrait>>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
         validate_string_derive_traits(guard, derive_traits)
     }
 
-    fn generate(
-        params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
-    ) -> TokenStream {
+    fn generate(params: GenerateParams<Self::TypedTrait, StringGuard>) -> TokenStream {
         let GenerateParams {
             doc_attrs,
             traits,

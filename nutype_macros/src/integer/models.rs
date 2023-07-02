@@ -115,3 +115,50 @@ pub enum IntegerDeriveTrait {
 
 pub type IntegerRawGuard<T> = RawGuard<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;
 pub type IntegerGuard<T> = Guard<IntegerSanitizer<T>, IntegerValidator<T>>;
+
+pub trait IntegerType {
+    fn integer_inner_type() -> IntegerInnerType;
+}
+
+macro_rules! define_integer_inner_type {
+    ($($tp:ty => $variant:ident),*) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub enum IntegerInnerType {
+            $($variant),*
+        }
+
+        $(
+            impl IntegerType for $tp {
+                fn integer_inner_type() -> IntegerInnerType {
+                    IntegerInnerType::$variant
+                }
+            }
+        )*
+
+        impl quote::ToTokens for IntegerInnerType {
+            fn to_tokens(&self, token_stream: &mut TokenStream) {
+                let type_stream = match self {
+                    $(
+                        Self::$variant => quote::quote!($tp),
+                    )*
+                };
+                type_stream.to_tokens(token_stream);
+            }
+        }
+    }
+}
+
+define_integer_inner_type!(
+    u8 => U8,
+    u16 => U16,
+    u32 => U32,
+    u64 => U64,
+    u128 => U128,
+    usize => Usize,
+    i8 => I8,
+    i16 => I16,
+    i32 => I32,
+    i64 => I64,
+    i128 => I128,
+    isize => Isize
+);

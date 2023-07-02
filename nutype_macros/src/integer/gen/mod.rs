@@ -8,7 +8,9 @@ use quote::{quote, ToTokens};
 use syn::Visibility;
 
 use self::{error::gen_validation_error_type, traits::gen_traits};
-use super::models::{IntegerDeriveTrait, IntegerGuard, IntegerSanitizer, IntegerValidator};
+use super::models::{
+    IntegerDeriveTrait, IntegerGuard, IntegerInnerType, IntegerSanitizer, IntegerValidator,
+};
 use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
@@ -17,7 +19,7 @@ use crate::{
     },
     common::{
         gen::gen_impl_into_inner,
-        models::{ErrorTypeName, IntegerInnerType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, NewUnchecked, TypeName},
     },
 };
 
@@ -29,7 +31,7 @@ pub fn gen_nutype_for_integer<T>(
     vis: Visibility,
     inner_type: IntegerInnerType,
     type_name: &TypeName,
-    meta: IntegerGuard<T>,
+    guard: IntegerGuard<T>,
     traits: HashSet<IntegerDeriveTrait>,
     new_unchecked: NewUnchecked,
     maybe_default_value: Option<TokenStream>,
@@ -38,9 +40,9 @@ where
     T: ToTokens + PartialOrd,
 {
     let module_name = gen_module_name_for_type(type_name);
-    let implementation = gen_implementation(type_name, inner_type, &meta, new_unchecked);
+    let implementation = gen_implementation(type_name, inner_type, &guard, new_unchecked);
 
-    let maybe_error_type_name: Option<ErrorTypeName> = match meta {
+    let maybe_error_type_name: Option<ErrorTypeName> = match guard {
         IntegerGuard::WithoutValidation { .. } => None,
         IntegerGuard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
     };

@@ -118,3 +118,40 @@ pub enum FloatDeriveTrait {
 
 pub type FloatRawGuard<T> = RawGuard<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
 pub type FloatGuard<T> = Guard<FloatSanitizer<T>, FloatValidator<T>>;
+
+pub trait FloatType {
+    fn float_inner_type() -> FloatInnerType;
+}
+
+macro_rules! define_float_inner_type {
+    ($($tp:ty => $variant:ident),*) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub enum FloatInnerType {
+            $($variant),*
+        }
+
+        $(
+            impl FloatType for $tp {
+                fn float_inner_type() -> FloatInnerType {
+                    FloatInnerType::$variant
+                }
+            }
+        )*
+
+        impl quote::ToTokens for FloatInnerType {
+            fn to_tokens(&self, token_stream: &mut TokenStream) {
+                let type_stream = match self {
+                    $(
+                        Self::$variant => quote::quote!($tp),
+                    )*
+                };
+                type_stream.to_tokens(token_stream);
+            }
+        }
+    }
+}
+
+define_float_inner_type!(
+    f32 => F32,
+    f64 => F64
+);

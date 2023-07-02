@@ -2,7 +2,9 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 
-use crate::common::models::{FloatInnerType, IntegerInnerType, TypeName};
+use crate::common::models::TypeName;
+use crate::float::models::FloatInnerType;
+use crate::integer::models::IntegerInnerType;
 use crate::{
     common::models::{InnerType, NewtypeMeta},
     common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},

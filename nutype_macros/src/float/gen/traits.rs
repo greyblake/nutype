@@ -12,9 +12,9 @@ use crate::{
     },
     common::{
         gen::traits::{gen_impl_trait_default, gen_impl_trait_deref},
-        models::{ErrorTypeName, FloatInnerType, TypeName},
+        models::{ErrorTypeName, TypeName},
     },
-    float::models::FloatDeriveTrait,
+    float::models::{FloatDeriveTrait, FloatInnerType},
 };
 
 type FloatGeneratableTrait = GeneratableTrait<FloatTransparentTrait, FloatIrregularTrait>;
