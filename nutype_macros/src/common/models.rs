@@ -19,7 +19,7 @@ pub trait Kind {
 
 /// A spanned item. An item can be anything that cares a domain value.
 /// Keeping a span allows to throw good precise error messages at the validation stage.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SpannedItem<T> {
     pub item: T,
     pub span: Span,
