@@ -4,19 +4,13 @@ mod integer;
 mod string;
 mod utils;
 
-use std::{fmt::Debug, str::FromStr};
-
-use common::models::{
-    Attributes, FloatInnerType, InnerType, IntegerInnerType, NewtypeMeta, SpannedDeriveTrait,
-    TypeName,
-};
+use common::models::{InnerType, Newtype};
 use common::parse::meta::parse_meta;
-use float::validate::validate_float_derive_traits;
-use integer::validate::validate_integer_derive_traits;
+use float::{models::FloatInnerType, FloatNewtype};
+use integer::models::IntegerInnerType;
+use integer::IntegerNewtype;
 use proc_macro2::TokenStream;
-use quote::ToTokens;
-use string::{gen::gen_nutype_for_string, validate::validate_string_derive_traits};
-use syn::Visibility;
+use string::StringNewtype;
 
 #[proc_macro_attribute]
 pub fn nutype(
@@ -32,143 +26,27 @@ fn expand_nutype(
     attrs: TokenStream,
     type_definition: TokenStream,
 ) -> Result<TokenStream, syn::Error> {
-    let NewtypeMeta {
-        doc_attrs,
-        type_name,
-        inner_type,
-        vis,
-        derive_traits,
-    } = parse_meta(type_definition)?;
+    use FloatInnerType::*;
+    use IntegerInnerType::*;
+
+    let meta = parse_meta(type_definition)?;
+    let (typed_meta, inner_type) = meta.into_typed_meta(attrs);
+
     match inner_type {
-        InnerType::String => {
-            let Attributes {
-                guard,
-                new_unchecked,
-                maybe_default_value,
-            } = string::parse::parse_attributes(attrs)?;
-            let traits = validate_string_derive_traits(&guard, derive_traits)?;
-            Ok(gen_nutype_for_string(
-                doc_attrs,
-                traits,
-                vis,
-                &type_name,
-                guard,
-                new_unchecked,
-                maybe_default_value,
-            ))
-        }
-        InnerType::Integer(tp) => {
-            let params = NumberParams {
-                doc_attrs,
-                vis,
-                tp,
-                type_name,
-                attrs,
-                derive_traits,
-            };
-            match tp {
-                IntegerInnerType::U8 => parse_integer_attrs_and_gen::<u8>(params),
-                IntegerInnerType::U16 => parse_integer_attrs_and_gen::<u16>(params),
-                IntegerInnerType::U32 => parse_integer_attrs_and_gen::<u32>(params),
-                IntegerInnerType::U64 => parse_integer_attrs_and_gen::<u64>(params),
-                IntegerInnerType::U128 => parse_integer_attrs_and_gen::<u128>(params),
-                IntegerInnerType::Usize => parse_integer_attrs_and_gen::<usize>(params),
-                IntegerInnerType::I8 => parse_integer_attrs_and_gen::<i8>(params),
-                IntegerInnerType::I16 => parse_integer_attrs_and_gen::<i16>(params),
-                IntegerInnerType::I32 => parse_integer_attrs_and_gen::<i32>(params),
-                IntegerInnerType::I64 => parse_integer_attrs_and_gen::<i64>(params),
-                IntegerInnerType::I128 => parse_integer_attrs_and_gen::<i128>(params),
-                IntegerInnerType::Isize => parse_integer_attrs_and_gen::<isize>(params),
-            }
-        }
-        InnerType::Float(tp) => {
-            let params = NumberParams {
-                doc_attrs,
-                vis,
-                tp,
-                type_name,
-                attrs,
-                derive_traits,
-            };
-            match tp {
-                FloatInnerType::F32 => parse_float_attrs_and_gen::<f32>(params),
-                FloatInnerType::F64 => parse_float_attrs_and_gen::<f64>(params),
-            }
-        }
+        InnerType::String => StringNewtype::expand(typed_meta),
+        InnerType::Integer(U8) => IntegerNewtype::<u8>::expand(typed_meta),
+        InnerType::Integer(U16) => IntegerNewtype::<u16>::expand(typed_meta),
+        InnerType::Integer(U32) => IntegerNewtype::<u32>::expand(typed_meta),
+        InnerType::Integer(U64) => IntegerNewtype::<u64>::expand(typed_meta),
+        InnerType::Integer(U128) => IntegerNewtype::<u128>::expand(typed_meta),
+        InnerType::Integer(Usize) => IntegerNewtype::<usize>::expand(typed_meta),
+        InnerType::Integer(I8) => IntegerNewtype::<i8>::expand(typed_meta),
+        InnerType::Integer(I16) => IntegerNewtype::<i16>::expand(typed_meta),
+        InnerType::Integer(I32) => IntegerNewtype::<i32>::expand(typed_meta),
+        InnerType::Integer(I64) => IntegerNewtype::<i64>::expand(typed_meta),
+        InnerType::Integer(I128) => IntegerNewtype::<i128>::expand(typed_meta),
+        InnerType::Integer(Isize) => IntegerNewtype::<isize>::expand(typed_meta),
+        InnerType::Float(F32) => FloatNewtype::<f32>::expand(typed_meta),
+        InnerType::Float(F64) => FloatNewtype::<f64>::expand(typed_meta),
     }
-}
-
-struct NumberParams<NumberType> {
-    doc_attrs: Vec<syn::Attribute>,
-    vis: Visibility,
-    tp: NumberType,
-    type_name: TypeName,
-    attrs: TokenStream,
-    derive_traits: Vec<SpannedDeriveTrait>,
-}
-
-fn parse_integer_attrs_and_gen<T>(
-    params: NumberParams<IntegerInnerType>,
-) -> Result<TokenStream, syn::Error>
-where
-    T: FromStr + ToTokens + PartialOrd + Clone,
-    <T as FromStr>::Err: Debug,
-{
-    let NumberParams {
-        doc_attrs,
-        vis,
-        tp,
-        type_name,
-        attrs,
-        derive_traits,
-    } = params;
-    let Attributes {
-        guard,
-        new_unchecked,
-        maybe_default_value,
-    } = integer::parse::parse_attributes::<T>(attrs)?;
-    let traits = validate_integer_derive_traits(derive_traits, guard.has_validation())?;
-    Ok(integer::gen::gen_nutype_for_integer(
-        doc_attrs,
-        vis,
-        tp,
-        &type_name,
-        guard,
-        traits,
-        new_unchecked,
-        maybe_default_value,
-    ))
-}
-
-fn parse_float_attrs_and_gen<T>(
-    params: NumberParams<FloatInnerType>,
-) -> Result<TokenStream, syn::Error>
-where
-    T: FromStr + ToTokens + PartialOrd + Clone,
-    <T as FromStr>::Err: Debug,
-{
-    let NumberParams {
-        doc_attrs,
-        vis,
-        tp,
-        type_name,
-        attrs,
-        derive_traits,
-    } = params;
-    let Attributes {
-        guard,
-        new_unchecked,
-        maybe_default_value,
-    } = float::parse::parse_attributes::<T>(attrs)?;
-    let traits = validate_float_derive_traits(derive_traits, &guard)?;
-    Ok(float::gen::gen_nutype_for_float(
-        doc_attrs,
-        vis,
-        tp,
-        &type_name,
-        guard,
-        traits,
-        new_unchecked,
-        maybe_default_value,
-    ))
 }

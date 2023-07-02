@@ -12,9 +12,9 @@ use crate::{
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
             GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, IntegerInnerType, TypeName},
+        models::{ErrorTypeName, TypeName},
     },
-    integer::models::IntegerDeriveTrait,
+    integer::models::{IntegerDeriveTrait, IntegerInnerType},
 };
 
 type IntegerGeneratableTrait = GeneratableTrait<IntegerTransparentTrait, IntegerIrregularTrait>;

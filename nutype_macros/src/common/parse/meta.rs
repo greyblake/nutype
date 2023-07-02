@@ -2,13 +2,15 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 
-use crate::common::models::{FloatInnerType, IntegerInnerType, TypeName};
+use crate::common::models::TypeName;
+use crate::float::models::FloatInnerType;
+use crate::integer::models::IntegerInnerType;
 use crate::{
-    common::models::{InnerType, NewtypeMeta},
+    common::models::{InnerType, Meta},
     common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
 };
 
-pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> {
+pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
     let input: DeriveInput = syn::parse(token_stream.into())?;
 
     let input_span = input.span();
@@ -98,7 +100,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<NewtypeMeta, syn::Error> 
         }
     };
 
-    Ok(NewtypeMeta {
+    Ok(Meta {
         doc_attrs,
         type_name,
         inner_type,

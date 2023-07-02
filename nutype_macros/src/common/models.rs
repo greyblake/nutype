@@ -1,9 +1,13 @@
+use std::collections::HashSet;
 use std::fmt::Debug;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::spanned::Spanned;
 use syn::Attribute;
+
+use crate::float::models::FloatInnerType;
+use crate::integer::models::IntegerInnerType;
 
 /// A trait that may be implemented by enums with payload.
 /// It's mostly used to detect duplicates of validators and sanitizers regardless of their payload.
@@ -55,28 +59,6 @@ impl From<FloatInnerType> for InnerType {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IntegerInnerType {
-    U8,
-    U16,
-    U32,
-    U64,
-    U128,
-    I8,
-    I16,
-    I32,
-    I64,
-    I128,
-    Usize,
-    Isize,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum FloatInnerType {
-    F32,
-    F64,
-}
-
 impl ToTokens for InnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         match self {
@@ -93,39 +75,9 @@ impl ToTokens for InnerType {
     }
 }
 
-impl ToTokens for IntegerInnerType {
-    fn to_tokens(&self, token_stream: &mut TokenStream) {
-        let type_stream = match self {
-            Self::U8 => quote!(u8),
-            Self::U16 => quote!(u16),
-            Self::U32 => quote!(u32),
-            Self::U64 => quote!(u64),
-            Self::U128 => quote!(u128),
-            Self::Usize => quote!(usize),
-            Self::I8 => quote!(i8),
-            Self::I16 => quote!(i16),
-            Self::I32 => quote!(i32),
-            Self::I64 => quote!(i64),
-            Self::I128 => quote!(i128),
-            Self::Isize => quote!(isize),
-        };
-        type_stream.to_tokens(token_stream);
-    }
-}
-
-impl ToTokens for FloatInnerType {
-    fn to_tokens(&self, token_stream: &mut TokenStream) {
-        let type_stream = match self {
-            Self::F32 => quote!(f32),
-            Self::F64 => quote!(f64),
-        };
-        type_stream.to_tokens(token_stream);
-    }
-}
-
 macro_rules! define_ident_type {
     ($tp_name:ident) => {
-        #[derive(Debug)]
+        #[derive(Debug, Clone)]
         pub struct $tp_name(proc_macro2::Ident);
 
         impl $tp_name {
@@ -164,9 +116,43 @@ define_ident_type!(ParseErrorTypeName);
 define_ident_type!(ModuleName);
 
 #[derive(Debug)]
-pub struct NewtypeMeta {
+pub struct Meta {
     pub type_name: TypeName,
     pub inner_type: InnerType,
+    pub vis: syn::Visibility,
+    pub doc_attrs: Vec<Attribute>,
+    pub derive_traits: Vec<SpannedDeriveTrait>,
+}
+
+impl Meta {
+    pub fn into_typed_meta(self, attrs: TokenStream) -> (TypedMeta, InnerType) {
+        let Self {
+            doc_attrs,
+            type_name,
+            inner_type,
+            vis,
+            derive_traits,
+        } = self;
+        let typed_meta = TypedMeta {
+            doc_attrs,
+            type_name,
+            attrs,
+            vis,
+            derive_traits,
+        };
+        (typed_meta, inner_type)
+    }
+}
+
+/// Meta information with attributes that can be given to Newtype::expand to generate an
+/// implementation for a particular type.
+#[derive(Debug)]
+pub struct TypedMeta {
+    pub type_name: TypeName,
+
+    /// Attributes given to #[nutype] macro
+    pub attrs: TokenStream,
+
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
     pub derive_traits: Vec<SpannedDeriveTrait>,
@@ -262,4 +248,60 @@ pub enum NewUnchecked {
     #[allow(dead_code)]
     On,
     Off,
+}
+
+pub struct GenerateParams<T, G> {
+    pub doc_attrs: Vec<Attribute>,
+    pub traits: HashSet<T>,
+    pub vis: syn::Visibility,
+    pub type_name: TypeName,
+    pub guard: G,
+    pub new_unchecked: NewUnchecked,
+    pub maybe_default_value: Option<TokenStream>,
+}
+
+pub trait Newtype {
+    type Sanitizer;
+    type Validator;
+    type TypedTrait;
+
+    #[allow(clippy::type_complexity)]
+    fn parse_attributes(
+        attrs: TokenStream,
+    ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>>, syn::Error>;
+
+    fn validate(
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+    ) -> Result<HashSet<Self::TypedTrait>, syn::Error>;
+
+    fn generate(
+        params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
+    ) -> TokenStream;
+
+    fn expand(typed_meta: TypedMeta) -> Result<TokenStream, syn::Error> {
+        let TypedMeta {
+            doc_attrs,
+            type_name,
+            attrs,
+            vis,
+            derive_traits,
+        } = typed_meta;
+        let Attributes {
+            guard,
+            new_unchecked,
+            maybe_default_value,
+        } = Self::parse_attributes(attrs)?;
+        let traits = Self::validate(&guard, derive_traits)?;
+        let generated_output = Self::generate(GenerateParams {
+            doc_attrs,
+            traits,
+            vis,
+            type_name,
+            guard,
+            new_unchecked,
+            maybe_default_value,
+        });
+        Ok(generated_output)
+    }
 }
