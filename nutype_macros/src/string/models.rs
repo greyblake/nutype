@@ -1,15 +1,16 @@
+use darling::util::SpannedValue;
 use proc_macro2::TokenStream;
 
 use crate::{
+    common::models::Kind,
     common::models::{Guard, RawGuard},
-    common::models::{Kind, SpannedItem},
 };
 
 // Sanitizer
 
-pub type SpannedStringSanitizer = SpannedItem<StringSanitizer>;
+pub type SpannedStringSanitizer = SpannedValue<StringSanitizer>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StringSanitizer {
     Trim,
     Lowercase,
@@ -52,9 +53,9 @@ impl std::fmt::Display for StringSanitizerKind {
 // Validator
 //
 
-pub type SpannedStringValidator = SpannedItem<StringValidator>;
+pub type SpannedStringValidator = SpannedValue<StringValidator>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
@@ -65,7 +66,7 @@ pub enum StringValidator {
 }
 
 #[cfg_attr(not(feature = "regex"), allow(dead_code))]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum RegexDef {
     /// The case, when regex is defined with string literal inlined, e.g.:
     ///     regex = "^[0-9]{9}$"

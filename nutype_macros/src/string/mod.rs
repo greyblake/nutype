@@ -5,8 +5,9 @@ pub mod validate;
 
 use std::collections::HashSet;
 
-use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Newtype, SpannedItem};
+use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Newtype};
 
+use darling::util::SpannedValue;
 use models::{StringDeriveTrait, StringSanitizer, StringValidator};
 use proc_macro2::TokenStream;
 
@@ -27,7 +28,7 @@ impl Newtype for StringNewtype {
 
     fn validate(
         guard: &StringGuard,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedValue<DeriveTrait>>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
         validate_string_derive_traits(guard, derive_traits)
     }

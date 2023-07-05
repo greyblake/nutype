@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 use std::fmt::Debug;
 
-use proc_macro2::{Span, TokenStream};
+use darling::util::SpannedValue;
+use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-use syn::spanned::Spanned;
 use syn::Attribute;
 
 use crate::float::models::FloatInnerType;
@@ -17,25 +17,12 @@ pub trait Kind {
     fn kind(&self) -> Self::Kind;
 }
 
-/// A spanned item. An item can be anything that cares a domain value.
-/// Keeping a span allows to throw good precise error messages at the validation stage.
-#[derive(Debug)]
-pub struct SpannedItem<T> {
-    pub item: T,
-    pub span: Span,
-}
-
-impl<T> Spanned for SpannedItem<T> {
-    fn span(&self) -> Span {
-        self.span
-    }
-}
-
-impl<T: Kind> Kind for SpannedItem<T> {
+// Implement Kind for SpannedValue from darling.
+impl<T: Kind> Kind for SpannedValue<T> {
     type Kind = <T as Kind>::Kind;
 
     fn kind(&self) -> Self::Kind {
-        self.item.kind()
+        self.as_ref().kind()
     }
 }
 
@@ -237,7 +224,7 @@ pub enum NormalDeriveTrait {
     SchemarsJsonSchema,
 }
 
-pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
+pub type SpannedDeriveTrait = SpannedValue<DeriveTrait>;
 
 /// The flag the indicates that a newtype will be generated with extra constructor,
 /// `::new_unchecked()` constructor which allows to avoid the guards.
@@ -272,7 +259,7 @@ pub trait Newtype {
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedValue<DeriveTrait>>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error>;
 
     fn generate(

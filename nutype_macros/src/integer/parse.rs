@@ -70,10 +70,7 @@ where
                 let stream = parse_with_token_stream(token_iter, ident.span())?;
                 let span = ident.span();
                 let sanitizer = IntegerSanitizer::With(stream);
-                Ok(SpannedIntegerSanitizer {
-                    span,
-                    item: sanitizer,
-                })
+                Ok(SpannedIntegerSanitizer::new(sanitizer, span))
             }
             unknown_sanitizer => {
                 let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
@@ -109,19 +106,13 @@ where
             "min" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
                 let validator = IntegerValidator::Min(value);
-                let parsed_validator = SpannedIntegerValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
+                let parsed_validator = SpannedIntegerValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "max" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
                 let validator = IntegerValidator::Max(value);
-                let parsed_validator = SpannedIntegerValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
+                let parsed_validator = SpannedIntegerValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "with" => {
@@ -129,10 +120,7 @@ where
                 let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
                 let span = ident.span();
                 let validator = IntegerValidator::With(stream);
-                Ok(SpannedIntegerValidator {
-                    span,
-                    item: validator,
-                })
+                Ok(SpannedIntegerValidator::new(validator, span))
             }
             unknown_validator => {
                 let msg = format!("Unknown validation rule `{unknown_validator}`");

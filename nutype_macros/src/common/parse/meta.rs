@@ -129,7 +129,7 @@ fn validate_supported_attrs(attrs: &[syn::Attribute]) -> Result<(), syn::Error> 
 fn validate_inner_field_visibility(vis: &Visibility) -> Result<(), syn::Error> {
     match vis {
         Visibility::Inherited => Ok(()),
-        Visibility::Public(_) | Visibility::Crate(_) | Visibility::Restricted(_) => {
+        Visibility::Public(_) | Visibility::Restricted(_) => {
             let msg = "Oh, setting visibility for the inner field is forbidden by #[nutype].\nThe whole point is to guarantee that no value can be created without passing the guards (sanitizers and validators).\nWe do hope for your understanding and wish you a good sunny day!";
             Err(syn::Error::new(vis.span(), msg))
         }

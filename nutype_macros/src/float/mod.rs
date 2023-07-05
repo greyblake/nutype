@@ -1,9 +1,10 @@
 use std::{collections::HashSet, fmt::Debug, marker::PhantomData, str::FromStr};
 
+use darling::util::SpannedValue;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
-use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem};
+use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype};
 
 use self::{
     gen::gen_nutype_for_float,
@@ -33,7 +34,7 @@ where
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedValue<DeriveTrait>>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
         validate_float_derive_traits(derive_traits, guard)
     }

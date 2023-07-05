@@ -1,15 +1,11 @@
-use proc_macro2::Span;
-use syn::spanned::Spanned;
-
 use crate::common::models::Kind;
+use darling::util::SpannedValue;
+use proc_macro2::Span;
 
-pub fn validate_duplicates<T>(
-    items: &[T],
+pub fn validate_duplicates<T: Kind>(
+    items: &[SpannedValue<T>],
     build_error_msg: impl Fn(<T as Kind>::Kind) -> String,
-) -> Result<(), syn::Error>
-where
-    T: Spanned + Kind,
-{
+) -> Result<(), syn::Error> {
     if let Some((item1, item2)) = detect_items_of_same_kind(items) {
         assert_eq!(item1.kind(), item2.kind());
         let kind = item1.kind();

@@ -1,20 +1,21 @@
+use darling::util::SpannedValue;
 use proc_macro2::TokenStream;
 
 use crate::{
+    common::models::Kind,
     common::models::{Guard, RawGuard},
-    common::models::{Kind, SpannedItem},
 };
 
 // Sanitizer
 //
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum FloatSanitizer<T> {
     With(TokenStream),
     _Phantom(std::marker::PhantomData<T>),
 }
 
-pub type SpannedFloatSanitizer<T> = SpannedItem<FloatSanitizer<T>>;
+pub type SpannedFloatSanitizer<T> = SpannedValue<FloatSanitizer<T>>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum FloatSanitizerKind {
@@ -45,7 +46,7 @@ impl<T> Kind for FloatSanitizer<T> {
 // Validator
 //
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum FloatValidator<T> {
     Min(T),
     Max(T),
@@ -53,7 +54,7 @@ pub enum FloatValidator<T> {
     Finite,
 }
 
-pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
+pub type SpannedFloatValidator<T> = SpannedValue<FloatValidator<T>>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum FloatValidatorKind {

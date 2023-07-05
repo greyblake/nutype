@@ -1,20 +1,21 @@
+use darling::util::SpannedValue;
 use proc_macro2::TokenStream;
 
 use crate::{
+    common::models::Kind,
     common::models::{Guard, RawGuard},
-    common::models::{Kind, SpannedItem},
 };
 
 // Sanitizer
 //
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum IntegerSanitizer<T> {
     With(TokenStream),
     _Phantom(std::marker::PhantomData<T>),
 }
 
-pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;
+pub type SpannedIntegerSanitizer<T> = SpannedValue<IntegerSanitizer<T>>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum IntegerSanitizerKind {
@@ -45,14 +46,14 @@ impl<T> Kind for IntegerSanitizer<T> {
 // Validator
 //
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum IntegerValidator<T> {
     Min(T),
     Max(T),
     With(TokenStream),
 }
 
-pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
+pub type SpannedIntegerValidator<T> = SpannedValue<IntegerValidator<T>>;
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum IntegerValidatorKind {

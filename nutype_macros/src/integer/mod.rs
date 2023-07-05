@@ -2,11 +2,12 @@ use std::collections::HashSet;
 use std::marker::PhantomData;
 use std::{fmt::Debug, str::FromStr};
 
+use darling::util::SpannedValue;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
 use crate::common::models::{Attributes, Guard};
-use crate::common::models::{DeriveTrait, GenerateParams, Newtype, SpannedItem};
+use crate::common::models::{DeriveTrait, GenerateParams, Newtype};
 use crate::integer::gen::gen_nutype_for_integer;
 
 use self::models::{
@@ -36,7 +37,7 @@ where
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedValue<DeriveTrait>>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
         let has_validation = guard.has_validation();
         validate_integer_derive_traits(derive_traits, has_validation)

@@ -47,15 +47,15 @@ where
     // max VS min
     let maybe_min = validators
         .iter()
-        .flat_map(|v| match &v.item {
-            IntegerValidator::Min(ref min) => Some((v.span, min.clone())),
+        .flat_map(|v| match v.as_ref() {
+            IntegerValidator::Min(min) => Some((v.span(), min.clone())),
             _ => None,
         })
         .next();
     let maybe_max = validators
         .iter()
-        .flat_map(|v| match v.item {
-            IntegerValidator::Max(ref max) => Some((v.span, max.clone())),
+        .flat_map(|v| match v.as_ref() {
+            IntegerValidator::Max(max) => Some((v.span(), max.clone())),
             _ => None,
         })
         .next();
@@ -67,7 +67,10 @@ where
         }
     }
 
-    let validators: Vec<_> = validators.into_iter().map(|v| v.item).collect();
+    let validators: Vec<_> = validators
+        .into_iter()
+        .map(|v| v.as_ref().to_owned())
+        .collect();
     Ok(validators)
 }
 
@@ -81,7 +84,10 @@ where
         format!("Duplicated sanitizer `{kind}`.\nIt happens, don't worry. We still love you!")
     })?;
 
-    let sanitizers: Vec<_> = sanitizers.into_iter().map(|s| s.item).collect();
+    let sanitizers: Vec<_> = sanitizers
+        .into_iter()
+        .map(|s| s.as_ref().to_owned())
+        .collect();
     Ok(sanitizers)
 }
 
@@ -92,13 +98,13 @@ pub fn validate_integer_derive_traits(
     let mut traits = HashSet::with_capacity(24);
 
     for spanned_trait in spanned_derive_traits {
-        match spanned_trait.item {
+        match spanned_trait.as_ref() {
             DeriveTrait::Asterisk => {
                 traits.extend(unfold_asterisk_traits(has_validation));
             }
             DeriveTrait::Normal(normal_trait) => {
                 let string_derive_trait =
-                    to_integer_derive_trait(normal_trait, has_validation, spanned_trait.span)?;
+                    to_integer_derive_trait(*normal_trait, has_validation, spanned_trait.span())?;
                 traits.insert(string_derive_trait);
             }
         };
