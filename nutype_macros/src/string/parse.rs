@@ -55,10 +55,7 @@ fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer,
                 return Err(error);
             }
         };
-        Ok(SpannedStringSanitizer {
-            span: ident.span(),
-            item: san,
-        })
+        Ok(SpannedStringSanitizer::new(san, ident.span()))
     } else {
         Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
     }
@@ -80,37 +77,25 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
             "max_len" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
                 let validator = StringValidator::MaxLen(value);
-                let parsed_validator = SpannedStringValidator {
-                    item: validator,
-                    span: ident.span(),
-                };
+                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "min_len" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
                 let validator = StringValidator::MinLen(value);
-                let parsed_validator = SpannedStringValidator {
-                    item: validator,
-                    span: ident.span(),
-                };
+                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "not_empty" => {
                 let validator = StringValidator::NotEmpty;
-                let parsed_validator = SpannedStringValidator {
-                    item: validator,
-                    span: ident.span(),
-                };
+                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "with" => {
                 let rest_tokens: Vec<_> = token_iter.collect();
                 let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
                 let validator = StringValidator::With(stream);
-                let parsed_validator = SpannedStringValidator {
-                    item: validator,
-                    span: ident.span(),
-                };
+                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "regex" => {
@@ -120,10 +105,7 @@ fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator,
                         let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
                         let (regex_def, span) = parse_regex(stream, ident.span())?;
                         let validator = StringValidator::Regex(regex_def);
-                        let parsed_validator = SpannedStringValidator {
-                            item: validator,
-                            span,
-                        };
+                        let parsed_validator = SpannedStringValidator::new(validator, span);
                         Ok(parsed_validator)
                     },
                     off => {

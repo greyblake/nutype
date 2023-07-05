@@ -68,10 +68,7 @@ where
                 let stream = parse_with_token_stream(token_iter, ident.span())?;
                 let span = ident.span();
                 let sanitizer = FloatSanitizer::With(stream);
-                Ok(SpannedFloatSanitizer {
-                    span,
-                    item: sanitizer,
-                })
+                Ok(SpannedFloatSanitizer::new(sanitizer, span))
             }
             unknown_sanitizer => {
                 let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
@@ -105,19 +102,13 @@ where
             "min" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
                 let validator = FloatValidator::Min(value);
-                let parsed_validator = SpannedFloatValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
+                let parsed_validator = SpannedFloatValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "max" => {
                 let (value, _iter) = parse_value_as_number(token_iter)?;
                 let validator = FloatValidator::Max(value);
-                let parsed_validator = SpannedFloatValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
+                let parsed_validator = SpannedFloatValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             "with" => {
@@ -125,17 +116,11 @@ where
                 let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
                 let span = ident.span();
                 let validator = FloatValidator::With(stream);
-                Ok(SpannedFloatValidator {
-                    span,
-                    item: validator,
-                })
+                Ok(SpannedFloatValidator::new(validator, span))
             }
             "finite" => {
                 let validator = FloatValidator::Finite;
-                let parsed_validator = SpannedFloatValidator {
-                    item: validator,
-                    span: ident.span(),
-                };
+                let parsed_validator = SpannedFloatValidator::new(validator, ident.span());
                 Ok(parsed_validator)
             }
             unknown_validator => {

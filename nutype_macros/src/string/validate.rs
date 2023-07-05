@@ -43,15 +43,15 @@ fn validate_validators(
     //
     let maybe_min_len = validators
         .iter()
-        .flat_map(|v| match v.item {
-            StringValidator::MinLen(len) => Some((v.span, len)),
+        .flat_map(|v| match v.as_ref() {
+            StringValidator::MinLen(len) => Some((v.span(), len)),
             _ => None,
         })
         .next();
     let maybe_max_len = validators
         .iter()
-        .flat_map(|v| match v.item {
-            StringValidator::MaxLen(len) => Some((v.span, len)),
+        .flat_map(|v| match v.as_ref() {
+            StringValidator::MaxLen(len) => Some((v.span(), len)),
             _ => None,
         })
         .next();
@@ -70,12 +70,15 @@ fn validate_validators(
     //
     #[cfg(feature = "regex")]
     for v in validators.iter() {
-        if let StringValidator::Regex(ref regex_def) = v.item {
-            regex_validation::validate_regex_def(regex_def, v.span)?;
+        if let StringValidator::Regex(ref regex_def) = v.as_ref() {
+            regex_validation::validate_regex_def(regex_def, v.span())?;
         }
     }
 
-    let validators: Vec<StringValidator> = validators.into_iter().map(|v| v.item).collect();
+    let validators: Vec<StringValidator> = validators
+        .into_iter()
+        .map(|v| v.as_ref().to_owned())
+        .collect();
     Ok(validators)
 }
 
@@ -95,12 +98,15 @@ fn validate_sanitizers(
         .find(|&s| s.kind() == StringSanitizerKind::Uppercase);
     if let (Some(lowercase), Some(uppercase)) = (lowercase, uppercase) {
         let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're a great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
-        let span = lowercase.span;
+        let span = lowercase.span();
         let err = syn::Error::new(span, msg);
         return Err(err);
     }
 
-    let sanitizers: Vec<StringSanitizer> = sanitizers.into_iter().map(|s| s.item).collect();
+    let sanitizers: Vec<StringSanitizer> = sanitizers
+        .into_iter()
+        .map(|s| s.as_ref().to_owned())
+        .collect();
     Ok(sanitizers)
 }
 
@@ -112,13 +118,16 @@ pub fn validate_string_derive_traits(
     let has_validation = guard.has_validation();
 
     for spanned_trait in spanned_derive_traits {
-        match spanned_trait.item {
+        match spanned_trait.as_ref() {
             DeriveTrait::Asterisk => {
                 traits.extend(unfold_asterisk_traits(has_validation));
             }
             DeriveTrait::Normal(normal_trait) => {
-                let string_derive_trait =
-                    to_string_derive_trait(normal_trait, has_validation, spanned_trait.span)?;
+                let string_derive_trait = to_string_derive_trait(
+                    normal_trait.to_owned(),
+                    has_validation,
+                    spanned_trait.span(),
+                )?;
                 traits.insert(string_derive_trait);
             }
         };

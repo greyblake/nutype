@@ -48,15 +48,15 @@ where
     // max VS min
     let maybe_min = validators
         .iter()
-        .flat_map(|v| match &v.item {
-            FloatValidator::Min(ref min) => Some((v.span, min.clone())),
+        .flat_map(|v| match v.as_ref() {
+            FloatValidator::Min(min) => Some((v.span(), min.clone())),
             _ => None,
         })
         .next();
     let maybe_max = validators
         .iter()
-        .flat_map(|v| match v.item {
-            FloatValidator::Max(ref max) => Some((v.span, max.clone())),
+        .flat_map(|v| match v.as_ref() {
+            FloatValidator::Max(max) => Some((v.span(), max.clone())),
             _ => None,
         })
         .next();
@@ -68,7 +68,10 @@ where
         }
     }
 
-    let validators: Vec<_> = validators.into_iter().map(|v| v.item).collect();
+    let validators: Vec<FloatValidator<T>> = validators
+        .into_iter()
+        .map(|v| v.as_ref().to_owned())
+        .collect();
     Ok(validators)
 }
 
@@ -82,7 +85,10 @@ where
         format!("Duplicated sanitizer `{kind}`.\nIt happens, don't worry. We still love you!")
     })?;
 
-    let sanitizers: Vec<_> = sanitizers.into_iter().map(|s| s.item).collect();
+    let sanitizers: Vec<_> = sanitizers
+        .into_iter()
+        .map(|s| s.as_ref().to_owned())
+        .collect();
     Ok(sanitizers)
 }
 
@@ -121,13 +127,13 @@ pub fn validate_float_derive_traits<T>(
     let mut traits = HashSet::with_capacity(24);
 
     for spanned_trait in spanned_derive_traits.iter() {
-        match spanned_trait.item {
+        match spanned_trait.as_ref() {
             DeriveTrait::Asterisk => {
                 traits.extend(unfold_asterisk_traits(validation));
             }
             DeriveTrait::Normal(normal_trait) => {
                 let string_derive_trait =
-                    to_float_derive_trait(normal_trait, validation, spanned_trait.span)?;
+                    to_float_derive_trait(*normal_trait, validation, spanned_trait.span())?;
                 traits.insert(string_derive_trait);
             }
         };
@@ -138,8 +144,8 @@ pub fn validate_float_derive_traits<T>(
     let get_span_for = |needle: NormalDeriveTrait| -> Span {
         spanned_derive_traits
             .iter()
-            .flat_map(|spanned_tr| match spanned_tr.item {
-                DeriveTrait::Normal(tr) if tr == needle => Some(spanned_tr.span),
+            .flat_map(|spanned_tr| match spanned_tr.as_ref() {
+                DeriveTrait::Normal(tr) if *tr == needle => Some(spanned_tr.span()),
                 DeriveTrait::Normal(_) => None,
                 DeriveTrait::Asterisk => None,
             })

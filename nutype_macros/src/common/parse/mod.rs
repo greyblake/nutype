@@ -3,7 +3,6 @@ pub mod meta;
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
-use syn::spanned::Spanned;
 
 use crate::{
     common::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait},
@@ -261,14 +260,14 @@ pub fn parse_with_token_stream<'a>(
 }
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
-    match attribute.path.segments.first() {
+    match attribute.path().segments.first() {
         Some(path_segment) => path_segment.ident == "doc",
         None => false,
     }
 }
 
 pub fn is_derive_attribute(attribute: &syn::Attribute) -> bool {
-    match attribute.path.segments.first() {
+    match attribute.path().segments.first() {
         Some(path_segment) => path_segment.ident == "derive",
         None => false,
     }
@@ -286,22 +285,29 @@ pub fn parse_derive_traits(
 }
 
 fn parse_derive_attr(attr: &syn::Attribute) -> Result<Vec<SpannedDeriveTrait>, syn::Error> {
-    let maybe_token = attr.tokens.clone().into_iter().next();
-    let Some(token) = maybe_token else {
-        return Err(syn::Error::new(attr.span(), "derive() cannot be empty"));
-    };
-    let group = try_unwrap_group(token)?;
-
-    let derive_traits: Vec<SpannedDeriveTrait> = group
-        .stream()
-        .into_iter()
-        .map(parse_token_into_derive_trait)
-        .collect::<Result<Vec<Option<SpannedDeriveTrait>>, syn::Error>>()?
-        .into_iter()
-        .flatten()
-        .collect();
-
-    Ok(derive_traits)
+    let meta = &attr.meta;
+    match meta {
+        syn::Meta::Path(path) => {
+            let msg = format!("Expected #[derive(...)], got: {path:?}");
+            Err(syn::Error::new(Span::call_site(), msg))
+        }
+        syn::Meta::NameValue(name_value) => {
+            let msg = format!("Expected #[derive(...)], got: {name_value:?}");
+            Err(syn::Error::new(Span::call_site(), msg))
+        }
+        syn::Meta::List(list) => {
+            let derive_traits: Vec<SpannedDeriveTrait> = list
+                .tokens
+                .clone()
+                .into_iter()
+                .map(parse_token_into_derive_trait)
+                .collect::<Result<Vec<Option<SpannedDeriveTrait>>, syn::Error>>()?
+                .into_iter()
+                .flatten()
+                .collect();
+            Ok(derive_traits)
+        }
+    }
 }
 
 fn parse_token_into_derive_trait(
@@ -315,10 +321,7 @@ fn parse_token_into_derive_trait(
         TokenTree::Punct(ref punct) => match punct.as_char() {
             ',' => Ok(None),
             '*' => {
-                let spanned_trait = SpannedDeriveTrait {
-                    item: DeriveTrait::Asterisk,
-                    span: token.span(),
-                };
+                let spanned_trait = SpannedDeriveTrait::new(DeriveTrait::Asterisk, token.span());
                 Ok(Some(spanned_trait))
             }
             _ => Err(syn::Error::new(
@@ -384,9 +387,6 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         }
     };
     let derive_trait = DeriveTrait::Normal(normal_derive_trait);
-    let spanned_trait = SpannedDeriveTrait {
-        item: derive_trait,
-        span: ident.span(),
-    };
+    let spanned_trait = SpannedDeriveTrait::new(derive_trait, ident.span());
     Ok(spanned_trait)
 }
