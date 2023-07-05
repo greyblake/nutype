@@ -31,14 +31,14 @@ where
     type Validator = IntegerValidator<T>;
     type TypedTrait = IntegerDeriveTrait;
 
-    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<IntegerGuard<T>>, syn::Error> {
+    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<IntegerGuard<T>>, darling::Error> {
         parse::parse_attributes::<T>(attrs)
     }
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedValue<DeriveTrait>>,
-    ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
+    ) -> Result<HashSet<Self::TypedTrait>, darling::Error> {
         let has_validation = guard.has_validation();
         validate_integer_derive_traits(derive_traits, has_validation)
     }

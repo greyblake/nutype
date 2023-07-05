@@ -22,14 +22,14 @@ impl Newtype for StringNewtype {
     type Validator = StringValidator;
     type TypedTrait = StringDeriveTrait;
 
-    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
+    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<StringGuard>, darling::Error> {
         parse::parse_attributes(attrs)
     }
 
     fn validate(
         guard: &StringGuard,
         derive_traits: Vec<SpannedValue<DeriveTrait>>,
-    ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
+    ) -> Result<HashSet<Self::TypedTrait>, darling::Error> {
         validate_string_derive_traits(guard, derive_traits)
     }
 

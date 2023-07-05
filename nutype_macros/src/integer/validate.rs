@@ -12,7 +12,9 @@ use super::models::{
     SpannedIntegerSanitizer, SpannedIntegerValidator,
 };
 
-pub fn validate_number_meta<T>(raw_meta: IntegerRawGuard<T>) -> Result<IntegerGuard<T>, syn::Error>
+pub fn validate_number_meta<T>(
+    raw_meta: IntegerRawGuard<T>,
+) -> Result<IntegerGuard<T>, darling::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -36,7 +38,7 @@ where
 
 fn validate_validators<T>(
     validators: Vec<SpannedIntegerValidator<T>>,
-) -> Result<Vec<IntegerValidator<T>>, syn::Error>
+) -> Result<Vec<IntegerValidator<T>>, darling::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -62,7 +64,7 @@ where
     if let (Some((_min_span, min)), Some((max_span, max))) = (maybe_min, maybe_max) {
         if min > max {
             let msg = "`min` cannot be greater than `max`.\nSometimes we all need a little break.";
-            let err = syn::Error::new(max_span, msg);
+            let err = syn::Error::new(max_span, msg).into();
             return Err(err);
         }
     }
@@ -76,7 +78,7 @@ where
 
 fn validate_sanitizers<T>(
     sanitizers: Vec<SpannedIntegerSanitizer<T>>,
-) -> Result<Vec<IntegerSanitizer<T>>, syn::Error>
+) -> Result<Vec<IntegerSanitizer<T>>, darling::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -94,7 +96,7 @@ where
 pub fn validate_integer_derive_traits(
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
     has_validation: bool,
-) -> Result<HashSet<IntegerDeriveTrait>, syn::Error> {
+) -> Result<HashSet<IntegerDeriveTrait>, darling::Error> {
     let mut traits = HashSet::with_capacity(24);
 
     for spanned_trait in spanned_derive_traits {
@@ -140,7 +142,7 @@ fn to_integer_derive_trait(
     tr: NormalDeriveTrait,
     has_validation: bool,
     span: Span,
-) -> Result<IntegerDeriveTrait, syn::Error> {
+) -> Result<IntegerDeriveTrait, darling::Error> {
     match tr {
         NormalDeriveTrait::Debug => Ok(IntegerDeriveTrait::Debug),
         NormalDeriveTrait::Display => Ok(IntegerDeriveTrait::Display),
@@ -163,7 +165,7 @@ fn to_integer_derive_trait(
         NormalDeriveTrait::TryFrom => Ok(IntegerDeriveTrait::TryFrom),
         NormalDeriveTrait::From => {
             if has_validation {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.").into())
             } else {
                 Ok(IntegerDeriveTrait::From)
             }

@@ -10,7 +10,7 @@ use crate::{
     common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
 };
 
-pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
+pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, darling::Error> {
     let input: DeriveInput = syn::parse(token_stream.into())?;
 
     let input_span = input.span();
@@ -33,7 +33,8 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
         syn::Data::Struct(v) => v.clone(),
         _ => {
             let error =
-                syn::Error::new(input_span, "#[nutype] can be used only with tuple structs.");
+                syn::Error::new(input_span, "#[nutype] can be used only with tuple structs.")
+                    .into();
             return Err(error);
         }
     };
@@ -42,7 +43,8 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
         syn::Fields::Unnamed(fu) => fu,
         _ => {
             let error =
-                syn::Error::new(input_span, "#[nutype] can be used only with tuple structs.");
+                syn::Error::new(input_span, "#[nutype] can be used only with tuple structs.")
+                    .into();
             return Err(error);
         }
     };
@@ -69,7 +71,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
                 seg.span(),
                 "#[nutype] requires a simple inner type (e.g. String, i32, etc.)",
             );
-            return Err(error);
+            return Err(error.into());
         }
     };
 
@@ -96,7 +98,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
                 seg.span(),
                 format!("#[nutype] does not support `{tp}` as inner type."),
             );
-            return Err(error);
+            return Err(error.into());
         }
     };
 
@@ -109,29 +111,28 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
     })
 }
 
-fn validate_supported_attrs(attrs: &[syn::Attribute]) -> Result<(), syn::Error> {
+fn validate_supported_attrs(attrs: &[syn::Attribute]) -> Result<(), darling::Error> {
     fn is_supported_attr(attr: &syn::Attribute) -> bool {
         is_doc_attribute(attr) || is_derive_attribute(attr)
     }
 
     for attr in attrs {
         if !is_supported_attr(attr) {
-            return Err(syn::Error::new(
-                attr.span(),
-                "#[nutype] does not support this attribute.",
-            ));
+            return Err(
+                syn::Error::new(attr.span(), "#[nutype] does not support this attribute.").into(),
+            );
         }
     }
 
     Ok(())
 }
 
-fn validate_inner_field_visibility(vis: &Visibility) -> Result<(), syn::Error> {
+fn validate_inner_field_visibility(vis: &Visibility) -> Result<(), darling::Error> {
     match vis {
         Visibility::Inherited => Ok(()),
         Visibility::Public(_) | Visibility::Restricted(_) => {
             let msg = "Oh, setting visibility for the inner field is forbidden by #[nutype].\nThe whole point is to guarantee that no value can be created without passing the guards (sanitizers and validators).\nWe do hope for your understanding and wish you a good sunny day!";
-            Err(syn::Error::new(vis.span(), msg))
+            Err(syn::Error::new(vis.span(), msg).into())
         }
     }
 }

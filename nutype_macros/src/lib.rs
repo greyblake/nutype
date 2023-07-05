@@ -18,14 +18,14 @@ pub fn nutype(
     type_definition: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     expand_nutype(attrs.into(), type_definition.into())
-        .unwrap_or_else(|e| syn::Error::to_compile_error(&e))
+        .unwrap_or_else(|e| e.write_errors())
         .into()
 }
 
 fn expand_nutype(
     attrs: TokenStream,
     type_definition: TokenStream,
-) -> Result<TokenStream, syn::Error> {
+) -> Result<TokenStream, darling::Error> {
     use FloatInnerType::*;
     use IntegerInnerType::*;
 

@@ -255,18 +255,18 @@ pub trait Newtype {
     #[allow(clippy::type_complexity)]
     fn parse_attributes(
         attrs: TokenStream,
-    ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>>, syn::Error>;
+    ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>>, darling::Error>;
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedValue<DeriveTrait>>,
-    ) -> Result<HashSet<Self::TypedTrait>, syn::Error>;
+    ) -> Result<HashSet<Self::TypedTrait>, darling::Error>;
 
     fn generate(
         params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
     ) -> TokenStream;
 
-    fn expand(typed_meta: TypedMeta) -> Result<TokenStream, syn::Error> {
+    fn expand(typed_meta: TypedMeta) -> Result<TokenStream, darling::Error> {
         let TypedMeta {
             doc_attrs,
             type_name,

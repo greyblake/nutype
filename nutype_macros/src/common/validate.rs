@@ -5,13 +5,13 @@ use proc_macro2::Span;
 pub fn validate_duplicates<T: Kind>(
     items: &[SpannedValue<T>],
     build_error_msg: impl Fn(<T as Kind>::Kind) -> String,
-) -> Result<(), syn::Error> {
+) -> Result<(), darling::Error> {
     if let Some((item1, item2)) = detect_items_of_same_kind(items) {
         assert_eq!(item1.kind(), item2.kind());
         let kind = item1.kind();
         let msg = build_error_msg(kind);
         let span = join_spans_or_last(item1.span(), item2.span());
-        let err = syn::Error::new(span, msg);
+        let err = syn::Error::new(span, msg).into();
         return Err(err);
     }
     Ok(())

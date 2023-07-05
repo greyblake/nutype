@@ -13,7 +13,7 @@ use super::models::{
     FloatValidatorKind, SpannedFloatSanitizer, SpannedFloatValidator,
 };
 
-pub fn validate_number_meta<T>(raw_meta: FloatRawGuard<T>) -> Result<FloatGuard<T>, syn::Error>
+pub fn validate_number_meta<T>(raw_meta: FloatRawGuard<T>) -> Result<FloatGuard<T>, darling::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -37,7 +37,7 @@ where
 
 fn validate_validators<T>(
     validators: Vec<SpannedFloatValidator<T>>,
-) -> Result<Vec<FloatValidator<T>>, syn::Error>
+) -> Result<Vec<FloatValidator<T>>, darling::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -63,7 +63,7 @@ where
     if let (Some((_min_span, min)), Some((max_span, max))) = (maybe_min, maybe_max) {
         if min > max {
             let msg = "`min` cannot be greater than `max`.\nSometimes we all need a little break.";
-            let err = syn::Error::new(max_span, msg);
+            let err = syn::Error::new(max_span, msg).into();
             return Err(err);
         }
     }
@@ -77,7 +77,7 @@ where
 
 fn validate_sanitizers<T>(
     sanitizers: Vec<SpannedFloatSanitizer<T>>,
-) -> Result<Vec<FloatSanitizer<T>>, syn::Error>
+) -> Result<Vec<FloatSanitizer<T>>, darling::Error>
 where
     T: PartialOrd + Clone,
 {
@@ -121,7 +121,7 @@ impl ValidationInfo {
 pub fn validate_float_derive_traits<T>(
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
     guard: &FloatGuard<T>,
-) -> Result<HashSet<FloatDeriveTrait>, syn::Error> {
+) -> Result<HashSet<FloatDeriveTrait>, darling::Error> {
     let validation = ValidationInfo::from_guard(guard);
 
     let mut traits = HashSet::with_capacity(24);
@@ -158,17 +158,17 @@ pub fn validate_float_derive_traits<T>(
     if traits.contains(&FloatDeriveTrait::Eq) && !traits.contains(&FloatDeriveTrait::PartialEq) {
         let span = get_span_for(NormalDeriveTrait::Eq);
         let msg = "Trait Eq requires PartialEq.\nEvery expert was once a beginner.";
-        return Err(syn::Error::new(span, msg));
+        return Err(syn::Error::new(span, msg).into());
     }
     if traits.contains(&FloatDeriveTrait::Ord) {
         if !traits.contains(&FloatDeriveTrait::PartialOrd) {
             let span = get_span_for(NormalDeriveTrait::Ord);
             let msg = "Trait Ord requires PartialOrd.\nÜbung macht den Meister.";
-            return Err(syn::Error::new(span, msg));
+            return Err(syn::Error::new(span, msg).into());
         } else if !traits.contains(&FloatDeriveTrait::Eq) {
             let span = get_span_for(NormalDeriveTrait::Ord);
             let msg = "Trait Ord requires Eq.\nFestina lente.";
-            return Err(syn::Error::new(span, msg));
+            return Err(syn::Error::new(span, msg).into());
         }
     }
 
@@ -208,7 +208,7 @@ fn to_float_derive_trait(
     tr: NormalDeriveTrait,
     validation: ValidationInfo,
     span: Span,
-) -> Result<FloatDeriveTrait, syn::Error> {
+) -> Result<FloatDeriveTrait, darling::Error> {
     match tr {
         NormalDeriveTrait::Debug => Ok(FloatDeriveTrait::Debug),
         NormalDeriveTrait::Display => Ok(FloatDeriveTrait::Display),
@@ -221,7 +221,7 @@ fn to_float_derive_trait(
                 Ok(FloatDeriveTrait::Eq)
             } else {
                 let msg = "To derive Eq trait on float-based type there must be validation that proves that inner value is not NaN.\nConsider adding:\n    validate(finite)";
-                Err(syn::Error::new(span, msg))
+                Err(syn::Error::new(span, msg).into())
             }
         }
         NormalDeriveTrait::PartialOrd => Ok(FloatDeriveTrait::PartialOrd),
@@ -230,7 +230,7 @@ fn to_float_derive_trait(
                 Ok(FloatDeriveTrait::Ord)
             } else {
                 let msg = "To derive Ord trait on float-based type there must be validation that proves that inner value is not NaN.\nConsider adding:\n    validate(finite)";
-                Err(syn::Error::new(span, msg))
+                Err(syn::Error::new(span, msg).into())
             }
         }
         NormalDeriveTrait::FromStr => Ok(FloatDeriveTrait::FromStr),
@@ -239,12 +239,13 @@ fn to_float_derive_trait(
         NormalDeriveTrait::Hash => Err(syn::Error::new(
             span,
             "#[nutype] cannot derive `Hash` trait for float types.",
-        )),
+        )
+        .into()),
         NormalDeriveTrait::Borrow => Ok(FloatDeriveTrait::Borrow),
         NormalDeriveTrait::Copy => Ok(FloatDeriveTrait::Copy),
         NormalDeriveTrait::From => {
             if validation.has_validation {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.").into())
             } else {
                 Ok(FloatDeriveTrait::From)
             }
