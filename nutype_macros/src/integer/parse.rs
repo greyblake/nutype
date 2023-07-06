@@ -18,7 +18,9 @@ use super::{
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream) -> Result<Attributes<IntegerGuard<T>>, syn::Error>
+pub fn parse_attributes<T>(
+    input: TokenStream,
+) -> Result<Attributes<IntegerGuard<T>>, darling::Error>
 where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
@@ -37,7 +39,9 @@ where
     })
 }
 
-fn parse_raw_attributes<T>(input: TokenStream) -> Result<Attributes<IntegerRawGuard<T>>, syn::Error>
+fn parse_raw_attributes<T>(
+    input: TokenStream,
+) -> Result<Attributes<IntegerRawGuard<T>>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -47,7 +51,7 @@ where
 
 fn parse_sanitize_attrs<T>(
     stream: TokenStream,
-) -> Result<Vec<SpannedIntegerSanitizer<T>>, syn::Error>
+) -> Result<Vec<SpannedIntegerSanitizer<T>>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -56,7 +60,9 @@ where
     split_and_parse(tokens, is_comma, parse_sanitize_attr)
 }
 
-fn parse_sanitize_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedIntegerSanitizer<T>, syn::Error>
+fn parse_sanitize_attr<T>(
+    tokens: Vec<TokenTree>,
+) -> Result<SpannedIntegerSanitizer<T>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -74,18 +80,18 @@ where
             }
             unknown_sanitizer => {
                 let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                let error = syn::Error::new(ident.span(), msg);
+                let error = syn::Error::new(ident.span(), msg).into();
                 Err(error)
             }
         }
     } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+        Err(syn::Error::new(Span::call_site(), "Invalid syntax.").into())
     }
 }
 
 fn parse_validate_attrs<T>(
     stream: TokenStream,
-) -> Result<Vec<SpannedIntegerValidator<T>>, syn::Error>
+) -> Result<Vec<SpannedIntegerValidator<T>>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -94,7 +100,9 @@ where
     split_and_parse(tokens, is_comma, parse_validate_attr)
 }
 
-fn parse_validate_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedIntegerValidator<T>, syn::Error>
+fn parse_validate_attr<T>(
+    tokens: Vec<TokenTree>,
+) -> Result<SpannedIntegerValidator<T>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -124,11 +132,11 @@ where
             }
             unknown_validator => {
                 let msg = format!("Unknown validation rule `{unknown_validator}`");
-                let error = syn::Error::new(ident.span(), msg);
+                let error = syn::Error::new(ident.span(), msg).into();
                 Err(error)
             }
         }
     } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+        Err(syn::Error::new(Span::call_site(), "Invalid syntax.").into())
     }
 }

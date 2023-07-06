@@ -28,14 +28,14 @@ where
     type Validator = FloatValidator<T>;
     type TypedTrait = FloatDeriveTrait;
 
-    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error> {
+    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<FloatGuard<T>>, darling::Error> {
         parse::parse_attributes::<T>(attrs)
     }
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedValue<DeriveTrait>>,
-    ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
+    ) -> Result<HashSet<Self::TypedTrait>, darling::Error> {
         validate_float_derive_traits(derive_traits, guard)
     }
 

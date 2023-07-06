@@ -11,7 +11,7 @@ use super::models::{
     SpannedStringSanitizer, SpannedStringValidator, StringDeriveTrait, StringSanitizerKind,
 };
 
-pub fn validate_string_meta(raw_meta: StringRawGuard) -> Result<StringGuard, syn::Error> {
+pub fn validate_string_meta(raw_meta: StringRawGuard) -> Result<StringGuard, darling::Error> {
     let StringRawGuard {
         sanitizers,
         validators,
@@ -32,7 +32,7 @@ pub fn validate_string_meta(raw_meta: StringRawGuard) -> Result<StringGuard, syn
 
 fn validate_validators(
     validators: Vec<SpannedStringValidator>,
-) -> Result<Vec<StringValidator>, syn::Error> {
+) -> Result<Vec<StringValidator>, darling::Error> {
     // Check duplicates
     //
     validate_duplicates(&validators, |kind| {
@@ -61,7 +61,7 @@ fn validate_validators(
         if min_len > max_len {
             let msg = "min_len cannot be greater than max_len.\nDon't you find this obvious?";
             let span = max_len_span;
-            let err = syn::Error::new(span, msg);
+            let err = syn::Error::new(span, msg).into();
             return Err(err);
         }
     }
@@ -84,7 +84,7 @@ fn validate_validators(
 
 fn validate_sanitizers(
     sanitizers: Vec<SpannedStringSanitizer>,
-) -> Result<Vec<StringSanitizer>, syn::Error> {
+) -> Result<Vec<StringSanitizer>, darling::Error> {
     validate_duplicates(&sanitizers, |kind| {
         format!("Duplicated sanitizer `{kind}`.\nYou're doing well, it's not that bad unless you forgot to call your mom!")
     })?;
@@ -99,7 +99,7 @@ fn validate_sanitizers(
     if let (Some(lowercase), Some(uppercase)) = (lowercase, uppercase) {
         let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're a great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
         let span = lowercase.span();
-        let err = syn::Error::new(span, msg);
+        let err = syn::Error::new(span, msg).into();
         return Err(err);
     }
 
@@ -113,7 +113,7 @@ fn validate_sanitizers(
 pub fn validate_string_derive_traits(
     guard: &StringGuard,
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
-) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
+) -> Result<HashSet<StringDeriveTrait>, darling::Error> {
     let mut traits = HashSet::with_capacity(24);
     let has_validation = guard.has_validation();
 
@@ -162,7 +162,7 @@ fn to_string_derive_trait(
     tr: NormalDeriveTrait,
     has_validation: bool,
     span: Span,
-) -> Result<StringDeriveTrait, syn::Error> {
+) -> Result<StringDeriveTrait, darling::Error> {
     match tr {
         NormalDeriveTrait::Debug => Ok(StringDeriveTrait::Debug),
         NormalDeriveTrait::Display => Ok(StringDeriveTrait::Display),
@@ -184,10 +184,11 @@ fn to_string_derive_trait(
         NormalDeriveTrait::Copy => Err(syn::Error::new(
             span,
             "Copy trait cannot be derived for a String based type",
-        )),
+        )
+        .into()),
         NormalDeriveTrait::From => {
             if has_validation {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.").into())
             } else {
                 Ok(StringDeriveTrait::From)
             }
@@ -203,14 +204,14 @@ mod regex_validation {
     use proc_macro2::Literal;
     use std::collections::VecDeque;
 
-    pub fn validate_regex_def(regex_def: &RegexDef, span: Span) -> Result<(), syn::Error> {
+    pub fn validate_regex_def(regex_def: &RegexDef, span: Span) -> Result<(), darling::Error> {
         match regex_def {
             RegexDef::StringLiteral(lit) => {
                 // Try to validate regex at compile time if it's a string literal
                 let regex_str = literal_to_string(lit)?;
                 match regex::Regex::new(&regex_str) {
                     Ok(_re) => Ok(()),
-                    Err(err) => Err(syn::Error::new(span, format!("{err}"))),
+                    Err(err) => Err(syn::Error::new(span, format!("{err}")).into()),
                 }
             }
             RegexDef::Ident(_) => Ok(()),
@@ -218,7 +219,7 @@ mod regex_validation {
     }
 
     // TODO: write unit tests
-    fn literal_to_string(lit: &Literal) -> Result<String, syn::Error> {
+    fn literal_to_string(lit: &Literal) -> Result<String, darling::Error> {
         let value = lit.to_string();
         if let Some(s) = unquote_double_quotes(&value) {
             Ok(s)
@@ -226,7 +227,7 @@ mod regex_validation {
             Ok(s)
         } else {
             let msg = format!("Could not obtain regex string from the literal: {lit}");
-            Err(syn::Error::new(lit.span(), msg))
+            Err(syn::Error::new(lit.span(), msg).into())
         }
     }
 

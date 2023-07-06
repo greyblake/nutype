@@ -16,7 +16,7 @@ use super::models::{Attributes, NewUnchecked};
 ///     = 123
 /// Output (parsed value):
 ///    123
-pub fn parse_value_as_number<T, ITER>(mut iter: ITER) -> Result<(T, ITER), syn::Error>
+pub fn parse_value_as_number<T, ITER>(mut iter: ITER) -> Result<(T, ITER), darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -35,7 +35,7 @@ where
     Ok((value, iter))
 }
 
-fn read_number<ITER>(iter: &mut ITER) -> Result<(String, Span), syn::Error>
+fn read_number<ITER>(iter: &mut ITER) -> Result<(String, Span), darling::Error>
 where
     ITER: Iterator<Item = TokenTree>,
 {
@@ -59,30 +59,30 @@ fn sanitize_number(val: &str) -> String {
     val.replace('_', "")
 }
 
-pub fn try_unwrap_ident(token: TokenTree) -> Result<Ident, syn::Error> {
+pub fn try_unwrap_ident(token: TokenTree) -> Result<Ident, darling::Error> {
     match token {
         TokenTree::Ident(ident) => Ok(ident),
         _ => {
-            let error = syn::Error::new(token.span(), "#[nutype] expected ident");
+            let error = syn::Error::new(token.span(), "#[nutype] expected ident").into();
             Err(error)
         }
     }
 }
 
-pub fn try_unwrap_group(token: TokenTree) -> Result<Group, syn::Error> {
+pub fn try_unwrap_group(token: TokenTree) -> Result<Group, darling::Error> {
     match token {
         TokenTree::Group(group) => Ok(group),
         _ => {
-            let error = syn::Error::new(token.span(), "#[nutype] expected group");
+            let error = syn::Error::new(token.span(), "#[nutype] expected group").into();
             Err(error)
         }
     }
 }
 
 pub fn parse_nutype_attributes<S, V>(
-    parse_sanitize_attrs: impl Fn(TokenStream) -> Result<Vec<S>, syn::Error>,
-    parse_validate_attrs: impl Fn(TokenStream) -> Result<Vec<V>, syn::Error>,
-) -> impl FnOnce(TokenStream) -> Result<Attributes<RawGuard<S, V>>, syn::Error> {
+    parse_sanitize_attrs: impl Fn(TokenStream) -> Result<Vec<S>, darling::Error>,
+    parse_validate_attrs: impl Fn(TokenStream) -> Result<Vec<V>, darling::Error>,
+) -> impl FnOnce(TokenStream) -> Result<Attributes<RawGuard<S, V>>, darling::Error> {
     move |input: TokenStream| {
         let mut raw_guard = RawGuard {
             sanitizers: vec![],
@@ -141,13 +141,15 @@ pub fn parse_nutype_attributes<S, V>(
                                 return Err(syn::Error::new(
                                     ident.span(),
                                     "Invalid syntax for `default`. Expected `=`, got `{eq_t}`",
-                                ));
+                                )
+                                .into());
                             }
                         } else {
                             return Err(syn::Error::new(
                                 ident.span(),
                                 "Invalid syntax for `default`. Missing `=`",
-                            ));
+                            )
+                            .into());
                         }
                     }
                     // TODO: parse it properly till some delimeter?
@@ -174,7 +176,7 @@ pub fn parse_nutype_attributes<S, V>(
                                 }
                                 Some(Err(err)) => {
                                     let msg = "new_unchecked does not support any options";
-                                    return Err(syn::Error::new(err.span(), msg));
+                                    return Err(syn::Error::new(err.span(), msg).into());
                                 }
                             }
                         },
@@ -182,13 +184,13 @@ pub fn parse_nutype_attributes<S, V>(
                         // The feature `new_unchecked` is enabled
                         off => {
                             let msg = "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\nBut you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it.";
-                            return Err(syn::Error::new(ident.span(), msg));
+                            return Err(syn::Error::new(ident.span(), msg).into());
                         }
                     )
                 }
                 unknown => {
                     let msg = format!("Unknown #[nutype] option: `{unknown}`");
-                    let error = syn::Error::new(ident.span(), msg);
+                    let error = syn::Error::new(ident.span(), msg).into();
                     return Err(error);
                 }
             }
@@ -200,10 +202,10 @@ pub fn split_and_parse<SEP, PRS, OUT>(
     tokens: Vec<TokenTree>,
     is_separator: SEP,
     parse: PRS,
-) -> Result<Vec<OUT>, syn::Error>
+) -> Result<Vec<OUT>, darling::Error>
 where
     SEP: Fn(&TokenTree) -> bool,
-    PRS: Fn(Vec<TokenTree>) -> Result<OUT, syn::Error>,
+    PRS: Fn(Vec<TokenTree>) -> Result<OUT, darling::Error>,
 {
     tokens
         .split(is_separator)
@@ -235,7 +237,7 @@ pub fn is_eq(token: &TokenTree) -> bool {
 pub fn parse_with_token_stream<'a>(
     mut token_iter: impl Iterator<Item = &'a TokenTree>,
     with_span: Span,
-) -> Result<TokenStream, syn::Error> {
+) -> Result<TokenStream, darling::Error> {
     {
         // Take `=` sign
         if let Some(eq_t) = token_iter.next() {
@@ -244,13 +246,13 @@ pub fn parse_with_token_stream<'a>(
                 return Err(syn::Error::new(
                     span,
                     "Invalid syntax for `with`. Expected `=`, got `{eq_t}`",
-                ));
+                )
+                .into());
             }
         } else {
-            return Err(syn::Error::new(
-                with_span,
-                "Invalid syntax for `with`. Missing `=`",
-            ));
+            return Err(
+                syn::Error::new(with_span, "Invalid syntax for `with`. Missing `=`").into(),
+            );
         }
     }
 
@@ -275,25 +277,25 @@ pub fn is_derive_attribute(attribute: &syn::Attribute) -> bool {
 
 pub fn parse_derive_traits(
     attributes: &[syn::Attribute],
-) -> Result<Vec<SpannedDeriveTrait>, syn::Error> {
+) -> Result<Vec<SpannedDeriveTrait>, darling::Error> {
     let traits: Vec<Vec<SpannedDeriveTrait>> = attributes
         .iter()
         .filter(|a| is_derive_attribute(a))
         .map(parse_derive_attr)
-        .collect::<Result<_, syn::Error>>()?;
+        .collect::<Result<_, darling::Error>>()?;
     Ok(traits.into_iter().flatten().collect())
 }
 
-fn parse_derive_attr(attr: &syn::Attribute) -> Result<Vec<SpannedDeriveTrait>, syn::Error> {
+fn parse_derive_attr(attr: &syn::Attribute) -> Result<Vec<SpannedDeriveTrait>, darling::Error> {
     let meta = &attr.meta;
     match meta {
         syn::Meta::Path(path) => {
             let msg = format!("Expected #[derive(...)], got: {path:?}");
-            Err(syn::Error::new(Span::call_site(), msg))
+            Err(syn::Error::new(Span::call_site(), msg).into())
         }
         syn::Meta::NameValue(name_value) => {
             let msg = format!("Expected #[derive(...)], got: {name_value:?}");
-            Err(syn::Error::new(Span::call_site(), msg))
+            Err(syn::Error::new(Span::call_site(), msg).into())
         }
         syn::Meta::List(list) => {
             let derive_traits: Vec<SpannedDeriveTrait> = list
@@ -301,7 +303,7 @@ fn parse_derive_attr(attr: &syn::Attribute) -> Result<Vec<SpannedDeriveTrait>, s
                 .clone()
                 .into_iter()
                 .map(parse_token_into_derive_trait)
-                .collect::<Result<Vec<Option<SpannedDeriveTrait>>, syn::Error>>()?
+                .collect::<Result<Vec<Option<SpannedDeriveTrait>>, darling::Error>>()?
                 .into_iter()
                 .flatten()
                 .collect();
@@ -312,7 +314,7 @@ fn parse_derive_attr(attr: &syn::Attribute) -> Result<Vec<SpannedDeriveTrait>, s
 
 fn parse_token_into_derive_trait(
     token: TokenTree,
-) -> Result<Option<SpannedDeriveTrait>, syn::Error> {
+) -> Result<Option<SpannedDeriveTrait>, darling::Error> {
     match token {
         TokenTree::Ident(ident) => {
             let derive_trait = parse_ident_into_derive_trait(ident)?;
@@ -324,19 +326,13 @@ fn parse_token_into_derive_trait(
                 let spanned_trait = SpannedDeriveTrait::new(DeriveTrait::Asterisk, token.span());
                 Ok(Some(spanned_trait))
             }
-            _ => Err(syn::Error::new(
-                token.span(),
-                format!("Unexpected `{token}`"),
-            )),
+            _ => Err(syn::Error::new(token.span(), format!("Unexpected `{token}`")).into()),
         },
-        _ => Err(syn::Error::new(
-            token.span(),
-            format!("Unexpected `{token}`"),
-        )),
+        _ => Err(syn::Error::new(token.span(), format!("Unexpected `{token}`")).into()),
     }
 }
 
-fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn::Error> {
+fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, darling::Error> {
     let normal_derive_trait = match ident.to_string().as_ref() {
         "Debug" => NormalDeriveTrait::Debug,
         "Display" => NormalDeriveTrait::Display,
@@ -359,7 +355,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
             match_feature!("serde",
                 on => NormalDeriveTrait::SerdeSerialize,
                 off => {
-                    return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
+                    return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled.").into());
                 },
             )
         }
@@ -367,7 +363,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
             match_feature!("serde",
                 on => NormalDeriveTrait::SerdeDeserialize,
                 off => {
-                    return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled."));
+                    return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled.").into());
                 },
             )
         }
@@ -375,7 +371,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
             match_feature!("schemars08",
                 on => NormalDeriveTrait::SchemarsJsonSchema,
                 off => {
-                    return Err(syn::Error::new(ident.span(), "To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled."));
+                    return Err(syn::Error::new(ident.span(), "To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled.").into());
                 }
             )
         }
@@ -383,7 +379,8 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
             return Err(syn::Error::new(
                 ident.span(),
                 format!("unsupported trait derive: {ident}"),
-            ));
+            )
+            .into());
         }
     };
     let derive_trait = DeriveTrait::Normal(normal_derive_trait);

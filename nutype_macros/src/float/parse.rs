@@ -18,7 +18,7 @@ use super::{
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error>
+pub fn parse_attributes<T>(input: TokenStream) -> Result<Attributes<FloatGuard<T>>, darling::Error>
 where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug,
@@ -37,7 +37,9 @@ where
     })
 }
 
-fn parse_raw_attributes<T>(input: TokenStream) -> Result<Attributes<FloatRawGuard<T>>, syn::Error>
+fn parse_raw_attributes<T>(
+    input: TokenStream,
+) -> Result<Attributes<FloatRawGuard<T>>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -45,7 +47,9 @@ where
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
 
-fn parse_sanitize_attrs<T>(stream: TokenStream) -> Result<Vec<SpannedFloatSanitizer<T>>, syn::Error>
+fn parse_sanitize_attrs<T>(
+    stream: TokenStream,
+) -> Result<Vec<SpannedFloatSanitizer<T>>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -54,7 +58,9 @@ where
     split_and_parse(tokens, is_comma, parse_sanitize_attr)
 }
 
-fn parse_sanitize_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedFloatSanitizer<T>, syn::Error>
+fn parse_sanitize_attr<T>(
+    tokens: Vec<TokenTree>,
+) -> Result<SpannedFloatSanitizer<T>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -72,16 +78,18 @@ where
             }
             unknown_sanitizer => {
                 let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                let error = syn::Error::new(ident.span(), msg);
+                let error = syn::Error::new(ident.span(), msg).into();
                 Err(error)
             }
         }
     } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+        Err(syn::Error::new(Span::call_site(), "Invalid syntax.").into())
     }
 }
 
-fn parse_validate_attrs<T>(stream: TokenStream) -> Result<Vec<SpannedFloatValidator<T>>, syn::Error>
+fn parse_validate_attrs<T>(
+    stream: TokenStream,
+) -> Result<Vec<SpannedFloatValidator<T>>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -90,7 +98,9 @@ where
     split_and_parse(tokens, is_comma, parse_validate_attr)
 }
 
-fn parse_validate_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedFloatValidator<T>, syn::Error>
+fn parse_validate_attr<T>(
+    tokens: Vec<TokenTree>,
+) -> Result<SpannedFloatValidator<T>, darling::Error>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -125,11 +135,11 @@ where
             }
             unknown_validator => {
                 let msg = format!("Unknown validation rule `{unknown_validator}`");
-                let error = syn::Error::new(ident.span(), msg);
+                let error = syn::Error::new(ident.span(), msg).into();
                 Err(error)
             }
         }
     } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+        Err(syn::Error::new(Span::call_site(), "Invalid syntax.").into())
     }
 }
