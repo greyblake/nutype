@@ -42,19 +42,19 @@ fn parse_sanitize_attrs(
 
     let mut errors = darling::Error::accumulator();
 
-    let raw_sanitizers: Vec<RawStringSanitizer> = attr_args
+    let raw_sanitizers: Vec<ParseableStringSanitizer> = attr_args
         .iter()
         .flat_map(|arg| {
-            let res = RawStringSanitizer::from_list(std::slice::from_ref(arg));
+            let res = ParseableStringSanitizer::from_list(std::slice::from_ref(arg));
             errors.handle(res)
         })
         .collect();
 
     let raw_sanitizers = errors.finish_with(raw_sanitizers)?;
 
-
-    let sanitizers: Vec<SpannedStringSanitizer> = raw_sanitizers.into_iter()
-        .flat_map(RawStringSanitizer::into_spanned_string_sanitizer)
+    let sanitizers: Vec<SpannedStringSanitizer> = raw_sanitizers
+        .into_iter()
+        .flat_map(ParseableStringSanitizer::into_spanned_string_sanitizer)
         .collect();
 
     Ok(sanitizers)
@@ -151,28 +151,115 @@ fn parse_regex(
     }
 }
 
-#[derive(Debug, FromMeta)]
-enum RawStringSanitizer {
-    Trim(SpannedValue<bool>),
-    Lowercase(SpannedValue<bool>),
-    Uppercase(SpannedValue<bool>),
-    With(SpannedValue<Expr>),
-}
+// Generates enums that can be used to parse attributes with darling.
+//
+// Example:
+//
+//     define_parseable_enum! {
+//         parseable_name: ParseableStringSanitizer,
+//         raw_name: RawStringSanitizer,
+//         variants: {
+//             Trim: bool,
+//             Lowercase: bool,
+//         }
+//     }
+//
+// Generates the following:
+//
+//     #[derive(Debug, FromMeta)]
+//     enum ParseableStringSanitizer {
+//         Trim(SpannedValue<bool>),
+//         Lowercase(SpannedValue<bool>),
+//     }
+//
+//     #[derive(Debug, Clone)]
+//     enum RawStringSanitizer {
+//         Trim(bool),
+//         Lowercase(bool),
+//     }
+//
+//     impl ParseableStringSanitizer {
+//         fn into_spanned_raw(self) -> SpannedValue<RawStringSanitizer> {
+//             use ParseableStringSanitizer::*;
+//
+//             match self {
+//                 Trim(sv) => {
+//                     let raw = RawStringSanitizer::Trim(sv.as_ref().to_owned());
+//                     SpannedValue::new(raw, sv.span())
+//                 }
+//                 Lowercase(sv) => {
+//                     let raw = RawStringSanitizer::Lowercase(sv.as_ref().to_owned());
+//                     SpannedValue::new(raw, sv.span())
+//                 }
+//             }
+//         }
+//     }
+//
+macro_rules! define_parseable_enum {
+    (
+        parseable_name: $parseable_name:ident,
+        raw_name: $raw_name:ident,
+        variants: { $($vname:ident: $vtype:ty),+, }
+    ) => {
 
-impl RawStringSanitizer {
-    fn into_spanned_string_sanitizer(self) -> Option<SpannedStringSanitizer> {
-        match self {
-            RawStringSanitizer::Trim(flag) if *flag => Some(SpannedStringSanitizer::new(StringSanitizer::Trim, flag.span())),
-            RawStringSanitizer::Trim(_) => None,
-            RawStringSanitizer::Lowercase(flag) if *flag => Some(SpannedStringSanitizer::new(StringSanitizer::Lowercase, flag.span())),
-            RawStringSanitizer::Lowercase(_) => None,
-            RawStringSanitizer::Uppercase(flag) if *flag => Some(SpannedStringSanitizer::new(StringSanitizer::Uppercase, flag.span())),
-            RawStringSanitizer::Uppercase(_) => None,
-            RawStringSanitizer::With(val) => {
-                let expr = val.as_ref();
-                let with_sanitizer = StringSanitizer::With(quote::quote!(#expr));
-                Some(SpannedStringSanitizer::new(with_sanitizer, val.span()))
+        #[derive(Debug, FromMeta)]
+        enum $parseable_name {
+            $(
+                $vname(SpannedValue<$vtype>)
+            ),+
+        }
+
+        #[derive(Debug, Clone)]
+        enum $raw_name {
+            $(
+                $vname($vtype)
+            ),+
+        }
+
+        impl $parseable_name {
+            fn into_spanned_raw(self) -> SpannedValue<$raw_name> {
+                match self {
+                    $(
+                        $parseable_name::$vname(sv) => {
+                            let raw = $raw_name::$vname(sv.as_ref().to_owned());
+                            SpannedValue::new(raw, sv.span())
+                        }
+                    ),+
+                }
             }
         }
+    };
+}
+
+define_parseable_enum! {
+    parseable_name: ParseableStringSanitizer,
+    raw_name: RawStringSanitizer,
+    variants: {
+        Trim: bool,
+        Lowercase: bool,
+        Uppercase: bool,
+        With: Expr,
+    }
+}
+
+impl ParseableStringSanitizer {
+    fn into_spanned_string_sanitizer(self) -> Option<SpannedStringSanitizer> {
+        use RawStringSanitizer::*;
+
+        let spanned_raw = self.into_spanned_raw();
+        let span = spanned_raw.span();
+        let raw = spanned_raw.as_ref();
+
+        let maybe_sanitizer = match raw {
+            Trim(true) => Some(StringSanitizer::Trim),
+            Trim(false) => None,
+            Lowercase(true) => Some(StringSanitizer::Lowercase),
+            Lowercase(false) => None,
+            Uppercase(true) => Some(StringSanitizer::Uppercase),
+            Uppercase(false) => None,
+            With(expr) => Some(StringSanitizer::With(quote::quote!(#expr))),
+        };
+
+        maybe_sanitizer.map(|san| SpannedValue::new(san, span))
     }
 }
