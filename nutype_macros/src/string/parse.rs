@@ -158,7 +158,7 @@ impl ParseableStringValidator {
                             "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
                             "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
                         );
-                        return Err(syn::Error::new(span, msg)).into();
+                        return Err(syn::Error::new(span, msg).into());
                     }
                 )
             }
@@ -186,7 +186,7 @@ impl FromMeta for RegexDef {
                     syn::Meta::NameValue(name_value) => match &name_value.value {
                         syn::Expr::Path(expr_path) => {
                             let path = expr_path.path.to_owned();
-                            return Ok(Self::Path(path));
+                            Ok(Self::Path(path))
                         }
                         _ => Err(build_err()),
                     },
@@ -196,4 +196,3 @@ impl FromMeta for RegexDef {
         }
     }
 }
-
