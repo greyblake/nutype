@@ -1,8 +1,6 @@
 use crate::common::models::Attributes;
-use crate::common::parse::{
-    is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
-    split_and_parse,
-};
+use crate::common::parse::define_parseable_enum;
+use crate::common::parse::parse_nutype_attributes;
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
@@ -10,7 +8,7 @@ use crate::utils::match_feature;
 use darling::export::NestedMeta;
 use darling::util::SpannedValue;
 use darling::FromMeta;
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::TokenStream;
 use syn::Expr;
 
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
@@ -63,172 +61,29 @@ fn parse_sanitize_attrs(
 fn parse_validate_attrs(
     stream: TokenStream,
 ) -> Result<Vec<SpannedStringValidator>, darling::Error> {
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_validate_attr)
-}
+    let attr_args = NestedMeta::parse_meta_list(stream)?;
 
-// TODO: refactor
-// * Avoid unnecessary allocations
-// * Replace `parse_value_as_number()` with something better
-fn parse_validate_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringValidator, darling::Error> {
-    let mut token_iter = tokens.into_iter();
-    let token = token_iter.next();
-    if let Some(TokenTree::Ident(ident)) = token {
-        match ident.to_string().as_ref() {
-            "max_len" => {
-                let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = StringValidator::MaxLen(value);
-                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
-                Ok(parsed_validator)
-            }
-            "min_len" => {
-                let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = StringValidator::MinLen(value);
-                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
-                Ok(parsed_validator)
-            }
-            "not_empty" => {
-                let validator = StringValidator::NotEmpty;
-                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
-                Ok(parsed_validator)
-            }
-            "with" => {
-                let rest_tokens: Vec<_> = token_iter.collect();
-                let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
-                let validator = StringValidator::With(stream);
-                let parsed_validator = SpannedStringValidator::new(validator, ident.span());
-                Ok(parsed_validator)
-            }
-            "regex" => {
-                match_feature!("regex",
-                    on => {
-                        let rest_tokens: Vec<_> = token_iter.collect();
-                        let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
-                        let (regex_def, span) = parse_regex(stream, ident.span())?;
-                        let validator = StringValidator::Regex(regex_def);
-                        let parsed_validator = SpannedStringValidator::new(validator, span);
-                        Ok(parsed_validator)
-                    },
-                    off => {
-                        let msg = concat!(
-                            "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
-                            "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
-                            "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
-                        );
-                        return Err(syn::Error::new(ident.span(), msg)).into();
-                    }
-                )
-            }
-            validator => {
-                let msg = format!("Unknown validation rule `{validator}`");
-                let error = syn::Error::new(ident.span(), msg).into();
-                Err(error)
-            }
-        }
-    } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax.").into())
-    }
-}
+    let mut errors = darling::Error::accumulator();
 
-#[cfg_attr(not(feature = "regex"), allow(dead_code))]
-fn parse_regex(
-    stream: TokenStream,
-    span: proc_macro2::Span,
-) -> Result<(RegexDef, Span), darling::Error> {
-    let token = stream.into_iter().next().ok_or_else(|| {
-        syn::Error::new(span, "Expected a regex or an ident that refers to regex.")
-    })?;
-    let span = token.span();
+    let parseable_validators: Vec<ParseableStringValidator> = attr_args
+        .iter()
+        .flat_map(|arg| {
+            let res = ParseableStringValidator::from_list(std::slice::from_ref(arg));
+            errors.handle(res)
+        })
+        .collect();
 
-    match token {
-        TokenTree::Literal(lit) => Ok((RegexDef::StringLiteral(lit), span)),
-        TokenTree::Ident(ident) => Ok((RegexDef::Ident(ident), span)),
-        TokenTree::Group(..) | TokenTree::Punct(..) => Err(syn::Error::new(
-            span,
-            "regex must be a string or an ident that refers to Regex constant",
-        )
-        .into()),
-    }
-}
+    let parseable_validators = errors.finish_with(parseable_validators)?;
 
-// Generates enums that can be used to parse attributes with darling.
-//
-// Example:
-//
-//     define_parseable_enum! {
-//         parseable_name: ParseableStringSanitizer,
-//         raw_name: RawStringSanitizer,
-//         variants: {
-//             Trim: bool,
-//             Lowercase: bool,
-//         }
-//     }
-//
-// Generates the following:
-//
-//     #[derive(Debug, FromMeta)]
-//     enum ParseableStringSanitizer {
-//         Trim(SpannedValue<bool>),
-//         Lowercase(SpannedValue<bool>),
-//     }
-//
-//     #[derive(Debug, Clone)]
-//     enum RawStringSanitizer {
-//         Trim(bool),
-//         Lowercase(bool),
-//     }
-//
-//     impl ParseableStringSanitizer {
-//         fn into_spanned_raw(self) -> SpannedValue<RawStringSanitizer> {
-//             use ParseableStringSanitizer::*;
-//
-//             match self {
-//                 Trim(sv) => {
-//                     let raw = RawStringSanitizer::Trim(sv.as_ref().to_owned());
-//                     SpannedValue::new(raw, sv.span())
-//                 }
-//                 Lowercase(sv) => {
-//                     let raw = RawStringSanitizer::Lowercase(sv.as_ref().to_owned());
-//                     SpannedValue::new(raw, sv.span())
-//                 }
-//             }
-//         }
-//     }
-//
-macro_rules! define_parseable_enum {
-    (
-        parseable_name: $parseable_name:ident,
-        raw_name: $raw_name:ident,
-        variants: { $($vname:ident: $vtype:ty),+, }
-    ) => {
+    let validators = parseable_validators
+        .into_iter()
+        .map(ParseableStringValidator::into_spanned_string_validator)
+        .collect::<Result<Vec<Option<SpannedStringValidator>>, _>>()?
+        .into_iter()
+        .flatten()
+        .collect::<Vec<SpannedStringValidator>>();
 
-        #[derive(Debug, FromMeta)]
-        enum $parseable_name {
-            $(
-                $vname(SpannedValue<$vtype>)
-            ),+
-        }
-
-        #[derive(Debug, Clone)]
-        enum $raw_name {
-            $(
-                $vname($vtype)
-            ),+
-        }
-
-        impl $parseable_name {
-            fn into_spanned_raw(self) -> SpannedValue<$raw_name> {
-                match self {
-                    $(
-                        $parseable_name::$vname(sv) => {
-                            let raw = $raw_name::$vname(sv.as_ref().to_owned());
-                            SpannedValue::new(raw, sv.span())
-                        }
-                    ),+
-                }
-            }
-        }
-    };
+    Ok(validators)
 }
 
 define_parseable_enum! {
@@ -263,3 +118,82 @@ impl ParseableStringSanitizer {
         maybe_sanitizer.map(|san| SpannedValue::new(san, span))
     }
 }
+
+define_parseable_enum! {
+    parseable_name: ParseableStringValidator,
+    raw_name: RawStringValidator,
+    variants: {
+        MinLen: usize,
+        MaxLen: usize,
+        NotEmpty: bool,
+        With: Expr,
+        Regex: RegexDef,
+    }
+}
+
+impl ParseableStringValidator {
+    fn into_spanned_string_validator(
+        self,
+    ) -> Result<Option<SpannedStringValidator>, darling::Error> {
+        use RawStringValidator::*;
+
+        let spanned_raw = self.into_spanned_raw();
+        let span = spanned_raw.span();
+        let raw = spanned_raw.as_ref();
+
+        let maybe_validator = match raw {
+            MinLen(min) => Some(StringValidator::MinLen(*min)),
+            MaxLen(max) => Some(StringValidator::MaxLen(*max)),
+            NotEmpty(true) => Some(StringValidator::NotEmpty),
+            NotEmpty(false) => None,
+            With(expr) => Some(StringValidator::With(quote::quote!(#expr))),
+            Regex(regex_def) => {
+                match_feature!("regex",
+                    on => {
+                        Some(StringValidator::Regex(regex_def.clone()))
+                    },
+                    off => {
+                        let msg = concat!(
+                            "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
+                            "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
+                            "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
+                        );
+                        return Err(syn::Error::new(span, msg)).into();
+                    }
+                )
+            }
+        };
+        Ok(maybe_validator.map(|san| SpannedValue::new(san, span)))
+    }
+}
+
+impl FromMeta for RegexDef {
+    fn from_meta(item: &syn::Meta) -> Result<Self, darling::Error> {
+        use syn::spanned::Spanned;
+
+        let build_err = || {
+            let msg = "regex must be either a string or an ident that refers to a Regex constant";
+            darling::Error::from(syn::Error::new(item.span(), msg))
+        };
+
+        match syn::LitStr::from_meta(item) {
+            Ok(lit) => Ok(Self::StringLiteral(lit)),
+            Err(_) => {
+                // NOTE: by some reason
+                //     syn::Path::from_meta(item)
+                // is not getting Path, so we have to do it on our own.
+                match item {
+                    syn::Meta::NameValue(name_value) => match &name_value.value {
+                        syn::Expr::Path(expr_path) => {
+                            let path = expr_path.path.to_owned();
+                            return Ok(Self::Path(path));
+                        }
+                        _ => Err(build_err()),
+                    },
+                    _ => Err(build_err()),
+                }
+            }
+        }
+    }
+}
+
