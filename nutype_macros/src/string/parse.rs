@@ -7,7 +7,11 @@ use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
 use crate::utils::match_feature;
+use darling::export::NestedMeta;
+use darling::util::SpannedValue;
+use darling::FromMeta;
 use proc_macro2::{Span, TokenStream, TokenTree};
+use syn::Expr;
 
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
@@ -34,33 +38,26 @@ fn parse_raw_attributes(input: TokenStream) -> Result<Attributes<StringRawGuard>
 fn parse_sanitize_attrs(
     stream: TokenStream,
 ) -> Result<Vec<SpannedStringSanitizer>, darling::Error> {
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_sanitize_attr)
-}
+    let attr_args = NestedMeta::parse_meta_list(stream)?;
 
-fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer, darling::Error> {
-    let mut token_iter = tokens.iter();
-    let token = token_iter.next();
-    if let Some(TokenTree::Ident(ident)) = token {
-        let san = match ident.to_string().as_ref() {
-            "trim" => StringSanitizer::Trim,
-            "lowercase" => StringSanitizer::Lowercase,
-            "uppercase" => StringSanitizer::Uppercase,
-            "with" => {
-                // Preserve the rest as `custom_sanitizer_fn`
-                let stream = parse_with_token_stream(token_iter, ident.span())?;
-                StringSanitizer::With(stream)
-            }
-            unknown_sanitizer => {
-                let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                let error = syn::Error::new(ident.span(), msg).into();
-                return Err(error);
-            }
-        };
-        Ok(SpannedStringSanitizer::new(san, ident.span()))
-    } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax.").into())
-    }
+    let mut errors = darling::Error::accumulator();
+
+    let raw_sanitizers: Vec<RawStringSanitizer> = attr_args
+        .iter()
+        .flat_map(|arg| {
+            let res = RawStringSanitizer::from_list(std::slice::from_ref(arg));
+            errors.handle(res)
+        })
+        .collect();
+
+    let raw_sanitizers = errors.finish_with(raw_sanitizers)?;
+
+
+    let sanitizers: Vec<SpannedStringSanitizer> = raw_sanitizers.into_iter()
+        .flat_map(RawStringSanitizer::into_spanned_string_sanitizer)
+        .collect();
+
+    Ok(sanitizers)
 }
 
 fn parse_validate_attrs(
@@ -151,5 +148,31 @@ fn parse_regex(
             "regex must be a string or an ident that refers to Regex constant",
         )
         .into()),
+    }
+}
+
+#[derive(Debug, FromMeta)]
+enum RawStringSanitizer {
+    Trim(SpannedValue<bool>),
+    Lowercase(SpannedValue<bool>),
+    Uppercase(SpannedValue<bool>),
+    With(SpannedValue<Expr>),
+}
+
+impl RawStringSanitizer {
+    fn into_spanned_string_sanitizer(self) -> Option<SpannedStringSanitizer> {
+        match self {
+            RawStringSanitizer::Trim(flag) if *flag => Some(SpannedStringSanitizer::new(StringSanitizer::Trim, flag.span())),
+            RawStringSanitizer::Trim(_) => None,
+            RawStringSanitizer::Lowercase(flag) if *flag => Some(SpannedStringSanitizer::new(StringSanitizer::Lowercase, flag.span())),
+            RawStringSanitizer::Lowercase(_) => None,
+            RawStringSanitizer::Uppercase(flag) if *flag => Some(SpannedStringSanitizer::new(StringSanitizer::Uppercase, flag.span())),
+            RawStringSanitizer::Uppercase(_) => None,
+            RawStringSanitizer::With(val) => {
+                let expr = val.as_ref();
+                let with_sanitizer = StringSanitizer::With(quote::quote!(#expr));
+                Some(SpannedStringSanitizer::new(with_sanitizer, val.span()))
+            }
+        }
     }
 }

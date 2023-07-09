@@ -1,0 +1,11 @@
+error: Unknown field: `foo`
+ --> tests/ui/string/sanitize/multiple_unknown.rs:3:19
+  |
+3 | #[nutype(sanitize(foo = true, trim = true, bar = true))]
+  |                   ^^^
+
+error: Unknown field: `bar`
+ --> tests/ui/string/sanitize/multiple_unknown.rs:3:44
+  |
+3 | #[nutype(sanitize(foo = true, trim = true, bar = true))]
+  |                                            ^^^
