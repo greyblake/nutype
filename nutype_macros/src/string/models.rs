@@ -70,11 +70,11 @@ pub enum StringValidator {
 pub enum RegexDef {
     /// The case, when regex is defined with string literal inlined, e.g.:
     ///     regex = "^[0-9]{9}$"
-    StringLiteral(proc_macro2::Literal),
+    StringLiteral(syn::LitStr),
 
     /// The case, when regex is with an ident, that refers to regex constant:
     ///     regex = SSN_REGEX
-    Ident(proc_macro2::Ident),
+    Path(syn::Path),
 }
 
 impl Kind for StringValidator {

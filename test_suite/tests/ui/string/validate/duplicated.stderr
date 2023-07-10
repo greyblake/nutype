@@ -1,6 +1,6 @@
 error: Duplicated validators `min_len`.
        Don't worry, you still remain ingenious!
- --> tests/ui/string/validate/duplicated.rs:3:47
+ --> tests/ui/string/validate/duplicated.rs:3:57
   |
 3 | #[nutype(validate(min_len = 5, max_len = 255, min_len = 6))]
-  |                                               ^^^^^^^
+  |                                                         ^

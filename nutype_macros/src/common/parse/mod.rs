@@ -387,3 +387,84 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, dar
     let spanned_trait = SpannedDeriveTrait::new(derive_trait, ident.span());
     Ok(spanned_trait)
 }
+
+// Generates enums that can be used to parse attributes with darling.
+//
+// Example:
+//
+//     define_parseable_enum! {
+//         parseable_name: ParseableStringSanitizer,
+//         raw_name: RawStringSanitizer,
+//         variants: {
+//             Trim: bool,
+//             Lowercase: bool,
+//         }
+//     }
+//
+// Generates the following:
+//
+//     #[derive(Debug, FromMeta)]
+//     enum ParseableStringSanitizer {
+//         Trim(SpannedValue<bool>),
+//         Lowercase(SpannedValue<bool>),
+//     }
+//
+//     #[derive(Debug, Clone)]
+//     enum RawStringSanitizer {
+//         Trim(bool),
+//         Lowercase(bool),
+//     }
+//
+//     impl ParseableStringSanitizer {
+//         fn into_spanned_raw(self) -> SpannedValue<RawStringSanitizer> {
+//             use ParseableStringSanitizer::*;
+//
+//             match self {
+//                 Trim(sv) => {
+//                     let raw = RawStringSanitizer::Trim(sv.as_ref().to_owned());
+//                     SpannedValue::new(raw, sv.span())
+//                 }
+//                 Lowercase(sv) => {
+//                     let raw = RawStringSanitizer::Lowercase(sv.as_ref().to_owned());
+//                     SpannedValue::new(raw, sv.span())
+//                 }
+//             }
+//         }
+//     }
+//
+macro_rules! define_parseable_enum {
+    (
+        parseable_name: $parseable_name:ident,
+        raw_name: $raw_name:ident,
+        variants: { $($vname:ident: $vtype:ty),+, }
+    ) => {
+
+        #[derive(Debug, FromMeta)]
+        enum $parseable_name {
+            $(
+                $vname(SpannedValue<$vtype>)
+            ),+
+        }
+
+        #[derive(Debug, Clone)]
+        enum $raw_name {
+            $(
+                $vname($vtype)
+            ),+
+        }
+
+        impl $parseable_name {
+            fn into_spanned_raw(self) -> SpannedValue<$raw_name> {
+                match self {
+                    $(
+                        $parseable_name::$vname(sv) => {
+                            let raw = $raw_name::$vname(sv.as_ref().to_owned());
+                            SpannedValue::new(raw, sv.span())
+                        }
+                    ),+
+                }
+            }
+        }
+    };
+}
+pub(crate) use define_parseable_enum;

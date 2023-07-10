@@ -1,4 +1,4 @@
-error: Unknown sanitizer `cleanup`
+error: Unknown field: `cleanup`
  --> tests/ui/string/sanitize/unknown.rs:3:19
   |
 3 | #[nutype(sanitize(cleanup = true))]
