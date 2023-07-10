@@ -6,6 +6,7 @@ use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
 use crate::utils::match_feature;
 use darling::export::NestedMeta;
+use darling::util::Flag;
 use darling::util::SpannedValue;
 use darling::FromMeta;
 use proc_macro2::TokenStream;
@@ -90,9 +91,9 @@ define_parseable_enum! {
     parseable_name: ParseableStringSanitizer,
     raw_name: RawStringSanitizer,
     variants: {
-        Trim: bool,
-        Lowercase: bool,
-        Uppercase: bool,
+        Trim: Flag,
+        Lowercase: Flag,
+        Uppercase: Flag,
         With: Expr,
     }
 }
@@ -106,12 +107,12 @@ impl ParseableStringSanitizer {
         let raw = spanned_raw.as_ref();
 
         let maybe_sanitizer = match raw {
-            Trim(true) => Some(StringSanitizer::Trim),
-            Trim(false) => None,
-            Lowercase(true) => Some(StringSanitizer::Lowercase),
-            Lowercase(false) => None,
-            Uppercase(true) => Some(StringSanitizer::Uppercase),
-            Uppercase(false) => None,
+            Trim(flag) if flag.is_present() => Some(StringSanitizer::Trim),
+            Trim(_) => None,
+            Lowercase(flag) if flag.is_present() => Some(StringSanitizer::Lowercase),
+            Lowercase(_) => None,
+            Uppercase(flag) if flag.is_present() => Some(StringSanitizer::Uppercase),
+            Uppercase(_) => None,
             With(expr) => Some(StringSanitizer::With(quote::quote!(#expr))),
         };
 
@@ -125,7 +126,7 @@ define_parseable_enum! {
     variants: {
         MinLen: usize,
         MaxLen: usize,
-        NotEmpty: bool,
+        NotEmpty: Flag,
         With: Expr,
         Regex: RegexDef,
     }
@@ -144,8 +145,8 @@ impl ParseableStringValidator {
         let maybe_validator = match raw {
             MinLen(min) => Some(StringValidator::MinLen(*min)),
             MaxLen(max) => Some(StringValidator::MaxLen(*max)),
-            NotEmpty(true) => Some(StringValidator::NotEmpty),
-            NotEmpty(false) => None,
+            NotEmpty(flag) if flag.is_present() => Some(StringValidator::NotEmpty),
+            NotEmpty(_) => None,
             With(expr) => Some(StringValidator::With(quote::quote!(#expr))),
             Regex(regex_def) => {
                 match_feature!("regex",

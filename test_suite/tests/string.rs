@@ -16,14 +16,6 @@ mod sanitizers {
     }
 
     #[test]
-    fn test_trim_false() {
-        #[nutype(sanitize(trim = false))]
-        pub struct Name(String);
-
-        assert_eq!(Name::new(" foo ").into_inner(), " foo ");
-    }
-
-    #[test]
     fn test_lowercase() {
         #[nutype(sanitize(lowercase))]
         pub struct Name(String);
@@ -33,28 +25,12 @@ mod sanitizers {
     }
 
     #[test]
-    fn test_lowercase_false() {
-        #[nutype(sanitize(lowercase = false))]
-        pub struct Name(String);
-
-        assert_eq!(Name::new("FooBar").into_inner(), "FooBar");
-    }
-
-    #[test]
     fn test_uppercase() {
         #[nutype(sanitize(uppercase))]
         pub struct Name(String);
 
         assert_eq!(Name::new(" ").into_inner(), " ");
         assert_eq!(Name::new("Hello THERE").into_inner(), "HELLO THERE");
-    }
-
-    #[test]
-    fn test_uppercase_false() {
-        #[nutype(sanitize(uppercase = false))]
-        pub struct Name(String);
-
-        assert_eq!(Name::new("FooBar").into_inner(), "FooBar");
     }
 
     #[cfg(test)]
