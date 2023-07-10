@@ -1,8 +1,8 @@
 use crate::common::models::Attributes;
+use crate::common::models::NewUnchecked;
+use crate::common::models::RawGuard;
 use crate::common::parse::define_parseable_enum;
-use crate::common::parse::parse_nutype_attributes;
 use crate::string::models::StringGuard;
-use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
 use crate::utils::match_feature;
 use darling::export::NestedMeta;
@@ -11,18 +11,85 @@ use darling::util::SpannedValue;
 use darling::FromMeta;
 use proc_macro2::TokenStream;
 use syn::Expr;
+use syn::Meta;
 
+use super::models::SpannedStringSanitizers;
+use super::models::SpannedStringValidators;
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
-pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, darling::Error> {
-    let raw_attrs = parse_raw_attributes(input)?;
-    let Attributes {
-        new_unchecked,
-        guard: raw_guard,
-        maybe_default_value,
-    } = raw_attrs;
+#[derive(Debug, FromMeta)]
+pub struct ParseableAttributes<S: Default, V: Default> {
+    #[darling(default)]
+    pub sanitize: S,
+
+    #[darling(default)]
+    pub validate: V,
+
+    // NOTE: darling::util::Flag does not allow to obtain Span at the moment, so we use
+    // bool here.
+    // See https://github.com/TedDriggs/darling/issues/242
+    //
+    /// `new_unchecked` flag
+    #[darling(default)]
+    pub new_unchecked: SpannedValue<bool>,
+
+    // NOTE: By default string literals are not parsed as idents, which is not the
+    // way it should be identically.
+    // See https://github.com/TedDriggs/darling/issues/229
+    //
+    /// Value for Default trait. Provide with `default = `
+    #[darling(with = "preserve_str_literal")]
+    pub default: Option<Expr>,
+}
+
+pub fn preserve_str_literal(meta: &Meta) -> darling::Result<Option<Expr>> {
+    match meta {
+        Meta::Path(_) => Err(darling::Error::unsupported_format("path").with_span(meta)),
+        Meta::List(_) => Err(darling::Error::unsupported_format("list").with_span(meta)),
+        Meta::NameValue(nv) => Ok(Some(nv.value.clone())),
+    }
+}
+
+type StringParseableAttributes =
+    ParseableAttributes<SpannedStringSanitizers, SpannedStringValidators>;
+
+pub fn parse_attributes(stream: TokenStream) -> Result<Attributes<StringGuard>, darling::Error> {
+    let items = NestedMeta::parse_meta_list(stream)?;
+
+    let parsed_attrs = StringParseableAttributes::from_list(&items)?;
+
+    let StringParseableAttributes {
+        sanitize,
+        validate,
+        new_unchecked: new_unchecked_flag,
+        default: maybe_default_meta,
+    } = parsed_attrs;
+
+    let raw_guard = RawGuard {
+        sanitizers: sanitize.0,
+        validators: validate.0,
+    };
     let guard = validate_string_meta(raw_guard)?;
+
+    let new_unchecked = if *new_unchecked_flag.as_ref() {
+        match_feature!("new_unchecked",
+            on => {
+                NewUnchecked::On
+            },
+            off => {
+                // The feature is not enabled, so we return an error
+                let msg = "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\nBut you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it.";
+                return Err(darling::Error::custom(msg).with_span(&new_unchecked_flag.span()))
+            }
+        )
+    } else {
+        NewUnchecked::Off
+    };
+
+    // Turn the default value into TokenStream
+    let maybe_default_value = maybe_default_meta.map(|meta| quote::quote!(#meta));
+
     Ok(Attributes {
         new_unchecked,
         guard,
@@ -30,61 +97,77 @@ pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, d
     })
 }
 
-fn parse_raw_attributes(input: TokenStream) -> Result<Attributes<StringRawGuard>, darling::Error> {
-    parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
+impl FromMeta for SpannedStringSanitizers {
+    fn from_list(items: &[NestedMeta]) -> darling::Result<Self> {
+        let mut errors = darling::Error::accumulator();
+
+        let raw_sanitizers: Vec<ParseableStringSanitizer> = items
+            .iter()
+            .flat_map(|arg| {
+                let res = ParseableStringSanitizer::from_list(std::slice::from_ref(arg));
+                errors.handle(res)
+            })
+            .collect();
+
+        let raw_sanitizers = errors.finish_with(raw_sanitizers)?;
+
+        let sanitizers: Vec<SpannedStringSanitizer> = raw_sanitizers
+            .into_iter()
+            .flat_map(ParseableStringSanitizer::into_spanned_string_sanitizer)
+            .collect();
+
+        Ok(Self(sanitizers))
+    }
+
+    fn from_word() -> darling::Result<Self> {
+        // Provide a better error message than the default implementation
+        let msg = concat!(
+            "`sanitize` must be used with parenthesis.\n",
+            "For example:\n",
+            "\n",
+            "    sanitize(trim)\n\n"
+        );
+        let error = darling::Error::custom(msg);
+        Err(error)
+    }
 }
 
-fn parse_sanitize_attrs(
-    stream: TokenStream,
-) -> Result<Vec<SpannedStringSanitizer>, darling::Error> {
-    let attr_args = NestedMeta::parse_meta_list(stream)?;
+impl FromMeta for SpannedStringValidators {
+    fn from_list(items: &[NestedMeta]) -> darling::Result<Self> {
+        let mut errors = darling::Error::accumulator();
 
-    let mut errors = darling::Error::accumulator();
+        let parseable_validators: Vec<ParseableStringValidator> = items
+            .iter()
+            .flat_map(|arg| {
+                let res = ParseableStringValidator::from_list(std::slice::from_ref(arg));
+                errors.handle(res)
+            })
+            .collect();
 
-    let raw_sanitizers: Vec<ParseableStringSanitizer> = attr_args
-        .iter()
-        .flat_map(|arg| {
-            let res = ParseableStringSanitizer::from_list(std::slice::from_ref(arg));
-            errors.handle(res)
-        })
-        .collect();
+        let validators: Vec<SpannedStringValidator> = parseable_validators
+            .into_iter()
+            .flat_map(|pv| {
+                let res = pv.into_spanned_string_validator();
+                errors.handle(res)
+            })
+            .flatten()
+            .collect();
 
-    let raw_sanitizers = errors.finish_with(raw_sanitizers)?;
+        let validators = errors.finish_with(validators)?;
+        Ok(Self(validators))
+    }
 
-    let sanitizers: Vec<SpannedStringSanitizer> = raw_sanitizers
-        .into_iter()
-        .flat_map(ParseableStringSanitizer::into_spanned_string_sanitizer)
-        .collect();
-
-    Ok(sanitizers)
-}
-
-fn parse_validate_attrs(
-    stream: TokenStream,
-) -> Result<Vec<SpannedStringValidator>, darling::Error> {
-    let attr_args = NestedMeta::parse_meta_list(stream)?;
-
-    let mut errors = darling::Error::accumulator();
-
-    let parseable_validators: Vec<ParseableStringValidator> = attr_args
-        .iter()
-        .flat_map(|arg| {
-            let res = ParseableStringValidator::from_list(std::slice::from_ref(arg));
-            errors.handle(res)
-        })
-        .collect();
-
-    let parseable_validators = errors.finish_with(parseable_validators)?;
-
-    let validators = parseable_validators
-        .into_iter()
-        .map(ParseableStringValidator::into_spanned_string_validator)
-        .collect::<Result<Vec<Option<SpannedStringValidator>>, _>>()?
-        .into_iter()
-        .flatten()
-        .collect::<Vec<SpannedStringValidator>>();
-
-    Ok(validators)
+    fn from_word() -> darling::Result<Self> {
+        // Provide a better error message than the default implementation
+        let msg = concat!(
+            "`validate` must be used with parenthesis.\n",
+            "For example:\n",
+            "\n",
+            "    validate(not_empty)\n\n"
+        );
+        let error = darling::Error::custom(msg);
+        Err(error)
+    }
 }
 
 define_parseable_enum! {

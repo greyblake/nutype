@@ -3,5 +3,5 @@ error: To generate ::new_unchecked() function, the feature `new_unchecked` of cr
        Use it only when you really need it.
  --> tests/ui/common/new_unchecked.rs:4:5
   |
-4 |     new_unchecked
+4 |     new_unchecked,
   |     ^^^^^^^^^^^^^
