@@ -10,6 +10,9 @@ use crate::{
 
 pub type SpannedStringSanitizer = SpannedValue<StringSanitizer>;
 
+#[derive(Debug, Default)]
+pub struct SpannedStringSanitizers(pub Vec<SpannedStringSanitizer>);
+
 #[derive(Debug, Clone)]
 pub enum StringSanitizer {
     Trim,
@@ -54,6 +57,9 @@ impl std::fmt::Display for StringSanitizerKind {
 //
 
 pub type SpannedStringValidator = SpannedValue<StringValidator>;
+
+#[derive(Debug, Default)]
+pub struct SpannedStringValidators(pub Vec<SpannedStringValidator>);
 
 #[derive(Debug, Clone)]
 pub enum StringValidator {
