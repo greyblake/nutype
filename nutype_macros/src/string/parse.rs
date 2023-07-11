@@ -127,8 +127,7 @@ impl FromMeta for SpannedStringSanitizers {
             "\n",
             "    sanitize(trim)\n\n"
         );
-        let error = darling::Error::custom(msg);
-        Err(error)
+        Err(darling::Error::custom(msg))
     }
 }
 
@@ -165,8 +164,7 @@ impl FromMeta for SpannedStringValidators {
             "\n",
             "    validate(not_empty)\n\n"
         );
-        let error = darling::Error::custom(msg);
-        Err(error)
+        Err(darling::Error::custom(msg))
     }
 }
 
