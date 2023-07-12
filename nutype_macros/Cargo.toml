@@ -17,7 +17,7 @@ categories = ["data-structures", "rust-patterns"]
 [dependencies]
 proc-macro2 = "1.0"
 quote = "1.0"
-syn = { version = "1.0", features = ["extra-traits"] }
+syn = { version = "2.0", features = ["extra-traits"] }
 
 # regex is used at compile-time to verify that a string literal provided
 # as `regex = "^foo|bar$"` can be compiled to a Regex without errors.

@@ -98,7 +98,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "syn 1.0.109",
+ "syn 2.0.22",
 ]
 
 [[package]]

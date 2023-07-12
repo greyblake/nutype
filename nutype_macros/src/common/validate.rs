@@ -1,14 +1,14 @@
 use proc_macro2::Span;
-use syn::spanned::Spanned;
 
+use super::models::SpannedItem;
 use crate::common::models::Kind;
 
 pub fn validate_duplicates<T>(
-    items: &[T],
+    items: &[SpannedItem<T>],
     build_error_msg: impl Fn(<T as Kind>::Kind) -> String,
 ) -> Result<(), syn::Error>
 where
-    T: Spanned + Kind,
+    T: Kind,
 {
     if let Some((item1, item2)) = detect_items_of_same_kind(items) {
         assert_eq!(item1.kind(), item2.kind());
