@@ -3,7 +3,6 @@ use std::fmt::Debug;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::spanned::Spanned;
 use syn::Attribute;
 
 use crate::float::models::FloatInnerType;
@@ -25,8 +24,8 @@ pub struct SpannedItem<T> {
     pub span: Span,
 }
 
-impl<T> Spanned for SpannedItem<T> {
-    fn span(&self) -> Span {
+impl<T> SpannedItem<T> {
+    pub fn span(&self) -> Span {
         self.span
     }
 }
