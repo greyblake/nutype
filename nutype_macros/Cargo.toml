@@ -22,7 +22,8 @@ syn = { version = "2.0", features = ["extra-traits"] }
 # regex is used at compile-time to verify that a string literal provided
 # as `regex = "^foo|bar$"` can be compiled to a Regex without errors.
 regex = { version = "1", optional = true }
-darling = "0.20.1"
+# darling = "0.20.1"
+darling = { git = "https://github.com/greyblake/darling.git", branch = "from-meta-integer-128" }
 
 [lib]
 proc-macro = true

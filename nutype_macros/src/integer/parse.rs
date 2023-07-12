@@ -4,16 +4,18 @@ use std::str::FromStr;
 use crate::common::{
     models::Attributes,
     parse::{
-        is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
+        define_parseable_enum_t, is_comma, parse_nutype_attributes, parse_with_token_stream,
         split_and_parse,
     },
 };
+use darling::{export::NestedMeta, util::SpannedValue, Error, FromMeta};
 use proc_macro2::{Span, TokenStream, TokenTree};
+use syn::Expr;
 
 use super::{
     models::{
         IntegerGuard, IntegerRawGuard, IntegerSanitizer, IntegerValidator, SpannedIntegerSanitizer,
-        SpannedIntegerValidator,
+        SpannedIntegerValidator, SpannedIntegerValidators,
     },
     validate::validate_number_meta,
 };
@@ -22,7 +24,7 @@ pub fn parse_attributes<T>(
     input: TokenStream,
 ) -> Result<Attributes<IntegerGuard<T>>, darling::Error>
 where
-    T: FromStr + PartialOrd + Clone,
+    T: FromStr + PartialOrd + Clone + Copy + FromMeta,
     <T as FromStr>::Err: Debug,
 {
     let raw_attrs = parse_raw_attributes(input)?;
@@ -43,7 +45,7 @@ fn parse_raw_attributes<T>(
     input: TokenStream,
 ) -> Result<Attributes<IntegerRawGuard<T>>, darling::Error>
 where
-    T: FromStr,
+    T: FromStr + FromMeta + Clone + Copy,
     <T as FromStr>::Err: Debug,
 {
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
@@ -89,17 +91,18 @@ where
     }
 }
 
-fn parse_validate_attrs<T>(
-    stream: TokenStream,
-) -> Result<Vec<SpannedIntegerValidator<T>>, darling::Error>
+fn parse_validate_attrs<T>(stream: TokenStream) -> Result<Vec<SpannedIntegerValidator<T>>, Error>
 where
-    T: FromStr,
+    T: FromStr + FromMeta + Clone + Copy,
     <T as FromStr>::Err: Debug,
 {
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_validate_attr)
+    let items = NestedMeta::parse_meta_list(stream)?;
+    let validators = SpannedIntegerValidators::<T>::from_list(&items)?;
+
+    Ok(validators.0)
 }
 
+/*
 fn parse_validate_attr<T>(
     tokens: Vec<TokenTree>,
 ) -> Result<SpannedIntegerValidator<T>, darling::Error>
@@ -138,5 +141,70 @@ where
         }
     } else {
         Err(syn::Error::new(Span::call_site(), "Invalid syntax.").into())
+    }
+}
+*/
+
+define_parseable_enum_t! {
+    parseable_name: ParseableIntegerValidator,
+    raw_name: RawIntegerValidator,
+    variants: {
+        Min: T,
+        Max: T,
+        With: Expr,
+    }
+}
+
+impl<T: Clone + Copy> ParseableIntegerValidator<T> {
+    fn into_spanned_validator(self) -> Result<SpannedIntegerValidator<T>, darling::Error> {
+        use RawIntegerValidator::*;
+
+        let spanned_raw = self.into_spanned_raw();
+        let span = spanned_raw.span();
+        let raw = spanned_raw.as_ref();
+
+        let validator = match raw {
+            Min(min) => IntegerValidator::Min(*min),
+            Max(max) => IntegerValidator::Max(*max),
+            With(expr) => IntegerValidator::With(quote::quote!(#expr)),
+        };
+
+        Ok(SpannedValue::new(validator, span))
+    }
+}
+
+impl<T: FromMeta + Clone + Copy> FromMeta for SpannedIntegerValidators<T> {
+    fn from_list(items: &[NestedMeta]) -> darling::Result<Self> {
+        let mut errors = darling::Error::accumulator();
+
+        let parseable_validators: Vec<ParseableIntegerValidator<T>> = items
+            .iter()
+            .flat_map(|arg| {
+                let res = ParseableIntegerValidator::<T>::from_list(std::slice::from_ref(arg));
+                errors.handle(res)
+            })
+            .collect();
+
+        let validators: Vec<SpannedIntegerValidator<T>> = parseable_validators
+            .into_iter()
+            .flat_map(|pv| {
+                let res = pv.into_spanned_validator();
+                errors.handle(res)
+            })
+            .collect();
+
+        let validators = errors.finish_with(validators)?;
+        Ok(Self(validators))
+    }
+
+    fn from_word() -> darling::Result<Self> {
+        // Provide a better error message than the default implementation
+        let msg = concat!(
+            "`validate` must be used with parenthesis.\n",
+            "For example:\n",
+            "\n",
+            "    validate(max = 99)\n\n"
+        );
+        Err(darling::Error::custom(msg))
     }
 }

@@ -439,10 +439,10 @@ macro_rules! define_parseable_enum {
         variants: { $($vname:ident: $vtype:ty),+, }
     ) => {
 
-        #[derive(Debug, FromMeta)]
+        #[derive(Debug, darling::FromMeta)]
         enum $parseable_name {
             $(
-                $vname(SpannedValue<$vtype>)
+                $vname(darling::util::SpannedValue<$vtype>)
             ),+
         }
 
@@ -454,12 +454,12 @@ macro_rules! define_parseable_enum {
         }
 
         impl $parseable_name {
-            fn into_spanned_raw(self) -> SpannedValue<$raw_name> {
+            fn into_spanned_raw(self) -> darling::util::SpannedValue<$raw_name> {
                 match self {
                     $(
                         $parseable_name::$vname(sv) => {
                             let raw = $raw_name::$vname(sv.as_ref().to_owned());
-                            SpannedValue::new(raw, sv.span())
+                            darling::util::SpannedValue::new(raw, sv.span())
                         }
                     ),+
                 }
@@ -468,3 +468,40 @@ macro_rules! define_parseable_enum {
     };
 }
 pub(crate) use define_parseable_enum;
+
+macro_rules! define_parseable_enum_t {
+    (
+        parseable_name: $parseable_name:ident,
+        raw_name: $raw_name:ident,
+        variants: { $($vname:ident: $vtype:ty),+, }
+    ) => {
+
+        #[derive(Debug, darling::FromMeta)]
+        enum $parseable_name<T> {
+            $(
+                $vname(darling::util::SpannedValue<$vtype>)
+            ),+
+        }
+
+        #[derive(Debug, Clone)]
+        enum $raw_name<T> {
+            $(
+                $vname($vtype)
+            ),+
+        }
+
+        impl<T: Clone> $parseable_name<T> {
+            fn into_spanned_raw(self) -> darling::util::SpannedValue<$raw_name<T>> {
+                match self {
+                    $(
+                        $parseable_name::$vname(sv) => {
+                            let raw = $raw_name::$vname(sv.as_ref().to_owned());
+                            darling::util::SpannedValue::new(raw, sv.span())
+                        }
+                    ),+
+                }
+            }
+        }
+    };
+}
+pub(crate) use define_parseable_enum_t;

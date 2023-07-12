@@ -55,6 +55,9 @@ pub enum IntegerValidator<T> {
 
 pub type SpannedIntegerValidator<T> = SpannedValue<IntegerValidator<T>>;
 
+#[derive(Debug, Default)]
+pub struct SpannedIntegerValidators<T>(pub Vec<SpannedIntegerValidator<T>>);
+
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum IntegerValidatorKind {
     Min,

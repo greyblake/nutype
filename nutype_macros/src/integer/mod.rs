@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use std::{fmt::Debug, str::FromStr};
 
 use darling::util::SpannedValue;
+use darling::FromMeta;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
@@ -24,7 +25,7 @@ pub struct IntegerNewtype<T: IntegerType>(PhantomData<T>);
 
 impl<T> Newtype for IntegerNewtype<T>
 where
-    T: IntegerType + ToTokens + FromStr + PartialOrd + Clone,
+    T: IntegerType + ToTokens + FromStr + PartialOrd + Clone + Copy + FromMeta,
     <T as FromStr>::Err: Debug,
 {
     type Sanitizer = IntegerSanitizer<T>;
