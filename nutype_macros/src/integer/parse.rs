@@ -1,14 +1,19 @@
-use std::fmt::Debug;
+use std::any::type_name;
+use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 use crate::common::{
     models::Attributes,
-    parse::{
-        is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
-        split_and_parse,
-    },
+    parse::{is_comma, parse_nutype_attributes, parse_with_token_stream, split_and_parse},
 };
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::{Ident, Span, TokenStream, TokenTree};
+use quote::quote;
+use syn::spanned::Spanned;
+use syn::Token;
+use syn::{
+    parse::{Parse, ParseStream},
+    Expr, LitInt,
+};
 
 use super::{
     models::{
@@ -21,7 +26,7 @@ use super::{
 pub fn parse_attributes<T>(input: TokenStream) -> Result<Attributes<IntegerGuard<T>>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Debug + Display,
 {
     let raw_attrs = parse_raw_attributes(input)?;
     let Attributes {
@@ -40,7 +45,7 @@ where
 fn parse_raw_attributes<T>(input: TokenStream) -> Result<Attributes<IntegerRawGuard<T>>, syn::Error>
 where
     T: FromStr,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Debug + std::fmt::Display,
 {
     parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
 }
@@ -91,56 +96,79 @@ fn parse_validate_attrs<T>(
 ) -> Result<Vec<SpannedIntegerValidator<T>>, syn::Error>
 where
     T: FromStr,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Debug + std::fmt::Display,
 {
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_validate_attr)
+    let validators: Validators<T> = syn::parse2(stream)?;
+    Ok(validators.0)
 }
 
-fn parse_validate_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedIntegerValidator<T>, syn::Error>
+impl<T> Parse for SpannedIntegerValidator<T>
 where
     T: FromStr,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: std::fmt::Display,
 {
-    let mut token_iter = tokens.into_iter();
-    let token = token_iter.next();
-    if let Some(TokenTree::Ident(ident)) = token {
-        match ident.to_string().as_ref() {
-            "min" => {
-                let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = IntegerValidator::Min(value);
-                let parsed_validator = SpannedIntegerValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
-                Ok(parsed_validator)
-            }
-            "max" => {
-                let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = IntegerValidator::Max(value);
-                let parsed_validator = SpannedIntegerValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
-                Ok(parsed_validator)
-            }
-            "with" => {
-                let rest_tokens: Vec<_> = token_iter.collect();
-                let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
-                let span = ident.span();
-                let validator = IntegerValidator::With(stream);
-                Ok(SpannedIntegerValidator {
-                    span,
-                    item: validator,
-                })
-            }
-            unknown_validator => {
-                let msg = format!("Unknown validation rule `{unknown_validator}`");
-                let error = syn::Error::new(ident.span(), msg);
-                Err(error)
-            }
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident: Ident = input.parse()?;
+
+        if ident == "min" {
+            let _eq: Token![=] = input.parse()?;
+            let (number, span) = parse_number::<T>(input)?;
+            Ok(SpannedIntegerValidator {
+                item: IntegerValidator::Min(number),
+                span,
+            })
+        } else if ident == "max" {
+            let _eq: Token![=] = input.parse()?;
+            let (number, span) = parse_number::<T>(input)?;
+            Ok(SpannedIntegerValidator {
+                item: IntegerValidator::Max(number),
+                span,
+            })
+        } else if ident == "with" {
+            let _eq: Token![=] = input.parse()?;
+            let expr: Expr = input.parse()?;
+            Ok(SpannedIntegerValidator {
+                item: IntegerValidator::With(quote!(#expr)),
+                span: expr.span(),
+            })
+        } else {
+            let msg = format!("Unknown validator `{ident}`");
+            Err(syn::Error::new(ident.span(), msg))
         }
-    } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+    }
+}
+
+fn parse_number<T>(input: ParseStream) -> syn::Result<(T, Span)>
+where
+    T: FromStr,
+{
+    let mut number_str = String::with_capacity(16);
+    if input.peek(Token![-]) {
+        let _: Token![-] = input.parse()?;
+        number_str.push('-');
+    }
+
+    let lit: LitInt = input.parse()?;
+    number_str.push_str(&lit.to_string().replace('_', ""));
+
+    let number: T = number_str.parse::<T>().map_err(|_err| {
+        let msg = format!("Expected {}, got `{}`", type_name::<T>(), number_str);
+        syn::Error::new(lit.span(), msg)
+    })?;
+
+    Ok((number, lit.span()))
+}
+
+struct Validators<T>(Vec<SpannedIntegerValidator<T>>);
+
+impl<T> Parse for Validators<T>
+where
+    T: FromStr,
+    <T as FromStr>::Err: std::fmt::Display,
+{
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let items = input.parse_terminated(SpannedIntegerValidator::parse, Token![,])?;
+        let validators: Vec<SpannedIntegerValidator<T>> = items.into_iter().collect();
+        Ok(Self(validators))
     }
 }
