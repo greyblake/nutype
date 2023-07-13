@@ -241,12 +241,14 @@ pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
 /// The flag the indicates that a newtype will be generated with extra constructor,
 /// `::new_unchecked()` constructor which allows to avoid the guards.
 /// Generally, usage of `new_unchecked` is discouraged.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub enum NewUnchecked {
+    #[default]
+    Off,
+
     // `On` variant can be constructed when `new_unchecked` feature flag is enabled.
     #[allow(dead_code)]
     On,
-    Off,
 }
 
 pub struct GenerateParams<T, G> {

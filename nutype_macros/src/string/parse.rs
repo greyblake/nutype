@@ -1,5 +1,4 @@
-use crate::common::models::{Attributes, SpannedItem};
-use crate::common::parse::parse_nutype_attributes;
+use crate::common::models::{Attributes, NewUnchecked, SpannedItem};
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
@@ -8,18 +7,25 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, LitStr, Path, Token};
+use syn::{parenthesized, Expr, LitStr, Path, Token};
 
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
 pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
-    let raw_attrs = parse_raw_attributes(input)?;
-    let Attributes {
+    let attrs: ParseableAttributes = syn::parse2(input)?;
+
+    let ParseableAttributes {
+        sanitizers,
+        validators,
         new_unchecked,
-        guard: raw_guard,
-        maybe_default_value,
-    } = raw_attrs;
+        default,
+    } = attrs;
+    let maybe_default_value = default.map(|expr| quote!(#expr));
+    let raw_guard = StringRawGuard {
+        sanitizers,
+        validators,
+    };
     let guard = validate_string_meta(raw_guard)?;
     Ok(Attributes {
         new_unchecked,
@@ -28,13 +34,61 @@ pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, s
     })
 }
 
-fn parse_raw_attributes(input: TokenStream) -> Result<Attributes<StringRawGuard>, syn::Error> {
-    parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
+#[derive(Debug, Default)]
+struct ParseableAttributes {
+    sanitizers: Vec<SpannedStringSanitizer>,
+    validators: Vec<SpannedStringValidator>,
+    new_unchecked: NewUnchecked,
+    default: Option<Expr>,
 }
 
-fn parse_sanitize_attrs(stream: TokenStream) -> Result<Vec<SpannedStringSanitizer>, syn::Error> {
-    let sanitizers: ParseableSanitizers = syn::parse2(stream)?;
-    Ok(sanitizers.0)
+impl Parse for ParseableAttributes {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut attrs = ParseableAttributes::default();
+
+        while !input.is_empty() {
+            let ident: Ident = input.parse()?;
+            if ident == "sanitize" {
+                let content;
+                parenthesized!(content in input);
+                let sanitizers: ParseableSanitizers = content.parse()?;
+                attrs.sanitizers = sanitizers.0;
+            } else if ident == "validate" {
+                let content;
+                parenthesized!(content in input);
+                let validators: ParseableValidators = content.parse()?;
+                attrs.validators = validators.0;
+            } else if ident == "default" {
+                let _eq: Token![=] = input.parse()?;
+                let default_expr: Expr = input.parse()?;
+                attrs.default = Some(default_expr);
+            } else if ident == "new_unchecked" {
+                match_feature!("new_unchecked",
+                    // The feature is not enabled, so we return an error
+                    on => {
+                        attrs.new_unchecked = NewUnchecked::On;
+                    },
+                    off => {
+                        let msg = concat!(
+                            "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\n",
+                            "But you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it."
+                        );
+                        return Err(syn::Error::new(ident.span(), msg));
+                    }
+                )
+            } else {
+                let msg = format!("Unknown attribute `{ident}`");
+                return Err(syn::Error::new(ident.span(), msg));
+            }
+
+            // Parse `,` unless it's the end of the stream
+            if !input.is_empty() {
+                let _comma: Token![,] = input.parse()?;
+            }
+        }
+
+        Ok(attrs)
+    }
 }
 
 impl Parse for SpannedStringSanitizer {
@@ -79,11 +133,6 @@ impl Parse for ParseableSanitizers {
         let sanitizers = items.into_iter().collect();
         Ok(Self(sanitizers))
     }
-}
-
-fn parse_validate_attrs(stream: TokenStream) -> Result<Vec<SpannedStringValidator>, syn::Error> {
-    let validators: ParseableValidators = syn::parse2(stream)?;
-    Ok(validators.0)
 }
 
 #[derive(Debug)]
