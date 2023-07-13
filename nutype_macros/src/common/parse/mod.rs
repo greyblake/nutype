@@ -7,6 +7,7 @@ use syn::{
     parenthesized,
     parse::{Parse, ParseStream},
     spanned::Spanned,
+    token::Paren,
     Expr, LitInt, Token,
 };
 
@@ -426,15 +427,33 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
         while !input.is_empty() {
             let ident: Ident = input.parse()?;
             if ident == "sanitize" {
-                let content;
-                parenthesized!(content in input);
-                let items = content.parse_terminated(Sanitizer::parse, Token![,])?;
-                attrs.sanitizers = items.into_iter().collect();
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let items = content.parse_terminated(Sanitizer::parse, Token![,])?;
+                    attrs.sanitizers = items.into_iter().collect();
+                } else {
+                    let msg = concat!(
+                        "`sanitize` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    sanitize(trim)\n\n"
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
+                }
             } else if ident == "validate" {
-                let content;
-                parenthesized!(content in input);
-                let items = content.parse_terminated(Validator::parse, Token![,])?;
-                attrs.validators = items.into_iter().collect();
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let items = content.parse_terminated(Validator::parse, Token![,])?;
+                    attrs.validators = items.into_iter().collect();
+                } else {
+                    let msg = concat!(
+                        "`validate` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    validate(max = 99)\n\n"
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
+                }
             } else if ident == "default" {
                 let _eq: Token![=] = input.parse()?;
                 let default_expr: Expr = input.parse()?;

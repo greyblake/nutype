@@ -1,8 +1,8 @@
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
-use crate::common::parse::parse_integer;
-use crate::common::{models::Attributes, parse::parse_nutype_attributes};
+use crate::common::models::Attributes;
+use crate::common::parse::{parse_integer, ParseableAttributes};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::spanned::Spanned;
@@ -25,12 +25,20 @@ where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug + Display,
 {
-    let raw_attrs = parse_raw_attributes(input)?;
-    let Attributes {
+    let attrs: ParseableAttributes<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>> =
+        syn::parse2(input)?;
+
+    let ParseableAttributes {
+        sanitizers,
+        validators,
         new_unchecked,
-        guard: raw_guard,
-        maybe_default_value,
-    } = raw_attrs;
+        default,
+    } = attrs;
+    let maybe_default_value = default.map(|expr| quote!(#expr));
+    let raw_guard = IntegerRawGuard {
+        sanitizers,
+        validators,
+    };
     let guard = validate_number_meta(raw_guard)?;
     Ok(Attributes {
         new_unchecked,
@@ -39,40 +47,10 @@ where
     })
 }
 
-fn parse_raw_attributes<T>(input: TokenStream) -> Result<Attributes<IntegerRawGuard<T>>, syn::Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug + std::fmt::Display,
-{
-    parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
-}
-
-fn parse_sanitize_attrs<T>(
-    stream: TokenStream,
-) -> Result<Vec<SpannedIntegerSanitizer<T>>, syn::Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug + Display,
-{
-    let sanitizers: Sanitizers<T> = syn::parse2(stream)?;
-    Ok(sanitizers.0)
-}
-
-fn parse_validate_attrs<T>(
-    stream: TokenStream,
-) -> Result<Vec<SpannedIntegerValidator<T>>, syn::Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug + std::fmt::Display,
-{
-    let validators: Validators<T> = syn::parse2(stream)?;
-    Ok(validators.0)
-}
-
 impl<T> Parse for SpannedIntegerValidator<T>
 where
     T: FromStr,
-    <T as FromStr>::Err: std::fmt::Display,
+    <T as FromStr>::Err: Display,
 {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let ident: Ident = input.parse()?;
@@ -105,24 +83,10 @@ where
     }
 }
 
-struct Validators<T>(Vec<SpannedIntegerValidator<T>>);
-
-impl<T> Parse for Validators<T>
-where
-    T: FromStr,
-    <T as FromStr>::Err: std::fmt::Display,
-{
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let items = input.parse_terminated(SpannedIntegerValidator::parse, Token![,])?;
-        let validators: Vec<SpannedIntegerValidator<T>> = items.into_iter().collect();
-        Ok(Self(validators))
-    }
-}
-
 impl<T> Parse for SpannedIntegerSanitizer<T>
 where
     T: FromStr,
-    <T as FromStr>::Err: std::fmt::Display,
+    <T as FromStr>::Err: Display,
 {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let ident: Ident = input.parse()?;
@@ -138,19 +102,5 @@ where
             let msg = format!("Unknown sanitizer `{ident}`");
             Err(syn::Error::new(ident.span(), msg))
         }
-    }
-}
-
-struct Sanitizers<T>(Vec<SpannedIntegerSanitizer<T>>);
-
-impl<T> Parse for Sanitizers<T>
-where
-    T: FromStr,
-    <T as FromStr>::Err: std::fmt::Display,
-{
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let items = input.parse_terminated(SpannedIntegerSanitizer::parse, Token![,])?;
-        let sanitizers: Vec<SpannedIntegerSanitizer<T>> = items.into_iter().collect();
-        Ok(Self(sanitizers))
     }
 }
