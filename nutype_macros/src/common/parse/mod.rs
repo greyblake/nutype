@@ -325,6 +325,10 @@ fn parse_token_into_derive_trait(
         }
         TokenTree::Punct(ref punct) => match punct.as_char() {
             ',' => Ok(None),
+            '*' => Err(syn::Error::new(
+                token.span(),
+                "Asterisk derive is not longer supported",
+            )),
             _ => Err(syn::Error::new(
                 token.span(),
                 format!("Unexpected `{token}`"),
