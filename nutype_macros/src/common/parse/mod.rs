@@ -6,7 +6,8 @@ use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
 use syn::{
     parenthesized,
     parse::{Parse, ParseStream},
-    Expr, Token,
+    spanned::Spanned,
+    Expr, LitInt, Token,
 };
 
 use crate::{
@@ -465,4 +466,30 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
 
         Ok(attrs)
     }
+}
+
+pub fn parse_integer<T: FromStr>(input: ParseStream) -> syn::Result<(T, Span)> {
+    parse_number::<T, LitInt>(input)
+}
+
+fn parse_number<T, Literal>(input: ParseStream) -> syn::Result<(T, Span)>
+where
+    T: FromStr,
+    Literal: Parse + ToString + Spanned,
+{
+    let mut number_str = String::with_capacity(16);
+    if input.peek(Token![-]) {
+        let _: Token![-] = input.parse()?;
+        number_str.push('-');
+    }
+
+    let lit: Literal = input.parse()?;
+    number_str.push_str(&lit.to_string().replace('_', ""));
+
+    let number: T = number_str.parse::<T>().map_err(|_err| {
+        let msg = format!("Expected {}, got `{}`", type_name::<T>(), number_str);
+        syn::Error::new(lit.span(), msg)
+    })?;
+
+    Ok((number, lit.span()))
 }

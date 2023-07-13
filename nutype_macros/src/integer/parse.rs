@@ -1,7 +1,7 @@
-use std::any::type_name;
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
+use crate::common::parse::parse_integer;
 use crate::common::{
     models::Attributes,
     parse::{is_comma, parse_nutype_attributes, parse_with_token_stream, split_and_parse},
@@ -12,7 +12,7 @@ use syn::spanned::Spanned;
 use syn::Token;
 use syn::{
     parse::{Parse, ParseStream},
-    Expr, LitInt,
+    Expr,
 };
 
 use super::{
@@ -112,14 +112,14 @@ where
 
         if ident == "min" {
             let _eq: Token![=] = input.parse()?;
-            let (number, span) = parse_number::<T>(input)?;
+            let (number, span) = parse_integer::<T>(input)?;
             Ok(SpannedIntegerValidator {
                 item: IntegerValidator::Min(number),
                 span,
             })
         } else if ident == "max" {
             let _eq: Token![=] = input.parse()?;
-            let (number, span) = parse_number::<T>(input)?;
+            let (number, span) = parse_integer::<T>(input)?;
             Ok(SpannedIntegerValidator {
                 item: IntegerValidator::Max(number),
                 span,
@@ -136,27 +136,6 @@ where
             Err(syn::Error::new(ident.span(), msg))
         }
     }
-}
-
-fn parse_number<T>(input: ParseStream) -> syn::Result<(T, Span)>
-where
-    T: FromStr,
-{
-    let mut number_str = String::with_capacity(16);
-    if input.peek(Token![-]) {
-        let _: Token![-] = input.parse()?;
-        number_str.push('-');
-    }
-
-    let lit: LitInt = input.parse()?;
-    number_str.push_str(&lit.to_string().replace('_', ""));
-
-    let number: T = number_str.parse::<T>().map_err(|_err| {
-        let msg = format!("Expected {}, got `{}`", type_name::<T>(), number_str);
-        syn::Error::new(lit.span(), msg)
-    })?;
-
-    Ok((number, lit.span()))
 }
 
 struct Validators<T>(Vec<SpannedIntegerValidator<T>>);
