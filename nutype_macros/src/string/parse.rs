@@ -7,7 +7,11 @@ use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
 use crate::utils::match_feature;
-use proc_macro2::{Span, TokenStream, TokenTree};
+use proc_macro2::{Ident, Span, TokenStream, TokenTree};
+use quote::quote;
+use syn::parse::{Parse, ParseStream};
+use syn::spanned::Spanned;
+use syn::{Expr, Token};
 
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
@@ -32,35 +36,51 @@ fn parse_raw_attributes(input: TokenStream) -> Result<Attributes<StringRawGuard>
 }
 
 fn parse_sanitize_attrs(stream: TokenStream) -> Result<Vec<SpannedStringSanitizer>, syn::Error> {
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_sanitize_attr)
+    let sanitizers: ParseableSanitizers = syn::parse2(stream)?;
+    Ok(sanitizers.0)
 }
 
-fn parse_sanitize_attr(tokens: Vec<TokenTree>) -> Result<SpannedStringSanitizer, syn::Error> {
-    let mut token_iter = tokens.iter();
-    let token = token_iter.next();
-    if let Some(TokenTree::Ident(ident)) = token {
-        let san = match ident.to_string().as_ref() {
-            "trim" => StringSanitizer::Trim,
-            "lowercase" => StringSanitizer::Lowercase,
-            "uppercase" => StringSanitizer::Uppercase,
-            "with" => {
-                // Preserve the rest as `custom_sanitizer_fn`
-                let stream = parse_with_token_stream(token_iter, ident.span())?;
-                StringSanitizer::With(stream)
-            }
-            unknown_sanitizer => {
-                let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                let error = syn::Error::new(ident.span(), msg);
-                return Err(error);
-            }
-        };
-        Ok(SpannedStringSanitizer {
-            span: ident.span(),
-            item: san,
-        })
-    } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
+impl Parse for SpannedStringSanitizer {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident: Ident = input.parse()?;
+
+        if ident == "trim" {
+            Ok(SpannedStringSanitizer {
+                item: StringSanitizer::Trim,
+                span: ident.span(),
+            })
+        } else if ident == "lowercase" {
+            Ok(SpannedStringSanitizer {
+                item: StringSanitizer::Lowercase,
+                span: ident.span(),
+            })
+        } else if ident == "uppercase" {
+            Ok(SpannedStringSanitizer {
+                item: StringSanitizer::Uppercase,
+                span: ident.span(),
+            })
+        } else if ident == "with" {
+            let _eq: Token![=] = input.parse()?;
+            let expr: Expr = input.parse()?;
+            Ok(SpannedStringSanitizer {
+                item: StringSanitizer::With(quote!(#expr)),
+                span: expr.span(),
+            })
+        } else {
+            let msg = format!("Unknown sanitizer `{ident}`");
+            Err(syn::Error::new(ident.span(), msg))
+        }
+    }
+}
+
+#[derive(Debug)]
+struct ParseableSanitizers(Vec<SpannedStringSanitizer>);
+
+impl Parse for ParseableSanitizers {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let items = input.parse_terminated(SpannedStringSanitizer::parse, Token![,])?;
+        let sanitizers = items.into_iter().collect();
+        Ok(Self(sanitizers))
     }
 }
 
