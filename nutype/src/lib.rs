@@ -13,8 +13,8 @@
 //! use nutype::nutype;
 //!
 //! #[nutype(
-//!     sanitize(trim, lowercase)
-//!     validate(not_empty, max_len = 20)
+//!     sanitize(trim, lowercase),
+//!     validate(not_empty, max_len = 20),
 //! )]
 //! #[derive(Debug, PartialEq)]
 //! pub struct Username(String);
@@ -372,8 +372,8 @@ mod tests {
     #[test]
     fn test_email_example() {
         #[nutype(
-             sanitize(trim, lowercase)
-             validate(not_empty)
+             sanitize(trim, lowercase),
+             validate(not_empty),
          )]
         #[derive(*)]
         pub struct Email(String);

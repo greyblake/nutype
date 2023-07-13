@@ -235,8 +235,8 @@ mod complex {
         /// Some documentation for Name
         /// goes here.
         #[nutype(
-            sanitize(trim, with = |s| s.to_uppercase())
-            validate(not_empty, max_len = 6)
+            sanitize(trim, with = |s| s.to_uppercase()),
+            validate(not_empty, max_len = 6),
         )]
         #[derive(Debug, PartialEq)]
         pub struct Name(String);
@@ -432,10 +432,7 @@ mod derives {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(
-                validate(min_len = 5)
-                default = "Anonymous"
-            )]
+            #[nutype(validate(min_len = 5), default = "Anonymous")]
             #[derive(Default)]
             pub struct Name(String);
 
@@ -445,10 +442,7 @@ mod derives {
         #[test]
         #[should_panic(expected = "Default value for type Name is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(
-                validate(min_len = 5)
-                default = "Nope"
-            )]
+            #[nutype(validate(min_len = 5), default = "Nope")]
             #[derive(Default)]
             pub struct Name(String);
 
@@ -509,11 +503,7 @@ mod new_unchecked {
 
     #[test]
     fn test_new_unchecked() {
-        #[nutype(
-            new_unchecked
-            sanitize(trim)
-            validate(min_len = 8)
-        )]
+        #[nutype(new_unchecked, sanitize(trim), validate(min_len = 8))]
         pub struct Name(String);
 
         let name = unsafe { Name::new_unchecked(" boo ".to_string()) };

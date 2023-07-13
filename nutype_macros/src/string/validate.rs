@@ -191,67 +191,18 @@ fn to_string_derive_trait(
 mod regex_validation {
     use super::*;
     use crate::string::models::RegexDef;
-    use proc_macro2::Literal;
-    use std::collections::VecDeque;
 
     pub fn validate_regex_def(regex_def: &RegexDef, span: Span) -> Result<(), syn::Error> {
         match regex_def {
             RegexDef::StringLiteral(lit) => {
                 // Try to validate regex at compile time if it's a string literal
-                let regex_str = literal_to_string(lit)?;
+                let regex_str = lit.value();
                 match regex::Regex::new(&regex_str) {
                     Ok(_re) => Ok(()),
                     Err(err) => Err(syn::Error::new(span, format!("{err}"))),
                 }
             }
-            RegexDef::Ident(_) => Ok(()),
+            RegexDef::Path(_) => Ok(()),
         }
-    }
-
-    // TODO: write unit tests
-    fn literal_to_string(lit: &Literal) -> Result<String, syn::Error> {
-        let value = lit.to_string();
-        if let Some(s) = unquote_double_quotes(&value) {
-            Ok(s)
-        } else if let Some(s) = unoquote_inline_doc(&value) {
-            Ok(s)
-        } else {
-            let msg = format!("Could not obtain regex string from the literal: {lit}");
-            Err(syn::Error::new(lit.span(), msg))
-        }
-    }
-
-    // Input:
-    //     "^bar{2}$"
-    // Output:
-    //     ^bar{2}$
-    // TODO: write unit tests
-    fn unquote_double_quotes(input: &str) -> Option<String> {
-        let len = input.len();
-        if len > 1 && input.starts_with('"') && input.ends_with('"') {
-            let output = input[1..(len - 1)].to_string();
-            Some(output)
-        } else {
-            None
-        }
-    }
-
-    // Input:
-    //     r##"^bar{2}$"##
-    // Output:
-    //     ^bar{2}$
-    // TODO: write unit tests
-    fn unoquote_inline_doc(input: &str) -> Option<String> {
-        let mut chars: VecDeque<char> = input.chars().collect();
-
-        chars.pop_front(); // get rid of `r`
-        while let Some(front_ch) = chars.pop_front() {
-            chars.pop_back();
-            if front_ch == '"' {
-                let output: String = chars.into_iter().collect();
-                return Some(output);
-            }
-        }
-        None
     }
 }
