@@ -122,9 +122,6 @@ pub fn validate_float_derive_traits<T>(
 
     for spanned_trait in spanned_derive_traits.iter() {
         match spanned_trait.item {
-            DeriveTrait::Asterisk => {
-                traits.extend(unfold_asterisk_traits(validation));
-            }
             DeriveTrait::Normal(normal_trait) => {
                 let string_derive_trait =
                     to_float_derive_trait(normal_trait, validation, spanned_trait.span)?;
@@ -141,7 +138,6 @@ pub fn validate_float_derive_traits<T>(
             .flat_map(|spanned_tr| match spanned_tr.item {
                 DeriveTrait::Normal(tr) if tr == needle => Some(spanned_tr.span),
                 DeriveTrait::Normal(_) => None,
-                DeriveTrait::Asterisk => None,
             })
             .next()
             .unwrap_or_else(Span::call_site)
@@ -167,35 +163,6 @@ pub fn validate_float_derive_traits<T>(
     }
 
     Ok(traits)
-}
-
-fn unfold_asterisk_traits(validation: ValidationInfo) -> Vec<FloatDeriveTrait> {
-    let mut traits = vec![
-        FloatDeriveTrait::Debug,
-        FloatDeriveTrait::Clone,
-        FloatDeriveTrait::Copy,
-        FloatDeriveTrait::PartialEq,
-        FloatDeriveTrait::PartialOrd,
-        FloatDeriveTrait::FromStr,
-        FloatDeriveTrait::AsRef,
-    ];
-
-    let ValidationInfo {
-        has_validation,
-        has_nan_validation,
-    } = validation;
-
-    if has_validation {
-        traits.push(FloatDeriveTrait::TryFrom);
-    } else {
-        traits.push(FloatDeriveTrait::From);
-    };
-
-    if has_nan_validation {
-        traits.extend([FloatDeriveTrait::Eq, FloatDeriveTrait::Ord]);
-    }
-
-    traits
 }
 
 fn to_float_derive_trait(

@@ -325,13 +325,6 @@ fn parse_token_into_derive_trait(
         }
         TokenTree::Punct(ref punct) => match punct.as_char() {
             ',' => Ok(None),
-            '*' => {
-                let spanned_trait = SpannedDeriveTrait {
-                    item: DeriveTrait::Asterisk,
-                    span: token.span(),
-                };
-                Ok(Some(spanned_trait))
-            }
             _ => Err(syn::Error::new(
                 token.span(),
                 format!("Unexpected `{token}`"),

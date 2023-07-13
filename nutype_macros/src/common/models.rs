@@ -200,7 +200,6 @@ pub struct RawGuard<Sanitizer, Validator> {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DeriveTrait {
-    Asterisk,
     Normal(NormalDeriveTrait),
 }
 

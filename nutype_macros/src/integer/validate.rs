@@ -93,9 +93,6 @@ pub fn validate_integer_derive_traits(
 
     for spanned_trait in spanned_derive_traits {
         match spanned_trait.item {
-            DeriveTrait::Asterisk => {
-                traits.extend(unfold_asterisk_traits(has_validation));
-            }
             DeriveTrait::Normal(normal_trait) => {
                 let string_derive_trait =
                     to_integer_derive_trait(normal_trait, has_validation, spanned_trait.span)?;
@@ -105,29 +102,6 @@ pub fn validate_integer_derive_traits(
     }
 
     Ok(traits)
-}
-
-fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = IntegerDeriveTrait> {
-    let from_or_try_from = if has_validation {
-        IntegerDeriveTrait::TryFrom
-    } else {
-        IntegerDeriveTrait::From
-    };
-
-    [
-        from_or_try_from,
-        IntegerDeriveTrait::Debug,
-        IntegerDeriveTrait::Clone,
-        IntegerDeriveTrait::Copy,
-        IntegerDeriveTrait::PartialEq,
-        IntegerDeriveTrait::Eq,
-        IntegerDeriveTrait::PartialOrd,
-        IntegerDeriveTrait::Ord,
-        IntegerDeriveTrait::FromStr,
-        IntegerDeriveTrait::AsRef,
-        IntegerDeriveTrait::Hash,
-    ]
-    .into_iter()
 }
 
 fn to_integer_derive_trait(
