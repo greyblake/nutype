@@ -2,11 +2,8 @@ use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 use crate::common::parse::parse_integer;
-use crate::common::{
-    models::Attributes,
-    parse::{is_comma, parse_nutype_attributes, parse_with_token_stream, split_and_parse},
-};
-use proc_macro2::{Ident, Span, TokenStream, TokenTree};
+use crate::common::{models::Attributes, parse::parse_nutype_attributes};
+use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::spanned::Spanned;
 use syn::Token;
@@ -55,40 +52,10 @@ fn parse_sanitize_attrs<T>(
 ) -> Result<Vec<SpannedIntegerSanitizer<T>>, syn::Error>
 where
     T: FromStr,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Debug + Display,
 {
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_sanitize_attr)
-}
-
-fn parse_sanitize_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedIntegerSanitizer<T>, syn::Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    let mut token_iter = tokens.iter();
-    let token = token_iter.next();
-    if let Some(TokenTree::Ident(ident)) = token {
-        match ident.to_string().as_ref() {
-            "with" => {
-                // Preserve the rest as `custom_sanitizer_fn`
-                let stream = parse_with_token_stream(token_iter, ident.span())?;
-                let span = ident.span();
-                let sanitizer = IntegerSanitizer::With(stream);
-                Ok(SpannedIntegerSanitizer {
-                    span,
-                    item: sanitizer,
-                })
-            }
-            unknown_sanitizer => {
-                let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                let error = syn::Error::new(ident.span(), msg);
-                Err(error)
-            }
-        }
-    } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
-    }
+    let sanitizers: Sanitizers<T> = syn::parse2(stream)?;
+    Ok(sanitizers.0)
 }
 
 fn parse_validate_attrs<T>(
@@ -149,5 +116,41 @@ where
         let items = input.parse_terminated(SpannedIntegerValidator::parse, Token![,])?;
         let validators: Vec<SpannedIntegerValidator<T>> = items.into_iter().collect();
         Ok(Self(validators))
+    }
+}
+
+impl<T> Parse for SpannedIntegerSanitizer<T>
+where
+    T: FromStr,
+    <T as FromStr>::Err: std::fmt::Display,
+{
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident: Ident = input.parse()?;
+
+        if ident == "with" {
+            let _eq: Token![=] = input.parse()?;
+            let expr: Expr = input.parse()?;
+            Ok(SpannedIntegerSanitizer {
+                item: IntegerSanitizer::With(quote!(#expr)),
+                span: expr.span(),
+            })
+        } else {
+            let msg = format!("Unknown sanitizer `{ident}`");
+            Err(syn::Error::new(ident.span(), msg))
+        }
+    }
+}
+
+struct Sanitizers<T>(Vec<SpannedIntegerSanitizer<T>>);
+
+impl<T> Parse for Sanitizers<T>
+where
+    T: FromStr,
+    <T as FromStr>::Err: std::fmt::Display,
+{
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let items = input.parse_terminated(SpannedIntegerSanitizer::parse, Token![,])?;
+        let sanitizers: Vec<SpannedIntegerSanitizer<T>> = items.into_iter().collect();
+        Ok(Self(sanitizers))
     }
 }

@@ -1,5 +1,5 @@
 use crate::common::models::{Attributes, SpannedItem};
-use crate::common::parse::{ParseableAttributes, parse_integer};
+use crate::common::parse::{parse_integer, ParseableAttributes};
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
