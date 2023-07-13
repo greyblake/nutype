@@ -1,5 +1,5 @@
 ## TODO
-* Update to Rust 1.69
+* Use syn::Expr instead of TokenStream
 
 ## Tech debt
 * Make individual UI tests possible to opt-out depending on the feature flags.

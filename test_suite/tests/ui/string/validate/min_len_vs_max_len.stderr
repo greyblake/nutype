@@ -1,6 +1,6 @@
 error: min_len cannot be greater than max_len.
        Don't you find this obvious?
- --> tests/ui/string/validate/min_len_vs_max_len.rs:3:34
+ --> tests/ui/string/validate/min_len_vs_max_len.rs:3:44
   |
 3 | #[nutype(validate(min_len = 127, max_len = 63))]
-  |                                  ^^^^^^^
+  |                                            ^^

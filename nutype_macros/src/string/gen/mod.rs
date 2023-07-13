@@ -237,9 +237,9 @@ pub fn gen_string_validate_fn(type_name: &TypeName, validators: &[StringValidato
                         )
 
                     }
-                    RegexDef::Ident(regex_ident) => {
+                    RegexDef::Path(regex_path) => {
                         quote!(
-                            if !#regex_ident.is_match(&val) {
+                            if !#regex_path.is_match(&val) {
                                 return Err(#error_name::RegexMismatch);
                             }
                         )
