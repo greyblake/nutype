@@ -51,13 +51,13 @@ impl Parse for ParseableAttributes {
             if ident == "sanitize" {
                 let content;
                 parenthesized!(content in input);
-                let sanitizers: ParseableSanitizers = content.parse()?;
-                attrs.sanitizers = sanitizers.0;
+                let items = content.parse_terminated(SpannedStringSanitizer::parse, Token![,])?;
+                attrs.sanitizers = items.into_iter().collect();
             } else if ident == "validate" {
                 let content;
                 parenthesized!(content in input);
-                let validators: ParseableValidators = content.parse()?;
-                attrs.validators = validators.0;
+                let items = content.parse_terminated(SpannedStringValidator::parse, Token![,])?;
+                attrs.validators = items.into_iter().collect();
             } else if ident == "default" {
                 let _eq: Token![=] = input.parse()?;
                 let default_expr: Expr = input.parse()?;
@@ -121,28 +121,6 @@ impl Parse for SpannedStringSanitizer {
             let msg = format!("Unknown sanitizer `{ident}`");
             Err(syn::Error::new(ident.span(), msg))
         }
-    }
-}
-
-#[derive(Debug)]
-struct ParseableSanitizers(Vec<SpannedStringSanitizer>);
-
-impl Parse for ParseableSanitizers {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let items = input.parse_terminated(SpannedStringSanitizer::parse, Token![,])?;
-        let sanitizers = items.into_iter().collect();
-        Ok(Self(sanitizers))
-    }
-}
-
-#[derive(Debug)]
-struct ParseableValidators(Vec<SpannedStringValidator>);
-
-impl Parse for ParseableValidators {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let items = input.parse_terminated(SpannedStringValidator::parse, Token![,])?;
-        let validators = items.into_iter().collect();
-        Ok(Self(validators))
     }
 }
 
