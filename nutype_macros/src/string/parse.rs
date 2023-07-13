@@ -1,4 +1,5 @@
-use crate::common::models::{Attributes, NewUnchecked, SpannedItem};
+use crate::common::models::{Attributes, SpannedItem};
+use crate::common::parse::ParseableAttributes;
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
@@ -7,13 +8,14 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{parenthesized, Expr, LitStr, Path, Token};
+use syn::{Expr, LitStr, Path, Token};
 
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
 
 pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
-    let attrs: ParseableAttributes = syn::parse2(input)?;
+    let attrs: ParseableAttributes<SpannedStringSanitizer, SpannedStringValidator> =
+        syn::parse2(input)?;
 
     let ParseableAttributes {
         sanitizers,
@@ -32,63 +34,6 @@ pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, s
         guard,
         maybe_default_value,
     })
-}
-
-#[derive(Debug, Default)]
-struct ParseableAttributes {
-    sanitizers: Vec<SpannedStringSanitizer>,
-    validators: Vec<SpannedStringValidator>,
-    new_unchecked: NewUnchecked,
-    default: Option<Expr>,
-}
-
-impl Parse for ParseableAttributes {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let mut attrs = ParseableAttributes::default();
-
-        while !input.is_empty() {
-            let ident: Ident = input.parse()?;
-            if ident == "sanitize" {
-                let content;
-                parenthesized!(content in input);
-                let items = content.parse_terminated(SpannedStringSanitizer::parse, Token![,])?;
-                attrs.sanitizers = items.into_iter().collect();
-            } else if ident == "validate" {
-                let content;
-                parenthesized!(content in input);
-                let items = content.parse_terminated(SpannedStringValidator::parse, Token![,])?;
-                attrs.validators = items.into_iter().collect();
-            } else if ident == "default" {
-                let _eq: Token![=] = input.parse()?;
-                let default_expr: Expr = input.parse()?;
-                attrs.default = Some(default_expr);
-            } else if ident == "new_unchecked" {
-                match_feature!("new_unchecked",
-                    // The feature is not enabled, so we return an error
-                    on => {
-                        attrs.new_unchecked = NewUnchecked::On;
-                    },
-                    off => {
-                        let msg = concat!(
-                            "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\n",
-                            "But you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it."
-                        );
-                        return Err(syn::Error::new(ident.span(), msg));
-                    }
-                )
-            } else {
-                let msg = format!("Unknown attribute `{ident}`");
-                return Err(syn::Error::new(ident.span(), msg));
-            }
-
-            // Parse `,` unless it's the end of the stream
-            if !input.is_empty() {
-                let _comma: Token![,] = input.parse()?;
-            }
-        }
-
-        Ok(attrs)
-    }
 }
 
 impl Parse for SpannedStringSanitizer {

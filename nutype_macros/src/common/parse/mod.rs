@@ -3,6 +3,11 @@ pub mod meta;
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
 use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
+use syn::{
+    parenthesized,
+    parse::{Parse, ParseStream},
+    Expr, Token,
+};
 
 use crate::{
     common::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait},
@@ -395,4 +400,73 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         span: ident.span(),
     };
     Ok(spanned_trait)
+}
+
+#[derive(Debug)]
+pub struct ParseableAttributes<Sanitizer, Validator> {
+    pub sanitizers: Vec<Sanitizer>,
+    pub validators: Vec<Validator>,
+    pub new_unchecked: NewUnchecked,
+    pub default: Option<Expr>,
+}
+
+// By some reason Default cannot be derive.
+impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator> {
+    fn default() -> Self {
+        Self {
+            sanitizers: vec![],
+            validators: vec![],
+            new_unchecked: NewUnchecked::Off,
+            default: None,
+        }
+    }
+}
+
+impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer, Validator> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut attrs = ParseableAttributes::default();
+
+        while !input.is_empty() {
+            let ident: Ident = input.parse()?;
+            if ident == "sanitize" {
+                let content;
+                parenthesized!(content in input);
+                let items = content.parse_terminated(Sanitizer::parse, Token![,])?;
+                attrs.sanitizers = items.into_iter().collect();
+            } else if ident == "validate" {
+                let content;
+                parenthesized!(content in input);
+                let items = content.parse_terminated(Validator::parse, Token![,])?;
+                attrs.validators = items.into_iter().collect();
+            } else if ident == "default" {
+                let _eq: Token![=] = input.parse()?;
+                let default_expr: Expr = input.parse()?;
+                attrs.default = Some(default_expr);
+            } else if ident == "new_unchecked" {
+                match_feature!("new_unchecked",
+                    // The feature is not enabled, so we return an error
+                    on => {
+                        attrs.new_unchecked = NewUnchecked::On;
+                    },
+                    off => {
+                        let msg = concat!(
+                            "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\n",
+                            "But you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it."
+                        );
+                        return Err(syn::Error::new(ident.span(), msg));
+                    }
+                )
+            } else {
+                let msg = format!("Unknown attribute `{ident}`");
+                return Err(syn::Error::new(ident.span(), msg));
+            }
+
+            // Parse `,` unless it's the end of the stream
+            if !input.is_empty() {
+                let _comma: Token![,] = input.parse()?;
+            }
+        }
+
+        Ok(attrs)
+    }
 }
