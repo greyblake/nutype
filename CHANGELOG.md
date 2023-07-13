@@ -1,3 +1,6 @@
+### v0.3.2 - 2023-06-30
+* [BREAKING] Removal of asterisk derive
+
 ### v0.3.1 - 2023-06-30
 * Support deriving of `Deref`
 
