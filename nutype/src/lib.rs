@@ -371,11 +371,8 @@ mod tests {
 
     #[test]
     fn test_email_example() {
-        #[nutype(
-             sanitize(trim, lowercase),
-             validate(not_empty),
-         )]
-        #[derive(*)]
+        #[nutype(sanitize(trim, lowercase), validate(not_empty))]
+        #[derive(TryFrom, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
         pub struct Email(String);
 
         let email = Email::new("  OH@my.example\n\n").unwrap();

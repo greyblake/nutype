@@ -94,7 +94,7 @@ mod validators {
     #[test]
     fn test_max_len() {
         #[nutype(validate(max_len = 5))]
-        #[derive(*)]
+        #[derive(TryFrom, Debug, Clone, PartialEq, PartialOrd, FromStr, AsRef)]
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
