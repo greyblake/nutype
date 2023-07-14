@@ -1,6 +1,6 @@
 [package]
 name = "nutype"
-version = "0.3.2"
+version = "0.3.1"
 authors = ["Sergey Potapov <blake131313@gmail.com>"]
 edition = "2021"
 description = "The newtype with guarantees."
