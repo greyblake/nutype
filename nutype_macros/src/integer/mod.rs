@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::fmt::Display;
 use std::marker::PhantomData;
 use std::{fmt::Debug, str::FromStr};
 
@@ -24,7 +25,7 @@ pub struct IntegerNewtype<T: IntegerType>(PhantomData<T>);
 impl<T> Newtype for IntegerNewtype<T>
 where
     T: IntegerType + ToTokens + FromStr + PartialOrd + Clone,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Debug + Display,
 {
     type Sanitizer = IntegerSanitizer<T>;
     type Validator = IntegerValidator<T>;

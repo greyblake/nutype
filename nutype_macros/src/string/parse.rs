@@ -1,5 +1,5 @@
 use crate::common::models::{Attributes, SpannedItem};
-use crate::common::parse::ParseableAttributes;
+use crate::common::parse::{parse_integer, ParseableAttributes};
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
@@ -75,25 +75,17 @@ impl Parse for SpannedStringValidator {
 
         if ident == "min_len" {
             let _: Token![=] = input.parse()?;
-            let lit_int: syn::LitInt = input.parse()?;
-            let min_len: usize = lit_int
-                .to_string()
-                .parse::<usize>()
-                .map_err(|e| syn::Error::new(ident.span(), e.to_string()))?;
+            let (min_len, span) = parse_integer::<usize>(input)?;
             Ok(SpannedStringValidator {
                 item: StringValidator::MinLen(min_len),
-                span: lit_int.span(),
+                span,
             })
         } else if ident == "max_len" {
             let _: Token![=] = input.parse()?;
-            let lit_int: syn::LitInt = input.parse()?;
-            let max_len: usize = lit_int
-                .to_string()
-                .parse::<usize>()
-                .map_err(|e| syn::Error::new(ident.span(), e.to_string()))?;
+            let (max_len, span) = parse_integer::<usize>(input)?;
             Ok(SpannedStringValidator {
                 item: StringValidator::MaxLen(max_len),
-                span: lit_int.span(),
+                span,
             })
         } else if ident == "not_empty" {
             Ok(SpannedStringValidator {

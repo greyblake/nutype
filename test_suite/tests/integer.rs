@@ -176,8 +176,8 @@ mod types {
     #[test]
     fn test_u8_validate() {
         #[nutype(
-            sanitize(with = |n| n.clamp(0, 200))
-            validate(min = 18, max = 99)
+            sanitize(with = |n| n.clamp(0, 200)),
+            validate(min = 18, max = 99),
         )]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
         struct Age(u8);
@@ -299,8 +299,8 @@ mod types {
     #[test]
     fn test_i32_negative() {
         #[nutype(
-            sanitize(with = |n| n.clamp(-200, -5))
-            validate(min = -100, max = -50)
+            sanitize(with = |n| n.clamp(-200, -5)),
+            validate(min = -100, max = -50),
         )]
         #[derive(
             TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash,
@@ -598,10 +598,7 @@ mod traits {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(
-                validate(max = 20)
-                default = 13
-            )]
+            #[nutype(validate(max = 20), default = 13)]
             #[derive(Default)]
             pub struct Number(i8);
 
@@ -611,10 +608,7 @@ mod traits {
         #[test]
         #[should_panic(expected = "Default value for type Number is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(
-                validate(max = 20)
-                default = 21
-            )]
+            #[nutype(validate(max = 20), default = 21)]
             #[derive(Default)]
             pub struct Number(i16);
 
@@ -630,10 +624,7 @@ mod new_unchecked {
 
     #[test]
     fn test_new_unchecked() {
-        #[nutype(
-            new_unchecked
-            validate(min = 50)
-        )]
+        #[nutype(new_unchecked, validate(min = 50))]
         pub struct Dist(u32);
 
         let dist = unsafe { Dist::new_unchecked(3) };

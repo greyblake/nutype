@@ -1,7 +1,9 @@
-error: unexpected end of input, expected parentheses
- --> tests/ui/common/sanitize_without_parenthesis.rs:3:1
+error: `sanitize` must be used with parenthesis.
+       For example:
+
+           sanitize(trim)
+
+ --> tests/ui/common/sanitize_without_parenthesis.rs:3:10
   |
 3 | #[nutype(sanitize)]
-  | ^^^^^^^^^^^^^^^^^^^
-  |
-  = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
+  |          ^^^^^^^^

@@ -6,7 +6,9 @@ use proc_macro2::{Group, Ident, Span, TokenStream, TokenTree};
 use syn::{
     parenthesized,
     parse::{Parse, ParseStream},
-    Expr, Token,
+    spanned::Spanned,
+    token::Paren,
+    Expr, LitInt, Token,
 };
 
 use crate::{
@@ -425,15 +427,33 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
         while !input.is_empty() {
             let ident: Ident = input.parse()?;
             if ident == "sanitize" {
-                let content;
-                parenthesized!(content in input);
-                let items = content.parse_terminated(Sanitizer::parse, Token![,])?;
-                attrs.sanitizers = items.into_iter().collect();
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let items = content.parse_terminated(Sanitizer::parse, Token![,])?;
+                    attrs.sanitizers = items.into_iter().collect();
+                } else {
+                    let msg = concat!(
+                        "`sanitize` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    sanitize(trim)\n\n"
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
+                }
             } else if ident == "validate" {
-                let content;
-                parenthesized!(content in input);
-                let items = content.parse_terminated(Validator::parse, Token![,])?;
-                attrs.validators = items.into_iter().collect();
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let items = content.parse_terminated(Validator::parse, Token![,])?;
+                    attrs.validators = items.into_iter().collect();
+                } else {
+                    let msg = concat!(
+                        "`validate` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    validate(max = 99)\n\n"
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
+                }
             } else if ident == "default" {
                 let _eq: Token![=] = input.parse()?;
                 let default_expr: Expr = input.parse()?;
@@ -465,4 +485,30 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
 
         Ok(attrs)
     }
+}
+
+pub fn parse_integer<T: FromStr>(input: ParseStream) -> syn::Result<(T, Span)> {
+    parse_number::<T, LitInt>(input)
+}
+
+fn parse_number<T, Literal>(input: ParseStream) -> syn::Result<(T, Span)>
+where
+    T: FromStr,
+    Literal: Parse + ToString + Spanned,
+{
+    let mut number_str = String::with_capacity(16);
+    if input.peek(Token![-]) {
+        let _: Token![-] = input.parse()?;
+        number_str.push('-');
+    }
+
+    let lit: Literal = input.parse()?;
+    number_str.push_str(&lit.to_string().replace('_', ""));
+
+    let number: T = number_str.parse::<T>().map_err(|_err| {
+        let msg = format!("Expected {}, got `{}`", type_name::<T>(), number_str);
+        syn::Error::new(lit.span(), msg)
+    })?;
+
+    Ok((number, lit.span()))
 }
