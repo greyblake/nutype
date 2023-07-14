@@ -4,7 +4,7 @@ use proc_macro2::Span;
 
 use crate::common::models::Kind;
 use crate::{
-    common::models::{DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait},
+    common::models::{DeriveTrait, SpannedDeriveTrait},
     common::validate::validate_duplicates,
 };
 
@@ -121,23 +121,23 @@ pub fn validate_float_derive_traits<T>(
     let mut traits = HashSet::with_capacity(24);
 
     for spanned_trait in spanned_derive_traits.iter() {
-        match spanned_trait.item {
-            DeriveTrait::Normal(normal_trait) => {
-                let string_derive_trait =
-                    to_float_derive_trait(normal_trait, validation, spanned_trait.span)?;
-                traits.insert(string_derive_trait);
-            }
-        };
+        let normal_trait = spanned_trait.item;
+        let string_derive_trait =
+            to_float_derive_trait(normal_trait, validation, spanned_trait.span)?;
+        traits.insert(string_derive_trait);
     }
 
     // Get a span of a given trait, so we can render a better message below
     // when we validate inter trait dependencies.
-    let get_span_for = |needle: NormalDeriveTrait| -> Span {
+    let get_span_for = |needle: DeriveTrait| -> Span {
         spanned_derive_traits
             .iter()
-            .flat_map(|spanned_tr| match spanned_tr.item {
-                DeriveTrait::Normal(tr) if tr == needle => Some(spanned_tr.span),
-                DeriveTrait::Normal(_) => None,
+            .flat_map(|spanned_tr| {
+                if spanned_tr.item == needle {
+                    Some(spanned_tr.span)
+                } else {
+                    None
+                }
             })
             .next()
             .unwrap_or_else(Span::call_site)
@@ -146,17 +146,17 @@ pub fn validate_float_derive_traits<T>(
     // Validate inter trait dependencies
     //
     if traits.contains(&FloatDeriveTrait::Eq) && !traits.contains(&FloatDeriveTrait::PartialEq) {
-        let span = get_span_for(NormalDeriveTrait::Eq);
+        let span = get_span_for(DeriveTrait::Eq);
         let msg = "Trait Eq requires PartialEq.\nEvery expert was once a beginner.";
         return Err(syn::Error::new(span, msg));
     }
     if traits.contains(&FloatDeriveTrait::Ord) {
         if !traits.contains(&FloatDeriveTrait::PartialOrd) {
-            let span = get_span_for(NormalDeriveTrait::Ord);
+            let span = get_span_for(DeriveTrait::Ord);
             let msg = "Trait Ord requires PartialOrd.\nÜbung macht den Meister.";
             return Err(syn::Error::new(span, msg));
         } else if !traits.contains(&FloatDeriveTrait::Eq) {
-            let span = get_span_for(NormalDeriveTrait::Ord);
+            let span = get_span_for(DeriveTrait::Ord);
             let msg = "Trait Ord requires Eq.\nFestina lente.";
             return Err(syn::Error::new(span, msg));
         }
@@ -166,18 +166,18 @@ pub fn validate_float_derive_traits<T>(
 }
 
 fn to_float_derive_trait(
-    tr: NormalDeriveTrait,
+    tr: DeriveTrait,
     validation: ValidationInfo,
     span: Span,
 ) -> Result<FloatDeriveTrait, syn::Error> {
     match tr {
-        NormalDeriveTrait::Debug => Ok(FloatDeriveTrait::Debug),
-        NormalDeriveTrait::Display => Ok(FloatDeriveTrait::Display),
-        NormalDeriveTrait::Default => Ok(FloatDeriveTrait::Default),
-        NormalDeriveTrait::Clone => Ok(FloatDeriveTrait::Clone),
-        NormalDeriveTrait::PartialEq => Ok(FloatDeriveTrait::PartialEq),
-        NormalDeriveTrait::Into => Ok(FloatDeriveTrait::Into),
-        NormalDeriveTrait::Eq => {
+        DeriveTrait::Debug => Ok(FloatDeriveTrait::Debug),
+        DeriveTrait::Display => Ok(FloatDeriveTrait::Display),
+        DeriveTrait::Default => Ok(FloatDeriveTrait::Default),
+        DeriveTrait::Clone => Ok(FloatDeriveTrait::Clone),
+        DeriveTrait::PartialEq => Ok(FloatDeriveTrait::PartialEq),
+        DeriveTrait::Into => Ok(FloatDeriveTrait::Into),
+        DeriveTrait::Eq => {
             if validation.has_nan_validation {
                 Ok(FloatDeriveTrait::Eq)
             } else {
@@ -185,8 +185,8 @@ fn to_float_derive_trait(
                 Err(syn::Error::new(span, msg))
             }
         }
-        NormalDeriveTrait::PartialOrd => Ok(FloatDeriveTrait::PartialOrd),
-        NormalDeriveTrait::Ord => {
+        DeriveTrait::PartialOrd => Ok(FloatDeriveTrait::PartialOrd),
+        DeriveTrait::Ord => {
             if validation.has_nan_validation {
                 Ok(FloatDeriveTrait::Ord)
             } else {
@@ -194,25 +194,25 @@ fn to_float_derive_trait(
                 Err(syn::Error::new(span, msg))
             }
         }
-        NormalDeriveTrait::FromStr => Ok(FloatDeriveTrait::FromStr),
-        NormalDeriveTrait::AsRef => Ok(FloatDeriveTrait::AsRef),
-        NormalDeriveTrait::Deref => Ok(FloatDeriveTrait::Deref),
-        NormalDeriveTrait::Hash => Err(syn::Error::new(
+        DeriveTrait::FromStr => Ok(FloatDeriveTrait::FromStr),
+        DeriveTrait::AsRef => Ok(FloatDeriveTrait::AsRef),
+        DeriveTrait::Deref => Ok(FloatDeriveTrait::Deref),
+        DeriveTrait::Hash => Err(syn::Error::new(
             span,
             "#[nutype] cannot derive `Hash` trait for float types.",
         )),
-        NormalDeriveTrait::Borrow => Ok(FloatDeriveTrait::Borrow),
-        NormalDeriveTrait::Copy => Ok(FloatDeriveTrait::Copy),
-        NormalDeriveTrait::From => {
+        DeriveTrait::Borrow => Ok(FloatDeriveTrait::Borrow),
+        DeriveTrait::Copy => Ok(FloatDeriveTrait::Copy),
+        DeriveTrait::From => {
             if validation.has_validation {
                 Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
             } else {
                 Ok(FloatDeriveTrait::From)
             }
         }
-        NormalDeriveTrait::TryFrom => Ok(FloatDeriveTrait::TryFrom),
-        NormalDeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
-        NormalDeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),
-        NormalDeriveTrait::SchemarsJsonSchema => Ok(FloatDeriveTrait::SchemarsJsonSchema),
+        DeriveTrait::TryFrom => Ok(FloatDeriveTrait::TryFrom),
+        DeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
+        DeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),
+        DeriveTrait::SchemarsJsonSchema => Ok(FloatDeriveTrait::SchemarsJsonSchema),
     }
 }

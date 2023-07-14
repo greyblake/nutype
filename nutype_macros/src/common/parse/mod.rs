@@ -10,7 +10,7 @@ use syn::{
 };
 
 use crate::{
-    common::models::{DeriveTrait, NormalDeriveTrait, RawGuard, SpannedDeriveTrait},
+    common::models::{DeriveTrait, RawGuard, SpannedDeriveTrait},
     utils::match_feature,
 };
 
@@ -342,27 +342,27 @@ fn parse_token_into_derive_trait(
 }
 
 fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn::Error> {
-    let normal_derive_trait = match ident.to_string().as_ref() {
-        "Debug" => NormalDeriveTrait::Debug,
-        "Display" => NormalDeriveTrait::Display,
-        "Clone" => NormalDeriveTrait::Clone,
-        "Copy" => NormalDeriveTrait::Copy,
-        "PartialEq" => NormalDeriveTrait::PartialEq,
-        "Eq" => NormalDeriveTrait::Eq,
-        "PartialOrd" => NormalDeriveTrait::PartialOrd,
-        "Ord" => NormalDeriveTrait::Ord,
-        "FromStr" => NormalDeriveTrait::FromStr,
-        "AsRef" => NormalDeriveTrait::AsRef,
-        "Deref" => NormalDeriveTrait::Deref,
-        "TryFrom" => NormalDeriveTrait::TryFrom,
-        "From" => NormalDeriveTrait::From,
-        "Into" => NormalDeriveTrait::Into,
-        "Hash" => NormalDeriveTrait::Hash,
-        "Borrow" => NormalDeriveTrait::Borrow,
-        "Default" => NormalDeriveTrait::Default,
+    let derive_trait = match ident.to_string().as_ref() {
+        "Debug" => DeriveTrait::Debug,
+        "Display" => DeriveTrait::Display,
+        "Clone" => DeriveTrait::Clone,
+        "Copy" => DeriveTrait::Copy,
+        "PartialEq" => DeriveTrait::PartialEq,
+        "Eq" => DeriveTrait::Eq,
+        "PartialOrd" => DeriveTrait::PartialOrd,
+        "Ord" => DeriveTrait::Ord,
+        "FromStr" => DeriveTrait::FromStr,
+        "AsRef" => DeriveTrait::AsRef,
+        "Deref" => DeriveTrait::Deref,
+        "TryFrom" => DeriveTrait::TryFrom,
+        "From" => DeriveTrait::From,
+        "Into" => DeriveTrait::Into,
+        "Hash" => DeriveTrait::Hash,
+        "Borrow" => DeriveTrait::Borrow,
+        "Default" => DeriveTrait::Default,
         "Serialize" => {
             match_feature!("serde",
-                on => NormalDeriveTrait::SerdeSerialize,
+                on => DeriveTrait::SerdeSerialize,
                 off => {
                     return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
                 },
@@ -370,7 +370,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         }
         "Deserialize" => {
             match_feature!("serde",
-                on => NormalDeriveTrait::SerdeDeserialize,
+                on => DeriveTrait::SerdeDeserialize,
                 off => {
                     return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled."));
                 },
@@ -378,7 +378,7 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         }
         "JsonSchema" => {
             match_feature!("schemars08",
-                on => NormalDeriveTrait::SchemarsJsonSchema,
+                on => DeriveTrait::SchemarsJsonSchema,
                 off => {
                     return Err(syn::Error::new(ident.span(), "To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled."));
                 }
@@ -391,7 +391,6 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
             ));
         }
     };
-    let derive_trait = DeriveTrait::Normal(normal_derive_trait);
     let spanned_trait = SpannedDeriveTrait {
         item: derive_trait,
         span: ident.span(),

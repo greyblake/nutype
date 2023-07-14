@@ -198,13 +198,8 @@ pub struct RawGuard<Sanitizer, Validator> {
     pub validators: Vec<Validator>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum DeriveTrait {
-    Normal(NormalDeriveTrait),
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NormalDeriveTrait {
+pub enum DeriveTrait {
     // Standard library
     Debug,
     Clone,
