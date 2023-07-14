@@ -1,5 +1,5 @@
 error: Unexpected `!`
- --> tests/ui/string/derive/invalid_char.rs:4:20
+ --> tests/ui/string/derive/invalid_char.rs:4:17
   |
-4 | #[derive(Debug, *, !)]
-  |                    ^
+4 | #[derive(Debug, !)]
+  |                 ^

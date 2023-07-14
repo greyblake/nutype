@@ -81,21 +81,6 @@
 //!
 //! In that case, `Username::new(String)` simply returns `Username`, not `Result`.
 //!
-//! You can derive traits. A lot of traits! For example:
-//!
-//! ```
-//! use nutype::nutype;
-//!
-//! #[nutype]
-//! #[derive(*)]
-//! struct Username(String);
-//! ```
-//!
-//! The code above derives the following traits for `Username`: `Debug`, `Clone`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Hash`.
-//! `*` is just a syntax sugar for "derive whatever makes sense to derive by default", which is very subjective and opinionated. It's rather an experimental feature that was born
-//! from the fact that `#[nutype]` has to mess with `#[derive]` anyway because users are not supposed to be able to derive traits like `DerefMut` or `BorrowMut`.
-//! That would allow mutating the inner (protected) value which undermines the entire idea of nutype.
-//!
 //!
 //! ## Inner types
 //!
@@ -371,11 +356,8 @@ mod tests {
 
     #[test]
     fn test_email_example() {
-        #[nutype(
-             sanitize(trim, lowercase),
-             validate(not_empty),
-         )]
-        #[derive(*)]
+        #[nutype(sanitize(trim, lowercase), validate(not_empty))]
+        #[derive(TryFrom, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
         pub struct Email(String);
 
         let email = Email::new("  OH@my.example\n\n").unwrap();

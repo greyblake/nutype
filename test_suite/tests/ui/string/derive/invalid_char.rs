@@ -1,7 +1,7 @@
 use nutype::nutype;
 
 #[nutype(sanitize(trim))]
-#[derive(Debug, *, !)]
+#[derive(Debug, !)]
 struct Name(String);
 
 fn main() {}

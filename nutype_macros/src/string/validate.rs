@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use proc_macro2::Span;
 
 use crate::common::models::Kind;
-use crate::common::models::{DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait};
+use crate::common::models::{DeriveTrait, SpannedDeriveTrait};
 use crate::common::validate::validate_duplicates;
 use crate::string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator};
 
@@ -112,78 +112,49 @@ pub fn validate_string_derive_traits(
     let has_validation = guard.has_validation();
 
     for spanned_trait in spanned_derive_traits {
-        match spanned_trait.item {
-            DeriveTrait::Asterisk => {
-                traits.extend(unfold_asterisk_traits(has_validation));
-            }
-            DeriveTrait::Normal(normal_trait) => {
-                let string_derive_trait =
-                    to_string_derive_trait(normal_trait, has_validation, spanned_trait.span)?;
-                traits.insert(string_derive_trait);
-            }
-        };
+        let string_derive_trait =
+            to_string_derive_trait(spanned_trait.item, has_validation, spanned_trait.span)?;
+        traits.insert(string_derive_trait);
     }
 
     Ok(traits)
 }
 
-fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = StringDeriveTrait> {
-    let from_or_try_from = if has_validation {
-        StringDeriveTrait::TryFrom
-    } else {
-        StringDeriveTrait::From
-    };
-
-    [
-        from_or_try_from,
-        StringDeriveTrait::Debug,
-        StringDeriveTrait::Clone,
-        StringDeriveTrait::PartialEq,
-        StringDeriveTrait::Eq,
-        StringDeriveTrait::PartialOrd,
-        StringDeriveTrait::Ord,
-        StringDeriveTrait::FromStr,
-        StringDeriveTrait::AsRef,
-        StringDeriveTrait::Hash,
-    ]
-    .into_iter()
-}
-
 fn to_string_derive_trait(
-    tr: NormalDeriveTrait,
+    tr: DeriveTrait,
     has_validation: bool,
     span: Span,
 ) -> Result<StringDeriveTrait, syn::Error> {
     match tr {
-        NormalDeriveTrait::Debug => Ok(StringDeriveTrait::Debug),
-        NormalDeriveTrait::Display => Ok(StringDeriveTrait::Display),
-        NormalDeriveTrait::Default => Ok(StringDeriveTrait::Default),
-        NormalDeriveTrait::Clone => Ok(StringDeriveTrait::Clone),
-        NormalDeriveTrait::PartialEq => Ok(StringDeriveTrait::PartialEq),
-        NormalDeriveTrait::Eq => Ok(StringDeriveTrait::Eq),
-        NormalDeriveTrait::PartialOrd => Ok(StringDeriveTrait::PartialOrd),
-        NormalDeriveTrait::Ord => Ok(StringDeriveTrait::Ord),
-        NormalDeriveTrait::FromStr => Ok(StringDeriveTrait::FromStr),
-        NormalDeriveTrait::AsRef => Ok(StringDeriveTrait::AsRef),
-        NormalDeriveTrait::Deref => Ok(StringDeriveTrait::Deref),
-        NormalDeriveTrait::Hash => Ok(StringDeriveTrait::Hash),
-        NormalDeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
-        NormalDeriveTrait::Into => Ok(StringDeriveTrait::Into),
-        NormalDeriveTrait::SerdeSerialize => Ok(StringDeriveTrait::SerdeSerialize),
-        NormalDeriveTrait::SerdeDeserialize => Ok(StringDeriveTrait::SerdeDeserialize),
-        NormalDeriveTrait::SchemarsJsonSchema => Ok(StringDeriveTrait::SchemarsJsonSchema),
-        NormalDeriveTrait::Copy => Err(syn::Error::new(
+        DeriveTrait::Debug => Ok(StringDeriveTrait::Debug),
+        DeriveTrait::Display => Ok(StringDeriveTrait::Display),
+        DeriveTrait::Default => Ok(StringDeriveTrait::Default),
+        DeriveTrait::Clone => Ok(StringDeriveTrait::Clone),
+        DeriveTrait::PartialEq => Ok(StringDeriveTrait::PartialEq),
+        DeriveTrait::Eq => Ok(StringDeriveTrait::Eq),
+        DeriveTrait::PartialOrd => Ok(StringDeriveTrait::PartialOrd),
+        DeriveTrait::Ord => Ok(StringDeriveTrait::Ord),
+        DeriveTrait::FromStr => Ok(StringDeriveTrait::FromStr),
+        DeriveTrait::AsRef => Ok(StringDeriveTrait::AsRef),
+        DeriveTrait::Deref => Ok(StringDeriveTrait::Deref),
+        DeriveTrait::Hash => Ok(StringDeriveTrait::Hash),
+        DeriveTrait::Borrow => Ok(StringDeriveTrait::Borrow),
+        DeriveTrait::Into => Ok(StringDeriveTrait::Into),
+        DeriveTrait::SerdeSerialize => Ok(StringDeriveTrait::SerdeSerialize),
+        DeriveTrait::SerdeDeserialize => Ok(StringDeriveTrait::SerdeDeserialize),
+        DeriveTrait::SchemarsJsonSchema => Ok(StringDeriveTrait::SchemarsJsonSchema),
+        DeriveTrait::Copy => Err(syn::Error::new(
             span,
             "Copy trait cannot be derived for a String based type",
         )),
-        NormalDeriveTrait::From => {
+        DeriveTrait::From => {
             if has_validation {
                 Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
             } else {
                 Ok(StringDeriveTrait::From)
             }
         }
-        NormalDeriveTrait::TryFrom => Ok(StringDeriveTrait::TryFrom),
+        DeriveTrait::TryFrom => Ok(StringDeriveTrait::TryFrom),
     }
 }
 

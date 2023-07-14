@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use proc_macro2::Span;
 
 use crate::{
-    common::models::{DeriveTrait, NormalDeriveTrait, SpannedDeriveTrait},
+    common::models::{DeriveTrait, SpannedDeriveTrait},
     common::validate::validate_duplicates,
 };
 
@@ -92,70 +92,40 @@ pub fn validate_integer_derive_traits(
     let mut traits = HashSet::with_capacity(24);
 
     for spanned_trait in spanned_derive_traits {
-        match spanned_trait.item {
-            DeriveTrait::Asterisk => {
-                traits.extend(unfold_asterisk_traits(has_validation));
-            }
-            DeriveTrait::Normal(normal_trait) => {
-                let string_derive_trait =
-                    to_integer_derive_trait(normal_trait, has_validation, spanned_trait.span)?;
-                traits.insert(string_derive_trait);
-            }
-        };
+        let string_derive_trait =
+            to_integer_derive_trait(spanned_trait.item, has_validation, spanned_trait.span)?;
+        traits.insert(string_derive_trait);
     }
 
     Ok(traits)
 }
 
-fn unfold_asterisk_traits(has_validation: bool) -> impl Iterator<Item = IntegerDeriveTrait> {
-    let from_or_try_from = if has_validation {
-        IntegerDeriveTrait::TryFrom
-    } else {
-        IntegerDeriveTrait::From
-    };
-
-    [
-        from_or_try_from,
-        IntegerDeriveTrait::Debug,
-        IntegerDeriveTrait::Clone,
-        IntegerDeriveTrait::Copy,
-        IntegerDeriveTrait::PartialEq,
-        IntegerDeriveTrait::Eq,
-        IntegerDeriveTrait::PartialOrd,
-        IntegerDeriveTrait::Ord,
-        IntegerDeriveTrait::FromStr,
-        IntegerDeriveTrait::AsRef,
-        IntegerDeriveTrait::Hash,
-    ]
-    .into_iter()
-}
-
 fn to_integer_derive_trait(
-    tr: NormalDeriveTrait,
+    tr: DeriveTrait,
     has_validation: bool,
     span: Span,
 ) -> Result<IntegerDeriveTrait, syn::Error> {
     match tr {
-        NormalDeriveTrait::Debug => Ok(IntegerDeriveTrait::Debug),
-        NormalDeriveTrait::Display => Ok(IntegerDeriveTrait::Display),
-        NormalDeriveTrait::Default => Ok(IntegerDeriveTrait::Default),
-        NormalDeriveTrait::Clone => Ok(IntegerDeriveTrait::Clone),
-        NormalDeriveTrait::PartialEq => Ok(IntegerDeriveTrait::PartialEq),
-        NormalDeriveTrait::Eq => Ok(IntegerDeriveTrait::Eq),
-        NormalDeriveTrait::PartialOrd => Ok(IntegerDeriveTrait::PartialOrd),
-        NormalDeriveTrait::Ord => Ok(IntegerDeriveTrait::Ord),
-        NormalDeriveTrait::Into => Ok(IntegerDeriveTrait::Into),
-        NormalDeriveTrait::FromStr => Ok(IntegerDeriveTrait::FromStr),
-        NormalDeriveTrait::AsRef => Ok(IntegerDeriveTrait::AsRef),
-        NormalDeriveTrait::Deref => Ok(IntegerDeriveTrait::Deref),
-        NormalDeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),
-        NormalDeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
-        NormalDeriveTrait::Copy => Ok(IntegerDeriveTrait::Copy),
-        NormalDeriveTrait::SerdeSerialize => Ok(IntegerDeriveTrait::SerdeSerialize),
-        NormalDeriveTrait::SerdeDeserialize => Ok(IntegerDeriveTrait::SerdeDeserialize),
-        NormalDeriveTrait::SchemarsJsonSchema => Ok(IntegerDeriveTrait::SchemarsJsonSchema),
-        NormalDeriveTrait::TryFrom => Ok(IntegerDeriveTrait::TryFrom),
-        NormalDeriveTrait::From => {
+        DeriveTrait::Debug => Ok(IntegerDeriveTrait::Debug),
+        DeriveTrait::Display => Ok(IntegerDeriveTrait::Display),
+        DeriveTrait::Default => Ok(IntegerDeriveTrait::Default),
+        DeriveTrait::Clone => Ok(IntegerDeriveTrait::Clone),
+        DeriveTrait::PartialEq => Ok(IntegerDeriveTrait::PartialEq),
+        DeriveTrait::Eq => Ok(IntegerDeriveTrait::Eq),
+        DeriveTrait::PartialOrd => Ok(IntegerDeriveTrait::PartialOrd),
+        DeriveTrait::Ord => Ok(IntegerDeriveTrait::Ord),
+        DeriveTrait::Into => Ok(IntegerDeriveTrait::Into),
+        DeriveTrait::FromStr => Ok(IntegerDeriveTrait::FromStr),
+        DeriveTrait::AsRef => Ok(IntegerDeriveTrait::AsRef),
+        DeriveTrait::Deref => Ok(IntegerDeriveTrait::Deref),
+        DeriveTrait::Hash => Ok(IntegerDeriveTrait::Hash),
+        DeriveTrait::Borrow => Ok(IntegerDeriveTrait::Borrow),
+        DeriveTrait::Copy => Ok(IntegerDeriveTrait::Copy),
+        DeriveTrait::SerdeSerialize => Ok(IntegerDeriveTrait::SerdeSerialize),
+        DeriveTrait::SerdeDeserialize => Ok(IntegerDeriveTrait::SerdeDeserialize),
+        DeriveTrait::SchemarsJsonSchema => Ok(IntegerDeriveTrait::SchemarsJsonSchema),
+        DeriveTrait::TryFrom => Ok(IntegerDeriveTrait::TryFrom),
+        DeriveTrait::From => {
             if has_validation {
                 Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
             } else {

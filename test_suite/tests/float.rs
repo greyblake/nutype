@@ -55,7 +55,7 @@ mod validators {
     #[test]
     fn test_min() {
         #[nutype(validate(min = 18.0))]
-        #[derive(*)]
+        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
         struct Age(f32);
 
         assert_eq!(Age::new(17.0).unwrap_err(), AgeError::TooSmall);
@@ -65,7 +65,7 @@ mod validators {
     #[test]
     fn test_max() {
         #[nutype(validate(max = 99.0))]
-        #[derive(*)]
+        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
         struct Age(f32);
 
         assert_eq!(Age::new(100.0).unwrap_err(), AgeError::TooBig);
@@ -75,7 +75,7 @@ mod validators {
     #[test]
     fn test_min_and_max() {
         #[nutype(validate(min = 18.0, max = 99.0))]
-        #[derive(*)]
+        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
         struct Age(f32);
 
         assert_eq!(Age::new(17.9).unwrap_err(), AgeError::TooSmall);
@@ -105,7 +105,7 @@ mod validators {
     #[test]
     fn test_finite_f32() {
         #[nutype(validate(finite))]
-        #[derive(*)]
+        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
         struct Dist(f32);
 
         // invalid
@@ -125,7 +125,7 @@ mod validators {
         #[test]
         fn test_with_closure_with_explicit_type() {
             #[nutype(validate(with = |&c: &f32| (0.0..=100.0).contains(&c) ))]
-            #[derive(*)]
+            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -137,7 +137,7 @@ mod validators {
         #[test]
         fn test_closure_with_no_type() {
             #[nutype(validate(with = |&c| (0.0..=100.0).contains(&c) ))]
-            #[derive(*)]
+            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -153,7 +153,7 @@ mod validators {
         #[test]
         fn test_with_function() {
             #[nutype(validate(with = is_cent_valid))]
-            #[derive(*)]
+            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -166,7 +166,7 @@ mod validators {
     #[test]
     fn test_try_from_trait() {
         #[nutype(validate(min = 18.0))]
-        #[derive(*)]
+        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
         struct Age(f64);
 
         assert_eq!(Age::try_from(17.9).unwrap_err(), AgeError::TooSmall);
@@ -189,7 +189,7 @@ mod validators {
         #[test]
         fn test_error_display() {
             #[nutype(validate(min = 0.0))]
-            #[derive(*)]
+            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
             struct Percentage(f64);
 
             let err = Percentage::try_from(-0.1).unwrap_err();
@@ -236,7 +236,7 @@ mod types {
             sanitize(with = |n| n.clamp(-200.25, -5.0))
             validate(min = -100.25, max = -50.1)
         )]
-        #[derive(*)]
+        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
         pub struct Balance(f64);
 
         assert_eq!(Balance::new(-300.0), Err(BalanceError::TooSmall));
@@ -424,19 +424,6 @@ mod traits {
         assert_eq!(size1, size2);
     }
 
-    #[test]
-    fn test_trait_eq_with_asterisk() {
-        #[nutype(validate(finite))]
-        #[derive(*)]
-        pub struct Size(f32);
-
-        should_implement_eq::<Size>();
-
-        let size1 = Size::new(35.7).unwrap();
-        let size2 = Size::new(357.0 / 10.0).unwrap();
-        assert_eq!(size1, size2);
-    }
-
     #[cfg(test)]
     mod tests {
         use super::*;
@@ -462,21 +449,6 @@ mod traits {
             #[nutype(validate(finite))]
             #[derive(PartialEq, Eq, PartialOrd, Ord)]
             pub struct Size(f64);
-
-            let a: Size = Size::new(2.5).unwrap();
-            let b: Size = Size::new(3.3).unwrap();
-            let c: Size = Size::new(3.3).unwrap();
-
-            assert_eq!(a.cmp(&b), Ordering::Less);
-            assert_eq!(b.cmp(&a), Ordering::Greater);
-            assert_eq!(b.cmp(&c), Ordering::Equal);
-        }
-
-        #[test]
-        fn test_trait_ord_with_asterisk() {
-            #[nutype(validate(finite))]
-            #[derive(*)]
-            pub struct Size(f32);
 
             let a: Size = Size::new(2.5).unwrap();
             let b: Size = Size::new(3.3).unwrap();
