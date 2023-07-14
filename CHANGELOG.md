@@ -1,4 +1,4 @@
-### v0.3.2 - 2023-06-30
+### v0.3.2 - 2023-07-14
 * [BREAKING] Removal of asterisk derive
 
 ### v0.3.1 - 2023-06-30
