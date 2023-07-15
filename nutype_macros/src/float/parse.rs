@@ -1,14 +1,14 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
-use crate::common::{
-    models::Attributes,
-    parse::{
-        is_comma, parse_nutype_attributes, parse_value_as_number, parse_with_token_stream,
-        split_and_parse,
-    },
-};
-use proc_macro2::{Span, TokenStream, TokenTree};
+use crate::common::parse::parse_number;
+use crate::common::{models::Attributes, parse::ParseableAttributes};
+use proc_macro2::{Ident, TokenStream};
+use quote::quote;
+use syn::parse::{Parse, ParseStream};
+use syn::spanned::Spanned;
+use syn::Expr;
+use syn::Token;
 
 use super::{
     models::{
@@ -21,14 +21,22 @@ use super::{
 pub fn parse_attributes<T>(input: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Debug + Display,
 {
-    let raw_attrs = parse_raw_attributes(input)?;
-    let Attributes {
+    let attrs: ParseableAttributes<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>> =
+        syn::parse2(input)?;
+
+    let ParseableAttributes {
+        sanitizers,
+        validators,
         new_unchecked,
-        guard: raw_guard,
-        maybe_default_value,
-    } = raw_attrs;
+        default,
+    } = attrs;
+    let maybe_default_value = default.map(|expr| quote!(#expr));
+    let raw_guard = FloatRawGuard {
+        sanitizers,
+        validators,
+    };
     let guard = validate_number_meta(raw_guard)?;
     Ok(Attributes {
         new_unchecked,
@@ -37,114 +45,66 @@ where
     })
 }
 
-fn parse_raw_attributes<T>(input: TokenStream) -> Result<Attributes<FloatRawGuard<T>>, syn::Error>
+impl<T> Parse for SpannedFloatValidator<T>
 where
     T: FromStr,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Display,
 {
-    parse_nutype_attributes(parse_sanitize_attrs, parse_validate_attrs)(input)
-}
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident: Ident = input.parse()?;
 
-fn parse_sanitize_attrs<T>(stream: TokenStream) -> Result<Vec<SpannedFloatSanitizer<T>>, syn::Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_sanitize_attr)
-}
-
-fn parse_sanitize_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedFloatSanitizer<T>, syn::Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    let mut token_iter = tokens.iter();
-    let token = token_iter.next();
-    if let Some(TokenTree::Ident(ident)) = token {
-        match ident.to_string().as_ref() {
-            "with" => {
-                // Preserve the rest as `custom_sanitizer_fn`
-                let stream = parse_with_token_stream(token_iter, ident.span())?;
-                let span = ident.span();
-                let sanitizer = FloatSanitizer::With(stream);
-                Ok(SpannedFloatSanitizer {
-                    span,
-                    item: sanitizer,
-                })
-            }
-            unknown_sanitizer => {
-                let msg = format!("Unknown sanitizer `{unknown_sanitizer}`");
-                let error = syn::Error::new(ident.span(), msg);
-                Err(error)
-            }
+        if ident == "min" {
+            let _eq: Token![=] = input.parse()?;
+            let (number, span) = parse_number::<T>(input)?;
+            Ok(SpannedFloatValidator {
+                item: FloatValidator::Min(number as T),
+                span,
+            })
+        } else if ident == "max" {
+            let _eq: Token![=] = input.parse()?;
+            let (number, span) = parse_number::<T>(input)?;
+            Ok(SpannedFloatValidator {
+                item: FloatValidator::Max(number as T),
+                span,
+            })
+        } else if ident == "with" {
+            let _eq: Token![=] = input.parse()?;
+            let expr: Expr = input.parse()?;
+            Ok(SpannedFloatValidator {
+                item: FloatValidator::With(quote!(#expr)),
+                span: expr.span(),
+            })
+        } else if ident == "finite" {
+            let validator = FloatValidator::Finite;
+            Ok(SpannedFloatValidator {
+                item: validator,
+                span: ident.span(),
+            })
+        } else {
+            let msg = format!("Unknown validator `{ident}`");
+            Err(syn::Error::new(ident.span(), msg))
         }
-    } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
     }
 }
 
-fn parse_validate_attrs<T>(stream: TokenStream) -> Result<Vec<SpannedFloatValidator<T>>, syn::Error>
+impl<T> Parse for SpannedFloatSanitizer<T>
 where
     T: FromStr,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Display,
 {
-    let tokens: Vec<TokenTree> = stream.into_iter().collect();
-    split_and_parse(tokens, is_comma, parse_validate_attr)
-}
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident: Ident = input.parse()?;
 
-fn parse_validate_attr<T>(tokens: Vec<TokenTree>) -> Result<SpannedFloatValidator<T>, syn::Error>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    let mut token_iter = tokens.into_iter();
-    let token = token_iter.next();
-    if let Some(TokenTree::Ident(ident)) = token {
-        match ident.to_string().as_ref() {
-            "min" => {
-                let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = FloatValidator::Min(value);
-                let parsed_validator = SpannedFloatValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
-                Ok(parsed_validator)
-            }
-            "max" => {
-                let (value, _iter) = parse_value_as_number(token_iter)?;
-                let validator = FloatValidator::Max(value);
-                let parsed_validator = SpannedFloatValidator {
-                    span: ident.span(),
-                    item: validator,
-                };
-                Ok(parsed_validator)
-            }
-            "with" => {
-                let rest_tokens: Vec<_> = token_iter.collect();
-                let stream = parse_with_token_stream(rest_tokens.iter(), ident.span())?;
-                let span = ident.span();
-                let validator = FloatValidator::With(stream);
-                Ok(SpannedFloatValidator {
-                    span,
-                    item: validator,
-                })
-            }
-            "finite" => {
-                let validator = FloatValidator::Finite;
-                let parsed_validator = SpannedFloatValidator {
-                    item: validator,
-                    span: ident.span(),
-                };
-                Ok(parsed_validator)
-            }
-            unknown_validator => {
-                let msg = format!("Unknown validation rule `{unknown_validator}`");
-                let error = syn::Error::new(ident.span(), msg);
-                Err(error)
-            }
+        if ident == "with" {
+            let _eq: Token![=] = input.parse()?;
+            let expr: Expr = input.parse()?;
+            Ok(SpannedFloatSanitizer {
+                item: FloatSanitizer::With(quote!(#expr)),
+                span: expr.span(),
+            })
+        } else {
+            let msg = format!("Unknown sanitizer `{ident}`");
+            Err(syn::Error::new(ident.span(), msg))
         }
-    } else {
-        Err(syn::Error::new(Span::call_site(), "Invalid syntax."))
     }
 }
