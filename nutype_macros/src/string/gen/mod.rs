@@ -3,7 +3,7 @@ pub mod traits;
 
 use std::collections::HashSet;
 
-use proc_macro2::{Ident, Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::quote;
 use syn::Attribute;
 
@@ -12,7 +12,6 @@ use crate::{
         gen::{
             error::gen_error_type_name, gen_impl_into_inner, gen_module_name_for_type,
             gen_reimports, new_unchecked::gen_new_unchecked, traits::GeneratedTraits,
-            type_custom_closure,
         },
         models::{ErrorTypeName, InnerType, NewUnchecked, TypeName},
     },
@@ -161,12 +160,9 @@ pub fn gen_string_sanitize_fn(sanitizers: &[StringSanitizer]) -> TokenStream {
                     let value: String = value.to_uppercase();
                 )
             }
-            StringSanitizer::With(custom_sanitizer_token_stream) => {
-                let tp = Ident::new("String", Span::call_site());
-                let tp = quote!(#tp);
-                let custom_sanitizer = type_custom_closure(custom_sanitizer_token_stream, tp);
+            StringSanitizer::With(typed_custom_function) => {
                 quote!(
-                    let value: String = (#custom_sanitizer)(value);
+                    let value: String = (#typed_custom_function)(value);
                 )
             }
         })
@@ -213,11 +209,9 @@ pub fn gen_string_validate_fn(type_name: &TypeName, validators: &[StringValidato
                     }
                 )
             }
-            StringValidator::With(is_valid_fn) => {
-                let tp = quote!(&str);
-                let is_valid_fn = type_custom_closure(is_valid_fn, tp);
+            StringValidator::With(typed_custom_function) => {
                 quote!(
-                    if !(#is_valid_fn)(&val) {
+                    if !(#typed_custom_function)(&val) {
                         return Err(#error_name::Invalid);
                     }
                 )
