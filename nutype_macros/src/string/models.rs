@@ -1,7 +1,5 @@
-use proc_macro2::TokenStream;
-
 use crate::{
-    common::models::{Guard, RawGuard},
+    common::models::{Guard, RawGuard, TypedCustomFunction},
     common::models::{Kind, SpannedItem},
 };
 
@@ -14,7 +12,7 @@ pub enum StringSanitizer {
     Trim,
     Lowercase,
     Uppercase,
-    With(TokenStream),
+    With(TypedCustomFunction),
 }
 
 impl Kind for StringSanitizer {
@@ -59,7 +57,7 @@ pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
     NotEmpty,
-    With(TokenStream),
+    With(TypedCustomFunction),
     #[cfg_attr(not(feature = "regex"), allow(dead_code))]
     Regex(RegexDef),
 }

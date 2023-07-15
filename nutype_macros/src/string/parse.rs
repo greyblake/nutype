@@ -1,5 +1,5 @@
 use crate::common::models::{Attributes, SpannedItem};
-use crate::common::parse::{parse_number, ParseableAttributes};
+use crate::common::parse::{parse_number, parse_typed_custom_function_raw, ParseableAttributes};
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
@@ -8,7 +8,7 @@ use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::{Expr, LitStr, Path, Token};
+use syn::{LitStr, Path, Token};
 
 use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
 use super::validate::validate_string_meta;
@@ -57,10 +57,10 @@ impl Parse for SpannedStringSanitizer {
             })
         } else if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let expr: Expr = input.parse()?;
+            let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "String")?;
             Ok(SpannedStringSanitizer {
-                item: StringSanitizer::With(quote!(#expr)),
-                span: expr.span(),
+                item: StringSanitizer::With(typed_custom_function),
+                span,
             })
         } else {
             let msg = format!("Unknown sanitizer `{ident}`");
@@ -94,10 +94,10 @@ impl Parse for SpannedStringValidator {
             })
         } else if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let expr: Expr = input.parse()?;
+            let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "&str")?;
             Ok(SpannedStringValidator {
-                item: StringValidator::With(quote!(#expr)),
-                span: expr.span(),
+                item: StringValidator::With(typed_custom_function),
+                span,
             })
         } else if ident == "regex" {
             match_feature!("regex",

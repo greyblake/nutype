@@ -3,10 +3,13 @@ use std::fmt::Debug;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::Attribute;
+use syn::parse::{Parse, ParseStream};
+use syn::{Attribute, ExprClosure, Path};
 
 use crate::float::models::FloatInnerType;
 use crate::integer::models::IntegerInnerType;
+
+use super::gen::type_custom_closure;
 
 /// A trait that may be implemented by enums with payload.
 /// It's mostly used to detect duplicates of validators and sanitizers regardless of their payload.
@@ -298,5 +301,79 @@ pub trait Newtype {
             maybe_default_value,
         });
         Ok(generated_output)
+    }
+}
+
+/// Represents a function that is used for custom sanitizers and validators specified
+/// with `with =`.
+/// It can be either pass to an existing function or a closure.
+#[derive(Debug, Clone)]
+pub enum CustomFunction {
+    Path(Path),
+    Closure(ExprClosure),
+}
+
+impl Parse for CustomFunction {
+    fn parse(input: ParseStream) -> syn::Result<CustomFunction> {
+        if let Ok(path) = input.parse::<Path>() {
+            Ok(Self::Path(path))
+        } else if let Ok(closure) = input.parse::<ExprClosure>() {
+            Ok(Self::Closure(closure))
+        } else {
+            let msg = "Expected a path to function or a closure.";
+            Err(syn::Error::new(input.span(), msg))
+        }
+    }
+}
+
+impl CustomFunction {
+    pub fn try_into_typed(self, inner_type: &syn::Type) -> syn::Result<TypedCustomFunction> {
+        match self {
+            CustomFunction::Path(path) => Ok(TypedCustomFunction::Path(path)),
+            CustomFunction::Closure(closure) => {
+                // NOTE: this is a bit hacky, we're converting things to TokenStream and back.
+                let input_token_stream = quote!(#closure);
+                let output_token_stream = type_custom_closure(&input_token_stream, inner_type);
+                let typed_closure: ExprClosure = syn::parse2(output_token_stream)?;
+                Ok(TypedCustomFunction::Closure(typed_closure))
+            }
+        }
+    }
+}
+
+impl ToTokens for CustomFunction {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        match self {
+            CustomFunction::Path(path) => {
+                path.to_tokens(token_stream);
+            }
+            CustomFunction::Closure(closure) => {
+                closure.to_tokens(token_stream);
+            }
+        };
+    }
+}
+
+/// Represents a function that is used for custom sanitizers and validators specified
+/// with `with =`.
+/// It's almost the same as CustomFunction with one important difference:
+/// TypedCustomFunction is guaranteed to have arguments in closure to be typed.
+/// While CustomFunction is used for parsing, TypedCustomFunction is used for code generation.
+#[derive(Debug, Clone)]
+pub enum TypedCustomFunction {
+    Path(Path),
+    Closure(ExprClosure),
+}
+
+impl ToTokens for TypedCustomFunction {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        match self {
+            Self::Path(path) => {
+                path.to_tokens(token_stream);
+            }
+            Self::Closure(closure) => {
+                closure.to_tokens(token_stream);
+            }
+        };
     }
 }

@@ -6,6 +6,7 @@ use proc_macro2::{Ident, Span, TokenTree};
 use syn::{
     parenthesized,
     parse::{Parse, ParseStream},
+    spanned::Spanned,
     token::Paren,
     Expr, Lit, Token,
 };
@@ -15,7 +16,7 @@ use crate::{
     utils::match_feature,
 };
 
-use super::models::NewUnchecked;
+use super::models::{CustomFunction, NewUnchecked, TypedCustomFunction};
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
     match attribute.path().segments.first() {
@@ -266,4 +267,24 @@ where
     })?;
 
     Ok((number, lit.span()))
+}
+
+// NOTE: This is a quite hacky way to obtain a syn::Type from `T`.
+// Is there a better way?
+pub fn parse_typed_custom_function<T>(
+    input: ParseStream,
+) -> syn::Result<(TypedCustomFunction, Span)> {
+    let tp_str = std::any::type_name::<T>();
+    parse_typed_custom_function_raw(input, tp_str)
+}
+
+pub fn parse_typed_custom_function_raw(
+    input: ParseStream,
+    tp_str: &'static str,
+) -> syn::Result<(TypedCustomFunction, Span)> {
+    let custom_function: CustomFunction = input.parse()?;
+    let span = custom_function.span();
+    let tp: syn::Type = syn::parse_str(tp_str)?;
+    let typed_custom_function = custom_function.try_into_typed(&tp)?;
+    Ok((typed_custom_function, span))
 }

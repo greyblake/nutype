@@ -2,15 +2,11 @@ use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 use crate::common::models::Attributes;
-use crate::common::parse::{parse_number, ParseableAttributes};
+use crate::common::parse::{parse_number, parse_typed_custom_function, ParseableAttributes};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::spanned::Spanned;
+use syn::parse::{Parse, ParseStream};
 use syn::Token;
-use syn::{
-    parse::{Parse, ParseStream},
-    Expr,
-};
 
 use super::{
     models::{
@@ -71,10 +67,10 @@ where
             })
         } else if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let expr: Expr = input.parse()?;
+            let (typed_custom_function, span) = parse_typed_custom_function::<&T>(input)?;
             Ok(SpannedIntegerValidator {
-                item: IntegerValidator::With(quote!(#expr)),
-                span: expr.span(),
+                item: IntegerValidator::With(typed_custom_function),
+                span,
             })
         } else {
             let msg = format!("Unknown validator `{ident}`");
@@ -93,10 +89,10 @@ where
 
         if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let expr: Expr = input.parse()?;
+            let (typed_custom_function, span) = parse_typed_custom_function::<T>(input)?;
             Ok(SpannedIntegerSanitizer {
-                item: IntegerSanitizer::With(quote!(#expr)),
-                span: expr.span(),
+                item: IntegerSanitizer::With(typed_custom_function),
+                span,
             })
         } else {
             let msg = format!("Unknown sanitizer `{ident}`");

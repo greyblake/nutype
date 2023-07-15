@@ -1,13 +1,11 @@
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
-use crate::common::parse::parse_number;
+use crate::common::parse::{parse_number, parse_typed_custom_function};
 use crate::common::{models::Attributes, parse::ParseableAttributes};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
-use syn::Expr;
 use syn::Token;
 
 use super::{
@@ -69,10 +67,10 @@ where
             })
         } else if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let expr: Expr = input.parse()?;
+            let (typed_custom_function, span) = parse_typed_custom_function::<&T>(input)?;
             Ok(SpannedFloatValidator {
-                item: FloatValidator::With(quote!(#expr)),
-                span: expr.span(),
+                item: FloatValidator::With(typed_custom_function),
+                span,
             })
         } else if ident == "finite" {
             let validator = FloatValidator::Finite;
@@ -97,10 +95,10 @@ where
 
         if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let expr: Expr = input.parse()?;
+            let (typed_custom_function, span) = parse_typed_custom_function::<T>(input)?;
             Ok(SpannedFloatSanitizer {
-                item: FloatSanitizer::With(quote!(#expr)),
-                span: expr.span(),
+                item: FloatSanitizer::With(typed_custom_function),
+                span,
             })
         } else {
             let msg = format!("Unknown sanitizer `{ident}`");

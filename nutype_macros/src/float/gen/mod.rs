@@ -13,7 +13,7 @@ use crate::{
     common::gen::{
         error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
         new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name,
-        traits::GeneratedTraits, type_custom_closure,
+        traits::GeneratedTraits,
     },
     common::{
         gen::gen_impl_into_inner,
@@ -175,8 +175,7 @@ where
     let transformations: TokenStream = sanitizers
         .iter()
         .map(|san| match san {
-            FloatSanitizer::With(token_stream) => {
-                let custom_sanitizer = type_custom_closure(token_stream, inner_type);
+            FloatSanitizer::With(custom_sanitizer) => {
                 quote!(
                     value = (#custom_sanitizer)(value);
                 )
@@ -222,11 +221,9 @@ where
                     }
                 )
             }
-            FloatValidator::With(is_valid_fn) => {
-                let inner_type_ref = quote!(&#inner_type);
-                let is_valid_fn = type_custom_closure(is_valid_fn, inner_type_ref);
+            FloatValidator::With(custom_is_valid_fn) => {
                 quote!(
-                    if !(#is_valid_fn)(&val) {
+                    if !(#custom_is_valid_fn)(&val) {
                         return Err(#error_name::Invalid);
                     }
                 )

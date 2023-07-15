@@ -1,7 +1,8 @@
 use nutype::nutype;
 
-#[nutype(sanitize(), validate(min = 10, max = 2_000))]
+#[nutype(validate(with = |x| x.is_empty() ))]
+// #[nutype(sanitize(with = trim_name ))]
 #[derive(Debug)]
-pub struct Amount(i32);
+pub struct Name(String);
 
 fn main() {}
