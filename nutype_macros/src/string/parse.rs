@@ -1,5 +1,5 @@
 use crate::common::models::{Attributes, SpannedItem};
-use crate::common::parse::{parse_integer, ParseableAttributes};
+use crate::common::parse::{parse_number, ParseableAttributes};
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
@@ -75,14 +75,14 @@ impl Parse for SpannedStringValidator {
 
         if ident == "min_len" {
             let _: Token![=] = input.parse()?;
-            let (min_len, span) = parse_integer::<usize>(input)?;
+            let (min_len, span) = parse_number::<usize>(input)?;
             Ok(SpannedStringValidator {
                 item: StringValidator::MinLen(min_len),
                 span,
             })
         } else if ident == "max_len" {
             let _: Token![=] = input.parse()?;
-            let (max_len, span) = parse_integer::<usize>(input)?;
+            let (max_len, span) = parse_number::<usize>(input)?;
             Ok(SpannedStringValidator {
                 item: StringValidator::MaxLen(max_len),
                 span,

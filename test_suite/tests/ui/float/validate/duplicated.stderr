@@ -1,6 +1,6 @@
 error: Duplicated validator `max`.
        You're a great engineer, but don't forget to take care of yourself!
- --> tests/ui/float/validate/duplicated.rs:3:28
+ --> tests/ui/float/validate/duplicated.rs:3:34
   |
 3 | #[nutype(validate(max = 0, max = 0))]
-  |                            ^^^
+  |                                  ^
