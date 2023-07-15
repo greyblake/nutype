@@ -1,12 +1,11 @@
 use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
-use crate::common::models::{Attributes, CustomFunction};
-use crate::common::parse::{parse_number, ParseableAttributes};
+use crate::common::models::Attributes;
+use crate::common::parse::{parse_number, parse_typed_custom_function, ParseableAttributes};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
 use syn::Token;
 
 use super::{
@@ -68,13 +67,7 @@ where
             })
         } else if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let custom_function: CustomFunction = input.parse()?;
-            let span = custom_function.span();
-            // NOTE: this is a hacky way to convert `T` into `syn::Type`
-            // Is there a better way?
-            let tp_str = format!("&{}", std::any::type_name::<T>());
-            let tp: syn::Type = syn::parse_str(&tp_str)?;
-            let typed_custom_function = custom_function.try_into_typed(&tp)?;
+            let (typed_custom_function, span) = parse_typed_custom_function::<&T>(input)?;
             Ok(SpannedIntegerValidator {
                 item: IntegerValidator::With(typed_custom_function),
                 span,
@@ -96,13 +89,7 @@ where
 
         if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let custom_function: CustomFunction = input.parse()?;
-            let span = custom_function.span();
-            // NOTE: this is a hacky way to convert `T` into `syn::Type`
-            // Is there a better way?
-            let tp_str = std::any::type_name::<T>();
-            let tp: syn::Type = syn::parse_str(tp_str)?;
-            let typed_custom_function = custom_function.try_into_typed(&tp)?;
+            let (typed_custom_function, span) = parse_typed_custom_function::<T>(input)?;
             Ok(SpannedIntegerSanitizer {
                 item: IntegerSanitizer::With(typed_custom_function),
                 span,

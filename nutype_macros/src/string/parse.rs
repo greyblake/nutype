@@ -1,5 +1,5 @@
-use crate::common::models::{Attributes, CustomFunction, SpannedItem};
-use crate::common::parse::{parse_number, ParseableAttributes};
+use crate::common::models::{Attributes, SpannedItem};
+use crate::common::parse::{parse_number, parse_typed_custom_function_raw, ParseableAttributes};
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
@@ -57,10 +57,7 @@ impl Parse for SpannedStringSanitizer {
             })
         } else if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let custom_function: CustomFunction = input.parse()?;
-            let span = custom_function.span();
-            let tp: syn::Type = syn::parse2(quote!(String)).expect("String is a valid type");
-            let typed_custom_function = custom_function.try_into_typed(&tp)?;
+            let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "String")?;
             Ok(SpannedStringSanitizer {
                 item: StringSanitizer::With(typed_custom_function),
                 span,
@@ -97,10 +94,7 @@ impl Parse for SpannedStringValidator {
             })
         } else if ident == "with" {
             let _eq: Token![=] = input.parse()?;
-            let custom_function: CustomFunction = input.parse()?;
-            let span = custom_function.span();
-            let tp: syn::Type = syn::parse2(quote!(&str)).expect("&str is a valid type");
-            let typed_custom_function = custom_function.try_into_typed(&tp)?;
+            let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "&str")?;
             Ok(SpannedStringValidator {
                 item: StringValidator::With(typed_custom_function),
                 span,
