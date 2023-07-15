@@ -233,7 +233,7 @@ mod types {
     #[test]
     fn test_f64_negative() {
         #[nutype(
-            sanitize(with = |n| n.clamp(-200.25, -5.0))
+            sanitize(with = |n| n.clamp(-200.25, -5.0)),
             validate(min = -100.25, max = -50.1)
         )]
         #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
@@ -589,10 +589,7 @@ mod traits {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(
-                validate(max = 20.0)
-                default = 13.0
-            )]
+            #[nutype(validate(max = 20.0), default = 13.0)]
             #[derive(Default)]
             pub struct Number(f64);
 
@@ -602,10 +599,7 @@ mod traits {
         #[test]
         #[should_panic(expected = "Default value for type Number is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(
-                validate(max = 20.0)
-                default = 20.1
-            )]
+            #[nutype(validate(max = 20.0), default = 20.1)]
             #[derive(Default)]
             pub struct Number(f64);
 
@@ -621,10 +615,7 @@ mod new_unchecked {
 
     #[test]
     fn test_new_unchecked() {
-        #[nutype(
-            new_unchecked
-            validate(min = 50.0)
-        )]
+        #[nutype(new_unchecked, validate(min = 50.0))]
         pub struct Dist(f64);
 
         let dist = unsafe { Dist::new_unchecked(3.0) };

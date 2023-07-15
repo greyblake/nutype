@@ -1,4 +1,4 @@
-error: Unknown validation rule `meaningful`
+error: Unknown validator `meaningful`
  --> tests/ui/float/validate/unknown.rs:3:19
   |
 3 | #[nutype(validate(meaningful))]
