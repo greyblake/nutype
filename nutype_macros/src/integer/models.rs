@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 
 use crate::{
     common::models::{Guard, RawGuard},
-    common::models::{Kind, SpannedItem},
+    common::models::{Kind, SpannedItem, TypedCustomFunction},
 };
 
 // Sanitizer
@@ -10,7 +10,7 @@ use crate::{
 
 #[derive(Debug)]
 pub enum IntegerSanitizer<T> {
-    With(TokenStream),
+    With(TypedCustomFunction),
     _Phantom(std::marker::PhantomData<T>),
 }
 
@@ -49,7 +49,7 @@ impl<T> Kind for IntegerSanitizer<T> {
 pub enum IntegerValidator<T> {
     Min(T),
     Max(T),
-    With(TokenStream),
+    With(TypedCustomFunction),
 }
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;

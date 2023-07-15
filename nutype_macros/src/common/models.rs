@@ -358,7 +358,7 @@ impl ToTokens for CustomFunction {
 /// with `with =`.
 /// It's almost the same as CustomFunction with one important difference:
 /// TypedCustomFunction is guaranteed to have arguments in closure to be typed.
-/// While CustomFunction is used for parsing, TypedCustomFunction is used in code generation.
+/// While CustomFunction is used for parsing, TypedCustomFunction is used for code generation.
 #[derive(Debug, Clone)]
 pub enum TypedCustomFunction {
     Path(Path),
