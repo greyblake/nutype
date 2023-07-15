@@ -2,7 +2,7 @@ use std::fmt::{Debug, Display};
 use std::str::FromStr;
 
 use crate::common::models::Attributes;
-use crate::common::parse::{parse_integer, ParseableAttributes};
+use crate::common::parse::{parse_number, ParseableAttributes};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::spanned::Spanned;
@@ -57,14 +57,14 @@ where
 
         if ident == "min" {
             let _eq: Token![=] = input.parse()?;
-            let (number, span) = parse_integer::<T>(input)?;
+            let (number, span) = parse_number::<T>(input)?;
             Ok(SpannedIntegerValidator {
                 item: IntegerValidator::Min(number),
                 span,
             })
         } else if ident == "max" {
             let _eq: Token![=] = input.parse()?;
-            let (number, span) = parse_integer::<T>(input)?;
+            let (number, span) = parse_number::<T>(input)?;
             Ok(SpannedIntegerValidator {
                 item: IntegerValidator::Max(number),
                 span,

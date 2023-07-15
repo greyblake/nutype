@@ -1,4 +1,9 @@
-use std::{collections::HashSet, fmt::Debug, marker::PhantomData, str::FromStr};
+use std::{
+    collections::HashSet,
+    fmt::{Debug, Display},
+    marker::PhantomData,
+    str::FromStr,
+};
 
 use proc_macro2::TokenStream;
 use quote::ToTokens;
@@ -21,7 +26,7 @@ pub struct FloatNewtype<T: FloatType>(PhantomData<T>);
 impl<T> Newtype for FloatNewtype<T>
 where
     T: FloatType + ToTokens + FromStr + PartialOrd + Clone,
-    <T as FromStr>::Err: Debug,
+    <T as FromStr>::Err: Debug + Display,
 {
     type Sanitizer = FloatSanitizer<T>;
     type Validator = FloatValidator<T>;
