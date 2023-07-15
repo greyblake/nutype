@@ -131,7 +131,7 @@ At the moment the string inner type supports only `String` (owned) type.
 
 Requirements:
 * `regex` feature of `nutype` is enabled.
-* You crate have to explicitly include `regex` and `lazy_static` dependencies.
+* You have to explicitly include `regex` and `lazy_static` as dependencies.
 
 There are a number of ways you can use regex.
 
