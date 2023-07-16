@@ -1,12 +1,10 @@
 use std::collections::HashSet;
 
+use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::{
-    common::models::{ErrorTypeName, InnerType, TypeName},
-    utils::match_feature,
-};
+use crate::common::models::{ErrorTypeName, InnerType, TypeName};
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
@@ -268,16 +266,19 @@ pub fn gen_impl_trait_default(
     // satisfy the validation rules.
     // For this purpose we generate a unit test to verify this at run time.
     let unit_test = if has_validation {
-        match_feature!("nutype_test",
-            on  => quote!(),
-            off => quote!(
-                #[test]
-                fn should_have_valid_default_value() {
-                    let default_inner_value = #type_name::default().into_inner();
-                    #type_name::new(default_inner_value).expect("Default value must be valid");
-                }
-            )
-        )
+        cfg_if! {
+            if #[cfg(feature = "nutype_test")] {
+                quote!()
+            } else {
+                quote!(
+                    #[test]
+                    fn should_have_valid_default_value() {
+                        let default_inner_value = #type_name::default().into_inner();
+                        #type_name::new(default_inner_value).expect("Default value must be valid");
+                    }
+                )
+            }
+        }
     } else {
         quote!()
     };

@@ -36,6 +36,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "cfg-if"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
 name = "dissimilar"
 version = "1.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -95,6 +101,7 @@ dependencies = [
 name = "nutype_macros"
 version = "0.3.1"
 dependencies = [
+ "cfg-if",
  "proc-macro2",
  "quote",
  "regex",

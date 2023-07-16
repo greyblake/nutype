@@ -3,7 +3,7 @@ use crate::common::parse::{parse_number, parse_typed_custom_function_raw, Parsea
 use crate::string::models::StringGuard;
 use crate::string::models::StringRawGuard;
 use crate::string::models::{StringSanitizer, StringValidator};
-use crate::utils::match_feature;
+use cfg_if::cfg_if;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
@@ -100,8 +100,8 @@ impl Parse for SpannedStringValidator {
                 span,
             })
         } else if ident == "regex" {
-            match_feature!("regex",
-                on => {
+            cfg_if! {
+                if #[cfg(feature = "regex")] {
                     let _eq: Token![=] = input.parse()?;
                     let SpannedRegexDef {
                         item: regex_def,
@@ -111,8 +111,7 @@ impl Parse for SpannedStringValidator {
                         item: StringValidator::Regex(regex_def),
                         span
                     })
-                },
-                off => {
+                } else {
                     let msg = concat!(
                         "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
                         "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
@@ -120,7 +119,7 @@ impl Parse for SpannedStringValidator {
                     );
                     Err(syn::Error::new(ident.span(), msg))
                 }
-            )
+            }
         } else {
             let msg = format!("Unknown validator `{ident}`");
             Err(syn::Error::new(ident.span(), msg))
