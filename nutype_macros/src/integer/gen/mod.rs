@@ -11,16 +11,13 @@ use self::{error::gen_validation_error_type, traits::gen_traits};
 use super::models::{
     IntegerDeriveTrait, IntegerGuard, IntegerInnerType, IntegerSanitizer, IntegerValidator,
 };
-use crate::{
-    common::gen::{
-        error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
+use crate::common::{
+    gen::{
+        error::gen_error_type_name, gen_impl_into_inner, gen_module_name_for_type, gen_reimports,
         new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name,
         traits::GeneratedTraits,
     },
-    common::{
-        gen::gen_impl_into_inner,
-        models::{ErrorTypeName, NewUnchecked, TypeName},
-    },
+    models::{ErrorTypeName, NewUnchecked, TypeName},
 };
 
 // TODO: These are too many arguments indeed.

@@ -1,12 +1,18 @@
-use std::fmt::{Debug, Display};
-use std::str::FromStr;
+use std::{
+    fmt::{Debug, Display},
+    str::FromStr,
+};
 
-use crate::common::models::Attributes;
-use crate::common::parse::{parse_number, parse_typed_custom_function, ParseableAttributes};
+use crate::common::{
+    models::Attributes,
+    parse::{parse_number, parse_typed_custom_function, ParseableAttributes},
+};
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::parse::{Parse, ParseStream};
-use syn::Token;
+use syn::{
+    parse::{Parse, ParseStream},
+    Token,
+};
 
 use super::{
     models::{

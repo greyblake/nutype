@@ -1,7 +1,4 @@
-use crate::{
-    common::models::{Guard, RawGuard, TypedCustomFunction},
-    common::models::{Kind, SpannedItem},
-};
+use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypedCustomFunction};
 
 // Sanitizer
 

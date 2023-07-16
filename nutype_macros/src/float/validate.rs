@@ -2,10 +2,9 @@ use std::collections::HashSet;
 
 use proc_macro2::Span;
 
-use crate::common::models::Kind;
-use crate::{
-    common::models::{DeriveTrait, SpannedDeriveTrait},
-    common::validate::validate_duplicates,
+use crate::common::{
+    models::{DeriveTrait, Kind, SpannedDeriveTrait},
+    validate::validate_duplicates,
 };
 
 use super::models::{
@@ -42,7 +41,9 @@ where
     T: PartialOrd + Clone,
 {
     validate_duplicates(&validators, |kind| {
-        format!("Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!")
+        format!(
+            "Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!"
+        )
     })?;
 
     // max VS min
@@ -205,7 +206,10 @@ fn to_float_derive_trait(
         DeriveTrait::Copy => Ok(FloatDeriveTrait::Copy),
         DeriveTrait::From => {
             if validation.has_validation {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+                Err(syn::Error::new(
+                    span,
+                    "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.",
+                ))
             } else {
                 Ok(FloatDeriveTrait::From)
             }

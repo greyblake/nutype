@@ -1,17 +1,23 @@
-use crate::common::models::{Attributes, SpannedItem};
-use crate::common::parse::{parse_number, parse_typed_custom_function_raw, ParseableAttributes};
-use crate::string::models::StringGuard;
-use crate::string::models::StringRawGuard;
-use crate::string::models::{StringSanitizer, StringValidator};
+use crate::{
+    common::{
+        models::{Attributes, SpannedItem},
+        parse::{parse_number, parse_typed_custom_function_raw, ParseableAttributes},
+    },
+    string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
+};
 use cfg_if::cfg_if;
 use proc_macro2::{Ident, TokenStream};
 use quote::quote;
-use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
-use syn::{LitStr, Path, Token};
+use syn::{
+    parse::{Parse, ParseStream},
+    spanned::Spanned,
+    LitStr, Path, Token,
+};
 
-use super::models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator};
-use super::validate::validate_string_meta;
+use super::{
+    models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator},
+    validate::validate_string_meta,
+};
 
 pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
     let attrs: ParseableAttributes<SpannedStringSanitizer, SpannedStringValidator> =

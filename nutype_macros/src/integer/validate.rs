@@ -2,9 +2,9 @@ use std::collections::HashSet;
 
 use proc_macro2::Span;
 
-use crate::{
-    common::models::{DeriveTrait, SpannedDeriveTrait},
-    common::validate::validate_duplicates,
+use crate::common::{
+    models::{DeriveTrait, SpannedDeriveTrait},
+    validate::validate_duplicates,
 };
 
 use super::models::{
@@ -41,7 +41,9 @@ where
     T: PartialOrd + Clone,
 {
     validate_duplicates(&validators, |kind| {
-        format!("Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!")
+        format!(
+            "Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!"
+        )
     })?;
 
     // max VS min
@@ -127,7 +129,10 @@ fn to_integer_derive_trait(
         DeriveTrait::TryFrom => Ok(IntegerDeriveTrait::TryFrom),
         DeriveTrait::From => {
             if has_validation {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+                Err(syn::Error::new(
+                    span,
+                    "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.",
+                ))
             } else {
                 Ok(IntegerDeriveTrait::From)
             }

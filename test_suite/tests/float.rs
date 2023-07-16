@@ -478,8 +478,7 @@ mod traits {
         #[cfg(test)]
         mod prop_tests {
             use super::*;
-            use arbitrary::Error;
-            use arbitrary::Unstructured;
+            use arbitrary::{Error, Unstructured};
 
             #[test]
             fn cmp_never_panics_f32() {

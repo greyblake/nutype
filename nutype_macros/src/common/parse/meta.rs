@@ -2,12 +2,13 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 
-use crate::common::models::TypeName;
-use crate::float::models::FloatInnerType;
-use crate::integer::models::IntegerInnerType;
 use crate::{
-    common::models::{InnerType, Meta},
-    common::parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
+    common::{
+        models::{InnerType, Meta, TypeName},
+        parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
+    },
+    float::models::FloatInnerType,
+    integer::models::IntegerInnerType,
 };
 
 pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {

@@ -3,11 +3,12 @@ mod float;
 mod integer;
 mod string;
 
-use common::models::{InnerType, Newtype};
-use common::parse::meta::parse_meta;
+use common::{
+    models::{InnerType, Newtype},
+    parse::meta::parse_meta,
+};
 use float::{models::FloatInnerType, FloatNewtype};
-use integer::models::IntegerInnerType;
-use integer::IntegerNewtype;
+use integer::{models::IntegerInnerType, IntegerNewtype};
 use proc_macro2::TokenStream;
 use string::StringNewtype;
 
