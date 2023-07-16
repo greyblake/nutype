@@ -22,6 +22,7 @@ syn = { version = "2.0", features = ["extra-traits", "full"] }
 # regex is used at compile-time to verify that a string literal provided
 # as `regex = "^foo|bar$"` can be compiled to a Regex without errors.
 regex = { version = "1", optional = true }
+cfg-if = "1.0.0"
 
 [lib]
 proc-macro = true

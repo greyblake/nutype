@@ -2,7 +2,6 @@ mod common;
 mod float;
 mod integer;
 mod string;
-mod utils;
 
 use common::models::{InnerType, Newtype};
 use common::parse::meta::parse_meta;

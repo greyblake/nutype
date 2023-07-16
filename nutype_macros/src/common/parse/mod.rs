@@ -2,6 +2,7 @@ pub mod meta;
 
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
+use cfg_if::cfg_if;
 use proc_macro2::{Ident, Span, TokenTree};
 use syn::{
     parenthesized,
@@ -11,10 +12,7 @@ use syn::{
     Expr, Lit, Token,
 };
 
-use crate::{
-    common::models::{DeriveTrait, SpannedDeriveTrait},
-    utils::match_feature,
-};
+use crate::common::models::{DeriveTrait, SpannedDeriveTrait};
 
 use super::models::{CustomFunction, NewUnchecked, TypedCustomFunction};
 
@@ -115,28 +113,31 @@ fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn
         "Borrow" => DeriveTrait::Borrow,
         "Default" => DeriveTrait::Default,
         "Serialize" => {
-            match_feature!("serde",
-                on => DeriveTrait::SerdeSerialize,
-                off => {
+            cfg_if! {
+                if #[cfg(feature = "serde")] {
+                    DeriveTrait::SerdeSerialize
+                } else {
                     return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
-                },
-            )
+                }
+            }
         }
         "Deserialize" => {
-            match_feature!("serde",
-                on => DeriveTrait::SerdeDeserialize,
-                off => {
+            cfg_if! {
+                if #[cfg(feature = "serde")] {
+                    DeriveTrait::SerdeDeserialize
+                } else {
                     return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled."));
-                },
-            )
+                }
+            }
         }
         "JsonSchema" => {
-            match_feature!("schemars08",
-                on => DeriveTrait::SchemarsJsonSchema,
-                off => {
+            cfg_if! {
+                if #[cfg(feature = "schemars08")] {
+                    DeriveTrait::SchemarsJsonSchema
+                } else {
                     return Err(syn::Error::new(ident.span(), "To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled."));
                 }
-            )
+            }
         }
         _ => {
             return Err(syn::Error::new(
@@ -160,7 +161,7 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
     pub default: Option<Expr>,
 }
 
-// By some reason Default cannot be derive.
+// By some reason Default cannot be derived.
 impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator> {
     fn default() -> Self {
         Self {
@@ -211,19 +212,18 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
                 let default_expr: Expr = input.parse()?;
                 attrs.default = Some(default_expr);
             } else if ident == "new_unchecked" {
-                match_feature!("new_unchecked",
-                    // The feature is not enabled, so we return an error
-                    on => {
+                cfg_if! {
+                    if #[cfg(feature = "new_unchecked")] {
                         attrs.new_unchecked = NewUnchecked::On;
-                    },
-                    off => {
+                    } else {
+                        // The feature is not enabled, so we return an error
                         let msg = concat!(
                             "To generate ::new_unchecked() function, the feature `new_unchecked` of crate `nutype` needs to be enabled.\n",
                             "But you ought to know: generally, THIS IS A BAD IDEA.\nUse it only when you really need it."
                         );
                         return Err(syn::Error::new(ident.span(), msg));
                     }
-                )
+                }
             } else {
                 let msg = format!("Unknown attribute `{ident}`");
                 return Err(syn::Error::new(ident.span(), msg));
