@@ -1,6 +1,4 @@
-use crate::common::models::InnerType;
-use crate::common::models::NewUnchecked;
-use crate::common::models::TypeName;
+use crate::common::models::{InnerType, NewUnchecked, TypeName};
 use proc_macro2::TokenStream;
 use quote::quote;
 

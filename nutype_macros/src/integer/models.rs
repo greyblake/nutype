@@ -1,9 +1,6 @@
 use proc_macro2::TokenStream;
 
-use crate::{
-    common::models::{Guard, RawGuard},
-    common::models::{Kind, SpannedItem, TypedCustomFunction},
-};
+use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypedCustomFunction};
 
 // Sanitizer
 //

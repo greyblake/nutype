@@ -4,14 +4,14 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::gen::traits::{
-        gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_dislpay, gen_impl_trait_from,
-        gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
-        gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
-        GeneratableTrait, GeneratableTraits, GeneratedTraits,
-    },
     common::{
-        gen::traits::{gen_impl_trait_default, gen_impl_trait_deref},
+        gen::traits::{
+            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
+            gen_impl_trait_deref, gen_impl_trait_dislpay, gen_impl_trait_from,
+            gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
+            gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
+            GeneratableTrait, GeneratableTraits, GeneratedTraits,
+        },
         models::{ErrorTypeName, TypeName},
     },
     float::models::{FloatDeriveTrait, FloatInnerType},
@@ -169,17 +169,17 @@ fn gen_implemented_traits(
             }
             FloatIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
             FloatIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
-            FloatIrregularTrait::Default => {
-                match maybe_default_value {
-                    Some(ref default_value) => {
-                        let has_validation = maybe_error_type_name.is_some();
-                        gen_impl_trait_default(type_name, default_value, has_validation)
-                    },
-                    None => {
-                        panic!("Default trait is derived for type {type_name}, but `default = ` is missing");
-                    }
+            FloatIrregularTrait::Default => match maybe_default_value {
+                Some(ref default_value) => {
+                    let has_validation = maybe_error_type_name.is_some();
+                    gen_impl_trait_default(type_name, default_value, has_validation)
                 }
-            }
+                None => {
+                    panic!(
+                        "Default trait is derived for type {type_name}, but `default = ` is missing"
+                    );
+                }
+            },
             FloatIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
             FloatIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
                 type_name,

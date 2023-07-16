@@ -1,13 +1,13 @@
-use std::collections::HashSet;
-use std::fmt::Debug;
+use std::{collections::HashSet, fmt::Debug};
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
-use syn::parse::{Parse, ParseStream};
-use syn::{Attribute, ExprClosure, Path};
+use syn::{
+    parse::{Parse, ParseStream},
+    Attribute, ExprClosure, Path,
+};
 
-use crate::float::models::FloatInnerType;
-use crate::integer::models::IntegerInnerType;
+use crate::{float::models::FloatInnerType, integer::models::IntegerInnerType};
 
 use super::gen::type_custom_closure;
 

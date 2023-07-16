@@ -2,10 +2,13 @@ use std::collections::HashSet;
 
 use proc_macro2::Span;
 
-use crate::common::models::Kind;
-use crate::common::models::{DeriveTrait, SpannedDeriveTrait};
-use crate::common::validate::validate_duplicates;
-use crate::string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator};
+use crate::{
+    common::{
+        models::{DeriveTrait, Kind, SpannedDeriveTrait},
+        validate::validate_duplicates,
+    },
+    string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
+};
 
 use super::models::{
     SpannedStringSanitizer, SpannedStringValidator, StringDeriveTrait, StringSanitizerKind,
@@ -83,7 +86,9 @@ fn validate_sanitizers(
     sanitizers: Vec<SpannedStringSanitizer>,
 ) -> Result<Vec<StringSanitizer>, syn::Error> {
     validate_duplicates(&sanitizers, |kind| {
-        format!("Duplicated sanitizer `{kind}`.\nYou're doing well, it's not that bad unless you forgot to call your mom!")
+        format!(
+            "Duplicated sanitizer `{kind}`.\nYou're doing well, it's not that bad unless you forgot to call your mom!"
+        )
     })?;
 
     // Validate lowercase VS uppercase
@@ -94,7 +99,11 @@ fn validate_sanitizers(
         .iter()
         .find(|&s| s.kind() == StringSanitizerKind::Uppercase);
     if let (Some(lowercase), Some(uppercase)) = (lowercase, uppercase) {
-        let msg = format!("Using both sanitizers `{}` and `{}` makes no sense.\nYou're a great developer! Take care of yourself, a 5 mins break may help.", lowercase.kind(), uppercase.kind());
+        let msg = format!(
+            "Using both sanitizers `{}` and `{}` makes no sense.\nYou're a great developer! Take care of yourself, a 5 mins break may help.",
+            lowercase.kind(),
+            uppercase.kind()
+        );
         let span = lowercase.span;
         let err = syn::Error::new(span, msg);
         return Err(err);
@@ -149,7 +158,10 @@ fn to_string_derive_trait(
         )),
         DeriveTrait::From => {
             if has_validation {
-                Err(syn::Error::new(span, "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead."))
+                Err(syn::Error::new(
+                    span,
+                    "#[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.",
+                ))
             } else {
                 Ok(StringDeriveTrait::From)
             }

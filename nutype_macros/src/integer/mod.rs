@@ -1,19 +1,22 @@
-use std::collections::HashSet;
-use std::fmt::Display;
-use std::marker::PhantomData;
-use std::{fmt::Debug, str::FromStr};
+use std::{
+    collections::HashSet,
+    fmt::{Debug, Display},
+    marker::PhantomData,
+    str::FromStr,
+};
 
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
-use crate::common::models::{Attributes, Guard};
-use crate::common::models::{DeriveTrait, GenerateParams, Newtype, SpannedItem};
-use crate::integer::gen::gen_nutype_for_integer;
-
-use self::models::{
-    IntegerDeriveTrait, IntegerGuard, IntegerSanitizer, IntegerType, IntegerValidator,
+use crate::{
+    common::models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem},
+    integer::gen::gen_nutype_for_integer,
 };
-use self::validate::validate_integer_derive_traits;
+
+use self::{
+    models::{IntegerDeriveTrait, IntegerGuard, IntegerSanitizer, IntegerType, IntegerValidator},
+    validate::validate_integer_derive_traits,
+};
 
 pub mod gen;
 pub mod models;

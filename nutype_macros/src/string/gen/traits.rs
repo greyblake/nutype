@@ -182,17 +182,17 @@ fn gen_implemented_traits(
             }
             StringIrregularTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
             StringIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
-            StringIrregularTrait::Default => {
-                match maybe_default_value {
-                    Some(ref default_value) => {
-                        let has_validation = maybe_error_type_name.is_some();
-                        gen_impl_trait_default(type_name, default_value, has_validation)
-                    }
-                    None => {
-                        panic!("Default trait is derived for type {type_name}, but `default = ` is missing");
-                    }
+            StringIrregularTrait::Default => match maybe_default_value {
+                Some(ref default_value) => {
+                    let has_validation = maybe_error_type_name.is_some();
+                    gen_impl_trait_default(type_name, default_value, has_validation)
                 }
-            }
+                None => {
+                    panic!(
+                        "Default trait is derived for type {type_name}, but `default = ` is missing"
+                    );
+                }
+            },
             StringIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
             StringIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
                 type_name,

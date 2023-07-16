@@ -10,13 +10,12 @@ use syn::Visibility;
 use self::error::gen_validation_error_type;
 use super::models::{FloatDeriveTrait, FloatGuard, FloatSanitizer, FloatValidator};
 use crate::{
-    common::gen::{
-        error::gen_error_type_name, gen_module_name_for_type, gen_reimports,
-        new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name,
-        traits::GeneratedTraits,
-    },
     common::{
-        gen::gen_impl_into_inner,
+        gen::{
+            error::gen_error_type_name, gen_impl_into_inner, gen_module_name_for_type,
+            gen_reimports, new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name,
+            traits::GeneratedTraits,
+        },
         models::{ErrorTypeName, NewUnchecked, TypeName},
     },
     float::models::FloatInnerType,
