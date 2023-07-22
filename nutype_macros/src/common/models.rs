@@ -182,7 +182,7 @@ pub struct Attributes<G> {
     pub new_unchecked: NewUnchecked,
 
     /// Value for Default trait. Provide with `default = `
-    pub maybe_default_value: Option<TokenStream>,
+    pub default: Option<syn::Expr>,
 }
 
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
@@ -255,7 +255,7 @@ pub struct GenerateParams<T, G> {
     pub type_name: TypeName,
     pub guard: G,
     pub new_unchecked: NewUnchecked,
-    pub maybe_default_value: Option<TokenStream>,
+    pub maybe_default_value: Option<syn::Expr>,
 }
 
 pub trait Newtype {
@@ -288,7 +288,7 @@ pub trait Newtype {
         let Attributes {
             guard,
             new_unchecked,
-            maybe_default_value,
+            default: maybe_default_value,
         } = Self::parse_attributes(attrs)?;
         let traits = Self::validate(&guard, derive_traits)?;
         let generated_output = Self::generate(GenerateParams {

@@ -33,7 +33,7 @@ pub fn gen_nutype_for_float<T>(
     meta: FloatGuard<T>,
     traits: HashSet<FloatDeriveTrait>,
     new_unchecked: NewUnchecked,
-    maybe_default_value: Option<TokenStream>,
+    maybe_default_value: Option<syn::Expr>,
 ) -> TokenStream
 where
     T: ToTokens + PartialOrd,

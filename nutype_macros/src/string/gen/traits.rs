@@ -132,7 +132,7 @@ impl ToTokens for StringTransparentTrait {
 pub fn gen_traits(
     type_name: &TypeName,
     maybe_error_type_name: Option<ErrorTypeName>,
-    maybe_default_value: Option<TokenStream>,
+    maybe_default_value: Option<syn::Expr>,
     traits: HashSet<StringDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
@@ -162,7 +162,7 @@ pub fn gen_traits(
 fn gen_implemented_traits(
     type_name: &TypeName,
     maybe_error_type_name: Option<ErrorTypeName>,
-    maybe_default_value: Option<TokenStream>,
+    maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<StringIrregularTrait>,
 ) -> TokenStream {
     let inner_type = InnerType::String;
