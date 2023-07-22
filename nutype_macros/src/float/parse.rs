@@ -8,7 +8,6 @@ use crate::common::{
     parse::{parse_number, parse_typed_custom_function, ParseableAttributes},
 };
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
     Token,
@@ -36,7 +35,6 @@ where
         new_unchecked,
         default,
     } = attrs;
-    let maybe_default_value = default.map(|expr| quote!(#expr));
     let raw_guard = FloatRawGuard {
         sanitizers,
         validators,
@@ -45,7 +43,7 @@ where
     Ok(Attributes {
         new_unchecked,
         guard,
-        maybe_default_value,
+        default,
     })
 }
 

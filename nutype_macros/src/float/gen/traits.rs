@@ -119,7 +119,7 @@ pub fn gen_traits(
     type_name: &TypeName,
     inner_type: FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
-    maybe_default_value: Option<TokenStream>,
+    maybe_default_value: Option<syn::Expr>,
     traits: HashSet<FloatDeriveTrait>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
@@ -151,7 +151,7 @@ fn gen_implemented_traits(
     type_name: &TypeName,
     inner_type: FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
-    maybe_default_value: Option<TokenStream>,
+    maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<FloatIrregularTrait>,
 ) -> TokenStream {
     impl_traits

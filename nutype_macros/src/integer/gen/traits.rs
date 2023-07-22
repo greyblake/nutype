@@ -24,7 +24,7 @@ pub fn gen_traits(
     inner_type: IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<IntegerDeriveTrait>,
-    maybe_default_value: Option<TokenStream>,
+    maybe_default_value: Option<syn::Expr>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
         transparent_traits,
@@ -171,7 +171,7 @@ fn gen_implemented_traits(
     inner_type: IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<IntegerIrregularTrait>,
-    maybe_default_value: Option<TokenStream>,
+    maybe_default_value: Option<syn::Expr>,
 ) -> TokenStream {
     impl_traits
         .iter()

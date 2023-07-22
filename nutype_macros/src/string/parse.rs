@@ -7,7 +7,6 @@ use crate::{
 };
 use cfg_if::cfg_if;
 use proc_macro2::{Ident, TokenStream};
-use quote::quote;
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
@@ -29,7 +28,6 @@ pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, s
         new_unchecked,
         default,
     } = attrs;
-    let maybe_default_value = default.map(|expr| quote!(#expr));
     let raw_guard = StringRawGuard {
         sanitizers,
         validators,
@@ -38,7 +36,7 @@ pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, s
     Ok(Attributes {
         new_unchecked,
         guard,
-        maybe_default_value,
+        default,
     })
 }
 
