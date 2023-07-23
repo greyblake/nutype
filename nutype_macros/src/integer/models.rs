@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 
-use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypedCustomFunction};
+use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
 
 // Sanitizer
 //
@@ -108,6 +108,12 @@ pub enum IntegerDeriveTrait {
     SerdeDeserialize,
     SchemarsJsonSchema,
     // Arbitrary,
+}
+
+impl TypeTrait for IntegerDeriveTrait {
+    fn is_from_str(&self) -> bool {
+        self == &IntegerDeriveTrait::FromStr
+    }
 }
 
 pub type IntegerRawGuard<T> = RawGuard<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;

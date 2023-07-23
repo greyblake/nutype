@@ -1,4 +1,7 @@
-use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypedCustomFunction};
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
+
+use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
 
 // Sanitizer
 
@@ -136,5 +139,20 @@ pub enum StringDeriveTrait {
     // Arbitrary,
 }
 
+impl TypeTrait for StringDeriveTrait {
+    fn is_from_str(&self) -> bool {
+        self == &Self::FromStr
+    }
+}
+
 pub type StringRawGuard = RawGuard<SpannedStringSanitizer, SpannedStringValidator>;
 pub type StringGuard = Guard<StringSanitizer, StringValidator>;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StringInnerType;
+
+impl ToTokens for StringInnerType {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        quote!(String).to_tokens(token_stream);
+    }
+}

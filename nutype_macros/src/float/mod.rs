@@ -8,11 +8,15 @@ use std::{
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
-use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem};
+use crate::common::{
+    gen::GenerateNewtype,
+    models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem},
+};
 
 use self::{
-    gen::gen_nutype_for_float,
-    models::{FloatDeriveTrait, FloatGuard, FloatSanitizer, FloatType, FloatValidator},
+    models::{
+        FloatDeriveTrait, FloatGuard, FloatInnerType, FloatSanitizer, FloatType, FloatValidator,
+    },
     validate::validate_float_derive_traits,
 };
 
@@ -31,6 +35,7 @@ where
     type Sanitizer = FloatSanitizer<T>;
     type Validator = FloatValidator<T>;
     type TypedTrait = FloatDeriveTrait;
+    type InnerType = FloatInnerType;
 
     fn parse_attributes(attrs: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error> {
         parse::parse_attributes::<T>(attrs)
@@ -44,29 +49,12 @@ where
     }
 
     fn generate(
-        params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
+        params: GenerateParams<
+            FloatInnerType,
+            Self::TypedTrait,
+            Guard<Self::Sanitizer, Self::Validator>,
+        >,
     ) -> TokenStream {
-        let GenerateParams {
-            doc_attrs,
-            traits,
-            vis,
-            type_name,
-            guard,
-            new_unchecked,
-            maybe_default_value,
-        } = params;
-
-        let inner_type = T::float_inner_type();
-
-        gen_nutype_for_float(
-            doc_attrs,
-            vis,
-            inner_type,
-            &type_name,
-            guard,
-            traits,
-            new_unchecked,
-            maybe_default_value,
-        )
+        FloatNewtype::gen_nutype(params)
     }
 }

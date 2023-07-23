@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 
-use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypedCustomFunction};
+use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
 
 // Sanitizer
 //
@@ -111,6 +111,12 @@ pub enum FloatDeriveTrait {
     SerdeDeserialize,
     SchemarsJsonSchema,
     // Arbitrary,
+}
+
+impl TypeTrait for FloatDeriveTrait {
+    fn is_from_str(&self) -> bool {
+        self == &FloatDeriveTrait::FromStr
+    }
 }
 
 pub type FloatRawGuard<T> = RawGuard<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
