@@ -7,7 +7,10 @@ use syn::{
     Attribute, ExprClosure, Path,
 };
 
-use crate::{float::models::FloatInnerType, integer::models::IntegerInnerType};
+use crate::{
+    float::models::FloatInnerType, integer::models::IntegerInnerType,
+    string::models::StringInnerType,
+};
 
 use super::gen::type_custom_closure;
 
@@ -44,7 +47,7 @@ impl<T: Kind> Kind for SpannedItem<T> {
 /// Represents the inner type of a newtype.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum InnerType {
-    String,
+    String(StringInnerType),
     Integer(IntegerInnerType),
     Float(FloatInnerType),
 }
@@ -67,11 +70,17 @@ impl From<FloatInnerType> for InnerType {
     }
 }
 
+impl From<StringInnerType> for InnerType {
+    fn from(string_inner_type: StringInnerType) -> InnerType {
+        InnerType::String(string_inner_type)
+    }
+}
+
 impl ToTokens for InnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         match self {
-            InnerType::String => {
-                quote!(String).to_tokens(token_stream);
+            InnerType::String(string_type) => {
+                string_type.to_tokens(token_stream);
             }
             InnerType::Integer(integer_type) => {
                 integer_type.to_tokens(token_stream);
@@ -241,7 +250,6 @@ pub enum DeriveTrait {
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
 
-
 pub trait TypeTrait {
     // If this is FromStr variant?
     fn is_from_str(&self) -> bool;
@@ -260,12 +268,13 @@ pub enum NewUnchecked {
     On,
 }
 
-pub struct GenerateParams<T, G> {
+pub struct GenerateParams<IT, Trait, Guard> {
+    pub inner_type: IT,
     pub doc_attrs: Vec<Attribute>,
-    pub traits: HashSet<T>,
+    pub traits: HashSet<Trait>,
     pub vis: syn::Visibility,
     pub type_name: TypeName,
-    pub guard: G,
+    pub guard: Guard,
     pub new_unchecked: NewUnchecked,
     pub maybe_default_value: Option<syn::Expr>,
 }
@@ -274,6 +283,7 @@ pub trait Newtype {
     type Sanitizer;
     type Validator;
     type TypedTrait;
+    type InnerType;
 
     #[allow(clippy::type_complexity)]
     fn parse_attributes(
@@ -285,11 +295,19 @@ pub trait Newtype {
         derive_traits: Vec<SpannedItem<DeriveTrait>>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error>;
 
+    #[allow(clippy::type_complexity)]
     fn generate(
-        params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
+        params: GenerateParams<
+            Self::InnerType,
+            Self::TypedTrait,
+            Guard<Self::Sanitizer, Self::Validator>,
+        >,
     ) -> TokenStream;
 
-    fn expand(typed_meta: TypedMeta) -> Result<TokenStream, syn::Error> {
+    fn expand(
+        typed_meta: TypedMeta,
+        inner_type: Self::InnerType,
+    ) -> Result<TokenStream, syn::Error> {
         let TypedMeta {
             doc_attrs,
             type_name,
@@ -311,6 +329,7 @@ pub trait Newtype {
             guard,
             new_unchecked,
             maybe_default_value,
+            inner_type,
         });
         Ok(generated_output)
     }

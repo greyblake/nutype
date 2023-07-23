@@ -12,7 +12,9 @@ use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Guard, Newt
 
 use self::{
     gen::gen_nutype_for_float,
-    models::{FloatDeriveTrait, FloatGuard, FloatSanitizer, FloatType, FloatValidator},
+    models::{
+        FloatDeriveTrait, FloatGuard, FloatInnerType, FloatSanitizer, FloatType, FloatValidator,
+    },
     validate::validate_float_derive_traits,
 };
 
@@ -31,6 +33,7 @@ where
     type Sanitizer = FloatSanitizer<T>;
     type Validator = FloatValidator<T>;
     type TypedTrait = FloatDeriveTrait;
+    type InnerType = FloatInnerType;
 
     fn parse_attributes(attrs: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error> {
         parse::parse_attributes::<T>(attrs)
@@ -44,7 +47,11 @@ where
     }
 
     fn generate(
-        params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
+        params: GenerateParams<
+            FloatInnerType,
+            Self::TypedTrait,
+            Guard<Self::Sanitizer, Self::Validator>,
+        >,
     ) -> TokenStream {
         let GenerateParams {
             doc_attrs,
@@ -54,9 +61,8 @@ where
             guard,
             new_unchecked,
             maybe_default_value,
+            inner_type,
         } = params;
-
-        let inner_type = T::float_inner_type();
 
         gen_nutype_for_float(
             doc_attrs,

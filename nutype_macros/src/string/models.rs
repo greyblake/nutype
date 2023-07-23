@@ -1,3 +1,6 @@
+use proc_macro2::TokenStream;
+use quote::{quote, ToTokens};
+
 use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypedCustomFunction};
 
 // Sanitizer
@@ -138,3 +141,12 @@ pub enum StringDeriveTrait {
 
 pub type StringRawGuard = RawGuard<SpannedStringSanitizer, SpannedStringValidator>;
 pub type StringGuard = Guard<StringSanitizer, StringValidator>;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StringInnerType;
+
+impl ToTokens for StringInnerType {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        quote!(String).to_tokens(token_stream);
+    }
+}

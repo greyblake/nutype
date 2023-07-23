@@ -12,9 +12,9 @@ use crate::{
             gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
             GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, InnerType, TypeName},
+        models::{ErrorTypeName, TypeName},
     },
-    string::models::StringDeriveTrait,
+    string::models::{StringDeriveTrait, StringInnerType},
 };
 
 type StringGeneratableTrait = GeneratableTrait<StringTransparentTrait, StringIrregularTrait>;
@@ -165,7 +165,7 @@ fn gen_implemented_traits(
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<StringIrregularTrait>,
 ) -> TokenStream {
-    let inner_type = InnerType::String;
+    let inner_type = StringInnerType;
 
     impl_traits
         .iter()

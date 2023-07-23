@@ -7,9 +7,14 @@ use std::{collections::HashSet, hash::Hash};
 
 use self::traits::GeneratedTraits;
 
-use super::models::{ErrorTypeName, Guard, NewUnchecked, ParseErrorTypeName, TypeName, TypeTrait};
+use super::models::{
+    ErrorTypeName, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName, TypeName, TypeTrait,
+};
 use crate::common::{
-    gen::{error::gen_error_type_name, new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
+    gen::{
+        error::gen_error_type_name, new_unchecked::gen_new_unchecked,
+        parse_error::gen_parse_error_name,
+    },
     models::ModuleName,
 };
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
@@ -188,12 +193,12 @@ pub trait GenerateNewtype {
     ) -> TokenStream {
         let impl_new = match guard {
             Guard::WithoutValidation { sanitizers } => {
-                Self::gen_new_without_validation(type_name, &inner_type, sanitizers)
+                Self::gen_new_without_validation(type_name, inner_type, sanitizers)
             }
             Guard::WithValidation {
                 sanitizers,
                 validators,
-            } => Self::gen_new_with_validation(type_name, &inner_type, sanitizers, validators),
+            } => Self::gen_new_with_validation(type_name, inner_type, sanitizers, validators),
         };
         let impl_into_inner = gen_impl_into_inner(type_name, inner_type);
         let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
@@ -205,35 +210,44 @@ pub trait GenerateNewtype {
         }
     }
 
+    #[allow(clippy::type_complexity)]
     fn gen_nutype(
-        doc_attrs: Vec<syn::Attribute>,
-        vis: Visibility,
-        inner_type: &Self::InnerType,
-        type_name: &TypeName,
-        guard: Guard<Self::Sanitizer, Self::Validator>,
-        traits: HashSet<Self::TypedTrait>,
-        new_unchecked: NewUnchecked,
-        maybe_default_value: Option<syn::Expr>,
+        params: GenerateParams<
+            Self::InnerType,
+            Self::TypedTrait,
+            Guard<Self::Sanitizer, Self::Validator>,
+        >,
     ) -> TokenStream {
-        let module_name = gen_module_name_for_type(type_name);
+        let GenerateParams {
+            doc_attrs,
+            traits,
+            vis,
+            type_name,
+            guard,
+            new_unchecked,
+            maybe_default_value,
+            inner_type,
+        } = params;
+
+        let module_name = gen_module_name_for_type(&type_name);
         let implementation =
-            Self::gen_implementation(type_name, &inner_type, &guard, new_unchecked);
+            Self::gen_implementation(&type_name, &inner_type, &guard, new_unchecked);
 
         let maybe_error_type_name: Option<ErrorTypeName> = match guard {
             Guard::WithoutValidation { .. } => None,
-            Guard::WithValidation { .. } => Some(gen_error_type_name(type_name)),
+            Guard::WithValidation { .. } => Some(gen_error_type_name(&type_name)),
         };
 
         let has_from_str_trait = traits.iter().any(|t| t.is_from_str());
         let maybe_parse_error_type_name = if has_from_str_trait {
-            Some(gen_parse_error_name(type_name))
+            Some(gen_parse_error_name(&type_name))
         } else {
             None
         };
 
         let reimports = gen_reimports(
             vis,
-            type_name,
+            &type_name,
             &module_name,
             maybe_error_type_name.as_ref(),
             maybe_parse_error_type_name.as_ref(),
@@ -243,7 +257,7 @@ pub trait GenerateNewtype {
             derive_transparent_traits,
             implement_traits,
         } = Self::gen_traits(
-            type_name,
+            &type_name,
             &inner_type,
             maybe_error_type_name,
             traits,

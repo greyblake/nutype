@@ -8,12 +8,16 @@ use std::{
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
-use crate::{
-    common::{models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem}, gen::GenerateNewtype},
+use crate::common::{
+    gen::GenerateNewtype,
+    models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem},
 };
 
 use self::{
-    models::{IntegerDeriveTrait, IntegerGuard, IntegerSanitizer, IntegerType, IntegerValidator},
+    models::{
+        IntegerDeriveTrait, IntegerGuard, IntegerInnerType, IntegerSanitizer, IntegerType,
+        IntegerValidator,
+    },
     validate::validate_integer_derive_traits,
 };
 
@@ -32,6 +36,7 @@ where
     type Sanitizer = IntegerSanitizer<T>;
     type Validator = IntegerValidator<T>;
     type TypedTrait = IntegerDeriveTrait;
+    type InnerType = IntegerInnerType;
 
     fn parse_attributes(attrs: TokenStream) -> Result<Attributes<IntegerGuard<T>>, syn::Error> {
         parse::parse_attributes::<T>(attrs)
@@ -46,29 +51,12 @@ where
     }
 
     fn generate(
-        params: GenerateParams<Self::TypedTrait, Guard<Self::Sanitizer, Self::Validator>>,
+        params: GenerateParams<
+            IntegerInnerType,
+            Self::TypedTrait,
+            Guard<Self::Sanitizer, Self::Validator>,
+        >,
     ) -> TokenStream {
-        let GenerateParams {
-            doc_attrs,
-            traits,
-            vis,
-            type_name,
-            guard,
-            new_unchecked,
-            maybe_default_value,
-        } = params;
-
-        let inner_type = T::integer_inner_type();
-
-        IntegerNewtype::gen_nutype(
-            doc_attrs,
-            vis,
-            &inner_type,
-            &type_name,
-            guard,
-            traits,
-            new_unchecked,
-            maybe_default_value,
-        )
+        IntegerNewtype::gen_nutype(params)
     }
 }

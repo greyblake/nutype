@@ -9,6 +9,7 @@ use crate::{
     },
     float::models::FloatInnerType,
     integer::models::IntegerInnerType,
+    string::models::StringInnerType,
 };
 
 pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
@@ -77,7 +78,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
     let type_path_str = type_path.into_token_stream().to_string();
 
     let inner_type = match type_path_str.as_ref() {
-        "String" => InnerType::String,
+        "String" => InnerType::String(StringInnerType),
         "u8" => InnerType::Integer(IntegerInnerType::U8),
         "u16" => InnerType::Integer(IntegerInnerType::U16),
         "u32" => InnerType::Integer(IntegerInnerType::U32),

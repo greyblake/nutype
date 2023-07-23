@@ -9,16 +9,12 @@ use quote::{quote, ToTokens};
 use self::{error::gen_validation_error_type, traits::gen_traits};
 use super::{
     models::{
-        IntegerDeriveTrait, IntegerInnerType, IntegerSanitizer, IntegerType,
-        IntegerValidator,
+        IntegerDeriveTrait, IntegerInnerType, IntegerSanitizer, IntegerType, IntegerValidator,
     },
     IntegerNewtype,
 };
 use crate::common::{
-    gen::{
-        error::gen_error_type_name,
-        traits::GeneratedTraits, GenerateNewtype,
-    },
+    gen::{error::gen_error_type_name, traits::GeneratedTraits, GenerateNewtype},
     models::{ErrorTypeName, TypeName},
 };
 

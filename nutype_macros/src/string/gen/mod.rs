@@ -13,9 +13,9 @@ use crate::{
             error::gen_error_type_name, gen_impl_into_inner, gen_module_name_for_type,
             gen_reimports, new_unchecked::gen_new_unchecked, traits::GeneratedTraits,
         },
-        models::{ErrorTypeName, InnerType, NewUnchecked, TypeName},
+        models::{ErrorTypeName, NewUnchecked, TypeName},
     },
-    string::models::{RegexDef, StringSanitizer, StringValidator},
+    string::models::{RegexDef, StringInnerType, StringSanitizer, StringValidator},
 };
 
 use self::{error::gen_validation_error_type, traits::gen_traits};
@@ -87,7 +87,7 @@ pub fn gen_string_implementation(
             validators,
         } => gen_new_and_with_validation(type_name, sanitizers, validators),
     };
-    let inner_type = InnerType::String;
+    let inner_type = StringInnerType;
     let impl_into_inner = gen_impl_into_inner(type_name, inner_type);
     let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
 
