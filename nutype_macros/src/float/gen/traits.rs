@@ -117,7 +117,7 @@ impl ToTokens for FloatTransparentTrait {
 
 pub fn gen_traits(
     type_name: &TypeName,
-    inner_type: FloatInnerType,
+    inner_type: &FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     traits: HashSet<FloatDeriveTrait>,
@@ -149,7 +149,7 @@ pub fn gen_traits(
 
 fn gen_implemented_traits(
     type_name: &TypeName,
-    inner_type: FloatInnerType,
+    inner_type: &FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<FloatIrregularTrait>,

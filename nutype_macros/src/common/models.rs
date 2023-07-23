@@ -70,6 +70,12 @@ impl From<FloatInnerType> for InnerType {
     }
 }
 
+impl From<&FloatInnerType> for InnerType {
+    fn from(tp: &FloatInnerType) -> InnerType {
+        InnerType::Float(*tp)
+    }
+}
+
 impl From<StringInnerType> for InnerType {
     fn from(string_inner_type: StringInnerType) -> InnerType {
         InnerType::String(string_inner_type)

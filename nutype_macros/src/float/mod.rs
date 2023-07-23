@@ -8,10 +8,12 @@ use std::{
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
-use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem};
+use crate::common::{
+    gen::GenerateNewtype,
+    models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem},
+};
 
 use self::{
-    gen::gen_nutype_for_float,
     models::{
         FloatDeriveTrait, FloatGuard, FloatInnerType, FloatSanitizer, FloatType, FloatValidator,
     },
@@ -53,26 +55,6 @@ where
             Guard<Self::Sanitizer, Self::Validator>,
         >,
     ) -> TokenStream {
-        let GenerateParams {
-            doc_attrs,
-            traits,
-            vis,
-            type_name,
-            guard,
-            new_unchecked,
-            maybe_default_value,
-            inner_type,
-        } = params;
-
-        gen_nutype_for_float(
-            doc_attrs,
-            vis,
-            inner_type,
-            &type_name,
-            guard,
-            traits,
-            new_unchecked,
-            maybe_default_value,
-        )
+        FloatNewtype::gen_nutype(params)
     }
 }
