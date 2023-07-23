@@ -132,8 +132,8 @@ impl ToTokens for StringTransparentTrait {
 pub fn gen_traits(
     type_name: &TypeName,
     maybe_error_type_name: Option<ErrorTypeName>,
-    maybe_default_value: Option<syn::Expr>,
     traits: HashSet<StringDeriveTrait>,
+    maybe_default_value: Option<syn::Expr>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
         transparent_traits,

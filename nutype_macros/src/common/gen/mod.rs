@@ -117,6 +117,17 @@ pub trait GenerateNewtype {
     type InnerType: ToTokens;
     type TypedTrait: Hash + TypeTrait;
 
+    /// If the type has dedicated parse error. This error is used within `FromStr` trait.
+    /// For most of the types it's different from the regular validation error, because parsing
+    /// happens in 2 stages:
+    /// * &str -> inner type (parsing)
+    /// * inner type -> nutype (validation)
+    /// But for the String based types there is no first stage, so the parse error is the same as
+    /// validation error.
+    const HAS_DEDICATED_PARSE_ERROR: bool = true;
+
+    const NEW_CONVERT_INTO_INNER_TYPE: bool = false;
+
     fn gen_fn_sanitize(inner_type: &Self::InnerType, sanitizers: &[Self::Sanitizer])
         -> TokenStream;
 
@@ -150,18 +161,29 @@ pub trait GenerateNewtype {
         let error_type_name = gen_error_type_name(type_name);
         let validate = Self::gen_fn_validate(inner_type, type_name, validators);
 
+        let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
+            (
+                quote!(impl Into<#inner_type>),
+                quote!(let raw_value = raw_value.into();),
+            )
+        } else {
+            (quote!(#inner_type), quote!())
+        };
+
         quote!(
             #validation_error
 
             impl #type_name {
-                pub fn new(raw_value: #inner_type) -> ::core::result::Result<Self, #error_type_name> {
+                pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
                     // Keep sanitize() and validate() within new() so they do not overlap with outer
                     // scope imported with `use super::*`.
                     #sanitize
                     #validate
 
-                    let sanitized_value = sanitize(raw_value);
-                    validate(sanitized_value)?;
+                    #convert_raw_value_if_necessary
+
+                    let sanitized_value: #inner_type = sanitize(raw_value);
+                    validate(&sanitized_value)?;
                     Ok(#type_name(sanitized_value))
                 }
             }
@@ -175,10 +197,22 @@ pub trait GenerateNewtype {
     ) -> TokenStream {
         let sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
 
+        let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
+            (
+                quote!(impl Into<#inner_type>),
+                quote!(let raw_value = raw_value.into();),
+            )
+        } else {
+            (quote!(#inner_type), quote!())
+        };
+
         quote!(
             impl #type_name {
-                pub fn new(raw_value: #inner_type) -> Self {
+                pub fn new(raw_value: #input_type) -> Self {
                     #sanitize
+
+                    #convert_raw_value_if_necessary
+
                     Self(sanitize(raw_value))
                 }
             }
@@ -239,7 +273,7 @@ pub trait GenerateNewtype {
         };
 
         let has_from_str_trait = traits.iter().any(|t| t.is_from_str());
-        let maybe_parse_error_type_name = if has_from_str_trait {
+        let maybe_parse_error_type_name = if has_from_str_trait && Self::HAS_DEDICATED_PARSE_ERROR {
             Some(gen_parse_error_name(&type_name))
         } else {
             None

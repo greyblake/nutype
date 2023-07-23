@@ -5,13 +5,15 @@ pub mod validate;
 
 use std::collections::HashSet;
 
-use crate::common::models::{Attributes, DeriveTrait, GenerateParams, Newtype, SpannedItem};
+use crate::common::{
+    gen::GenerateNewtype,
+    models::{Attributes, DeriveTrait, GenerateParams, Newtype, SpannedItem},
+};
 
 use models::{StringDeriveTrait, StringSanitizer, StringValidator};
 use proc_macro2::TokenStream;
 
 use self::{
-    gen::gen_nutype_for_string,
     models::{StringGuard, StringInnerType},
     validate::validate_string_derive_traits,
 };
@@ -38,24 +40,6 @@ impl Newtype for StringNewtype {
     fn generate(
         params: GenerateParams<StringInnerType, Self::TypedTrait, StringGuard>,
     ) -> TokenStream {
-        let GenerateParams {
-            doc_attrs,
-            traits,
-            vis,
-            type_name,
-            guard,
-            new_unchecked,
-            maybe_default_value,
-            inner_type: _,
-        } = params;
-        gen_nutype_for_string(
-            doc_attrs,
-            traits,
-            vis,
-            &type_name,
-            guard,
-            new_unchecked,
-            maybe_default_value,
-        )
+        StringNewtype::gen_nutype(params)
     }
 }

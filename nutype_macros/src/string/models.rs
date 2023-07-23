@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypedCustomFunction};
+use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
 
 // Sanitizer
 
@@ -137,6 +137,12 @@ pub enum StringDeriveTrait {
     SerdeDeserialize,
     SchemarsJsonSchema,
     // Arbitrary,
+}
+
+impl TypeTrait for StringDeriveTrait {
+    fn is_from_str(&self) -> bool {
+        self == &Self::FromStr
+    }
 }
 
 pub type StringRawGuard = RawGuard<SpannedStringSanitizer, SpannedStringValidator>;

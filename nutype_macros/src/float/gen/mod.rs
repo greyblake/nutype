@@ -97,7 +97,8 @@ where
             .collect();
 
         quote!(
-            fn validate(val: #inner_type) -> core::result::Result<(), #error_name> {
+            fn validate(val: &#inner_type) -> core::result::Result<(), #error_name> {
+                let val = *val;
                 #validations
                 Ok(())
             }
