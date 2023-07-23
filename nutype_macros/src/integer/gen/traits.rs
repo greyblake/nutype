@@ -21,7 +21,7 @@ type IntegerGeneratableTrait = GeneratableTrait<IntegerTransparentTrait, Integer
 
 pub fn gen_traits(
     type_name: &TypeName,
-    inner_type: IntegerInnerType,
+    inner_type: &IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<IntegerDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
@@ -168,7 +168,7 @@ impl ToTokens for IntegerTransparentTrait {
 
 fn gen_implemented_traits(
     type_name: &TypeName,
-    inner_type: IntegerInnerType,
+    inner_type: &IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<IntegerIrregularTrait>,
     maybe_default_value: Option<syn::Expr>,

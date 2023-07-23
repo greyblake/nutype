@@ -9,8 +9,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 
 use crate::{
-    common::models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem},
-    integer::gen::gen_nutype_for_integer,
+    common::{models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem}, gen::GenerateNewtype},
 };
 
 use self::{
@@ -61,10 +60,10 @@ where
 
         let inner_type = T::integer_inner_type();
 
-        gen_nutype_for_integer(
+        IntegerNewtype::gen_nutype(
             doc_attrs,
             vis,
-            inner_type,
+            &inner_type,
             &type_name,
             guard,
             traits,
