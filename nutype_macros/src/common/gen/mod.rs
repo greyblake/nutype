@@ -126,6 +126,7 @@ pub trait GenerateNewtype {
     /// validation error.
     const HAS_DEDICATED_PARSE_ERROR: bool = true;
 
+    /// If it's true, then `::new()` function receives `impl Into<T>` instead of `T`.
     const NEW_CONVERT_INTO_INNER_TYPE: bool = false;
 
     fn gen_fn_sanitize(inner_type: &Self::InnerType, sanitizers: &[Self::Sanitizer])
