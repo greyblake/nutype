@@ -1,5 +1,5 @@
 error: #[nutype] cannot derive `From` trait, because there is validation defined. Use `TryFrom` instead.
- --> tests/ui/string/derive/from.rs:4:10
+ --> tests/ui/string/derive/from.rs:5:12
   |
-4 | #[derive(From)]
-  |          ^^^^
+5 |     derive(From),
+  |            ^^^^

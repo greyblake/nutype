@@ -1,5 +1,5 @@
-error: unsupported trait derive: Bingo
- --> tests/ui/string/derive/unknown_trait.rs:4:24
+error: Nutype cannot derive `Bingo is trait.
+ --> tests/ui/string/derive/unknown_trait.rs:5:26
   |
-4 | #[derive(Debug, Clone, Bingo, PartialEq)]
-  |                        ^^^^^
+5 |     derive(Debug, Clone, Bingo, PartialEq),
+  |                          ^^^^^

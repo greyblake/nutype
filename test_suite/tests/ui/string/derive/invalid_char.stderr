@@ -1,5 +1,5 @@
-error: Unexpected `!`
- --> tests/ui/string/derive/invalid_char.rs:4:17
+error: expected identifier
+ --> tests/ui/string/derive/invalid_char.rs:5:19
   |
-4 | #[derive(Debug, !)]
-  |                 ^
+5 |     derive(Debug, !),
+  |                   ^
