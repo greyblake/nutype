@@ -144,7 +144,6 @@ pub struct Meta {
     pub inner_type: InnerType,
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
-    pub derive_traits: Vec<SpannedDeriveTrait>,
 }
 
 impl Meta {
@@ -154,14 +153,12 @@ impl Meta {
             type_name,
             inner_type,
             vis,
-            derive_traits,
         } = self;
         let typed_meta = TypedMeta {
             doc_attrs,
             type_name,
             attrs,
             vis,
-            derive_traits,
         };
         (typed_meta, inner_type)
     }
@@ -178,7 +175,6 @@ pub struct TypedMeta {
 
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
-    pub derive_traits: Vec<SpannedDeriveTrait>,
 }
 
 /// Validated model, that represents precisely what needs to be generated.
@@ -195,7 +191,7 @@ pub enum Guard<Sanitizer, Validator> {
 
 /// Parsed attributes (`sanitize`, `validate`, `new_unchecked`).
 #[derive(Debug)]
-pub struct Attributes<G> {
+pub struct Attributes<G, DT> {
     /// Guard contains sanitizers and validators
     pub guard: G,
 
@@ -204,6 +200,8 @@ pub struct Attributes<G> {
 
     /// Value for Default trait. Provide with `default = `
     pub default: Option<syn::Expr>,
+
+    pub derive_traits: Vec<DT>,
 }
 
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
@@ -294,11 +292,11 @@ pub trait Newtype {
     #[allow(clippy::type_complexity)]
     fn parse_attributes(
         attrs: TokenStream,
-    ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>>, syn::Error>;
+    ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>, SpannedDeriveTrait>, syn::Error>;
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedDeriveTrait>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error>;
 
     #[allow(clippy::type_complexity)]
@@ -319,12 +317,12 @@ pub trait Newtype {
             type_name,
             attrs,
             vis,
-            derive_traits,
         } = typed_meta;
         let Attributes {
             guard,
             new_unchecked,
             default: maybe_default_value,
+            derive_traits,
         } = Self::parse_attributes(attrs)?;
         let traits = Self::validate(&guard, derive_traits)?;
         let generated_output = Self::generate(GenerateParams {

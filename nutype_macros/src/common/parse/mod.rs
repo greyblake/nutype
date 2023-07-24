@@ -1,9 +1,10 @@
+pub mod derive_trait;
 pub mod meta;
 
 use std::{any::type_name, fmt::Debug, str::FromStr};
 
 use cfg_if::cfg_if;
-use proc_macro2::{Ident, Span, TokenTree};
+use proc_macro2::{Ident, Span};
 use syn::{
     parenthesized,
     parse::{Parse, ParseStream},
@@ -12,7 +13,7 @@ use syn::{
     Expr, Lit, Token,
 };
 
-use crate::common::models::{DeriveTrait, SpannedDeriveTrait};
+use crate::common::models::SpannedDeriveTrait;
 
 use super::models::{CustomFunction, NewUnchecked, TypedCustomFunction};
 
@@ -30,135 +31,39 @@ pub fn is_derive_attribute(attribute: &syn::Attribute) -> bool {
     }
 }
 
-pub fn parse_derive_traits(
-    attributes: &[syn::Attribute],
-) -> Result<Vec<SpannedDeriveTrait>, syn::Error> {
-    let traits: Vec<Vec<SpannedDeriveTrait>> = attributes
-        .iter()
-        .filter(|a| is_derive_attribute(a))
-        .map(parse_derive_attr)
-        .collect::<Result<_, syn::Error>>()?;
-    Ok(traits.into_iter().flatten().collect())
-}
-
-fn parse_derive_attr(attr: &syn::Attribute) -> Result<Vec<SpannedDeriveTrait>, syn::Error> {
-    let meta = &attr.meta;
-    match meta {
-        syn::Meta::Path(path) => {
-            let msg = format!("Expected #[derive(...)], got: {path:?}");
-            Err(syn::Error::new(Span::call_site(), msg))
-        }
-        syn::Meta::NameValue(name_value) => {
-            let msg = format!("Expected #[derive(...)], got: {name_value:?}");
-            Err(syn::Error::new(Span::call_site(), msg))
-        }
-        syn::Meta::List(list) => {
-            let derive_traits: Vec<SpannedDeriveTrait> = list
-                .tokens
-                .clone()
-                .into_iter()
-                .map(parse_token_into_derive_trait)
-                .collect::<Result<Vec<Option<SpannedDeriveTrait>>, syn::Error>>()?
-                .into_iter()
-                .flatten()
-                .collect();
-            Ok(derive_traits)
+pub fn intercept_derive_macro(attributes: &[syn::Attribute]) -> Result<(), syn::Error> {
+    // Return an error if attempt to use `#[derive(..)]` is detected.
+    for attr in attributes.iter() {
+        if is_derive_attribute(attr) {
+            let msg = concat!(
+                "#[derive(..)] macro is not allowed to be used with #[nutype]. ",
+                "If you want to derive traits use `derive(..) attribute within #[nutype] macro:\n\n",
+                "    #[nutype(\n",
+                "        derive(Debug, Clone, AsRef)\n",
+                "    )]\n\n",
+            );
+            return Err(syn::Error::new(attr.span(), msg));
         }
     }
-}
-
-fn parse_token_into_derive_trait(
-    token: TokenTree,
-) -> Result<Option<SpannedDeriveTrait>, syn::Error> {
-    match token {
-        TokenTree::Ident(ident) => {
-            let derive_trait = parse_ident_into_derive_trait(ident)?;
-            Ok(Some(derive_trait))
-        }
-        TokenTree::Punct(ref punct) => match punct.as_char() {
-            ',' => Ok(None),
-            '*' => Err(syn::Error::new(
-                token.span(),
-                "Asterisk derive is not longer supported",
-            )),
-            _ => Err(syn::Error::new(
-                token.span(),
-                format!("Unexpected `{token}`"),
-            )),
-        },
-        _ => Err(syn::Error::new(
-            token.span(),
-            format!("Unexpected `{token}`"),
-        )),
-    }
-}
-
-fn parse_ident_into_derive_trait(ident: Ident) -> Result<SpannedDeriveTrait, syn::Error> {
-    let derive_trait = match ident.to_string().as_ref() {
-        "Debug" => DeriveTrait::Debug,
-        "Display" => DeriveTrait::Display,
-        "Clone" => DeriveTrait::Clone,
-        "Copy" => DeriveTrait::Copy,
-        "PartialEq" => DeriveTrait::PartialEq,
-        "Eq" => DeriveTrait::Eq,
-        "PartialOrd" => DeriveTrait::PartialOrd,
-        "Ord" => DeriveTrait::Ord,
-        "FromStr" => DeriveTrait::FromStr,
-        "AsRef" => DeriveTrait::AsRef,
-        "Deref" => DeriveTrait::Deref,
-        "TryFrom" => DeriveTrait::TryFrom,
-        "From" => DeriveTrait::From,
-        "Into" => DeriveTrait::Into,
-        "Hash" => DeriveTrait::Hash,
-        "Borrow" => DeriveTrait::Borrow,
-        "Default" => DeriveTrait::Default,
-        "Serialize" => {
-            cfg_if! {
-                if #[cfg(feature = "serde")] {
-                    DeriveTrait::SerdeSerialize
-                } else {
-                    return Err(syn::Error::new(ident.span(), "To derive Serialize, the feature `serde` of the crate `nutype` needs to be enabled."));
-                }
-            }
-        }
-        "Deserialize" => {
-            cfg_if! {
-                if #[cfg(feature = "serde")] {
-                    DeriveTrait::SerdeDeserialize
-                } else {
-                    return Err(syn::Error::new(ident.span(), "To derive Deserialize, the feature `serde` of the crate `nutype` needs to be enabled."));
-                }
-            }
-        }
-        "JsonSchema" => {
-            cfg_if! {
-                if #[cfg(feature = "schemars08")] {
-                    DeriveTrait::SchemarsJsonSchema
-                } else {
-                    return Err(syn::Error::new(ident.span(), "To derive JsonSchema, the feature `schemars08` of the crate `nutype` needs to be enabled."));
-                }
-            }
-        }
-        _ => {
-            return Err(syn::Error::new(
-                ident.span(),
-                format!("unsupported trait derive: {ident}"),
-            ));
-        }
-    };
-    let spanned_trait = SpannedDeriveTrait {
-        item: derive_trait,
-        span: ident.span(),
-    };
-    Ok(spanned_trait)
+    Ok(())
 }
 
 #[derive(Debug)]
 pub struct ParseableAttributes<Sanitizer, Validator> {
+    /// Parsed from `sanitize(...)` attribute
     pub sanitizers: Vec<Sanitizer>,
+
+    /// Parsed from `validate(...)` attribute
     pub validators: Vec<Validator>,
+
+    /// Parsed from `new_unchecked` attribute
     pub new_unchecked: NewUnchecked,
+
+    /// Parsed from `new_unchecked` attribute
     pub default: Option<Expr>,
+
+    /// Parsed from `derive(...)` attribute
+    pub derive_traits: Vec<SpannedDeriveTrait>,
 }
 
 // By some reason Default cannot be derived.
@@ -169,6 +74,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             validators: vec![],
             new_unchecked: NewUnchecked::Off,
             default: None,
+            derive_traits: vec![],
         }
     }
 }
@@ -204,6 +110,20 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
                         "`validate` must be used with parenthesis.\n",
                         "For example:\n\n",
                         "    validate(max = 99)\n\n"
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
+                }
+            } else if ident == "derive" {
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let items = content.parse_terminated(SpannedDeriveTrait::parse, Token![,])?;
+                    attrs.derive_traits = items.into_iter().collect();
+                } else {
+                    let msg = concat!(
+                        "`derive` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    derive(Debug, Clone, AsRef)\n\n"
                     );
                     return Err(syn::Error::new(ident.span(), msg));
                 }

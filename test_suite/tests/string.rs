@@ -76,8 +76,7 @@ mod sanitizers {
 
     #[test]
     fn test_from_trait() {
-        #[nutype(sanitize(trim, lowercase))]
-        #[derive(Debug, PartialEq, From)]
+        #[nutype(sanitize(trim, lowercase), derive(Debug, PartialEq, From))]
         pub struct Email(String);
 
         assert_eq!(
@@ -93,8 +92,10 @@ mod validators {
 
     #[test]
     fn test_max_len() {
-        #[nutype(validate(max_len = 5))]
-        #[derive(TryFrom, Debug, Clone, PartialEq, PartialOrd, FromStr, AsRef)]
+        #[nutype(
+            validate(max_len = 5),
+            derive(TryFrom, Debug, Clone, PartialEq, PartialOrd, FromStr, AsRef)
+        )]
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
@@ -106,8 +107,7 @@ mod validators {
 
     #[test]
     fn test_min_len() {
-        #[nutype(validate(min_len = 6))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(min_len = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton"), Err(NameError::TooShort));
@@ -119,8 +119,7 @@ mod validators {
 
     #[test]
     fn test_not_empty() {
-        #[nutype(validate(not_empty))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(not_empty), derive(Debug, PartialEq))]
         pub struct Name(String);
 
         assert_eq!(Name::new(""), Err(NameError::Empty));
@@ -130,8 +129,7 @@ mod validators {
 
     #[test]
     fn test_many_validators() {
-        #[nutype(validate(min_len = 3, max_len = 6))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(min_len = 3, max_len = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
         assert_eq!(Name::new("Jo"), Err(NameError::TooShort));
@@ -145,8 +143,7 @@ mod validators {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
-            #[nutype(validate(with = |e: &str| e.contains('@')))]
-            #[derive(Debug, PartialEq)]
+            #[nutype(validate(with = |e: &str| e.contains('@')), derive(Debug, PartialEq))]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -158,8 +155,7 @@ mod validators {
 
         #[test]
         fn test_closure_with_no_type() {
-            #[nutype(validate(with = |e| e.contains('@')))]
-            #[derive(Debug, PartialEq)]
+            #[nutype(validate(with = |e| e.contains('@')), derive(Debug, PartialEq))]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -175,8 +171,7 @@ mod validators {
 
         #[test]
         fn test_with_function() {
-            #[nutype(validate(with = validate_email))]
-            #[derive(Debug, PartialEq)]
+            #[nutype(validate(with = validate_email), derive(Debug, PartialEq))]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -189,8 +184,7 @@ mod validators {
 
     #[test]
     fn test_try_from_trait() {
-        #[nutype(validate(not_empty))]
-        #[derive(Debug, PartialEq, TryFrom)]
+        #[nutype(validate(not_empty), derive(Debug, PartialEq, TryFrom))]
         pub struct Name(String);
 
         assert_eq!(Name::try_from(""), Err(NameError::Empty));
@@ -199,8 +193,7 @@ mod validators {
 
     #[test]
     fn test_try_from_trait_without_validation() {
-        #[nutype]
-        #[derive(Debug, PartialEq, TryFrom)]
+        #[nutype(derive(Debug, PartialEq, TryFrom))]
         pub struct Name(String);
 
         assert_eq!(Name::try_from("Tom").unwrap().into_inner(), "Tom");
@@ -210,8 +203,7 @@ mod validators {
     fn test_error() {
         fn ensure_type_implements_error<T: std::error::Error>() {}
 
-        #[nutype(validate(not_empty))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(not_empty), derive(Debug, PartialEq))]
         pub struct Email(String);
 
         ensure_type_implements_error::<EmailError>();
@@ -237,8 +229,8 @@ mod complex {
         #[nutype(
             sanitize(trim, with = |s| s.to_uppercase()),
             validate(not_empty, max_len = 6),
+            derive(Debug, PartialEq)
         )]
-        #[derive(Debug, PartialEq)]
         pub struct Name(String);
 
         assert_eq!(Name::new("    "), Err(NameError::Empty));
@@ -270,8 +262,7 @@ mod derives {
 
     #[test]
     fn test_without_validation() {
-        #[nutype]
-        #[derive(Debug, Hash, From, FromStr, Borrow, Clone)]
+        #[nutype(derive(Debug, Hash, From, FromStr, Borrow, Clone))]
         pub struct Name(String);
 
         should_implement_hash::<Name>();
@@ -286,8 +277,10 @@ mod derives {
 
     #[test]
     fn test_with_validaiton() {
-        #[nutype(validate(not_empty))]
-        #[derive(Debug, Hash, TryFrom, FromStr, Borrow, Clone)]
+        #[nutype(
+            validate(not_empty),
+            derive(Debug, Hash, TryFrom, FromStr, Borrow, Clone)
+        )]
         pub struct Name(String);
 
         should_implement_hash::<Name>();
@@ -302,8 +295,7 @@ mod derives {
 
     #[test]
     fn test_trait_into() {
-        #[nutype(sanitize(trim))]
-        #[derive(Into)]
+        #[nutype(sanitize(trim), derive(Into))]
         pub struct Name(String);
 
         let name = Name::new("  Anna");
@@ -313,8 +305,7 @@ mod derives {
 
     #[test]
     fn test_trait_from_str() {
-        #[nutype]
-        #[derive(From)]
+        #[nutype(derive(From))]
         pub struct Name(String);
 
         let name = Name::from("Anna");
@@ -323,8 +314,7 @@ mod derives {
 
     #[test]
     fn test_trait_from_string() {
-        #[nutype]
-        #[derive(From)]
+        #[nutype(derive(From))]
         pub struct Name(String);
 
         let name = Name::from("Anna".to_string());
@@ -333,8 +323,7 @@ mod derives {
 
     #[test]
     fn test_trait_as_ref() {
-        #[nutype]
-        #[derive(AsRef)]
+        #[nutype(derive(AsRef))]
         pub struct Name(String);
 
         let name = Name::new("Anna");
@@ -344,8 +333,7 @@ mod derives {
 
     #[test]
     fn test_trait_deref() {
-        #[nutype]
-        #[derive(Deref)]
+        #[nutype(derive(Deref))]
         pub struct Name(String);
 
         let name = Name::new("Anna");
@@ -359,8 +347,7 @@ mod derives {
     fn test_trait_borrow_str() {
         use std::borrow::Borrow;
 
-        #[nutype]
-        #[derive(Borrow)]
+        #[nutype(derive(Borrow))]
         pub struct Name(String);
 
         let name = Name::new("Anna");
@@ -372,8 +359,7 @@ mod derives {
     fn test_trait_borrow_string() {
         use std::borrow::Borrow;
 
-        #[nutype]
-        #[derive(Borrow)]
+        #[nutype(derive(Borrow))]
         pub struct Name(String);
 
         let name = Name::new("Anna");
@@ -383,8 +369,7 @@ mod derives {
 
     #[test]
     fn test_trait_try_from_str() {
-        #[nutype(validate(not_empty))]
-        #[derive(Debug, TryFrom)]
+        #[nutype(validate(not_empty), derive(Debug, TryFrom))]
         pub struct Name(String);
 
         let name = Name::try_from("Anna").unwrap();
@@ -396,8 +381,7 @@ mod derives {
 
     #[test]
     fn test_trait_try_from_string() {
-        #[nutype(validate(not_empty))]
-        #[derive(Debug, TryFrom)]
+        #[nutype(validate(not_empty), derive(Debug, TryFrom))]
         pub struct Name(String);
 
         let name = Name::try_from("Anna".to_string()).unwrap();
@@ -409,8 +393,7 @@ mod derives {
 
     #[test]
     fn test_trait_display() {
-        #[nutype]
-        #[derive(Display)]
+        #[nutype(derive(Display))]
         pub struct Name(String);
 
         let name = Name::new("Serhii");
@@ -423,8 +406,7 @@ mod derives {
 
         #[test]
         fn test_default_without_validation() {
-            #[nutype(default = "Anonymous")]
-            #[derive(Default)]
+            #[nutype(default = "Anonymous", derive(Default))]
             pub struct Name(String);
 
             assert_eq!(Name::default().into_inner(), "Anonymous");
@@ -432,8 +414,7 @@ mod derives {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(validate(min_len = 5), default = "Anonymous")]
-            #[derive(Default)]
+            #[nutype(validate(min_len = 5), default = "Anonymous", derive(Default))]
             pub struct Name(String);
 
             assert_eq!(Name::default().into_inner(), "Anonymous");
@@ -442,8 +423,7 @@ mod derives {
         #[test]
         #[should_panic(expected = "Default value for type Name is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(validate(min_len = 5), default = "Nope")]
-            #[derive(Default)]
+            #[nutype(validate(min_len = 5), default = "Nope", derive(Default))]
             pub struct Name(String);
 
             Name::default();
@@ -453,8 +433,7 @@ mod derives {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {
-        #[nutype]
-        #[derive(Serialize)]
+        #[nutype(derive(Serialize))]
         pub struct Email(String);
 
         let email = Email::new("my@example.com");
@@ -465,8 +444,7 @@ mod derives {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_without_validation() {
-        #[nutype]
-        #[derive(Deserialize)]
+        #[nutype(derive(Deserialize))]
         pub struct NaiveEmail(String);
 
         {
@@ -479,9 +457,9 @@ mod derives {
     #[test]
     fn test_trait_deserialize_with_validation() {
         #[nutype(
-            validate(with = |address| address.contains('@') )
+            validate(with = |address| address.contains('@') ),
+            derive(Deserialize),
         )]
-        #[derive(Deserialize)]
         pub struct NaiveEmail(String);
 
         {
@@ -519,8 +497,7 @@ mod derive_schemars_json_schema {
 
     #[test]
     fn test_json_schema_derive() {
-        #[nutype]
-        #[derive(JsonSchema)]
+        #[nutype(derive(JsonSchema))]
         pub struct CustomerIdentifier(String);
 
         assert_eq!(CustomerIdentifier::schema_name(), "CustomerIdentifier");
@@ -546,8 +523,7 @@ mod validation_with_regex {
 
     #[test]
     fn test_regex_as_string() {
-        #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"), derive(Debug, PartialEq))]
         pub struct PhoneNumber(String);
 
         // Invalid
@@ -563,8 +539,7 @@ mod validation_with_regex {
 
     #[test]
     fn test_regex_with_lazy_static() {
-        #[nutype(validate(regex = PHONE_REGEX_LAZY_STATIC))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(regex = PHONE_REGEX_LAZY_STATIC), derive(Debug, PartialEq))]
         pub struct PhoneNumber(String);
 
         // Invalid
@@ -580,8 +555,7 @@ mod validation_with_regex {
 
     #[test]
     fn test_regex_with_once_cell_lazy() {
-        #[nutype(validate(regex = PHONE_REGEX_ONCE_CELL))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(regex = PHONE_REGEX_ONCE_CELL), derive(Debug, PartialEq))]
         pub struct PhoneNumber(String);
 
         // Invalid

@@ -10,7 +10,7 @@ use quote::ToTokens;
 
 use crate::common::{
     gen::GenerateNewtype,
-    models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem},
+    models::{Attributes, GenerateParams, Guard, Newtype, SpannedDeriveTrait},
 };
 
 use self::{
@@ -37,13 +37,15 @@ where
     type TypedTrait = FloatDeriveTrait;
     type InnerType = FloatInnerType;
 
-    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error> {
+    fn parse_attributes(
+        attrs: TokenStream,
+    ) -> Result<Attributes<FloatGuard<T>, SpannedDeriveTrait>, syn::Error> {
         parse::parse_attributes::<T>(attrs)
     }
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedDeriveTrait>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
         validate_float_derive_traits(derive_traits, guard)
     }

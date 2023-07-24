@@ -10,7 +10,7 @@ use quote::ToTokens;
 
 use crate::common::{
     gen::GenerateNewtype,
-    models::{Attributes, DeriveTrait, GenerateParams, Guard, Newtype, SpannedItem},
+    models::{Attributes, GenerateParams, Guard, Newtype, SpannedDeriveTrait},
 };
 
 use self::{
@@ -38,13 +38,15 @@ where
     type TypedTrait = IntegerDeriveTrait;
     type InnerType = IntegerInnerType;
 
-    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<IntegerGuard<T>>, syn::Error> {
+    fn parse_attributes(
+        attrs: TokenStream,
+    ) -> Result<Attributes<IntegerGuard<T>, SpannedDeriveTrait>, syn::Error> {
         parse::parse_attributes::<T>(attrs)
     }
 
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedDeriveTrait>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
         let has_validation = guard.has_validation();
         validate_integer_derive_traits(derive_traits, has_validation)

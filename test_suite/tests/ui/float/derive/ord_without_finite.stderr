@@ -1,7 +1,7 @@
 error: To derive Ord trait on float-based type there must be validation that proves that inner value is not NaN.
        Consider adding:
            validate(finite)
- --> tests/ui/float/derive/ord_without_finite.rs:4:10
+ --> tests/ui/float/derive/ord_without_finite.rs:3:17
   |
-4 | #[derive(Ord)]
-  |          ^^^
+3 | #[nutype(derive(Ord))]
+  |                 ^^^

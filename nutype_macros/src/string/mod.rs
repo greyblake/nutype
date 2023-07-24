@@ -7,7 +7,7 @@ use std::collections::HashSet;
 
 use crate::common::{
     gen::GenerateNewtype,
-    models::{Attributes, DeriveTrait, GenerateParams, Newtype, SpannedItem},
+    models::{Attributes, GenerateParams, Newtype, SpannedDeriveTrait},
 };
 
 use models::{StringDeriveTrait, StringSanitizer, StringValidator};
@@ -26,13 +26,15 @@ impl Newtype for StringNewtype {
     type TypedTrait = StringDeriveTrait;
     type InnerType = StringInnerType;
 
-    fn parse_attributes(attrs: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
+    fn parse_attributes(
+        attrs: TokenStream,
+    ) -> Result<Attributes<StringGuard, SpannedDeriveTrait>, syn::Error> {
         parse::parse_attributes(attrs)
     }
 
     fn validate(
         guard: &StringGuard,
-        derive_traits: Vec<SpannedItem<DeriveTrait>>,
+        derive_traits: Vec<SpannedDeriveTrait>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
         validate_string_derive_traits(guard, derive_traits)
     }
