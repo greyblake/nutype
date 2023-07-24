@@ -1,4 +1,4 @@
-error: Nutype cannot derive `Bingo is trait.
+error: #[nutype] does not know how to derive `Bingo` trait.
  --> tests/ui/string/derive/unknown_trait.rs:5:26
   |
 5 |     derive(Debug, Clone, Bingo, PartialEq),

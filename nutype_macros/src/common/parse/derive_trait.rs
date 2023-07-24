@@ -56,7 +56,7 @@ impl Parse for SpannedDeriveTrait {
             _ => {
                 return Err(syn::Error::new(
                     ident.span(),
-                    format!("Nutype cannot derive `{ident} is trait."),
+                    format!("#[nutype] does not know how to derive `{ident}` trait."),
                 ));
             }
         };
