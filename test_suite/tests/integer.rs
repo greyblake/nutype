@@ -40,9 +40,9 @@ mod sanitizers {
 
     #[test]
     fn test_from_trait() {
-        #[nutype(sanitize(with = |a| a.clamp(18, 99)))]
-        #[derive(
-            From, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash,
+        #[nutype(
+            sanitize(with = |a| a.clamp(18, 99)),
+            derive(From, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)
         )]
         struct Age(u8);
 
@@ -56,8 +56,12 @@ mod validators {
 
     #[test]
     fn test_min() {
-        #[nutype(validate(min = 18))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 18),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Age(u8);
 
         assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
@@ -66,8 +70,12 @@ mod validators {
 
     #[test]
     fn test_max() {
-        #[nutype(validate(max = 99))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(max = 99),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Age(u8);
 
         assert_eq!(Age::new(100).unwrap_err(), AgeError::TooBig);
@@ -76,8 +84,12 @@ mod validators {
 
     #[test]
     fn test_min_and_max() {
-        #[nutype(validate(min = 18, max = 99))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 18, max = 99),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Age(u8);
 
         assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
@@ -91,8 +103,7 @@ mod validators {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
-            #[nutype(validate(with = |c: &i32| (0..=100).contains(c) ))]
-            #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+            #[nutype(validate(with = |c: &i32| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
             pub struct Cent(i32);
 
             assert_eq!(Cent::new(-10), Err(CentError::Invalid));
@@ -102,8 +113,7 @@ mod validators {
 
         #[test]
         fn test_closure_with_no_type() {
-            #[nutype(validate(with = |c| (0..=100).contains(c) ))]
-            #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+            #[nutype(validate(with = |c| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
             pub struct Cent(i32);
 
             assert_eq!(Cent::new(-10), Err(CentError::Invalid));
@@ -117,9 +127,9 @@ mod validators {
 
         #[test]
         fn test_with_function() {
-            #[nutype(validate(with = is_cent_valid))]
-            #[derive(
-                TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash,
+            #[nutype(
+                validate(with = is_cent_valid),
+                derive(TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash),
             )]
             pub struct Cent(i32);
 
@@ -131,9 +141,11 @@ mod validators {
 
     #[test]
     fn test_try_from_trait() {
-        #[nutype(validate(min = 18))]
-        #[derive(
-            TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash,
+        #[nutype(
+            validate(min = 18),
+            derive(
+                TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
         )]
         struct Age(u8);
 
@@ -143,8 +155,7 @@ mod validators {
 
     #[test]
     fn test_try_from_trait_without_validation() {
-        #[nutype]
-        #[derive(Debug, PartialEq, TryFrom)]
+        #[nutype(derive(Debug, PartialEq, TryFrom))]
         struct Age(u8);
 
         assert_eq!(Age::try_from(78).unwrap().into_inner(), 78);
@@ -156,9 +167,12 @@ mod validators {
 
         #[test]
         fn test_error_display() {
-            #[nutype(validate(min = 18))]
-            #[derive(
-                TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash,
+            #[nutype(
+                validate(min = 18),
+                derive(
+                    TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef,
+                    Hash
+                )
             )]
             struct Age(u8);
 
@@ -178,8 +192,8 @@ mod types {
         #[nutype(
             sanitize(with = |n| n.clamp(0, 200)),
             validate(min = 18, max = 99),
+            derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)
         )]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
         struct Age(u8);
 
         assert_eq!(Age::new(17), Err(AgeError::TooSmall));
@@ -189,8 +203,7 @@ mod types {
 
     #[test]
     fn test_u8_sanitize() {
-        #[nutype(sanitize(with = |n| n.clamp(10, 100)))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(sanitize(with = |n| n.clamp(10, 100)), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
         struct Percentage(u8);
 
         assert_eq!(Percentage::new(101), Percentage::new(100));
@@ -199,8 +212,12 @@ mod types {
 
     #[test]
     fn test_u16() {
-        #[nutype(validate(min = 18, max = 65000))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 18, max = 65000),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Age(u16);
 
         assert_eq!(Age::new(17), Err(AgeError::TooSmall));
@@ -210,8 +227,12 @@ mod types {
 
     #[test]
     fn test_u32() {
-        #[nutype(validate(min = 1000, max = 100_000))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 1000, max = 100_000),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Amount(u32);
 
         assert_eq!(Amount::new(17), Err(AmountError::TooSmall));
@@ -221,8 +242,12 @@ mod types {
 
     #[test]
     fn test_u64() {
-        #[nutype(validate(min = 1000, max = 18446744073709551000))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 1000, max = 18446744073709551000),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Amount(u64);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -232,8 +257,12 @@ mod types {
 
     #[test]
     fn test_u128() {
-        #[nutype(validate(min = 1000, max = 170141183460469231731687303715884105828))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 1000, max = 170141183460469231731687303715884105828),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Amount(u128);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -247,8 +276,7 @@ mod types {
 
     #[test]
     fn test_i8_sanitize() {
-        #[nutype(sanitize(with = |n| n.clamp(0, 100)))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(sanitize(with = |n| n.clamp(0, 100)), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
         struct Percentage(i8);
 
         assert_eq!(Percentage::new(101), Percentage::new(100));
@@ -257,8 +285,7 @@ mod types {
 
     #[test]
     fn test_i8_validate() {
-        #[nutype(validate(min = -20, max = 100))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(validate(min = -20, max = 100), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
         struct Offset(i8);
 
         assert_eq!(Offset::new(-21), Err(OffsetError::TooSmall));
@@ -270,8 +297,12 @@ mod types {
 
     #[test]
     fn test_i16_validate() {
-        #[nutype(validate(min = 1000, max = 32_000))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 1000, max = 32_000),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         struct Amount(i16);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -282,8 +313,12 @@ mod types {
 
     #[test]
     fn test_i32_validate() {
-        #[nutype(validate(min = 1000, max = 320_000))]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            validate(min = 1000, max = 320_000),
+            derive(
+                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
 
         struct Amount(i32);
 
@@ -301,9 +336,7 @@ mod types {
         #[nutype(
             sanitize(with = |n| n.clamp(-200, -5)),
             validate(min = -100, max = -50),
-        )]
-        #[derive(
-            TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash,
+            derive(TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash),
         )]
         pub struct Balance(i32);
 
@@ -316,8 +349,10 @@ mod types {
 
     #[test]
     fn test_i64_validate() {
-        #[nutype(validate(min = 1000, max = 8446744073709551000))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(
+            validate(min = 1000, max = 8446744073709551000),
+            derive(Debug, PartialEq)
+        )]
         struct Amount(i64);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -328,8 +363,10 @@ mod types {
 
     #[test]
     fn test_i128_validate() {
-        #[nutype(validate(min = 1000, max = 70141183460469231731687303715884105000))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(
+            validate(min = 1000, max = 70141183460469231731687303715884105000),
+            derive(Debug, PartialEq)
+        )]
         struct Amount(i128);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -343,8 +380,7 @@ mod types {
 
     #[test]
     fn test_usize_validate() {
-        #[nutype(validate(min = 1000, max = 2000))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(min = 1000, max = 2000), derive(Debug, PartialEq))]
         struct Amount(usize);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -355,8 +391,7 @@ mod types {
 
     #[test]
     fn test_isize_validate() {
-        #[nutype(validate(min = 1000, max = 2000))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(min = 1000, max = 2000), derive(Debug, PartialEq))]
         struct Amount(isize);
 
         assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
@@ -389,8 +424,7 @@ mod traits {
 
     #[test]
     fn test_without_validation() {
-        #[nutype]
-        #[derive(Debug, From, FromStr, Borrow, Clone, Copy)]
+        #[nutype(derive(Debug, From, FromStr, Borrow, Clone, Copy))]
         pub struct Number(i8);
 
         should_implement_debug::<Number>();
@@ -403,8 +437,10 @@ mod traits {
 
     #[test]
     fn test_with_validaiton() {
-        #[nutype(validate(max = 1000))]
-        #[derive(Debug, TryFrom, FromStr, Borrow, Clone, Copy)]
+        #[nutype(
+            validate(max = 1000),
+            derive(Debug, TryFrom, FromStr, Borrow, Clone, Copy)
+        )]
         pub struct Number(u128);
 
         should_implement_debug::<Number>();
@@ -417,8 +453,7 @@ mod traits {
 
     #[test]
     fn test_trait_into() {
-        #[nutype]
-        #[derive(Into)]
+        #[nutype(derive(Into))]
         pub struct Age(u8);
 
         let age = Age::new(32);
@@ -428,8 +463,7 @@ mod traits {
 
     #[test]
     fn test_trait_from() {
-        #[nutype]
-        #[derive(From)]
+        #[nutype(derive(From))]
         pub struct Amount(u32);
 
         let amount = Amount::from(350);
@@ -438,8 +472,7 @@ mod traits {
 
     #[test]
     fn test_trait_as_ref() {
-        #[nutype]
-        #[derive(AsRef)]
+        #[nutype(derive(AsRef))]
         pub struct Age(u8);
 
         let age = Age::new(32);
@@ -449,8 +482,7 @@ mod traits {
 
     #[test]
     fn test_trait_deref() {
-        #[nutype]
-        #[derive(Deref)]
+        #[nutype(derive(Deref))]
         pub struct Number(i16);
 
         let magic = Number::new(42);
@@ -461,8 +493,7 @@ mod traits {
     fn test_trait_borrow() {
         use std::borrow::Borrow;
 
-        #[nutype]
-        #[derive(Borrow)]
+        #[nutype(derive(Borrow))]
         pub struct Age(u8);
 
         let age = Age::new(32);
@@ -472,8 +503,7 @@ mod traits {
 
     #[test]
     fn test_trait_try_from() {
-        #[nutype(validate(max = 1000))]
-        #[derive(Debug, TryFrom)]
+        #[nutype(validate(max = 1000), derive(Debug, TryFrom))]
         pub struct Amount(i64);
 
         let amount = Amount::try_from(1000).unwrap();
@@ -485,8 +515,7 @@ mod traits {
 
     #[test]
     fn test_trait_from_str_without_validation() {
-        #[nutype]
-        #[derive(Debug, FromStr)]
+        #[nutype(derive(Debug, FromStr))]
         pub struct Age(i16);
 
         let age: Age = "33".parse().unwrap();
@@ -501,8 +530,7 @@ mod traits {
 
     #[test]
     fn test_trait_from_str_with_validation() {
-        #[nutype(validate(max = 99))]
-        #[derive(Debug, FromStr)]
+        #[nutype(validate(max = 99), derive(Debug, FromStr))]
         pub struct Age(isize);
 
         // Happy path
@@ -522,8 +550,7 @@ mod traits {
 
     #[test]
     fn test_trait_display() {
-        #[nutype]
-        #[derive(Display)]
+        #[nutype(derive(Display))]
         pub struct Age(i64);
 
         let age = Age::new(35);
@@ -533,8 +560,7 @@ mod traits {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {
-        #[nutype]
-        #[derive(Serialize)]
+        #[nutype(derive(Serialize))]
         pub struct Offset(i64);
 
         let offset = Offset::new(-280);
@@ -545,8 +571,7 @@ mod traits {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_without_validation() {
-        #[nutype]
-        #[derive(Deserialize)]
+        #[nutype(derive(Deserialize))]
         pub struct Offset(i64);
 
         {
@@ -563,8 +588,7 @@ mod traits {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_with_validation() {
-        #[nutype(validate(min = 13))]
-        #[derive(Deserialize)]
+        #[nutype(validate(min = 13), derive(Deserialize))]
         pub struct Offset(i64);
 
         {
@@ -589,8 +613,7 @@ mod traits {
 
         #[test]
         fn test_default_without_validation() {
-            #[nutype(default = 13)]
-            #[derive(Default)]
+            #[nutype(default = 13, derive(Default))]
             pub struct Number(i8);
 
             assert_eq!(Number::default().into_inner(), 13);
@@ -598,8 +621,7 @@ mod traits {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(validate(max = 20), default = 13)]
-            #[derive(Default)]
+            #[nutype(validate(max = 20), default = 13, derive(Default))]
             pub struct Number(i8);
 
             assert_eq!(Number::default().into_inner(), 13);
@@ -608,8 +630,7 @@ mod traits {
         #[test]
         #[should_panic(expected = "Default value for type Number is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(validate(max = 20), default = 21)]
-            #[derive(Default)]
+            #[nutype(validate(max = 20), default = 21, derive(Default))]
             pub struct Number(i16);
 
             Number::default();
@@ -640,8 +661,7 @@ mod derive_schemars_json_schema {
 
     #[test]
     fn test_json_schema_derive() {
-        #[nutype]
-        #[derive(JsonSchema)]
+        #[nutype(derive(JsonSchema))]
         pub struct CustomerId(i128);
 
         assert_eq!(CustomerId::schema_name(), "CustomerId");

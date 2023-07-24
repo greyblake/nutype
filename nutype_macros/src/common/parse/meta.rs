@@ -5,7 +5,7 @@ use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 use crate::{
     common::{
         models::{InnerType, Meta, TypeName},
-        parse::{is_derive_attribute, is_doc_attribute, parse_derive_traits},
+        parse::{intercept_derive_macro, is_derive_attribute, is_doc_attribute},
     },
     float::models::FloatInnerType,
     integer::models::IntegerInnerType,
@@ -28,7 +28,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
 
     validate_supported_attrs(&attrs)?;
 
-    let derive_traits = parse_derive_traits(&attrs)?;
+    intercept_derive_macro(&attrs)?;
     let doc_attrs: Vec<Attribute> = attrs.into_iter().filter(is_doc_attribute).collect();
 
     let data_struct = match &data {
@@ -107,7 +107,6 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
         type_name,
         inner_type,
         vis,
-        derive_traits,
     })
 }
 

@@ -15,8 +15,8 @@
 //! #[nutype(
 //!     sanitize(trim, lowercase),
 //!     validate(not_empty, max_len = 20),
+//!     derive(Debug, PartialEq),
 //! )]
-//! #[derive(Debug, PartialEq)]
 //! pub struct Username(String);
 //!
 //! // Now we can create usernames:
@@ -222,8 +222,10 @@
 //! ```rust
 //! use nutype::nutype;
 //!
-//! #[nutype(validate(finite))]
-//! #[derive(PartialEq, Eq, PartialOrd, Ord)]
+//! #[nutype(
+//!     validate(finite),
+//!     derive(PartialEq, Eq, PartialOrd, Ord),
+//! )]
 //! struct Size(f64);
 //! ```
 //!
@@ -281,8 +283,10 @@
 //! ```
 //! use nutype::nutype;
 //!
-//! #[nutype(default = "Anonymous")]
-//! #[derive(Default)]
+//! #[nutype(
+//!     derive(Default),
+//!     default = "Anonymous",
+//! )]
 //! pub struct Name(String);
 //! ```
 //!
@@ -294,8 +298,10 @@
 //! ```
 //! use nutype::nutype;
 //!
-//! #[nutype(validate(finite))]
-//! #[derive(PartialEq, Eq, PartialOrd, Ord)]
+//! #[nutype(
+//!     validate(finite),
+//!     derive(PartialEq, Eq, PartialOrd, Ord),
+//! )]
 //! pub struct Weight(f64);
 //! ```
 //!
@@ -356,8 +362,13 @@ mod tests {
 
     #[test]
     fn test_email_example() {
-        #[nutype(sanitize(trim, lowercase), validate(not_empty))]
-        #[derive(TryFrom, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)]
+        #[nutype(
+            sanitize(trim, lowercase),
+            validate(not_empty),
+            derive(
+                TryFrom, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
+            )
+        )]
         pub struct Email(String);
 
         let email = Email::new("  OH@my.example\n\n").unwrap();
@@ -368,8 +379,7 @@ mod tests {
 
     #[test]
     fn test_amount_example() {
-        #[nutype(validate(min = 100, max = 1_000))]
-        #[derive(Debug, PartialEq, TryFrom)]
+        #[nutype(validate(min = 100, max = 1_000), derive(Debug, PartialEq, TryFrom))]
         pub struct Amount(u32);
 
         assert_eq!(Amount::try_from(99), Err(AmountError::TooSmall));

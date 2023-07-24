@@ -40,8 +40,7 @@ mod sanitizers {
 
     #[test]
     fn test_from_trait() {
-        #[nutype]
-        #[derive(From)]
+        #[nutype(derive(From))]
         struct Age(f64);
 
         assert_eq!(Age::from(17.0).into_inner(), 17.0);
@@ -54,8 +53,10 @@ mod validators {
 
     #[test]
     fn test_min() {
-        #[nutype(validate(min = 18.0))]
-        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+        #[nutype(
+            validate(min = 18.0),
+            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+        )]
         struct Age(f32);
 
         assert_eq!(Age::new(17.0).unwrap_err(), AgeError::TooSmall);
@@ -64,8 +65,10 @@ mod validators {
 
     #[test]
     fn test_max() {
-        #[nutype(validate(max = 99.0))]
-        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+        #[nutype(
+            validate(max = 99.0),
+            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+        )]
         struct Age(f32);
 
         assert_eq!(Age::new(100.0).unwrap_err(), AgeError::TooBig);
@@ -74,8 +77,10 @@ mod validators {
 
     #[test]
     fn test_min_and_max() {
-        #[nutype(validate(min = 18.0, max = 99.0))]
-        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+        #[nutype(
+            validate(min = 18.0, max = 99.0),
+            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+        )]
         struct Age(f32);
 
         assert_eq!(Age::new(17.9).unwrap_err(), AgeError::TooSmall);
@@ -85,8 +90,7 @@ mod validators {
 
     #[test]
     fn test_finite_f64() {
-        #[nutype(validate(finite))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(finite), derive(Debug, PartialEq))]
         struct Dist(f64);
 
         // invalid
@@ -104,8 +108,10 @@ mod validators {
 
     #[test]
     fn test_finite_f32() {
-        #[nutype(validate(finite))]
-        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+        #[nutype(
+            validate(finite),
+            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+        )]
         struct Dist(f32);
 
         // invalid
@@ -124,8 +130,7 @@ mod validators {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
-            #[nutype(validate(with = |&c: &f32| (0.0..=100.0).contains(&c) ))]
-            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+            #[nutype(validate(with = |&c: &f32| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -136,8 +141,7 @@ mod validators {
 
         #[test]
         fn test_closure_with_no_type() {
-            #[nutype(validate(with = |&c| (0.0..=100.0).contains(&c) ))]
-            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+            #[nutype(validate(with = |&c| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -152,8 +156,7 @@ mod validators {
 
         #[test]
         fn test_with_function() {
-            #[nutype(validate(with = is_cent_valid))]
-            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+            #[nutype(validate(with = is_cent_valid), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -165,8 +168,10 @@ mod validators {
 
     #[test]
     fn test_try_from_trait() {
-        #[nutype(validate(min = 18.0))]
-        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+        #[nutype(
+            validate(min = 18.0),
+            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+        )]
         struct Age(f64);
 
         assert_eq!(Age::try_from(17.9).unwrap_err(), AgeError::TooSmall);
@@ -175,8 +180,7 @@ mod validators {
 
     #[test]
     fn test_try_from_trait_without_validation() {
-        #[nutype]
-        #[derive(Debug, PartialEq, TryFrom)]
+        #[nutype(derive(Debug, PartialEq, TryFrom))]
         struct Age(f64);
 
         assert_eq!(Age::try_from(78.8).unwrap().into_inner(), 78.8);
@@ -188,8 +192,10 @@ mod validators {
 
         #[test]
         fn test_error_display() {
-            #[nutype(validate(min = 0.0))]
-            #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
+            #[nutype(
+                validate(min = 0.0),
+                derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+            )]
             struct Percentage(f64);
 
             let err = Percentage::try_from(-0.1).unwrap_err();
@@ -205,8 +211,7 @@ mod types {
 
     #[test]
     fn test_f32_validate() {
-        #[nutype(validate(min = 0.0, max = 100))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(min = 0.0, max = 100), derive(Debug, PartialEq))]
         pub struct Width(f32);
 
         assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));
@@ -217,8 +222,7 @@ mod types {
 
     #[test]
     fn test_f64_validate() {
-        #[nutype(validate(min = 0.0, max = 100))]
-        #[derive(Debug, PartialEq)]
+        #[nutype(validate(min = 0.0, max = 100), derive(Debug, PartialEq))]
         pub struct Width(f64);
 
         assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));
@@ -234,9 +238,9 @@ mod types {
     fn test_f64_negative() {
         #[nutype(
             sanitize(with = |n| n.clamp(-200.25, -5.0)),
-            validate(min = -100.25, max = -50.1)
+            validate(min = -100.25, max = -50.1),
+            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
         )]
-        #[derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)]
         pub struct Balance(f64);
 
         assert_eq!(Balance::new(-300.0), Err(BalanceError::TooSmall));
@@ -270,8 +274,7 @@ mod traits {
 
     #[test]
     fn test_without_validation() {
-        #[nutype]
-        #[derive(Debug, From, FromStr, Borrow, Clone, Copy)]
+        #[nutype(derive(Debug, From, FromStr, Borrow, Clone, Copy))]
         pub struct Dist(f32);
 
         should_implement_debug::<Dist>();
@@ -284,8 +287,10 @@ mod traits {
 
     #[test]
     fn test_with_validaiton() {
-        #[nutype(validate(max = 100.0))]
-        #[derive(Debug, TryFrom, FromStr, Borrow, Clone, Copy)]
+        #[nutype(
+            validate(max = 100.0),
+            derive(Debug, TryFrom, FromStr, Borrow, Clone, Copy)
+        )]
         pub struct Dist(f64);
 
         should_implement_debug::<Dist>();
@@ -298,8 +303,7 @@ mod traits {
 
     #[test]
     fn test_trait_into() {
-        #[nutype]
-        #[derive(Into)]
+        #[nutype(derive(Into))]
         pub struct Size(f64);
 
         let size = Size::new(35.7);
@@ -309,8 +313,7 @@ mod traits {
 
     #[test]
     fn test_trait_from() {
-        #[nutype]
-        #[derive(From)]
+        #[nutype(derive(From))]
         pub struct Size(f64);
 
         let size = Size::from(35.7);
@@ -319,8 +322,7 @@ mod traits {
 
     #[test]
     fn test_trait_as_ref() {
-        #[nutype]
-        #[derive(AsRef)]
+        #[nutype(derive(AsRef))]
         pub struct Weight(f32);
 
         let weight = Weight::new(72.650);
@@ -330,8 +332,7 @@ mod traits {
 
     #[test]
     fn test_trait_deref() {
-        #[nutype]
-        #[derive(Deref)]
+        #[nutype(derive(Deref))]
         pub struct Number(f64);
 
         let magic = Number::new(42.0);
@@ -342,8 +343,7 @@ mod traits {
     fn test_trait_borrow() {
         use std::borrow::Borrow;
 
-        #[nutype]
-        #[derive(Borrow)]
+        #[nutype(derive(Borrow))]
         pub struct Age(f64);
 
         let age = Age::new(32.0);
@@ -353,8 +353,7 @@ mod traits {
 
     #[test]
     fn test_trait_try_from() {
-        #[nutype(validate(max = 12.34))]
-        #[derive(Debug, TryFrom)]
+        #[nutype(validate(max = 12.34), derive(Debug, TryFrom))]
         pub struct Dist(f64);
 
         let dist = Dist::try_from(12.34).unwrap();
@@ -366,8 +365,7 @@ mod traits {
 
     #[test]
     fn test_trait_from_str_without_validation() {
-        #[nutype]
-        #[derive(Debug, FromStr)]
+        #[nutype(derive(Debug, FromStr))]
         pub struct Dist(f64);
 
         let dist: Dist = "33.4".parse().unwrap();
@@ -382,8 +380,7 @@ mod traits {
 
     #[test]
     fn test_trait_from_str_with_validation() {
-        #[nutype(validate(max = 12.34))]
-        #[derive(Debug, FromStr)]
+        #[nutype(validate(max = 12.34), derive(Debug, FromStr))]
         pub struct Dist(f64);
 
         // Happy path
@@ -403,8 +400,7 @@ mod traits {
 
     #[test]
     fn test_trait_display() {
-        #[nutype]
-        #[derive(Display)]
+        #[nutype(derive(Display))]
         pub struct Size(f64);
 
         let size = Size::new(35.7);
@@ -413,8 +409,7 @@ mod traits {
 
     #[test]
     fn test_trait_eq() {
-        #[nutype(validate(finite))]
-        #[derive(PartialEq, Eq, Debug)]
+        #[nutype(validate(finite), derive(PartialEq, Eq, Debug))]
         pub struct Size(f64);
 
         should_implement_eq::<Size>();
@@ -431,8 +426,7 @@ mod traits {
 
         #[test]
         fn test_trait_ord_f32() {
-            #[nutype(validate(finite))]
-            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            #[nutype(validate(finite), derive(PartialEq, Eq, PartialOrd, Ord))]
             pub struct Size(f32);
 
             let a: Size = Size::new(2.5).unwrap();
@@ -446,8 +440,7 @@ mod traits {
 
         #[test]
         fn test_trait_ord_f64() {
-            #[nutype(validate(finite))]
-            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            #[nutype(validate(finite), derive(PartialEq, Eq, PartialOrd, Ord))]
             pub struct Size(f64);
 
             let a: Size = Size::new(2.5).unwrap();
@@ -461,8 +454,7 @@ mod traits {
 
         #[test]
         fn test_sort() {
-            #[nutype(validate(finite))]
-            #[derive(PartialEq, Eq, PartialOrd, Ord)]
+            #[nutype(validate(finite), derive(PartialEq, Eq, PartialOrd, Ord))]
             pub struct Size(f64);
 
             let initial_raw_sizes = vec![5.5, 2.0, 15.0, 44.5, 3.5];
@@ -482,8 +474,7 @@ mod traits {
 
             #[test]
             fn cmp_never_panics_f32() {
-                #[nutype(validate(finite))]
-                #[derive(PartialEq, Eq, PartialOrd, Ord)]
+                #[nutype(validate(finite), derive(PartialEq, Eq, PartialOrd, Ord))]
                 pub struct Size(f32);
 
                 fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
@@ -501,8 +492,7 @@ mod traits {
 
             #[test]
             fn cmp_never_panics_f64() {
-                #[nutype(validate(finite))]
-                #[derive(PartialEq, Eq, PartialOrd, Ord)]
+                #[nutype(validate(finite), derive(PartialEq, Eq, PartialOrd, Ord))]
                 pub struct Size(f64);
 
                 fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
@@ -523,8 +513,7 @@ mod traits {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_serialize() {
-        #[nutype]
-        #[derive(Serialize)]
+        #[nutype(derive(Serialize))]
         pub struct Offset(f64);
 
         let offset = Offset::new(-33.5);
@@ -535,8 +524,7 @@ mod traits {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_without_validation() {
-        #[nutype]
-        #[derive(Deserialize)]
+        #[nutype(derive(Deserialize))]
         pub struct Offset(f64);
 
         {
@@ -553,8 +541,7 @@ mod traits {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_with_validation() {
-        #[nutype(validate(min = 13.3))]
-        #[derive(Deserialize)]
+        #[nutype(validate(min = 13.3), derive(Deserialize))]
         pub struct Offset(f32);
 
         {
@@ -579,8 +566,7 @@ mod traits {
 
         #[test]
         fn test_default_without_validation() {
-            #[nutype(default = 13.0)]
-            #[derive(Default)]
+            #[nutype(default = 13.0, derive(Default))]
             pub struct Number(f32);
 
             assert_eq!(Number::default().into_inner(), 13.0);
@@ -588,8 +574,7 @@ mod traits {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(validate(max = 20.0), default = 13.0)]
-            #[derive(Default)]
+            #[nutype(validate(max = 20.0), default = 13.0, derive(Default))]
             pub struct Number(f64);
 
             assert_eq!(Number::default().into_inner(), 13.0);
@@ -598,8 +583,7 @@ mod traits {
         #[test]
         #[should_panic(expected = "Default value for type Number is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(validate(max = 20.0), default = 20.1)]
-            #[derive(Default)]
+            #[nutype(validate(max = 20.0), default = 20.1, derive(Default))]
             pub struct Number(f64);
 
             Number::default();
@@ -630,8 +614,7 @@ mod derive_schemars_json_schema {
 
     #[test]
     fn test_json_schema_derive() {
-        #[nutype]
-        #[derive(JsonSchema)]
+        #[nutype(derive(JsonSchema))]
         pub struct ProductWeight(f64);
 
         assert_eq!(ProductWeight::schema_name(), "ProductWeight");

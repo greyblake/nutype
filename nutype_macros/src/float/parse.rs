@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::common::{
-    models::Attributes,
+    models::{Attributes, SpannedDeriveTrait},
     parse::{parse_number, parse_typed_custom_function, ParseableAttributes},
 };
 use proc_macro2::{Ident, TokenStream};
@@ -21,7 +21,9 @@ use super::{
     validate::validate_number_meta,
 };
 
-pub fn parse_attributes<T>(input: TokenStream) -> Result<Attributes<FloatGuard<T>>, syn::Error>
+pub fn parse_attributes<T>(
+    input: TokenStream,
+) -> Result<Attributes<FloatGuard<T>, SpannedDeriveTrait>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
     <T as FromStr>::Err: Debug + Display,
@@ -34,6 +36,7 @@ where
         validators,
         new_unchecked,
         default,
+        derive_traits,
     } = attrs;
     let raw_guard = FloatRawGuard {
         sanitizers,
@@ -44,6 +47,7 @@ where
         new_unchecked,
         guard,
         default,
+        derive_traits,
     })
 }
 

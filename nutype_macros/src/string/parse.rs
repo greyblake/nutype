@@ -1,6 +1,6 @@
 use crate::{
     common::{
-        models::{Attributes, SpannedItem},
+        models::{Attributes, SpannedDeriveTrait, SpannedItem},
         parse::{parse_number, parse_typed_custom_function_raw, ParseableAttributes},
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
@@ -18,7 +18,9 @@ use super::{
     validate::validate_string_meta,
 };
 
-pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, syn::Error> {
+pub fn parse_attributes(
+    input: TokenStream,
+) -> Result<Attributes<StringGuard, SpannedDeriveTrait>, syn::Error> {
     let attrs: ParseableAttributes<SpannedStringSanitizer, SpannedStringValidator> =
         syn::parse2(input)?;
 
@@ -27,6 +29,7 @@ pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, s
         validators,
         new_unchecked,
         default,
+        derive_traits,
     } = attrs;
     let raw_guard = StringRawGuard {
         sanitizers,
@@ -37,6 +40,7 @@ pub fn parse_attributes(input: TokenStream) -> Result<Attributes<StringGuard>, s
         new_unchecked,
         guard,
         default,
+        derive_traits,
     })
 }
 
