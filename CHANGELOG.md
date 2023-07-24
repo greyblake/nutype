@@ -1,6 +1,7 @@
 ### v0.4.0 - 2023-xx-xx
 * [BREAKING] Removal of asterisk derive
 * [BREAKING] Use commas to separate high level attributes
+* [BREAKING] Traits are derived with `#[nutype(derive(Debug))]`. The regular `#[derive(Debug)]` syntax is not supported anymore.
 
 ### v0.3.1 - 2023-06-30
 * Support deriving of `Deref`
