@@ -66,7 +66,7 @@
 //! ```
 //! use nutype::nutype;
 //!
-//! #[nutype(validate(with = |n| n % 2 == 1))]
+//! #[nutype(validate(predicate = |n| n % 2 == 1))]
 //! struct OddNumber(i64);
 //! ```
 //!

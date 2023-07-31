@@ -39,7 +39,7 @@ fn gen_definition<T>(
             FloatValidator::Max(_) => {
                 quote!(TooBig,)
             }
-            FloatValidator::With(_) => {
+            FloatValidator::Predicate(_) => {
                 quote!(Invalid,)
             }
             FloatValidator::Finite => {
@@ -66,7 +66,7 @@ fn gen_impl_display_trait<T>(
         FloatValidator::Max(_) => quote! {
              #error_type_name::TooBig=> write!(f, "too big")
         },
-        FloatValidator::With(_) => quote! {
+        FloatValidator::Predicate(_) => quote! {
              #error_type_name::Invalid => write!(f, "invalid")
         },
         FloatValidator::Finite => quote! {

@@ -108,7 +108,7 @@ impl GenerateNewtype for StringNewtype {
                         }
                     )
                 }
-                StringValidator::With(typed_custom_function) => {
+                StringValidator::Predicate(typed_custom_function) => {
                     quote!(
                         if !(#typed_custom_function)(&val) {
                             return Err(#error_name::Invalid);

@@ -73,11 +73,11 @@ where
                 item: FloatValidator::Max(number as T),
                 span,
             })
-        } else if ident == "with" {
+        } else if ident == "predicate" {
             let _eq: Token![=] = input.parse()?;
             let (typed_custom_function, span) = parse_typed_custom_function::<&T>(input)?;
             Ok(SpannedFloatValidator {
-                item: FloatValidator::With(typed_custom_function),
+                item: FloatValidator::Predicate(typed_custom_function),
                 span,
             })
         } else if ident == "finite" {
@@ -86,6 +86,9 @@ where
                 item: validator,
                 span: ident.span(),
             })
+        } else if ident == "with" {
+            let msg = "Deprecated validator `with`. It was renamed to `predicate`";
+            Err(syn::Error::new(ident.span(), msg))
         } else {
             let msg = format!("Unknown validator `{ident}`");
             Err(syn::Error::new(ident.span(), msg))

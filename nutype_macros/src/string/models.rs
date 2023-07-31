@@ -57,7 +57,7 @@ pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
     NotEmpty,
-    With(TypedCustomFunction),
+    Predicate(TypedCustomFunction),
     #[cfg_attr(not(feature = "regex"), allow(dead_code))]
     Regex(RegexDef),
 }
@@ -82,7 +82,7 @@ impl Kind for StringValidator {
             Self::MinLen(_) => StringValidatorKind::MinLen,
             Self::MaxLen(_) => StringValidatorKind::MaxLen,
             Self::NotEmpty => StringValidatorKind::NotEmpty,
-            Self::With(_) => StringValidatorKind::With,
+            Self::Predicate(_) => StringValidatorKind::Predicate,
             Self::Regex(_) => StringValidatorKind::Regex,
         }
     }
@@ -93,7 +93,7 @@ pub enum StringValidatorKind {
     MinLen,
     MaxLen,
     NotEmpty,
-    With,
+    Predicate,
     Regex,
 }
 
@@ -103,7 +103,7 @@ impl std::fmt::Display for StringValidatorKind {
             Self::MinLen => write!(f, "min_len"),
             Self::MaxLen => write!(f, "max_len"),
             Self::NotEmpty => write!(f, "not_empty"),
-            Self::With => write!(f, "with"),
+            Self::Predicate => write!(f, "predicate"),
             Self::Regex => write!(f, "regex"),
         }
     }
