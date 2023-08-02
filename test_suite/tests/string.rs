@@ -143,7 +143,10 @@ mod validators {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
-            #[nutype(validate(with = |e: &str| e.contains('@')), derive(Debug, PartialEq))]
+            #[nutype(
+                validate(predicate = |e: &str| e.contains('@')),
+                derive(Debug, PartialEq)
+            )]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -155,7 +158,10 @@ mod validators {
 
         #[test]
         fn test_closure_with_no_type() {
-            #[nutype(validate(with = |e| e.contains('@')), derive(Debug, PartialEq))]
+            #[nutype(
+                validate(predicate = |e| e.contains('@')),
+                derive(Debug, PartialEq)
+            )]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -171,7 +177,10 @@ mod validators {
 
         #[test]
         fn test_with_function() {
-            #[nutype(validate(with = validate_email), derive(Debug, PartialEq))]
+            #[nutype(
+                validate(predicate = validate_email),
+                derive(Debug, PartialEq)
+            )]
             pub struct Email(String);
 
             assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
@@ -457,7 +466,7 @@ mod derives {
     #[test]
     fn test_trait_deserialize_with_validation() {
         #[nutype(
-            validate(with = |address| address.contains('@') ),
+            validate(predicate = |address| address.contains('@') ),
             derive(Deserialize),
         )]
         pub struct NaiveEmail(String);

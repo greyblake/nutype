@@ -46,7 +46,7 @@ impl<T> Kind for FloatSanitizer<T> {
 pub enum FloatValidator<T> {
     Min(T),
     Max(T),
-    With(TypedCustomFunction),
+    Predicate(TypedCustomFunction),
     Finite,
 }
 
@@ -56,7 +56,7 @@ pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
 pub enum FloatValidatorKind {
     Min,
     Max,
-    With,
+    Predicate,
     Finite,
 }
 
@@ -65,7 +65,7 @@ impl std::fmt::Display for FloatValidatorKind {
         match self {
             Self::Min => write!(f, "min"),
             Self::Max => write!(f, "max"),
-            Self::With => write!(f, "with"),
+            Self::Predicate => write!(f, "with"),
             Self::Finite => write!(f, "finite"),
         }
     }
@@ -78,7 +78,7 @@ impl<T> Kind for FloatValidator<T> {
         match self {
             Self::Min(_) => FloatValidatorKind::Min,
             Self::Max(_) => FloatValidatorKind::Max,
-            Self::With(_) => FloatValidatorKind::With,
+            Self::Predicate(_) => FloatValidatorKind::Predicate,
             Self::Finite => FloatValidatorKind::Finite,
         }
     }

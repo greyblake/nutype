@@ -79,7 +79,7 @@ where
                         }
                     )
                 }
-                FloatValidator::With(custom_is_valid_fn) => {
+                FloatValidator::Predicate(custom_is_valid_fn) => {
                     quote!(
                         if !(#custom_is_valid_fn)(&val) {
                             return Err(#error_name::Invalid);

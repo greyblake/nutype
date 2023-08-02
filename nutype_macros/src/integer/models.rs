@@ -46,7 +46,7 @@ impl<T> Kind for IntegerSanitizer<T> {
 pub enum IntegerValidator<T> {
     Min(T),
     Max(T),
-    With(TypedCustomFunction),
+    Predicate(TypedCustomFunction),
 }
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
@@ -55,7 +55,7 @@ pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 pub enum IntegerValidatorKind {
     Min,
     Max,
-    With,
+    Predicate,
 }
 
 impl std::fmt::Display for IntegerValidatorKind {
@@ -63,7 +63,7 @@ impl std::fmt::Display for IntegerValidatorKind {
         match self {
             Self::Min => write!(f, "min"),
             Self::Max => write!(f, "max"),
-            Self::With => write!(f, "with"),
+            Self::Predicate => write!(f, "with"),
         }
     }
 }
@@ -75,7 +75,7 @@ impl<T> Kind for IntegerValidator<T> {
         match self {
             Self::Min(_) => IntegerValidatorKind::Min,
             Self::Max(_) => IntegerValidatorKind::Max,
-            Self::With(_) => IntegerValidatorKind::With,
+            Self::Predicate(_) => IntegerValidatorKind::Predicate,
         }
     }
 }

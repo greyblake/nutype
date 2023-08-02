@@ -103,7 +103,10 @@ mod validators {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
-            #[nutype(validate(with = |c: &i32| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
+            #[nutype(
+                validate(predicate = |c: &i32| (0..=100).contains(c) ),
+                derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)
+            )]
             pub struct Cent(i32);
 
             assert_eq!(Cent::new(-10), Err(CentError::Invalid));
@@ -113,7 +116,10 @@ mod validators {
 
         #[test]
         fn test_closure_with_no_type() {
-            #[nutype(validate(with = |c| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
+            #[nutype(
+                validate(predicate = |c| (0..=100).contains(c) ),
+                derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash)
+            )]
             pub struct Cent(i32);
 
             assert_eq!(Cent::new(-10), Err(CentError::Invalid));
@@ -128,7 +134,7 @@ mod validators {
         #[test]
         fn test_with_function() {
             #[nutype(
-                validate(with = is_cent_valid),
+                validate(predicate = is_cent_valid),
                 derive(TryFrom, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash),
             )]
             pub struct Cent(i32);

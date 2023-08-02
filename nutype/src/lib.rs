@@ -66,7 +66,7 @@
 //! ```
 //! use nutype::nutype;
 //!
-//! #[nutype(validate(with = |n| n % 2 == 1))]
+//! #[nutype(validate(predicate = |n| n % 2 == 1))]
 //! struct OddNumber(i64);
 //! ```
 //!
@@ -268,7 +268,7 @@
 //! ```ignore
 //! use nutype::nutype;
 //!
-//! #[nutype(validate(with = is_valid_name))]
+//! #[nutype(validate(predicate = is_valid_name))]
 //! pub struct Name(String);
 //!
 //! fn is_valid_name(name: &str) -> bool {

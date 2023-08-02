@@ -38,7 +38,7 @@ fn gen_definition<T>(
             IntegerValidator::Max(_) => {
                 quote!(TooBig,)
             }
-            IntegerValidator::With(_) => {
+            IntegerValidator::Predicate(_) => {
                 quote!(Invalid,)
             }
         })
@@ -62,7 +62,7 @@ fn gen_impl_display_trait<T>(
         IntegerValidator::Max(_) => quote! {
              #error_type_name::TooBig=> write!(f, "too big")
         },
-        IntegerValidator::With(_) => quote! {
+        IntegerValidator::Predicate(_) => quote! {
              #error_type_name::Invalid => write!(f, "invalid")
         },
     });

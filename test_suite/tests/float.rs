@@ -130,7 +130,10 @@ mod validators {
 
         #[test]
         fn test_with_closure_with_explicit_type() {
-            #[nutype(validate(with = |&c: &f32| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
+            #[nutype(
+                validate(predicate = |&c: &f32| (0.0..=100.0).contains(&c)),
+                derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+            )]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -141,7 +144,10 @@ mod validators {
 
         #[test]
         fn test_closure_with_no_type() {
-            #[nutype(validate(with = |&c| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
+            #[nutype(
+                validate(predicate = |&c| (0.0..=100.0).contains(&c) ),
+                derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+            )]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
@@ -156,7 +162,10 @@ mod validators {
 
         #[test]
         fn test_with_function() {
-            #[nutype(validate(with = is_cent_valid), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
+            #[nutype(
+                validate(predicate = is_cent_valid),
+                derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
+            )]
             pub struct Cent(f32);
 
             assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));

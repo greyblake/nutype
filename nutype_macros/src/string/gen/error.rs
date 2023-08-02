@@ -40,7 +40,7 @@ fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator
             StringValidator::NotEmpty => {
                 quote!(Empty,)
             }
-            StringValidator::With(_) => {
+            StringValidator::Predicate(_) => {
                 quote!(Invalid,)
             }
             StringValidator::Regex(_) => {
@@ -70,7 +70,7 @@ fn gen_impl_display_trait(
         StringValidator::NotEmpty => quote! {
              #error_type_name::Empty => write!(f, "empty")
         },
-        StringValidator::With(_) => quote! {
+        StringValidator::Predicate(_) => quote! {
              #error_type_name::Invalid => write!(f, "invalid")
         },
         StringValidator::Regex(_) => quote! {
