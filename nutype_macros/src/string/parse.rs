@@ -100,11 +100,11 @@ impl Parse for SpannedStringValidator {
                 item: StringValidator::NotEmpty,
                 span: ident.span(),
             })
-        } else if ident == "with" {
+        } else if ident == "predicate" {
             let _eq: Token![=] = input.parse()?;
             let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "&str")?;
             Ok(SpannedStringValidator {
-                item: StringValidator::With(typed_custom_function),
+                item: StringValidator::Predicate(typed_custom_function),
                 span,
             })
         } else if ident == "regex" {
@@ -128,6 +128,9 @@ impl Parse for SpannedStringValidator {
                     Err(syn::Error::new(ident.span(), msg))
                 }
             }
+        } else if ident == "with" {
+            let msg = "Deprecated validator `with`. It was renamed to `predicate`";
+            Err(syn::Error::new(ident.span(), msg))
         } else {
             let msg = format!("Unknown validator `{ident}`");
             Err(syn::Error::new(ident.span(), msg))
