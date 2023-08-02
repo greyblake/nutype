@@ -103,7 +103,7 @@ impl std::fmt::Display for StringValidatorKind {
             Self::MinLen => write!(f, "min_len"),
             Self::MaxLen => write!(f, "max_len"),
             Self::NotEmpty => write!(f, "not_empty"),
-            Self::Predicate => write!(f, "with"),
+            Self::Predicate => write!(f, "predicate"),
             Self::Regex => write!(f, "regex"),
         }
     }

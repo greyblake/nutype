@@ -63,7 +63,7 @@ impl std::fmt::Display for IntegerValidatorKind {
         match self {
             Self::Min => write!(f, "min"),
             Self::Max => write!(f, "max"),
-            Self::Predicate => write!(f, "with"),
+            Self::Predicate => write!(f, "predicate"),
         }
     }
 }
