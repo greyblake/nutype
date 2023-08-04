@@ -1,11 +1,12 @@
+use kinded::Kinded;
 use proc_macro2::TokenStream;
 
-use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
 
 // Sanitizer
 //
 
-#[derive(Debug)]
+#[derive(Debug, Kinded)]
 pub enum IntegerSanitizer<T> {
     With(TypedCustomFunction),
     _Phantom(std::marker::PhantomData<T>),
@@ -13,28 +14,11 @@ pub enum IntegerSanitizer<T> {
 
 pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum IntegerSanitizerKind {
-    With,
-}
-
 impl std::fmt::Display for IntegerSanitizerKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::With => write!(f, "with"),
-        }
-    }
-}
-
-impl<T> Kind for IntegerSanitizer<T> {
-    type Kind = IntegerSanitizerKind;
-
-    fn kind(&self) -> IntegerSanitizerKind {
-        match self {
-            Self::With(_) => IntegerSanitizerKind::With,
-            Self::_Phantom(_) => {
-                unreachable!("Kind::kind(): IntegerSanitizer::_Phantom must not be used")
-            }
+            Self::_Phantom => unreachable!("IntegerSanitizerKind::_Phantom must not be used"),
         }
     }
 }
@@ -42,7 +26,7 @@ impl<T> Kind for IntegerSanitizer<T> {
 // Validator
 //
 
-#[derive(Debug)]
+#[derive(Debug, Kinded)]
 pub enum IntegerValidator<T> {
     Min(T),
     Max(T),
@@ -51,31 +35,12 @@ pub enum IntegerValidator<T> {
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum IntegerValidatorKind {
-    Min,
-    Max,
-    Predicate,
-}
-
 impl std::fmt::Display for IntegerValidatorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Min => write!(f, "min"),
             Self::Max => write!(f, "max"),
             Self::Predicate => write!(f, "predicate"),
-        }
-    }
-}
-
-impl<T> Kind for IntegerValidator<T> {
-    type Kind = IntegerValidatorKind;
-
-    fn kind(&self) -> IntegerValidatorKind {
-        match self {
-            Self::Min(_) => IntegerValidatorKind::Min,
-            Self::Max(_) => IntegerValidatorKind::Max,
-            Self::Predicate(_) => IntegerValidatorKind::Predicate,
         }
     }
 }

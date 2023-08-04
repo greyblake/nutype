@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use proc_macro2::Span;
 
 use crate::common::{
-    models::{DeriveTrait, Kind, SpannedDeriveTrait},
+    models::{DeriveTrait, SpannedDeriveTrait},
     validate::validate_duplicates,
 };
 

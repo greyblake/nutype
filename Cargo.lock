@@ -79,6 +79,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 
 [[package]]
+name = "kinded"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0769c7e633a18e79ad9f6d18ef4f36af019cf4b8d24c72d734b6f3fcb568ef84"
+dependencies = [
+ "kinded_macros",
+]
+
+[[package]]
+name = "kinded_macros"
+version = "0.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d11faeb1425e2f2397166b32727416aa5c6d1aaf36f01b748963ee70f73db7b7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.22",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -102,6 +122,7 @@ name = "nutype_macros"
 version = "0.3.1"
 dependencies = [
  "cfg-if",
+ "kinded",
  "proc-macro2",
  "quote",
  "regex",
