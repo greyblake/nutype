@@ -1,39 +1,19 @@
+use kinded::Kinded;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::common::models::{Guard, Kind, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
 
 // Sanitizer
 
 pub type SpannedStringSanitizer = SpannedItem<StringSanitizer>;
 
-#[derive(Debug)]
+#[derive(Debug, Kinded)]
 pub enum StringSanitizer {
     Trim,
     Lowercase,
     Uppercase,
     With(TypedCustomFunction),
-}
-
-impl Kind for StringSanitizer {
-    type Kind = StringSanitizerKind;
-
-    fn kind(&self) -> StringSanitizerKind {
-        match self {
-            Self::Trim => StringSanitizerKind::Trim,
-            Self::Lowercase => StringSanitizerKind::Lowercase,
-            Self::Uppercase => StringSanitizerKind::Uppercase,
-            Self::With(_) => StringSanitizerKind::With,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum StringSanitizerKind {
-    Trim,
-    Lowercase,
-    Uppercase,
-    With,
 }
 
 impl std::fmt::Display for StringSanitizerKind {
@@ -52,7 +32,7 @@ impl std::fmt::Display for StringSanitizerKind {
 
 pub type SpannedStringValidator = SpannedItem<StringValidator>;
 
-#[derive(Debug)]
+#[derive(Debug, Kinded)]
 pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
@@ -72,29 +52,6 @@ pub enum RegexDef {
     /// The case, when regex is with an ident, that refers to regex constant:
     ///     regex = SSN_REGEX
     Path(syn::Path),
-}
-
-impl Kind for StringValidator {
-    type Kind = StringValidatorKind;
-
-    fn kind(&self) -> StringValidatorKind {
-        match self {
-            Self::MinLen(_) => StringValidatorKind::MinLen,
-            Self::MaxLen(_) => StringValidatorKind::MaxLen,
-            Self::NotEmpty => StringValidatorKind::NotEmpty,
-            Self::Predicate(_) => StringValidatorKind::Predicate,
-            Self::Regex(_) => StringValidatorKind::Regex,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
-pub enum StringValidatorKind {
-    MinLen,
-    MaxLen,
-    NotEmpty,
-    Predicate,
-    Regex,
 }
 
 impl std::fmt::Display for StringValidatorKind {

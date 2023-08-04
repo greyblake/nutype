@@ -1,3 +1,4 @@
+use kinded::Kinded;
 use std::{collections::HashSet, fmt::Debug};
 
 use proc_macro2::{Span, TokenStream};
@@ -14,14 +15,6 @@ use crate::{
 
 use super::gen::type_custom_closure;
 
-/// A trait that may be implemented by enums with payload.
-/// It's mostly used to detect duplicates of validators and sanitizers regardless of their payload.
-pub trait Kind {
-    type Kind: PartialEq + Eq + Debug + Clone + Copy;
-
-    fn kind(&self) -> Self::Kind;
-}
-
 /// A spanned item. An item can be anything that cares a domain value.
 /// Keeping a span allows to throw good precise error messages at the validation stage.
 #[derive(Debug)]
@@ -36,8 +29,8 @@ impl<T> SpannedItem<T> {
     }
 }
 
-impl<T: Kind> Kind for SpannedItem<T> {
-    type Kind = <T as Kind>::Kind;
+impl<T: Kinded> Kinded for SpannedItem<T> {
+    type Kind = <T as Kinded>::Kind;
 
     fn kind(&self) -> Self::Kind {
         self.item.kind()

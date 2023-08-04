@@ -1,14 +1,14 @@
+use kinded::Kinded;
 use proc_macro2::Span;
 
 use super::models::SpannedItem;
-use crate::common::models::Kind;
 
 pub fn validate_duplicates<T>(
     items: &[SpannedItem<T>],
-    build_error_msg: impl Fn(<T as Kind>::Kind) -> String,
+    build_error_msg: impl Fn(<T as Kinded>::Kind) -> String,
 ) -> Result<(), syn::Error>
 where
-    T: Kind,
+    T: Kinded,
 {
     if let Some((item1, item2)) = detect_items_of_same_kind(items) {
         assert_eq!(item1.kind(), item2.kind());
@@ -21,7 +21,7 @@ where
     Ok(())
 }
 
-fn detect_items_of_same_kind<T: Kind>(items: &[T]) -> Option<(&T, &T)> {
+fn detect_items_of_same_kind<T: Kinded>(items: &[T]) -> Option<(&T, &T)> {
     for (i1, item1) in items.iter().enumerate() {
         for (i2, item2) in items.iter().enumerate() {
             if i1 != i2 && item1.kind() == item2.kind() {
