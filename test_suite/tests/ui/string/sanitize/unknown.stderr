@@ -1,4 +1,5 @@
-error: Unknown sanitizer `cleanup`
+error: Unknown sanitizer `cleanup`.
+       Possible values are `trim`, `lowercase`, `uppercase`, `with`.
  --> tests/ui/string/sanitize/unknown.rs:3:19
   |
 3 | #[nutype(sanitize(cleanup = true))]

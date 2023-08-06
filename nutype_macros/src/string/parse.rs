@@ -1,12 +1,15 @@
 use crate::{
     common::{
         models::{Attributes, SpannedDeriveTrait, SpannedItem},
-        parse::{parse_number, parse_typed_custom_function_raw, ParseableAttributes},
+        parse::{
+            parse_number, parse_sanitizer_kind, parse_typed_custom_function_raw,
+            parse_validator_kind, ParseableAttributes,
+        },
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
 };
 use cfg_if::cfg_if;
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use syn::{
     parse::{Parse, ParseStream},
     spanned::Spanned,
@@ -14,7 +17,10 @@ use syn::{
 };
 
 use super::{
-    models::{RegexDef, SpannedStringSanitizer, SpannedStringValidator},
+    models::{
+        RegexDef, SpannedStringSanitizer, SpannedStringValidator, StringSanitizerKind,
+        StringValidatorKind,
+    },
     validate::validate_string_meta,
 };
 
@@ -46,94 +52,89 @@ pub fn parse_attributes(
 
 impl Parse for SpannedStringSanitizer {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident: Ident = input.parse()?;
+        let (kind, ident) = parse_sanitizer_kind(input)?;
 
-        if ident == "trim" {
-            Ok(SpannedStringSanitizer {
+        match kind {
+            StringSanitizerKind::Trim => Ok(SpannedStringSanitizer {
                 item: StringSanitizer::Trim,
                 span: ident.span(),
-            })
-        } else if ident == "lowercase" {
-            Ok(SpannedStringSanitizer {
+            }),
+            StringSanitizerKind::Lowercase => Ok(SpannedStringSanitizer {
                 item: StringSanitizer::Lowercase,
                 span: ident.span(),
-            })
-        } else if ident == "uppercase" {
-            Ok(SpannedStringSanitizer {
+            }),
+            StringSanitizerKind::Uppercase => Ok(SpannedStringSanitizer {
                 item: StringSanitizer::Uppercase,
                 span: ident.span(),
-            })
-        } else if ident == "with" {
-            let _eq: Token![=] = input.parse()?;
-            let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "String")?;
-            Ok(SpannedStringSanitizer {
-                item: StringSanitizer::With(typed_custom_function),
-                span,
-            })
-        } else {
-            let msg = format!("Unknown sanitizer `{ident}`");
-            Err(syn::Error::new(ident.span(), msg))
+            }),
+            StringSanitizerKind::With => {
+                let _eq: Token![=] = input.parse()?;
+                let (typed_custom_function, span) =
+                    parse_typed_custom_function_raw(input, "String")?;
+                Ok(SpannedStringSanitizer {
+                    item: StringSanitizer::With(typed_custom_function),
+                    span,
+                })
+            }
         }
     }
 }
 
 impl Parse for SpannedStringValidator {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident: Ident = input.parse()?;
+        let (kind, ident) = parse_validator_kind(input)?;
 
-        if ident == "min_len" {
-            let _: Token![=] = input.parse()?;
-            let (min_len, span) = parse_number::<usize>(input)?;
-            Ok(SpannedStringValidator {
-                item: StringValidator::MinLen(min_len),
-                span,
-            })
-        } else if ident == "max_len" {
-            let _: Token![=] = input.parse()?;
-            let (max_len, span) = parse_number::<usize>(input)?;
-            Ok(SpannedStringValidator {
-                item: StringValidator::MaxLen(max_len),
-                span,
-            })
-        } else if ident == "not_empty" {
-            Ok(SpannedStringValidator {
+        match kind {
+            StringValidatorKind::MinLen => {
+                let _: Token![=] = input.parse()?;
+                let (min_len, span) = parse_number::<usize>(input)?;
+                Ok(SpannedStringValidator {
+                    item: StringValidator::MinLen(min_len),
+                    span,
+                })
+            }
+            StringValidatorKind::MaxLen => {
+                let _: Token![=] = input.parse()?;
+                let (max_len, span) = parse_number::<usize>(input)?;
+                Ok(SpannedStringValidator {
+                    item: StringValidator::MaxLen(max_len),
+                    span,
+                })
+            }
+            StringValidatorKind::NotEmpty => Ok(SpannedStringValidator {
                 item: StringValidator::NotEmpty,
                 span: ident.span(),
-            })
-        } else if ident == "predicate" {
-            let _eq: Token![=] = input.parse()?;
-            let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "&str")?;
-            Ok(SpannedStringValidator {
-                item: StringValidator::Predicate(typed_custom_function),
-                span,
-            })
-        } else if ident == "regex" {
-            cfg_if! {
-                if #[cfg(feature = "regex")] {
-                    let _eq: Token![=] = input.parse()?;
-                    let SpannedRegexDef {
-                        item: regex_def,
-                        span,
-                    } = input.parse()?;
-                    Ok(SpannedStringValidator {
-                        item: StringValidator::Regex(regex_def),
-                        span
-                    })
-                } else {
-                    let msg = concat!(
-                        "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
-                        "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
-                        "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
-                    );
-                    Err(syn::Error::new(ident.span(), msg))
+            }),
+            StringValidatorKind::Predicate => {
+                let _eq: Token![=] = input.parse()?;
+                let (typed_custom_function, span) = parse_typed_custom_function_raw(input, "&str")?;
+                Ok(SpannedStringValidator {
+                    item: StringValidator::Predicate(typed_custom_function),
+                    span,
+                })
+            }
+            StringValidatorKind::Regex => {
+                cfg_if! {
+                    if #[cfg(feature = "regex")] {
+                        let _eq: Token![=] = input.parse()?;
+                        let SpannedRegexDef {
+                            item: regex_def,
+                            span,
+                        } = input.parse()?;
+                        Ok(SpannedStringValidator {
+                            item: StringValidator::Regex(regex_def),
+                            span
+                        })
+                    } else {
+                        let msg = concat!(
+                            "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
+                            "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
+                            "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
+                        );
+                        Err(syn::Error::new(ident.span(), msg))
+                    }
                 }
             }
-        } else if ident == "with" {
-            let msg = "Deprecated validator `with`. It was renamed to `predicate`";
-            Err(syn::Error::new(ident.span(), msg))
-        } else {
-            let msg = format!("Unknown validator `{ident}`");
-            Err(syn::Error::new(ident.span(), msg))
         }
     }
 }

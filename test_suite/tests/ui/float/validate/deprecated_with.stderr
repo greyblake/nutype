@@ -1,5 +1,0 @@
-error: Deprecated validator `with`. It was renamed to `predicate`
- --> tests/ui/float/validate/deprecated_with.rs:3:19
-  |
-3 | #[nutype(validate(with = |c| c>0))]
-  |                   ^^^^

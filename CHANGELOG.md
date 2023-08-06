@@ -3,6 +3,7 @@
 * [BREAKING] Use commas to separate high level attributes
 * [BREAKING] Traits are derived with `#[nutype(derive(Debug))]`. The regular `#[derive(Debug)]` syntax is not supported anymore.
 * [BREAKING] Validator `with` has been renamed to `predicate` to reflect the boolean nature of its range
+* Better error messages: in case of unknown attribute, validator or sanitizer the possible values are listed.
 
 ### v0.3.1 - 2023-06-30
 * Support deriving of `Deref`

@@ -7,6 +7,7 @@ use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustom
 //
 
 #[derive(Debug, Kinded)]
+#[kinded(display = "snake_case")]
 pub enum IntegerSanitizer<T> {
     With(TypedCustomFunction),
     _Phantom(std::marker::PhantomData<T>),
@@ -14,19 +15,11 @@ pub enum IntegerSanitizer<T> {
 
 pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;
 
-impl std::fmt::Display for IntegerSanitizerKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::With => write!(f, "with"),
-            Self::_Phantom => unreachable!("IntegerSanitizerKind::_Phantom must not be used"),
-        }
-    }
-}
-
 // Validator
 //
 
 #[derive(Debug, Kinded)]
+#[kinded(display = "snake_case")]
 pub enum IntegerValidator<T> {
     Min(T),
     Max(T),
@@ -34,16 +27,6 @@ pub enum IntegerValidator<T> {
 }
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
-
-impl std::fmt::Display for IntegerValidatorKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Min => write!(f, "min"),
-            Self::Max => write!(f, "max"),
-            Self::Predicate => write!(f, "predicate"),
-        }
-    }
-}
 
 // Traits
 //

@@ -9,22 +9,12 @@ use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustom
 pub type SpannedStringSanitizer = SpannedItem<StringSanitizer>;
 
 #[derive(Debug, Kinded)]
+#[kinded(display = "snake_case")]
 pub enum StringSanitizer {
     Trim,
     Lowercase,
     Uppercase,
     With(TypedCustomFunction),
-}
-
-impl std::fmt::Display for StringSanitizerKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Trim => write!(f, "trim"),
-            Self::Lowercase => write!(f, "lowercase"),
-            Self::Uppercase => write!(f, "uppercase"),
-            Self::With => write!(f, "with"),
-        }
-    }
 }
 
 // Validator
@@ -33,6 +23,7 @@ impl std::fmt::Display for StringSanitizerKind {
 pub type SpannedStringValidator = SpannedItem<StringValidator>;
 
 #[derive(Debug, Kinded)]
+#[kinded(display = "snake_case")]
 pub enum StringValidator {
     MinLen(usize),
     MaxLen(usize),
@@ -52,18 +43,6 @@ pub enum RegexDef {
     /// The case, when regex is with an ident, that refers to regex constant:
     ///     regex = SSN_REGEX
     Path(syn::Path),
-}
-
-impl std::fmt::Display for StringValidatorKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::MinLen => write!(f, "min_len"),
-            Self::MaxLen => write!(f, "max_len"),
-            Self::NotEmpty => write!(f, "not_empty"),
-            Self::Predicate => write!(f, "predicate"),
-            Self::Regex => write!(f, "regex"),
-        }
-    }
 }
 
 // Traits

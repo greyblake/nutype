@@ -5,9 +5,12 @@ use std::{
 
 use crate::common::{
     models::{Attributes, SpannedDeriveTrait},
-    parse::{parse_number, parse_typed_custom_function, ParseableAttributes},
+    parse::{
+        parse_number, parse_sanitizer_kind, parse_typed_custom_function, parse_validator_kind,
+        ParseableAttributes,
+    },
 };
-use proc_macro2::{Ident, TokenStream};
+use proc_macro2::TokenStream;
 use syn::{
     parse::{Parse, ParseStream},
     Token,
@@ -15,8 +18,8 @@ use syn::{
 
 use super::{
     models::{
-        IntegerGuard, IntegerRawGuard, IntegerSanitizer, IntegerValidator, SpannedIntegerSanitizer,
-        SpannedIntegerValidator,
+        IntegerGuard, IntegerRawGuard, IntegerSanitizer, IntegerSanitizerKind, IntegerValidator,
+        IntegerValidatorKind, SpannedIntegerSanitizer, SpannedIntegerValidator,
     },
     validate::validate_number_meta,
 };
@@ -57,35 +60,33 @@ where
     <T as FromStr>::Err: Display,
 {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident: Ident = input.parse()?;
+        let (kind, _ident) = parse_validator_kind(input)?;
 
-        if ident == "min" {
-            let _eq: Token![=] = input.parse()?;
-            let (number, span) = parse_number::<T>(input)?;
-            Ok(SpannedIntegerValidator {
-                item: IntegerValidator::Min(number),
-                span,
-            })
-        } else if ident == "max" {
-            let _eq: Token![=] = input.parse()?;
-            let (number, span) = parse_number::<T>(input)?;
-            Ok(SpannedIntegerValidator {
-                item: IntegerValidator::Max(number),
-                span,
-            })
-        } else if ident == "predicate" {
-            let _eq: Token![=] = input.parse()?;
-            let (typed_custom_function, span) = parse_typed_custom_function::<&T>(input)?;
-            Ok(SpannedIntegerValidator {
-                item: IntegerValidator::Predicate(typed_custom_function),
-                span,
-            })
-        } else if ident == "with" {
-            let msg = "Deprecated validator `with`. It was renamed to `predicate`";
-            Err(syn::Error::new(ident.span(), msg))
-        } else {
-            let msg = format!("Unknown validator `{ident}`");
-            Err(syn::Error::new(ident.span(), msg))
+        match kind {
+            IntegerValidatorKind::Min => {
+                let _eq: Token![=] = input.parse()?;
+                let (number, span) = parse_number::<T>(input)?;
+                Ok(SpannedIntegerValidator {
+                    item: IntegerValidator::Min(number),
+                    span,
+                })
+            }
+            IntegerValidatorKind::Max => {
+                let _eq: Token![=] = input.parse()?;
+                let (number, span) = parse_number::<T>(input)?;
+                Ok(SpannedIntegerValidator {
+                    item: IntegerValidator::Max(number),
+                    span,
+                })
+            }
+            IntegerValidatorKind::Predicate => {
+                let _eq: Token![=] = input.parse()?;
+                let (typed_custom_function, span) = parse_typed_custom_function::<&T>(input)?;
+                Ok(SpannedIntegerValidator {
+                    item: IntegerValidator::Predicate(typed_custom_function),
+                    span,
+                })
+            }
         }
     }
 }
@@ -96,18 +97,21 @@ where
     <T as FromStr>::Err: Display,
 {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident: Ident = input.parse()?;
+        let (kind, ident) = parse_sanitizer_kind(input)?;
 
-        if ident == "with" {
-            let _eq: Token![=] = input.parse()?;
-            let (typed_custom_function, span) = parse_typed_custom_function::<T>(input)?;
-            Ok(SpannedIntegerSanitizer {
-                item: IntegerSanitizer::With(typed_custom_function),
-                span,
-            })
-        } else {
-            let msg = format!("Unknown sanitizer `{ident}`");
-            Err(syn::Error::new(ident.span(), msg))
+        match kind {
+            IntegerSanitizerKind::With => {
+                let _eq: Token![=] = input.parse()?;
+                let (typed_custom_function, span) = parse_typed_custom_function::<T>(input)?;
+                Ok(SpannedIntegerSanitizer {
+                    item: IntegerSanitizer::With(typed_custom_function),
+                    span,
+                })
+            }
+            IntegerSanitizerKind::_Phantom => {
+                let msg = format!("Unknown validator `{ident}`");
+                Err(syn::Error::new(ident.span(), msg))
+            }
         }
     }
 }
