@@ -1,4 +1,5 @@
-error: Unknown validator `meaningful`
+error: Unknown validator `meaningful`.
+       Possible values are `min`, `max`, `predicate`.
  --> tests/ui/integer/validate/unknown.rs:3:19
   |
 3 | #[nutype(validate(meaningful))]

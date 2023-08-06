@@ -208,3 +208,41 @@ pub fn parse_typed_custom_function_raw(
     let typed_custom_function = custom_function.try_into_typed(&tp)?;
     Ok((typed_custom_function, span))
 }
+
+pub fn parse_sanitizer_kind<K>(input: ParseStream) -> syn::Result<(K, Ident)>
+where
+    K: std::str::FromStr + kinded::Kind + std::fmt::Display,
+{
+    parse_kind("sanitizer", input)
+}
+
+pub fn parse_validator_kind<K>(input: ParseStream) -> syn::Result<(K, Ident)>
+where
+    K: std::str::FromStr + kinded::Kind + std::fmt::Display,
+{
+    parse_kind("validator", input)
+}
+
+/// Parse ident from ParStream and tries to parse it further into Kind of sanitizier or validator.
+/// Build a helpful error on failure.
+fn parse_kind<K>(attr_type: &str, input: ParseStream) -> syn::Result<(K, Ident)>
+where
+    K: std::str::FromStr + kinded::Kind + std::fmt::Display,
+{
+    let ident: Ident = input.parse()?;
+    let attr_name = ident.to_string();
+
+    if let Ok(kind) = attr_name.parse::<K>() {
+        Ok((kind, ident))
+    } else {
+        let possible_values: String = K::all()
+            .iter()
+            .map(ToString::to_string)
+            .filter(|k| k != "phantom") // filter out _Phantom variant
+            .map(|s| format!("`{s}`"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let msg = format!("Unknown {attr_type} `{ident}`.\nPossible values are {possible_values}.");
+        Err(syn::Error::new(ident.span(), msg))
+    }
+}

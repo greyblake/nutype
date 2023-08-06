@@ -89,18 +89,18 @@ checksum = "453ad9f582a441959e5f0d088b02ce04cfe8d51a8eaf077f12ac6d3e94164ca6"
 
 [[package]]
 name = "kinded"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fea4f8f326af878823cd52b0432991653e3816350798b2274756723f30d84ee6"
+checksum = "5c0014ceba4594ba2fad363f74587af973a5ff30d16516c8c6d9c21db33b023c"
 dependencies = [
  "kinded_macros",
 ]
 
 [[package]]
 name = "kinded_macros"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "183e148eb9c2b52a197dfdd00add1d7773b7959eda59ddbf09a6204242c13460"
+checksum = "7eb99c6ff42c1784542b956f1381a96160399a197885947a17178f4fd280d826"
 dependencies = [
  "convert_case",
  "proc-macro2",
