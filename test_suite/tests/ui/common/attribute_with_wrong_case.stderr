@@ -1,0 +1,5 @@
+error: Unknown validator `maxLen`. Did you mean `max_len`?
+ --> tests/ui/common/attribute_with_wrong_case.rs:3:19
+  |
+3 | #[nutype(validate(maxLen = 255))]
+  |                   ^^^^^^
