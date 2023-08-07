@@ -233,7 +233,16 @@ where
     let attr_name = ident.to_string();
 
     if let Ok(kind) = attr_name.parse::<K>() {
-        Ok((kind, ident))
+        // kinded parses enum variants spelled in different cases (PascalCase, camelCase,
+        // snake_case, etc.)
+        // Here we want to enforce usage of snake_case only.
+        let strict_attr_name = kind.to_string();
+        if strict_attr_name == attr_name {
+            Ok((kind, ident))
+        } else {
+            let msg = format!("Unknown {attr_type} `{ident}`. Did you mean `{strict_attr_name}`?");
+            Err(syn::Error::new(ident.span(), msg))
+        }
     } else {
         let possible_values: String = K::all()
             .iter()
