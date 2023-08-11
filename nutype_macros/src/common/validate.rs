@@ -22,6 +22,7 @@ where
 }
 
 fn detect_items_of_same_kind<T: Kinded>(items: &[T]) -> Option<(&T, &T)> {
+    // Note: this has O(n^2) complexity, but it's not a problem, because size of collection is < 10.
     for (i1, item1) in items.iter().enumerate() {
         for (i2, item2) in items.iter().enumerate() {
             if i1 != i2 && item1.kind() == item2.kind() {

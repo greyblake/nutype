@@ -211,14 +211,14 @@ pub fn parse_typed_custom_function_raw(
 
 pub fn parse_sanitizer_kind<K>(input: ParseStream) -> syn::Result<(K, Ident)>
 where
-    K: std::str::FromStr + kinded::Kind + std::fmt::Display,
+    K: std::str::FromStr + kinded::Kind + std::fmt::Display + 'static,
 {
     parse_kind("sanitizer", input)
 }
 
 pub fn parse_validator_kind<K>(input: ParseStream) -> syn::Result<(K, Ident)>
 where
-    K: std::str::FromStr + kinded::Kind + std::fmt::Display,
+    K: std::str::FromStr + kinded::Kind + std::fmt::Display + 'static,
 {
     parse_kind("validator", input)
 }
@@ -227,7 +227,7 @@ where
 /// Build a helpful error on failure.
 fn parse_kind<K>(attr_type: &str, input: ParseStream) -> syn::Result<(K, Ident)>
 where
-    K: std::str::FromStr + kinded::Kind + std::fmt::Display,
+    K: std::str::FromStr + kinded::Kind + std::fmt::Display + 'static,
 {
     let ident: Ident = input.parse()?;
     let attr_name = ident.to_string();
@@ -246,9 +246,8 @@ where
     } else {
         let possible_values: String = K::all()
             .iter()
-            .map(ToString::to_string)
-            .filter(|k| k != "phantom") // filter out _Phantom variant
-            .map(|s| format!("`{s}`"))
+            .map(|k| format!("`{k}`"))
+            .filter(|s| s != "`phantom`") // filter out _Phantom variant
             .collect::<Vec<_>>()
             .join(", ");
         let msg = format!("Unknown {attr_type} `{ident}`.\nPossible values are {possible_values}.");
