@@ -31,10 +31,10 @@ fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator
     let error_variants: TokenStream = validators
         .iter()
         .map(|validator| match validator {
-            StringValidator::MaxLen(_len) => {
+            StringValidator::CharLenMax(_len) => {
                 quote!(TooLong,)
             }
-            StringValidator::MinLen(_len) => {
+            StringValidator::CharLenMin(_len) => {
                 quote!(TooShort,)
             }
             StringValidator::NotEmpty => {
@@ -61,10 +61,10 @@ fn gen_impl_display_trait(
     validators: &[StringValidator],
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
-        StringValidator::MaxLen(_len) => quote! {
+        StringValidator::CharLenMax(_len) => quote! {
              #error_type_name::TooLong => write!(f, "too long")
         },
-        StringValidator::MinLen(_len) => quote! {
+        StringValidator::CharLenMin(_len) => quote! {
              #error_type_name::TooShort => write!(f, "too short")
         },
         StringValidator::NotEmpty => quote! {

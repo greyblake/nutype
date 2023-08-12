@@ -43,29 +43,28 @@ fn validate_validators(
         format!("Duplicated validators `{kind}`.\nDon't worry, you still remain ingenious!")
     })?;
 
-    // max_len VS min_len
+    // char_len_max VS char_len_min
     //
-    let maybe_min_len = validators
+    let maybe_char_len_min = validators
         .iter()
         .flat_map(|v| match v.item {
-            StringValidator::MinLen(len) => Some((v.span, len)),
+            StringValidator::CharLenMin(len) => Some((v.span, len)),
             _ => None,
         })
         .next();
-    let maybe_max_len = validators
+    let maybe_char_len_max = validators
         .iter()
         .flat_map(|v| match v.item {
-            StringValidator::MaxLen(len) => Some((v.span, len)),
+            StringValidator::CharLenMax(len) => Some((v.span, len)),
             _ => None,
         })
         .next();
-    if let (Some((_min_len_span, min_len)), Some((max_len_span, max_len))) =
-        (maybe_min_len, maybe_max_len)
+    if let (Some((_, char_len_min)), Some((char_len_max_span, char_len_max))) =
+        (maybe_char_len_min, maybe_char_len_max)
     {
-        if min_len > max_len {
-            let msg = "min_len cannot be greater than max_len.\nDon't you find this obvious?";
-            let span = max_len_span;
-            let err = syn::Error::new(span, msg);
+        if char_len_min > char_len_max {
+            let msg = "`char_len_min` cannot be greater than `char_len_max`.\nDon't you find this obvious?";
+            let err = syn::Error::new(char_len_max_span, msg);
             return Err(err);
         }
     }

@@ -14,7 +14,7 @@
 //!
 //! #[nutype(
 //!     sanitize(trim, lowercase),
-//!     validate(not_empty, max_len = 20),
+//!     validate(not_empty, char_len_max = 20),
 //!     derive(Debug, PartialEq),
 //! )]
 //! pub struct Username(String);
@@ -104,13 +104,13 @@
 //!
 //! ### String validators
 //!
-//! | Validator   | Description                                                                     | Error variant   | Example                                      |
-//! |-------------|---------------------------------------------------------------------------------|-----------------|----------------------------------------------|
-//! | `max_len`   | Max length of the string (in chars, not bytes)                                  | `TooLong`       | `max_len = 255`                              |
-//! | `min_len`   | Min length of the string (in chars, not bytes)                                  | `TooShort`      | `min_len = 5`                                |
-//! | `not_empty` | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
-//! | `regex`     | Validates format with a regex. Requires `regex` feature.                        | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
-//! | `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
+//! | Validator      | Description                                                                     | Error variant   | Example                                      |
+//! |----------------|---------------------------------------------------------------------------------|-----------------|----------------------------------------------|
+//! | `char_len_min` | Min length of the string (in chars, not bytes)                                  | `TooShort`      | `char_len_min = 5`                           |
+//! | `char_len_max` | Max length of the string (in chars, not bytes)                                  | `TooLong`       | `char_len_max = 255`                         |
+//! | `not_empty`    | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
+//! | `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
+//! | `with`         | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
 //!
 //! #### Regex validation
 //!
@@ -320,7 +320,7 @@
 //! #[nutype(
 //!     new_unchecked
 //!     sanitize(trim)
-//!     validate(min_len = 8)
+//!     validate(char_len_min = 8)
 //! )]
 //! pub struct Name(String);
 //!

@@ -1,6 +1,6 @@
 use nutype::nutype;
 
-#[nutype(validate(maxLen = 255))]
+#[nutype(validate(charLenMax = 255))]
 pub struct Name(String);
 
 fn main () {}
