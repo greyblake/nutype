@@ -9,13 +9,10 @@ use nutype::nutype;
 )]
 pub struct Email(String);
 
-#[nutype(
-    validate(min = 100, max = 1000),
-    derive(Deref, FromStr)
-)]
+#[nutype(validate(min = 100, max = 1000), derive(Deref, FromStr))]
 pub struct Number(i16);
 
 fn main() {
-    let magic = Number::new(42);
+    let magic = Number::new(42).unwrap();
     assert_eq!(*magic, 42);
 }
