@@ -89,7 +89,7 @@ impl GenerateNewtype for StringNewtype {
                     requires_chars_count = true;
                     quote!(
                         if chars_count > #max_len {
-                            return Err(#error_name::TooLong);
+                            return Err(#error_name::CharLenMaxViolated);
                         }
                     )
                 }
@@ -97,21 +97,21 @@ impl GenerateNewtype for StringNewtype {
                     requires_chars_count = true;
                     quote!(
                         if chars_count < #min_len {
-                            return Err(#error_name::TooShort);
+                            return Err(#error_name::CharLenMinViolated);
                         }
                     )
                 }
                 StringValidator::NotEmpty => {
                     quote!(
                         if val.is_empty() {
-                            return Err(#error_name::Empty);
+                            return Err(#error_name::NotEmptyViolated);
                         }
                     )
                 }
                 StringValidator::Predicate(typed_custom_function) => {
                     quote!(
                         if !(#typed_custom_function)(&val) {
-                            return Err(#error_name::Invalid);
+                            return Err(#error_name::PredicateViolated);
                         }
                     )
                 }
@@ -125,7 +125,7 @@ impl GenerateNewtype for StringNewtype {
                                     static ref __NUTYPE_REGEX__: ::regex::Regex = ::regex::Regex::new(#regex_str_lit).expect("Nutype failed to a build a regex");
                                 }
                                 if !__NUTYPE_REGEX__.is_match(&val) {
-                                    return Err(#error_name::RegexMismatch);
+                                    return Err(#error_name::RegexViolated);
                                 }
                             )
 
@@ -133,7 +133,7 @@ impl GenerateNewtype for StringNewtype {
                         RegexDef::Path(regex_path) => {
                             quote!(
                                 if !#regex_path.is_match(&val) {
-                                    return Err(#error_name::RegexMismatch);
+                                    return Err(#error_name::RegexViolated);
                                 }
                             )
                         }

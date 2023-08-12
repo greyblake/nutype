@@ -28,12 +28,12 @@
 //! // But we cannot create invalid ones:
 //! assert_eq!(
 //!     Username::new("   "),
-//!     Err(UsernameError::Empty),
+//!     Err(UsernameError::NotEmptyViolated),
 //! );
 //!
 //! assert_eq!(
 //!     Username::new("TheUserNameIsVeryVeryLong"),
-//!     Err(UsernameError::TooLong),
+//!     Err(UsernameError::CharLenMaxViolated),
 //! );
 //! ```
 //!
@@ -104,13 +104,13 @@
 //!
 //! ### String validators
 //!
-//! | Validator      | Description                                                                     | Error variant   | Example                                      |
-//! |----------------|---------------------------------------------------------------------------------|-----------------|----------------------------------------------|
-//! | `char_len_min` | Min length of the string (in chars, not bytes)                                  | `TooShort`      | `char_len_min = 5`                           |
-//! | `char_len_max` | Max length of the string (in chars, not bytes)                                  | `TooLong`       | `char_len_max = 255`                         |
-//! | `not_empty`    | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
-//! | `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
-//! | `with`         | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
+//! | Validator      | Description                                                                     | Error variant        | Example                                      |
+//! |----------------|---------------------------------------------------------------------------------|----------------------|----------------------------------------------|
+//! | `char_len_min` | Min length of the string (in chars, not bytes)                                  | `CharLenMinViolated` | `char_len_min = 5`                           |
+//! | `char_len_max` | Max length of the string (in chars, not bytes)                                  | `CharLenMaxViolated` | `char_len_max = 255`                         |
+//! | `not_empty`    | Rejects an empty string                                                         | `NotEmptyViolated`   | `not_empty`                                  |
+//! | `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexViolated`      | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
+//! | `predicate`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `PredicateViolated`  | `predicate = \|s: &str\| s.contains('@')`    |
 //!
 //! #### Regex validation
 //!
@@ -178,11 +178,11 @@
 //!
 //! ### Integer validators
 //!
-//! | Validator | Description         | Error variant | Example                       |
-//! |-----------|---------------------|---------------|-------------------------------|
-//! | `max`     | Maximum valid value | `TooBig`      | `max = 99`                    |
-//! | `min`     | Minimum valid value | `TooSmall`    | `min = 18`                    |
-//! | `with`    | Custom validator    | `Invalid`     | `with = \|num\| num % 2 == 0` |
+//! | Validator   | Description         | Error variant       | Example                            |
+//! |-------------|---------------------|---------------------|------------------------------------|
+//! | `max`       | Maximum valid value | `MaxViolated`       | `max = 99`                         |
+//! | `min`       | Minimum valid value | `MinViolated`       | `min = 18`                         |
+//! | `predicate` | Custom validator    | `PredicateViolated` | `predicate = \|num\| num % 2 == 0` |
 //!
 //! ### Integer derivable traits
 //!
@@ -203,12 +203,12 @@
 //!
 //! ### Float validators
 //!
-//! | Validator | Description                    | Error variant | Example                      |
-//! |-----------|--------------------------------|---------------|------------------------------|
-//! | `max`     | Maximum valid value            | `TooBig`      | `max = 100.0`                |
-//! | `min`     | Minimum valid value            | `TooSmall`    | `min = 0.0`                  |
-//! | `finite`  | Check against NaN and infinity | `NotFinite`   | `finite`                     |
-//! | `with`    | Custom validator               | `Invalid`     | `with = \|val\| val != 50.0` |
+//! | Validator   | Description                    | Error variant       | Example                           |
+//! |-------------|--------------------------------|---------------------|-----------------------------------|
+//! | `max`       | Maximum valid value            | `MaxViolated`       | `max = 100.0`                     |
+//! | `min`       | Minimum valid value            | `MinViolated`       | `min = 0.0`                       |
+//! | `finite`    | Check against NaN and infinity | `FiniteViolated`    | `finite`                          |
+//! | `predicate` | Custom validator               | `PredicateViolated` | `predicate = \|val\| val != 50.0` |
 //!
 //! ### Float derivable traits
 //!
@@ -374,7 +374,7 @@ mod tests {
         let email = Email::new("  OH@my.example\n\n").unwrap();
         assert_eq!(email.into_inner(), "oh@my.example");
 
-        assert_eq!(Email::new("  \n"), Err(EmailError::Empty));
+        assert_eq!(Email::new("  \n"), Err(EmailError::NotEmptyViolated));
     }
 
     #[test]
@@ -382,8 +382,8 @@ mod tests {
         #[nutype(validate(min = 100, max = 1_000), derive(Debug, PartialEq, TryFrom))]
         pub struct Amount(u32);
 
-        assert_eq!(Amount::try_from(99), Err(AmountError::TooSmall));
-        assert_eq!(Amount::try_from(1_001), Err(AmountError::TooBig));
+        assert_eq!(Amount::try_from(99), Err(AmountError::MinViolated));
+        assert_eq!(Amount::try_from(1_001), Err(AmountError::MaxViolated));
 
         assert_eq!(Amount::try_from(100).unwrap().into_inner(), 100);
     }

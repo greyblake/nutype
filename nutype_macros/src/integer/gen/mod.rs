@@ -66,21 +66,21 @@ where
                 IntegerValidator::Max(max) => {
                     quote!(
                         if val > #max {
-                            return Err(#error_name::TooBig);
+                            return Err(#error_name::MaxViolated);
                         }
                     )
                 }
                 IntegerValidator::Min(min) => {
                     quote!(
                         if val < #min {
-                            return Err(#error_name::TooSmall);
+                            return Err(#error_name::MinViolated);
                         }
                     )
                 }
                 IntegerValidator::Predicate(custom_is_valid_fn) => {
                     quote!(
                         if !(#custom_is_valid_fn)(&val) {
-                            return Err(#error_name::Invalid);
+                            return Err(#error_name::PredicateViolated);
                         }
                     )
                 }

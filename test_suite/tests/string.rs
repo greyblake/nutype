@@ -99,7 +99,7 @@ mod validators {
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
-        assert_eq!(Name::new("Serhii"), Err(NameError::TooLong));
+        assert_eq!(Name::new("Serhii"), Err(NameError::CharLenMaxViolated));
 
         // Ukranian, Cyrillic. Every char is 2 bytes.
         assert_eq!(Name::new("Антон").unwrap().into_inner(), "Антон");
@@ -110,11 +110,11 @@ mod validators {
         #[nutype(validate(char_len_min = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new("Anton"), Err(NameError::TooShort));
+        assert_eq!(Name::new("Anton"), Err(NameError::CharLenMinViolated));
         assert_eq!(Name::new("Serhii").unwrap().into_inner(), "Serhii");
 
         // Ukranian, Cyrillic. Every char is 2 bytes.
-        assert_eq!(Name::new("Антон"), Err(NameError::TooShort));
+        assert_eq!(Name::new("Антон"), Err(NameError::CharLenMinViolated));
     }
 
     #[test]
@@ -122,7 +122,7 @@ mod validators {
         #[nutype(validate(not_empty), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new(""), Err(NameError::Empty));
+        assert_eq!(Name::new(""), Err(NameError::NotEmptyViolated));
         assert_eq!(Name::new(" ").unwrap().into_inner(), " ");
         assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
     }
@@ -132,8 +132,8 @@ mod validators {
         #[nutype(validate(char_len_min = 3, char_len_max = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new("Jo"), Err(NameError::TooShort));
-        assert_eq!(Name::new("Friedrich"), Err(NameError::TooLong));
+        assert_eq!(Name::new("Jo"), Err(NameError::CharLenMinViolated));
+        assert_eq!(Name::new("Friedrich"), Err(NameError::CharLenMaxViolated));
         assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
     }
 
@@ -146,7 +146,10 @@ mod validators {
             #[nutype(validate(predicate = |e: &str| e.contains('@')), derive(Debug, PartialEq))]
             pub struct Email(String);
 
-            assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(
+                Email::new("foo.bar.example"),
+                Err(EmailError::PredicateViolated)
+            );
             assert_eq!(
                 Email::new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
@@ -158,7 +161,10 @@ mod validators {
             #[nutype(validate(predicate = |e| e.contains('@')), derive(Debug, PartialEq))]
             pub struct Email(String);
 
-            assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(
+                Email::new("foo.bar.example"),
+                Err(EmailError::PredicateViolated)
+            );
             assert_eq!(
                 Email::new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
@@ -174,7 +180,10 @@ mod validators {
             #[nutype(validate(predicate = validate_email), derive(Debug, PartialEq))]
             pub struct Email(String);
 
-            assert_eq!(Email::new("foo.bar.example"), Err(EmailError::Invalid));
+            assert_eq!(
+                Email::new("foo.bar.example"),
+                Err(EmailError::PredicateViolated)
+            );
             assert_eq!(
                 Email::new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
@@ -187,7 +196,7 @@ mod validators {
         #[nutype(validate(not_empty), derive(Debug, PartialEq, TryFrom))]
         pub struct Name(String);
 
-        assert_eq!(Name::try_from(""), Err(NameError::Empty));
+        assert_eq!(Name::try_from(""), Err(NameError::NotEmptyViolated));
         assert_eq!(Name::try_from("Tom").unwrap().into_inner(), "Tom");
     }
 
@@ -214,7 +223,7 @@ mod validators {
         #[nutype(validate(not_empty))]
         pub struct Email(String);
 
-        assert_eq!(EmailError::Empty.to_string(), "empty");
+        assert_eq!(EmailError::NotEmptyViolated.to_string(), "empty");
     }
 }
 
@@ -233,8 +242,11 @@ mod complex {
         )]
         pub struct Name(String);
 
-        assert_eq!(Name::new("    "), Err(NameError::Empty));
-        assert_eq!(Name::new("Willy Brandt"), Err(NameError::TooLong));
+        assert_eq!(Name::new("    "), Err(NameError::NotEmptyViolated));
+        assert_eq!(
+            Name::new("Willy Brandt"),
+            Err(NameError::CharLenMaxViolated)
+        );
         assert_eq!(Name::new("   Brandt  ").unwrap().into_inner(), "BRANDT");
     }
 }
@@ -376,7 +388,7 @@ mod derives {
         assert_eq!(name.into_inner(), "Anna");
 
         let error = Name::try_from("").unwrap_err();
-        assert_eq!(error, NameError::Empty);
+        assert_eq!(error, NameError::NotEmptyViolated);
     }
 
     #[test]
@@ -388,7 +400,7 @@ mod derives {
         assert_eq!(name.into_inner(), "Anna");
 
         let error = Name::try_from("".to_string()).unwrap_err();
-        assert_eq!(error, NameError::Empty);
+        assert_eq!(error, NameError::NotEmptyViolated);
     }
 
     #[test]
@@ -526,10 +538,10 @@ mod validation_with_regex {
         #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"), derive(Debug, PartialEq))]
         pub struct PhoneNumber(String);
 
-        // Invalid
+        // PredicateViolated
         assert_eq!(
             PhoneNumber::new("123456"),
-            Err(PhoneNumberError::RegexMismatch)
+            Err(PhoneNumberError::RegexViolated)
         );
 
         // Valid
@@ -542,10 +554,10 @@ mod validation_with_regex {
         #[nutype(validate(regex = PHONE_REGEX_LAZY_STATIC), derive(Debug, PartialEq))]
         pub struct PhoneNumber(String);
 
-        // Invalid
+        // PredicateViolated
         assert_eq!(
             PhoneNumber::new("123456"),
-            Err(PhoneNumberError::RegexMismatch)
+            Err(PhoneNumberError::RegexViolated)
         );
 
         // Valid
@@ -558,10 +570,10 @@ mod validation_with_regex {
         #[nutype(validate(regex = PHONE_REGEX_ONCE_CELL), derive(Debug, PartialEq))]
         pub struct PhoneNumber(String);
 
-        // Invalid
+        // PredicateViolated
         assert_eq!(
             PhoneNumber::new("123456"),
-            Err(PhoneNumberError::RegexMismatch)
+            Err(PhoneNumberError::RegexViolated)
         );
 
         // Valid

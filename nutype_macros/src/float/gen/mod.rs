@@ -68,28 +68,28 @@ where
                 FloatValidator::Max(max) => {
                     quote!(
                         if val > #max {
-                            return Err(#error_name::TooBig);
+                            return Err(#error_name::MaxViolated);
                         }
                     )
                 }
                 FloatValidator::Min(min) => {
                     quote!(
                         if val < #min {
-                            return Err(#error_name::TooSmall);
+                            return Err(#error_name::MinViolated);
                         }
                     )
                 }
                 FloatValidator::Predicate(custom_is_valid_fn) => {
                     quote!(
                         if !(#custom_is_valid_fn)(&val) {
-                            return Err(#error_name::Invalid);
+                            return Err(#error_name::PredicateViolated);
                         }
                     )
                 }
                 FloatValidator::Finite => {
                     quote!(
                         if !val.is_finite() {
-                            return Err(#error_name::NotFinite);
+                            return Err(#error_name::FiniteViolated);
                         }
                     )
                 }
