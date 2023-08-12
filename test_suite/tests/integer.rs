@@ -64,7 +64,7 @@ mod validators {
         )]
         struct Age(u8);
 
-        assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
+        assert_eq!(Age::new(17).unwrap_err(), AgeError::MinViolated);
         assert_eq!(Age::new(18).unwrap().into_inner(), 18);
     }
 
@@ -78,7 +78,7 @@ mod validators {
         )]
         struct Age(u8);
 
-        assert_eq!(Age::new(100).unwrap_err(), AgeError::TooBig);
+        assert_eq!(Age::new(100).unwrap_err(), AgeError::MaxViolated);
         assert_eq!(Age::new(99).unwrap().into_inner(), 99);
     }
 
@@ -92,8 +92,8 @@ mod validators {
         )]
         struct Age(u8);
 
-        assert_eq!(Age::new(17).unwrap_err(), AgeError::TooSmall);
-        assert_eq!(Age::new(100).unwrap_err(), AgeError::TooBig);
+        assert_eq!(Age::new(17).unwrap_err(), AgeError::MinViolated);
+        assert_eq!(Age::new(100).unwrap_err(), AgeError::MaxViolated);
         assert_eq!(Age::new(25).unwrap().into_inner(), 25);
     }
 
@@ -106,8 +106,8 @@ mod validators {
             #[nutype(validate(predicate = |c: &i32| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::new(-10), Err(CentError::Invalid));
-            assert_eq!(Cent::new(101), Err(CentError::Invalid));
+            assert_eq!(Cent::new(-10), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::new(101), Err(CentError::PredicateViolated));
             assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
         }
 
@@ -116,8 +116,8 @@ mod validators {
             #[nutype(validate(predicate = |c| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::new(-10), Err(CentError::Invalid));
-            assert_eq!(Cent::new(101), Err(CentError::Invalid));
+            assert_eq!(Cent::new(-10), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::new(101), Err(CentError::PredicateViolated));
             assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
         }
 
@@ -133,8 +133,8 @@ mod validators {
             )]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::new(-1), Err(CentError::Invalid));
-            assert_eq!(Cent::new(101), Err(CentError::Invalid));
+            assert_eq!(Cent::new(-1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::new(101), Err(CentError::PredicateViolated));
             assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
         }
     }
@@ -149,7 +149,7 @@ mod validators {
         )]
         struct Age(u8);
 
-        assert_eq!(Age::try_from(17).unwrap_err(), AgeError::TooSmall);
+        assert_eq!(Age::try_from(17).unwrap_err(), AgeError::MinViolated);
         assert_eq!(Age::try_from(18).unwrap().into_inner(), 18);
     }
 
@@ -196,8 +196,8 @@ mod types {
         )]
         struct Age(u8);
 
-        assert_eq!(Age::new(17), Err(AgeError::TooSmall));
-        assert_eq!(Age::new(100), Err(AgeError::TooBig));
+        assert_eq!(Age::new(17), Err(AgeError::MinViolated));
+        assert_eq!(Age::new(100), Err(AgeError::MaxViolated));
         assert!(Age::new(20).is_ok());
     }
 
@@ -220,8 +220,8 @@ mod types {
         )]
         struct Age(u16);
 
-        assert_eq!(Age::new(17), Err(AgeError::TooSmall));
-        assert_eq!(Age::new(65001), Err(AgeError::TooBig));
+        assert_eq!(Age::new(17), Err(AgeError::MinViolated));
+        assert_eq!(Age::new(65001), Err(AgeError::MaxViolated));
         assert!(Age::new(20).is_ok());
     }
 
@@ -235,8 +235,8 @@ mod types {
         )]
         struct Amount(u32);
 
-        assert_eq!(Amount::new(17), Err(AmountError::TooSmall));
-        assert_eq!(Amount::new(100_001), Err(AmountError::TooBig));
+        assert_eq!(Amount::new(17), Err(AmountError::MinViolated));
+        assert_eq!(Amount::new(100_001), Err(AmountError::MaxViolated));
         assert!(Amount::new(100_000).is_ok());
     }
 
@@ -250,8 +250,11 @@ mod types {
         )]
         struct Amount(u64);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::new(18446744073709551001), Err(AmountError::TooBig));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
+        assert_eq!(
+            Amount::new(18446744073709551001),
+            Err(AmountError::MaxViolated)
+        );
         assert!(Amount::new(1000).is_ok());
     }
 
@@ -265,10 +268,10 @@ mod types {
         )]
         struct Amount(u128);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
         assert_eq!(
             Amount::new(170141183460469231731687303715884105829),
-            Err(AmountError::TooBig)
+            Err(AmountError::MaxViolated)
         );
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(170141183460469231731687303715884105828).is_ok());
@@ -288,8 +291,8 @@ mod types {
         #[nutype(validate(min = -20, max = 100), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
         struct Offset(i8);
 
-        assert_eq!(Offset::new(-21), Err(OffsetError::TooSmall));
-        assert_eq!(Offset::new(101), Err(OffsetError::TooBig));
+        assert_eq!(Offset::new(-21), Err(OffsetError::MinViolated));
+        assert_eq!(Offset::new(101), Err(OffsetError::MaxViolated));
         assert!(Offset::new(100).is_ok());
         assert!(Offset::new(-20).is_ok());
         assert!(Offset::new(0).is_ok());
@@ -305,8 +308,8 @@ mod types {
         )]
         struct Amount(i16);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::new(32_001), Err(AmountError::TooBig));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
+        assert_eq!(Amount::new(32_001), Err(AmountError::MaxViolated));
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(32_000).is_ok());
     }
@@ -322,8 +325,8 @@ mod types {
 
         struct Amount(i32);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::new(320_001), Err(AmountError::TooBig));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
+        assert_eq!(Amount::new(320_001), Err(AmountError::MaxViolated));
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(320_000).is_ok());
 
@@ -340,8 +343,8 @@ mod types {
         )]
         pub struct Balance(i32);
 
-        assert_eq!(Balance::new(-300), Err(BalanceError::TooSmall));
-        assert_eq!(Balance::new(-4), Err(BalanceError::TooBig));
+        assert_eq!(Balance::new(-300), Err(BalanceError::MinViolated));
+        assert_eq!(Balance::new(-4), Err(BalanceError::MaxViolated));
 
         let balance = Balance::new(-55).unwrap();
         assert_eq!(balance.into_inner(), -55);
@@ -355,8 +358,11 @@ mod types {
         )]
         struct Amount(i64);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::new(8446744073709551001), Err(AmountError::TooBig));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
+        assert_eq!(
+            Amount::new(8446744073709551001),
+            Err(AmountError::MaxViolated)
+        );
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(8446744073709551000).is_ok());
     }
@@ -369,10 +375,10 @@ mod types {
         )]
         struct Amount(i128);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
         assert_eq!(
             Amount::new(70141183460469231731687303715884105001),
-            Err(AmountError::TooBig)
+            Err(AmountError::MaxViolated)
         );
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(70141183460469231731687303715884105000).is_ok());
@@ -383,8 +389,8 @@ mod types {
         #[nutype(validate(min = 1000, max = 2000), derive(Debug, PartialEq))]
         struct Amount(usize);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::new(2001), Err(AmountError::TooBig));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
+        assert_eq!(Amount::new(2001), Err(AmountError::MaxViolated));
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(2000).is_ok());
     }
@@ -394,8 +400,8 @@ mod types {
         #[nutype(validate(min = 1000, max = 2000), derive(Debug, PartialEq))]
         struct Amount(isize);
 
-        assert_eq!(Amount::new(999), Err(AmountError::TooSmall));
-        assert_eq!(Amount::new(2001), Err(AmountError::TooBig));
+        assert_eq!(Amount::new(999), Err(AmountError::MinViolated));
+        assert_eq!(Amount::new(2001), Err(AmountError::MaxViolated));
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(2000).is_ok());
     }
@@ -510,7 +516,7 @@ mod traits {
         assert_eq!(amount.into_inner(), 1000);
 
         let error = Amount::try_from(1001).unwrap_err();
-        assert_eq!(error, AmountError::TooBig);
+        assert_eq!(error, AmountError::MaxViolated);
     }
 
     #[test]

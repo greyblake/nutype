@@ -32,19 +32,19 @@ fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator
         .iter()
         .map(|validator| match validator {
             StringValidator::CharLenMax(_len) => {
-                quote!(TooLong,)
+                quote!(CharLenMaxViolated,)
             }
             StringValidator::CharLenMin(_len) => {
-                quote!(TooShort,)
+                quote!(CharLenMinViolated,)
             }
             StringValidator::NotEmpty => {
-                quote!(Empty,)
+                quote!(NotEmptyViolated,)
             }
             StringValidator::Predicate(_) => {
-                quote!(Invalid,)
+                quote!(PredicateViolated,)
             }
             StringValidator::Regex(_) => {
-                quote!(RegexMismatch,)
+                quote!(RegexViolated,)
             }
         })
         .collect();
@@ -62,19 +62,19 @@ fn gen_impl_display_trait(
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
         StringValidator::CharLenMax(_len) => quote! {
-             #error_type_name::TooLong => write!(f, "too long")
+             #error_type_name::CharLenMaxViolated => write!(f, "too long")
         },
         StringValidator::CharLenMin(_len) => quote! {
-             #error_type_name::TooShort => write!(f, "too short")
+             #error_type_name::CharLenMinViolated => write!(f, "too short")
         },
         StringValidator::NotEmpty => quote! {
-             #error_type_name::Empty => write!(f, "empty")
+             #error_type_name::NotEmptyViolated => write!(f, "empty")
         },
         StringValidator::Predicate(_) => quote! {
-             #error_type_name::Invalid => write!(f, "invalid")
+             #error_type_name::PredicateViolated => write!(f, "invalid")
         },
         StringValidator::Regex(_) => quote! {
-             #error_type_name::RegexMismatch => write!(f, "regex mismatch")
+             #error_type_name::RegexViolated => write!(f, "regex violated")
         },
     });
 

@@ -5,6 +5,15 @@
 * [BREAKING] Validator `with` has been renamed to `predicate` to reflect the boolean nature of its range
 * [BREAKING] String validator `min_len` has been renamed to `char_len_min` to reflect that is based on UTF8 chars.
 * [BREAKING] String validator `max_len` has been renamed to `char_len_max` to reflect that is based on UTF8 chars.
+* [BREAKING] Rename error variants to follow the following formular: `<ValidationRule>Violated`. This implies the following renames:
+  * `TooShort` -> `CharLenMinViolated`
+  * `TooLong` -> `CharLenMaxViolated`
+  * `Empty` -> `NotEmptyViolated`
+  * `RegexMismatch` -> `RegexViolated`
+  * `Invalid` -> `PredicateViolated`
+  * `TooBig` -> `MaxViolated`
+  * `TooSmall` -> `MinViolated`
+  * `NotFinite` -> `FiniteViolated`
 * Better error messages: in case of unknown attribute, validator or sanitizer the possible values are listed.
 
 ### v0.3.1 - 2023-06-30

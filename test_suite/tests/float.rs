@@ -59,7 +59,7 @@ mod validators {
         )]
         struct Age(f32);
 
-        assert_eq!(Age::new(17.0).unwrap_err(), AgeError::TooSmall);
+        assert_eq!(Age::new(17.0).unwrap_err(), AgeError::MinViolated);
         assert_eq!(Age::new(18.0).unwrap().into_inner(), 18.0);
     }
 
@@ -71,7 +71,7 @@ mod validators {
         )]
         struct Age(f32);
 
-        assert_eq!(Age::new(100.0).unwrap_err(), AgeError::TooBig);
+        assert_eq!(Age::new(100.0).unwrap_err(), AgeError::MaxViolated);
         assert_eq!(Age::new(99.0).unwrap().into_inner(), 99.0);
     }
 
@@ -83,8 +83,8 @@ mod validators {
         )]
         struct Age(f32);
 
-        assert_eq!(Age::new(17.9).unwrap_err(), AgeError::TooSmall);
-        assert_eq!(Age::new(99.1).unwrap_err(), AgeError::TooBig);
+        assert_eq!(Age::new(17.9).unwrap_err(), AgeError::MinViolated);
+        assert_eq!(Age::new(99.1).unwrap_err(), AgeError::MaxViolated);
         assert_eq!(Age::new(25.0).unwrap().into_inner(), 25.0);
     }
 
@@ -94,12 +94,12 @@ mod validators {
         struct Dist(f64);
 
         // invalid
-        assert_eq!(Dist::new(f64::INFINITY), Err(DistError::NotFinite));
-        assert_eq!(Dist::new(f64::NEG_INFINITY), Err(DistError::NotFinite));
-        assert_eq!(Dist::new(f64::NAN), Err(DistError::NotFinite));
-        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::NotFinite));
-        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::NotFinite));
-        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(f64::INFINITY), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::new(f64::NEG_INFINITY), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::new(f64::NAN), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::FiniteViolated));
 
         // valid
         assert_eq!(Dist::new(12.345).unwrap().into_inner(), 12.345);
@@ -115,9 +115,9 @@ mod validators {
         struct Dist(f32);
 
         // invalid
-        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::NotFinite));
-        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::NotFinite));
-        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::NotFinite));
+        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::FiniteViolated));
 
         // valid
         assert_eq!(Dist::new(12.345).unwrap().into_inner(), 12.345);
@@ -133,8 +133,8 @@ mod validators {
             #[nutype(validate(predicate = |&c: &f32| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
-            assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
-            assert_eq!(Cent::new(100.1), Err(CentError::Invalid));
+            assert_eq!(Cent::new(-0.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::new(100.1), Err(CentError::PredicateViolated));
             assert_eq!(Cent::new(100.0).unwrap().into_inner(), 100.0);
             assert_eq!(Cent::new(0.0).unwrap().into_inner(), 0.0);
         }
@@ -144,8 +144,8 @@ mod validators {
             #[nutype(validate(predicate = |&c| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
-            assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
-            assert_eq!(Cent::new(100.1), Err(CentError::Invalid));
+            assert_eq!(Cent::new(-0.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::new(100.1), Err(CentError::PredicateViolated));
             assert_eq!(Cent::new(100.0).unwrap().into_inner(), 100.0);
             assert_eq!(Cent::new(0.0).unwrap().into_inner(), 0.0);
         }
@@ -159,8 +159,8 @@ mod validators {
             #[nutype(validate(predicate = is_cent_valid), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
-            assert_eq!(Cent::new(-0.1), Err(CentError::Invalid));
-            assert_eq!(Cent::new(100.1), Err(CentError::Invalid));
+            assert_eq!(Cent::new(-0.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::new(100.1), Err(CentError::PredicateViolated));
             assert_eq!(Cent::new(100.0).unwrap().into_inner(), 100.0);
             assert_eq!(Cent::new(0.0).unwrap().into_inner(), 0.0);
         }
@@ -174,7 +174,7 @@ mod validators {
         )]
         struct Age(f64);
 
-        assert_eq!(Age::try_from(17.9).unwrap_err(), AgeError::TooSmall);
+        assert_eq!(Age::try_from(17.9).unwrap_err(), AgeError::MinViolated);
         assert_eq!(Age::try_from(18.0).unwrap().into_inner(), 18.0);
     }
 
@@ -214,8 +214,8 @@ mod types {
         #[nutype(validate(min = 0.0, max = 100), derive(Debug, PartialEq))]
         pub struct Width(f32);
 
-        assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));
-        assert_eq!(Width::new(100.0001), Err(WidthError::TooBig));
+        assert_eq!(Width::new(-0.0001), Err(WidthError::MinViolated));
+        assert_eq!(Width::new(100.0001), Err(WidthError::MaxViolated));
         assert!(Width::new(0.0).is_ok());
         assert!(Width::new(100.0).is_ok());
     }
@@ -225,8 +225,8 @@ mod types {
         #[nutype(validate(min = 0.0, max = 100), derive(Debug, PartialEq))]
         pub struct Width(f64);
 
-        assert_eq!(Width::new(-0.0001), Err(WidthError::TooSmall));
-        assert_eq!(Width::new(100.0001), Err(WidthError::TooBig));
+        assert_eq!(Width::new(-0.0001), Err(WidthError::MinViolated));
+        assert_eq!(Width::new(100.0001), Err(WidthError::MaxViolated));
 
         assert_eq!(Width::new(0.0).unwrap().into_inner(), 0.0);
 
@@ -243,8 +243,8 @@ mod types {
         )]
         pub struct Balance(f64);
 
-        assert_eq!(Balance::new(-300.0), Err(BalanceError::TooSmall));
-        assert_eq!(Balance::new(-4.0), Err(BalanceError::TooBig));
+        assert_eq!(Balance::new(-300.0), Err(BalanceError::MinViolated));
+        assert_eq!(Balance::new(-4.0), Err(BalanceError::MaxViolated));
 
         let balance = Balance::new(-100.24).unwrap();
         assert_eq!(balance.into_inner(), -100.24);
@@ -360,7 +360,7 @@ mod traits {
         assert_eq!(dist.into_inner(), 12.34);
 
         let error = Dist::try_from(12.35).unwrap_err();
-        assert_eq!(error, DistError::TooBig);
+        assert_eq!(error, DistError::MaxViolated);
     }
 
     #[test]
