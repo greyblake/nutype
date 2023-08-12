@@ -3,6 +3,8 @@
 * [BREAKING] Use commas to separate high level attributes
 * [BREAKING] Traits are derived with `#[nutype(derive(Debug))]`. The regular `#[derive(Debug)]` syntax is not supported anymore.
 * [BREAKING] Validator `with` has been renamed to `predicate` to reflect the boolean nature of its range
+* [BREAKING] String validator `min_len` has been renamed to `char_len_min` to reflect that is based on UTF8 chars.
+* [BREAKING] String validator `max_len` has been renamed to `char_len_max` to reflect that is based on UTF8 chars.
 * Better error messages: in case of unknown attribute, validator or sanitizer the possible values are listed.
 
 ### v0.3.1 - 2023-06-30

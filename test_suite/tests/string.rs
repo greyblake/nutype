@@ -91,9 +91,9 @@ mod validators {
     use super::*;
 
     #[test]
-    fn test_max_len() {
+    fn test_char_len_max() {
         #[nutype(
-            validate(max_len = 5),
+            validate(char_len_max = 5),
             derive(TryFrom, Debug, Clone, PartialEq, PartialOrd, FromStr, AsRef)
         )]
         pub struct Name(String);
@@ -106,8 +106,8 @@ mod validators {
     }
 
     #[test]
-    fn test_min_len() {
-        #[nutype(validate(min_len = 6), derive(Debug, PartialEq))]
+    fn test_char_len_min() {
+        #[nutype(validate(char_len_min = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton"), Err(NameError::TooShort));
@@ -129,7 +129,7 @@ mod validators {
 
     #[test]
     fn test_many_validators() {
-        #[nutype(validate(min_len = 3, max_len = 6), derive(Debug, PartialEq))]
+        #[nutype(validate(char_len_min = 3, char_len_max = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
         assert_eq!(Name::new("Jo"), Err(NameError::TooShort));
@@ -228,7 +228,7 @@ mod complex {
         /// goes here.
         #[nutype(
             sanitize(trim, with = |s| s.to_uppercase()),
-            validate(not_empty, max_len = 6),
+            validate(not_empty, char_len_max = 6),
             derive(Debug, PartialEq)
         )]
         pub struct Name(String);
@@ -414,7 +414,7 @@ mod derives {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(validate(min_len = 5), default = "Anonymous", derive(Default))]
+            #[nutype(validate(char_len_min = 5), default = "Anonymous", derive(Default))]
             pub struct Name(String);
 
             assert_eq!(Name::default().into_inner(), "Anonymous");
@@ -423,7 +423,7 @@ mod derives {
         #[test]
         #[should_panic(expected = "Default value for type Name is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(validate(min_len = 5), default = "Nope", derive(Default))]
+            #[nutype(validate(char_len_min = 5), default = "Nope", derive(Default))]
             pub struct Name(String);
 
             Name::default();
@@ -481,7 +481,7 @@ mod new_unchecked {
 
     #[test]
     fn test_new_unchecked() {
-        #[nutype(new_unchecked, sanitize(trim), validate(min_len = 8))]
+        #[nutype(new_unchecked, sanitize(trim), validate(char_len_min = 8))]
         pub struct Name(String);
 
         let name = unsafe { Name::new_unchecked(" boo ".to_string()) };

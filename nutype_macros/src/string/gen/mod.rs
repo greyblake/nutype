@@ -85,7 +85,7 @@ impl GenerateNewtype for StringNewtype {
         let validations: TokenStream = validators
             .iter()
             .map(|validator| match validator {
-                StringValidator::MaxLen(max_len) => {
+                StringValidator::CharLenMax(max_len) => {
                     requires_chars_count = true;
                     quote!(
                         if chars_count > #max_len {
@@ -93,7 +93,7 @@ impl GenerateNewtype for StringNewtype {
                         }
                     )
                 }
-                StringValidator::MinLen(min_len) => {
+                StringValidator::CharLenMin(min_len) => {
                     requires_chars_count = true;
                     quote!(
                         if chars_count < #min_len {
