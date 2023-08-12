@@ -54,37 +54,43 @@ mod validators {
     #[test]
     fn test_min() {
         #[nutype(
-            validate(min = 18.0),
+            validate(greater_or_equal = 18.0),
             derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
         )]
         struct Age(f32);
 
-        assert_eq!(Age::new(17.0).unwrap_err(), AgeError::MinViolated);
+        assert_eq!(
+            Age::new(17.0).unwrap_err(),
+            AgeError::GreaterOrEqualViolated
+        );
         assert_eq!(Age::new(18.0).unwrap().into_inner(), 18.0);
     }
 
     #[test]
     fn test_max() {
         #[nutype(
-            validate(max = 99.0),
+            validate(less_or_equal = 99.0),
             derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
         )]
         struct Age(f32);
 
-        assert_eq!(Age::new(100.0).unwrap_err(), AgeError::MaxViolated);
+        assert_eq!(Age::new(100.0).unwrap_err(), AgeError::LessOrEqualViolated);
         assert_eq!(Age::new(99.0).unwrap().into_inner(), 99.0);
     }
 
     #[test]
     fn test_min_and_max() {
         #[nutype(
-            validate(min = 18.0, max = 99.0),
+            validate(greater_or_equal = 18.0, less_or_equal = 99.0),
             derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
         )]
         struct Age(f32);
 
-        assert_eq!(Age::new(17.9).unwrap_err(), AgeError::MinViolated);
-        assert_eq!(Age::new(99.1).unwrap_err(), AgeError::MaxViolated);
+        assert_eq!(
+            Age::new(17.9).unwrap_err(),
+            AgeError::GreaterOrEqualViolated
+        );
+        assert_eq!(Age::new(99.1).unwrap_err(), AgeError::LessOrEqualViolated);
         assert_eq!(Age::new(25.0).unwrap().into_inner(), 25.0);
     }
 
@@ -169,12 +175,15 @@ mod validators {
     #[test]
     fn test_try_from_trait() {
         #[nutype(
-            validate(min = 18.0),
+            validate(greater_or_equal = 18.0),
             derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
         )]
         struct Age(f64);
 
-        assert_eq!(Age::try_from(17.9).unwrap_err(), AgeError::MinViolated);
+        assert_eq!(
+            Age::try_from(17.9).unwrap_err(),
+            AgeError::GreaterOrEqualViolated
+        );
         assert_eq!(Age::try_from(18.0).unwrap().into_inner(), 18.0);
     }
 
@@ -193,7 +202,7 @@ mod validators {
         #[test]
         fn test_error_display() {
             #[nutype(
-                validate(min = 0.0),
+                validate(greater_or_equal = 0.0),
                 derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
             )]
             struct Percentage(f64);
@@ -211,22 +220,28 @@ mod types {
 
     #[test]
     fn test_f32_validate() {
-        #[nutype(validate(min = 0.0, max = 100), derive(Debug, PartialEq))]
+        #[nutype(
+            validate(greater_or_equal = 0.0, less_or_equal = 100),
+            derive(Debug, PartialEq)
+        )]
         pub struct Width(f32);
 
-        assert_eq!(Width::new(-0.0001), Err(WidthError::MinViolated));
-        assert_eq!(Width::new(100.0001), Err(WidthError::MaxViolated));
+        assert_eq!(Width::new(-0.0001), Err(WidthError::GreaterOrEqualViolated));
+        assert_eq!(Width::new(100.0001), Err(WidthError::LessOrEqualViolated));
         assert!(Width::new(0.0).is_ok());
         assert!(Width::new(100.0).is_ok());
     }
 
     #[test]
     fn test_f64_validate() {
-        #[nutype(validate(min = 0.0, max = 100), derive(Debug, PartialEq))]
+        #[nutype(
+            validate(greater_or_equal = 0.0, less_or_equal = 100),
+            derive(Debug, PartialEq)
+        )]
         pub struct Width(f64);
 
-        assert_eq!(Width::new(-0.0001), Err(WidthError::MinViolated));
-        assert_eq!(Width::new(100.0001), Err(WidthError::MaxViolated));
+        assert_eq!(Width::new(-0.0001), Err(WidthError::GreaterOrEqualViolated));
+        assert_eq!(Width::new(100.0001), Err(WidthError::LessOrEqualViolated));
 
         assert_eq!(Width::new(0.0).unwrap().into_inner(), 0.0);
 
@@ -238,13 +253,16 @@ mod types {
     fn test_f64_negative() {
         #[nutype(
             sanitize(with = |n| n.clamp(-200.25, -5.0)),
-            validate(min = -100.25, max = -50.1),
+            validate(greater_or_equal = -100.25, less_or_equal = -50.1),
             derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
         )]
         pub struct Balance(f64);
 
-        assert_eq!(Balance::new(-300.0), Err(BalanceError::MinViolated));
-        assert_eq!(Balance::new(-4.0), Err(BalanceError::MaxViolated));
+        assert_eq!(
+            Balance::new(-300.0),
+            Err(BalanceError::GreaterOrEqualViolated)
+        );
+        assert_eq!(Balance::new(-4.0), Err(BalanceError::LessOrEqualViolated));
 
         let balance = Balance::new(-100.24).unwrap();
         assert_eq!(balance.into_inner(), -100.24);
@@ -288,7 +306,7 @@ mod traits {
     #[test]
     fn test_with_validaiton() {
         #[nutype(
-            validate(max = 100.0),
+            validate(less_or_equal = 100.0),
             derive(Debug, TryFrom, FromStr, Borrow, Clone, Copy)
         )]
         pub struct Dist(f64);
@@ -353,14 +371,14 @@ mod traits {
 
     #[test]
     fn test_trait_try_from() {
-        #[nutype(validate(max = 12.34), derive(Debug, TryFrom))]
+        #[nutype(validate(less_or_equal = 12.34), derive(Debug, TryFrom))]
         pub struct Dist(f64);
 
         let dist = Dist::try_from(12.34).unwrap();
         assert_eq!(dist.into_inner(), 12.34);
 
         let error = Dist::try_from(12.35).unwrap_err();
-        assert_eq!(error, DistError::MaxViolated);
+        assert_eq!(error, DistError::LessOrEqualViolated);
     }
 
     #[test]
@@ -380,7 +398,7 @@ mod traits {
 
     #[test]
     fn test_trait_from_str_with_validation() {
-        #[nutype(validate(max = 12.34), derive(Debug, FromStr))]
+        #[nutype(validate(less_or_equal = 12.34), derive(Debug, FromStr))]
         pub struct Dist(f64);
 
         // Happy path
@@ -541,7 +559,7 @@ mod traits {
     #[cfg(feature = "serde")]
     #[test]
     fn test_trait_deserialize_with_validation() {
-        #[nutype(validate(min = 13.3), derive(Deserialize))]
+        #[nutype(validate(greater_or_equal = 13.3), derive(Deserialize))]
         pub struct Offset(f32);
 
         {
@@ -574,7 +592,7 @@ mod traits {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(validate(max = 20.0), default = 13.0, derive(Default))]
+            #[nutype(validate(less_or_equal = 20.0), default = 13.0, derive(Default))]
             pub struct Number(f64);
 
             assert_eq!(Number::default().into_inner(), 13.0);
@@ -583,7 +601,7 @@ mod traits {
         #[test]
         #[should_panic(expected = "Default value for type Number is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(validate(max = 20.0), default = 20.1, derive(Default))]
+            #[nutype(validate(less_or_equal = 20.0), default = 20.1, derive(Default))]
             pub struct Number(f64);
 
             Number::default();
@@ -598,7 +616,7 @@ mod new_unchecked {
 
     #[test]
     fn test_new_unchecked() {
-        #[nutype(new_unchecked, validate(min = 50.0))]
+        #[nutype(new_unchecked, validate(greater_or_equal = 50.0))]
         pub struct Dist(f64);
 
         let dist = unsafe { Dist::new_unchecked(3.0) };

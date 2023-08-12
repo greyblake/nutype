@@ -1,6 +1,6 @@
-error: Duplicated validator `max`.
+error: Duplicated validator `less_or_equal`.
        You're a great engineer, but don't forget to take care of yourself!
- --> tests/ui/float/validate/duplicated.rs:3:34
+ --> tests/ui/float/validate/duplicated.rs:3:54
   |
-3 | #[nutype(validate(max = 0, max = 0))]
-  |                                  ^
+3 | #[nutype(validate(less_or_equal = 0, less_or_equal = 0))]
+  |                                                      ^

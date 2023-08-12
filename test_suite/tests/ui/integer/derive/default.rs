@@ -1,7 +1,7 @@
 use nutype::nutype;
 
 #[nutype(
-    validate(max = 1024),
+    validate(less_or_equal = 1024),
     derive(Default)
 )]
 pub struct Count(i32);

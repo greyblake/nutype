@@ -11,8 +11,8 @@
   * `Empty` -> `NotEmptyViolated`
   * `RegexMismatch` -> `RegexViolated`
   * `Invalid` -> `PredicateViolated`
-  * `TooBig` -> `MaxViolated`
-  * `TooSmall` -> `MinViolated`
+  * `TooBig` -> `LessOrEqualViolated`
+  * `TooSmall` -> `GreaterOrEqualViolated`
   * `NotFinite` -> `FiniteViolated`
 * Better error messages: in case of unknown attribute, validator or sanitizer the possible values are listed.
 

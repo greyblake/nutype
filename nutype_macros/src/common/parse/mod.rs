@@ -109,7 +109,7 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
                     let msg = concat!(
                         "`validate` must be used with parenthesis.\n",
                         "For example:\n\n",
-                        "    validate(max = 99)\n\n"
+                        "    validate(less_or_equal = 99)\n\n"
                     );
                     return Err(syn::Error::new(ident.span(), msg));
                 }

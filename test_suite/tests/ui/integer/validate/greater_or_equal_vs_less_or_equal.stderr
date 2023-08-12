@@ -1,0 +1,6 @@
+error: `greater_or_equal` cannot be greater than `less_or_equal`.
+       Sometimes we all need a little break.
+ --> tests/ui/integer/validate/greater_or_equal_vs_less_or_equal.rs:3:35
+  |
+3 | #[nutype(validate(less_or_equal = 0, greater_or_equal = 20))]
+  |                                   ^

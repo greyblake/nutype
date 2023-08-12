@@ -1,6 +1,6 @@
 use nutype::nutype;
 
-#[nutype(validate(max = 0, max = 0))]
+#[nutype(validate(less_or_equal = 0, less_or_equal = 0))]
 pub struct Amount(f32);
 
 fn main() {}

@@ -178,11 +178,11 @@
 //!
 //! ### Integer validators
 //!
-//! | Validator   | Description         | Error variant       | Example                            |
-//! |-------------|---------------------|---------------------|------------------------------------|
-//! | `max`       | Maximum valid value | `MaxViolated`       | `max = 99`                         |
-//! | `min`       | Minimum valid value | `MinViolated`       | `min = 18`                         |
-//! | `predicate` | Custom validator    | `PredicateViolated` | `predicate = \|num\| num % 2 == 0` |
+//! | Validator           | Description           | Error variant             | Example                              |
+//! | ------------------- | --------------------- | ------------------------- | ------------------------------------ |
+//! | `less_or_equal`     | Maximum valid value   | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
+//! | `greater_or_equal`  | Minimum valid value   | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
+//! | `predicate`         | Custom predicate      | `PredicateViolated`       | `predicate = \|num\| num % 2 == 0`   |
 //!
 //! ### Integer derivable traits
 //!
@@ -203,12 +203,12 @@
 //!
 //! ### Float validators
 //!
-//! | Validator   | Description                    | Error variant       | Example                           |
-//! |-------------|--------------------------------|---------------------|-----------------------------------|
-//! | `max`       | Maximum valid value            | `MaxViolated`       | `max = 100.0`                     |
-//! | `min`       | Minimum valid value            | `MinViolated`       | `min = 0.0`                       |
-//! | `finite`    | Check against NaN and infinity | `FiniteViolated`    | `finite`                          |
-//! | `predicate` | Custom validator               | `PredicateViolated` | `predicate = \|val\| val != 50.0` |
+//! | Validator          | Description                      | Error variant            | Example                             |
+//! | ------------------ | -------------------------------- | ---------------------    | ----------------------------------- |
+//! | `less_or_equal`    | Maximum valid value              | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
+//! | `greater_or_equal` | Minimum valid value              | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
+//! | `finite`           | Check against NaN and infinity   | `FiniteViolated`         | `finite`                            |
+//! | `predicate`        | Custom predicate                 | `PredicateViolated`      | `predicate = \|val\| val != 50.0`   |
 //!
 //! ### Float derivable traits
 //!
@@ -379,11 +379,20 @@ mod tests {
 
     #[test]
     fn test_amount_example() {
-        #[nutype(validate(min = 100, max = 1_000), derive(Debug, PartialEq, TryFrom))]
+        #[nutype(
+            validate(greater_or_equal = 100, less_or_equal = 1_000),
+            derive(Debug, PartialEq, TryFrom)
+        )]
         pub struct Amount(u32);
 
-        assert_eq!(Amount::try_from(99), Err(AmountError::MinViolated));
-        assert_eq!(Amount::try_from(1_001), Err(AmountError::MaxViolated));
+        assert_eq!(
+            Amount::try_from(99),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_from(1_001),
+            Err(AmountError::LessOrEqualViolated)
+        );
 
         assert_eq!(Amount::try_from(100).unwrap().into_inner(), 100);
     }

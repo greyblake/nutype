@@ -21,8 +21,8 @@ pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum IntegerValidator<T> {
-    Min(T),
-    Max(T),
+    GreaterOrEqual(T),
+    LessOrEqual(T),
     Predicate(TypedCustomFunction),
 }
 

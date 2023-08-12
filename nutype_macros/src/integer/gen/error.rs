@@ -32,11 +32,11 @@ fn gen_definition<T>(
     let error_variants: TokenStream = validators
         .iter()
         .map(|validator| match validator {
-            IntegerValidator::Min(_) => {
-                quote!(MinViolated,)
+            IntegerValidator::GreaterOrEqual(_) => {
+                quote!(GreaterOrEqualViolated,)
             }
-            IntegerValidator::Max(_) => {
-                quote!(MaxViolated,)
+            IntegerValidator::LessOrEqual(_) => {
+                quote!(LessOrEqualViolated,)
             }
             IntegerValidator::Predicate(_) => {
                 quote!(PredicateViolated,)
@@ -56,11 +56,11 @@ fn gen_impl_display_trait<T>(
     validators: &[IntegerValidator<T>],
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
-        IntegerValidator::Min(_) => quote! {
-             #error_type_name::MinViolated => write!(f, "too small")
+        IntegerValidator::GreaterOrEqual(_) => quote! {
+             #error_type_name::GreaterOrEqualViolated => write!(f, "too small")
         },
-        IntegerValidator::Max(_) => quote! {
-             #error_type_name::MaxViolated=> write!(f, "too big")
+        IntegerValidator::LessOrEqual(_) => quote! {
+             #error_type_name::LessOrEqualViolated=> write!(f, "too big")
         },
         IntegerValidator::Predicate(_) => quote! {
              #error_type_name::PredicateViolated => write!(f, "invalid")
