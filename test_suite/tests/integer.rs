@@ -55,13 +55,17 @@ mod validators {
     use super::*;
 
     #[test]
-    fn test_min() {
-        #[nutype(
-            validate(greater_or_equal = 18),
-            derive(
-                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
-            )
-        )]
+    fn test_greater() {
+        #[nutype(validate(greater = 18), derive(Debug))]
+        struct Age(u8);
+
+        assert_eq!(Age::new(18).unwrap_err(), AgeError::GreaterViolated);
+        assert_eq!(Age::new(19).unwrap().into_inner(), 19);
+    }
+
+    #[test]
+    fn test_greater_or_equal() {
+        #[nutype(validate(greater_or_equal = 18), derive(Debug))]
         struct Age(u8);
 
         assert_eq!(Age::new(17).unwrap_err(), AgeError::GreaterOrEqualViolated);
@@ -69,13 +73,17 @@ mod validators {
     }
 
     #[test]
-    fn test_max() {
-        #[nutype(
-            validate(less_or_equal = 99),
-            derive(
-                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
-            )
-        )]
+    fn test_less() {
+        #[nutype(validate(less = -33), derive(Debug))]
+        struct Degree(i32);
+
+        assert_eq!(Degree::new(-33).unwrap_err(), DegreeError::LessViolated);
+        assert_eq!(Degree::new(-34).unwrap().into_inner(), -34);
+    }
+
+    #[test]
+    fn test_less_or_equal() {
+        #[nutype(validate(less_or_equal = 99), derive(Debug))]
         struct Age(u8);
 
         assert_eq!(Age::new(100).unwrap_err(), AgeError::LessOrEqualViolated);
@@ -83,13 +91,8 @@ mod validators {
     }
 
     #[test]
-    fn test_min_and_max() {
-        #[nutype(
-            validate(greater_or_equal = 18, less_or_equal = 99),
-            derive(
-                Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash
-            )
-        )]
+    fn test_greater_or_equal_and_less_or_equal() {
+        #[nutype(validate(greater_or_equal = 18, less_or_equal = 99), derive(Debug))]
         struct Age(u8);
 
         assert_eq!(Age::new(17).unwrap_err(), AgeError::GreaterOrEqualViolated);
