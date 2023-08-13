@@ -1,7 +1,7 @@
 mod encapsulated {
     use nutype::nutype;
 
-    #[nutype(validate(min = 0.0, max = 100.0))]
+    #[nutype(validate(greater_or_equal = 0.0, less_or_equal = 100.0))]
     struct Percentage(f32);
 }
 

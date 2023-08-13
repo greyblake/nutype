@@ -46,25 +46,27 @@ where
         )
     })?;
 
-    // max VS min
-    let maybe_min = validators
+    // less_or_equal VS greater_or_equal
+    let maybe_greater_or_equal = validators
         .iter()
         .flat_map(|v| match &v.item {
-            IntegerValidator::Min(ref min) => Some((v.span, min.clone())),
+            IntegerValidator::GreaterOrEqual(ref value) => Some((v.span, value.clone())),
             _ => None,
         })
         .next();
-    let maybe_max = validators
+    let maybe_less_or_equal = validators
         .iter()
         .flat_map(|v| match v.item {
-            IntegerValidator::Max(ref max) => Some((v.span, max.clone())),
+            IntegerValidator::LessOrEqual(ref value) => Some((v.span, value.clone())),
             _ => None,
         })
         .next();
-    if let (Some((_min_span, min)), Some((max_span, max))) = (maybe_min, maybe_max) {
-        if min > max {
-            let msg = "`min` cannot be greater than `max`.\nSometimes we all need a little break.";
-            let err = syn::Error::new(max_span, msg);
+    if let (Some((_, greater_or_equal)), Some((span, less_or_equal))) =
+        (maybe_greater_or_equal, maybe_less_or_equal)
+    {
+        if greater_or_equal > less_or_equal {
+            let msg = "`greater_or_equal` cannot be greater than `less_or_equal`.\nSometimes we all need a little break.";
+            let err = syn::Error::new(span, msg);
             return Err(err);
         }
     }

@@ -63,19 +63,19 @@ where
         let (kind, _ident) = parse_validator_kind(input)?;
 
         match kind {
-            IntegerValidatorKind::Min => {
+            IntegerValidatorKind::GreaterOrEqual => {
                 let _eq: Token![=] = input.parse()?;
                 let (number, span) = parse_number::<T>(input)?;
                 Ok(SpannedIntegerValidator {
-                    item: IntegerValidator::Min(number),
+                    item: IntegerValidator::GreaterOrEqual(number),
                     span,
                 })
             }
-            IntegerValidatorKind::Max => {
+            IntegerValidatorKind::LessOrEqual => {
                 let _eq: Token![=] = input.parse()?;
                 let (number, span) = parse_number::<T>(input)?;
                 Ok(SpannedIntegerValidator {
-                    item: IntegerValidator::Max(number),
+                    item: IntegerValidator::LessOrEqual(number),
                     span,
                 })
             }

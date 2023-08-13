@@ -65,17 +65,17 @@ where
         let validations: TokenStream = validators
             .iter()
             .map(|validator| match validator {
-                FloatValidator::Max(max) => {
+                FloatValidator::LessOrEqual(max) => {
                     quote!(
                         if val > #max {
-                            return Err(#error_name::MaxViolated);
+                            return Err(#error_name::LessOrEqualViolated);
                         }
                     )
                 }
-                FloatValidator::Min(min) => {
+                FloatValidator::GreaterOrEqual(min) => {
                     quote!(
                         if val < #min {
-                            return Err(#error_name::MinViolated);
+                            return Err(#error_name::GreaterOrEqualViolated);
                         }
                     )
                 }

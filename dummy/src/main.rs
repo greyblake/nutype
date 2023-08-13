@@ -9,7 +9,10 @@ use nutype::nutype;
 )]
 pub struct Email(String);
 
-#[nutype(validate(min = 100, max = 1000), derive(Deref, FromStr))]
+#[nutype(
+    derive(Deref, FromStr),
+    validate(greater_or_equal = 10, less_or_equal = 1000)
+)]
 pub struct Number(i16);
 
 fn main() {

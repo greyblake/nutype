@@ -1,7 +1,7 @@
 error: `validate` must be used with parenthesis.
        For example:
 
-           validate(max = 99)
+           validate(less_or_equal = 99)
 
  --> tests/ui/common/validate_without_parenthesis.rs:3:10
   |
