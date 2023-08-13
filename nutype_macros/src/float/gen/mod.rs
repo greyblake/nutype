@@ -72,6 +72,13 @@ where
                         }
                     )
                 }
+                FloatValidator::Greater(exclusive_lower_bound) => {
+                    quote!(
+                        if val <= #exclusive_lower_bound {
+                            return Err(#error_name::GreaterViolated);
+                        }
+                    )
+                }
                 FloatValidator::GreaterOrEqual(min) => {
                     quote!(
                         if val < #min {

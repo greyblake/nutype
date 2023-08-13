@@ -1,4 +1,4 @@
-error: `greater_or_equal` cannot be greater than `less_or_equal`.
+error: The lower bound (`greater` or `greater_or_equal`) cannot be greater than the upper bound (`less or `less_or_equal`).
        Sometimes we all need a little break.
  --> tests/ui/float/validate/greater_or_equal_vs_less_or_equal.rs:3:35
   |

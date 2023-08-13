@@ -21,8 +21,10 @@ pub type SpannedFloatSanitizer<T> = SpannedItem<FloatSanitizer<T>>;
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum FloatValidator<T> {
+    Greater(T),
     GreaterOrEqual(T),
     LessOrEqual(T),
+    // Less(T),
     Predicate(TypedCustomFunction),
     Finite,
 }

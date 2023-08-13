@@ -33,6 +33,9 @@ fn gen_definition<T>(
     let error_variants: TokenStream = validators
         .iter()
         .map(|validator| match validator {
+            FloatValidator::Greater(_) => {
+                quote!(GreaterViolated,)
+            }
             FloatValidator::GreaterOrEqual(_) => {
                 quote!(GreaterOrEqualViolated,)
             }
@@ -60,6 +63,9 @@ fn gen_impl_display_trait<T>(
     validators: &[FloatValidator<T>],
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
+        FloatValidator::Greater(_) => quote! {
+             #error_type_name::GreaterViolated => write!(f, "too small")
+        },
         FloatValidator::GreaterOrEqual(_) => quote! {
              #error_type_name::GreaterOrEqualViolated => write!(f, "too small")
         },
