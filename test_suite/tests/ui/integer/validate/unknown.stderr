@@ -1,5 +1,5 @@
 error: Unknown validator `meaningful`.
-       Possible values are `greater_or_equal`, `less_or_equal`, `predicate`.
+       Possible values are `greater`, `greater_or_equal`, `less`, `less_or_equal`, `predicate`.
  --> tests/ui/integer/validate/unknown.rs:3:19
   |
 3 | #[nutype(validate(meaningful))]

@@ -180,8 +180,10 @@
 //!
 //! | Validator           | Description           | Error variant             | Example                              |
 //! | ------------------- | --------------------- | ------------------------- | ------------------------------------ |
-//! | `less_or_equal`     | Maximum valid value   | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
-//! | `greater_or_equal`  | Minimum valid value   | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
+//! | `less`              | Exclusive upper bound | `LessViolated`            | `less = 100`                         |
+//! | `less_or_equal`     | Inclusive upper bound | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
+//! | `greater`           | Exclusive lower bound | `GreaterViolated`         | `greater = 17`                       |
+//! | `greater_or_equal`  | Inclusive lower bound | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
 //! | `predicate`         | Custom predicate      | `PredicateViolated`       | `predicate = \|num\| num % 2 == 0`   |
 //!
 //! ### Integer derivable traits
@@ -205,8 +207,10 @@
 //!
 //! | Validator          | Description                      | Error variant            | Example                             |
 //! | ------------------ | -------------------------------- | ---------------------    | ----------------------------------- |
-//! | `less_or_equal`    | Maximum valid value              | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
-//! | `greater_or_equal` | Minimum valid value              | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
+//! | `less`             | Exclusive upper bound            | `LessViolated`           | `less = 100.0`                      |
+//! | `less_or_equal`    | Inclusive upper bound            | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
+//! | `greater`          | Exclusive lower bound            | `GreaterViolated`        | `greater = 0.0`                     |
+//! | `greater_or_equal` | Inclusive lower bound            | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
 //! | `finite`           | Check against NaN and infinity   | `FiniteViolated`         | `finite`                            |
 //! | `predicate`        | Custom predicate                 | `PredicateViolated`      | `predicate = \|val\| val != 50.0`   |
 //!

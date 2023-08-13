@@ -63,11 +63,27 @@ where
         let (kind, ident) = parse_validator_kind(input)?;
 
         match kind {
+            FloatValidatorKind::Greater => {
+                let _eq: Token![=] = input.parse()?;
+                let (number, span) = parse_number::<T>(input)?;
+                Ok(SpannedFloatValidator {
+                    item: FloatValidator::Greater(number),
+                    span,
+                })
+            }
             FloatValidatorKind::GreaterOrEqual => {
                 let _eq: Token![=] = input.parse()?;
                 let (number, span) = parse_number::<T>(input)?;
                 Ok(SpannedFloatValidator {
-                    item: FloatValidator::GreaterOrEqual(number as T),
+                    item: FloatValidator::GreaterOrEqual(number),
+                    span,
+                })
+            }
+            FloatValidatorKind::Less => {
+                let _eq: Token![=] = input.parse()?;
+                let (number, span) = parse_number::<T>(input)?;
+                Ok(SpannedFloatValidator {
+                    item: FloatValidator::Less(number),
                     span,
                 })
             }
@@ -75,7 +91,7 @@ where
                 let _eq: Token![=] = input.parse()?;
                 let (number, span) = parse_number::<T>(input)?;
                 Ok(SpannedFloatValidator {
-                    item: FloatValidator::LessOrEqual(number as T),
+                    item: FloatValidator::LessOrEqual(number),
                     span,
                 })
             }

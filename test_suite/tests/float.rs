@@ -52,11 +52,17 @@ mod validators {
     use super::*;
 
     #[test]
-    fn test_min() {
-        #[nutype(
-            validate(greater_or_equal = 18.0),
-            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
-        )]
+    fn test_greater() {
+        #[nutype(validate(greater = 18.0), derive(Debug))]
+        struct Age(f64);
+
+        assert_eq!(Age::new(18.0).unwrap_err(), AgeError::GreaterViolated);
+        assert_eq!(Age::new(18.00001).unwrap().into_inner(), 18.00001);
+    }
+
+    #[test]
+    fn test_greater_or_equal() {
+        #[nutype(validate(greater_or_equal = 18.0), derive(Debug))]
         struct Age(f32);
 
         assert_eq!(
@@ -67,11 +73,17 @@ mod validators {
     }
 
     #[test]
-    fn test_max() {
-        #[nutype(
-            validate(less_or_equal = 99.0),
-            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
-        )]
+    fn test_less() {
+        #[nutype(validate(less = 99.0), derive(Debug))]
+        struct Age(f64);
+
+        assert_eq!(Age::new(99.0).unwrap_err(), AgeError::LessViolated);
+        assert_eq!(Age::new(98.99999).unwrap().into_inner(), 98.99999);
+    }
+
+    #[test]
+    fn test_less_or_equal() {
+        #[nutype(validate(less_or_equal = 99.0), derive(Debug))]
         struct Age(f32);
 
         assert_eq!(Age::new(100.0).unwrap_err(), AgeError::LessOrEqualViolated);
@@ -79,11 +91,8 @@ mod validators {
     }
 
     #[test]
-    fn test_min_and_max() {
-        #[nutype(
-            validate(greater_or_equal = 18.0, less_or_equal = 99.0),
-            derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef)
-        )]
+    fn test_greater_or_equal_and_less_or_equal() {
+        #[nutype(validate(greater_or_equal = 18.0, less_or_equal = 99.0), derive(Debug))]
         struct Age(f32);
 
         assert_eq!(

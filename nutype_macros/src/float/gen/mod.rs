@@ -65,10 +65,24 @@ where
         let validations: TokenStream = validators
             .iter()
             .map(|validator| match validator {
+                FloatValidator::Less(exclusive_upper_bound) => {
+                    quote!(
+                        if val >= #exclusive_upper_bound {
+                            return Err(#error_name::LessViolated);
+                        }
+                    )
+                }
                 FloatValidator::LessOrEqual(max) => {
                     quote!(
                         if val > #max {
                             return Err(#error_name::LessOrEqualViolated);
+                        }
+                    )
+                }
+                FloatValidator::Greater(exclusive_lower_bound) => {
+                    quote!(
+                        if val <= #exclusive_lower_bound {
+                            return Err(#error_name::GreaterViolated);
                         }
                     )
                 }

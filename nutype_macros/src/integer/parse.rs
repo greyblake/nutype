@@ -63,11 +63,27 @@ where
         let (kind, _ident) = parse_validator_kind(input)?;
 
         match kind {
+            IntegerValidatorKind::Greater => {
+                let _eq: Token![=] = input.parse()?;
+                let (number, span) = parse_number::<T>(input)?;
+                Ok(SpannedIntegerValidator {
+                    item: IntegerValidator::Greater(number),
+                    span,
+                })
+            }
             IntegerValidatorKind::GreaterOrEqual => {
                 let _eq: Token![=] = input.parse()?;
                 let (number, span) = parse_number::<T>(input)?;
                 Ok(SpannedIntegerValidator {
                     item: IntegerValidator::GreaterOrEqual(number),
+                    span,
+                })
+            }
+            IntegerValidatorKind::Less => {
+                let _eq: Token![=] = input.parse()?;
+                let (number, span) = parse_number::<T>(input)?;
+                Ok(SpannedIntegerValidator {
+                    item: IntegerValidator::Less(number),
                     span,
                 })
             }

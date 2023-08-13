@@ -1,0 +1,5 @@
+error: The upper bound can be specified with EITHER `less` OR `less_or_equal`, but not both.
+ --> tests/ui/integer/validate/bounds/less_and_less_or_equal.rs:3:46
+  |
+3 | #[nutype(validate(less = 99, less_or_equal = 99))]
+  |                                              ^^

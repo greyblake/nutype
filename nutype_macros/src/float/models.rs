@@ -1,7 +1,10 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
+use std::fmt::Debug;
 
-use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{
+    impl_numeric_bound_validator, Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction,
+};
 
 // Sanitizer
 //
@@ -21,11 +24,15 @@ pub type SpannedFloatSanitizer<T> = SpannedItem<FloatSanitizer<T>>;
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum FloatValidator<T> {
+    Greater(T),
     GreaterOrEqual(T),
+    Less(T),
     LessOrEqual(T),
     Predicate(TypedCustomFunction),
     Finite,
 }
+
+impl_numeric_bound_validator!(FloatValidator);
 
 pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
 

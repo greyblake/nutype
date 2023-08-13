@@ -1,7 +1,9 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
 
-use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{
+    impl_numeric_bound_validator, Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction,
+};
 
 // Sanitizer
 //
@@ -21,10 +23,14 @@ pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum IntegerValidator<T> {
+    Greater(T),
     GreaterOrEqual(T),
+    Less(T),
     LessOrEqual(T),
     Predicate(TypedCustomFunction),
 }
+
+impl_numeric_bound_validator!(IntegerValidator);
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 

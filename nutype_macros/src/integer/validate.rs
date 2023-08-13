@@ -4,7 +4,7 @@ use proc_macro2::Span;
 
 use crate::common::{
     models::{DeriveTrait, SpannedDeriveTrait},
-    validate::validate_duplicates,
+    validate::{validate_duplicates, validate_numeric_bounds},
 };
 
 use super::models::{
@@ -46,30 +46,7 @@ where
         )
     })?;
 
-    // less_or_equal VS greater_or_equal
-    let maybe_greater_or_equal = validators
-        .iter()
-        .flat_map(|v| match &v.item {
-            IntegerValidator::GreaterOrEqual(ref value) => Some((v.span, value.clone())),
-            _ => None,
-        })
-        .next();
-    let maybe_less_or_equal = validators
-        .iter()
-        .flat_map(|v| match v.item {
-            IntegerValidator::LessOrEqual(ref value) => Some((v.span, value.clone())),
-            _ => None,
-        })
-        .next();
-    if let (Some((_, greater_or_equal)), Some((span, less_or_equal))) =
-        (maybe_greater_or_equal, maybe_less_or_equal)
-    {
-        if greater_or_equal > less_or_equal {
-            let msg = "`greater_or_equal` cannot be greater than `less_or_equal`.\nSometimes we all need a little break.";
-            let err = syn::Error::new(span, msg);
-            return Err(err);
-        }
-    }
+    validate_numeric_bounds(&validators)?;
 
     let validators: Vec<_> = validators.into_iter().map(|v| v.item).collect();
     Ok(validators)

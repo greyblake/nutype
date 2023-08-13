@@ -1,4 +1,6 @@
 ### v0.4.0 - 2023-xx-xx
+* [FEATURE] Add numeric validator `greater`
+* [FEATURE] Add numeric validator `less`
 * [BREAKING] Removal of asterisk derive
 * [BREAKING] Use commas to separate high level attributes
 * [BREAKING] Traits are derived with `#[nutype(derive(Debug))]`. The regular `#[derive(Debug)]` syntax is not supported anymore.

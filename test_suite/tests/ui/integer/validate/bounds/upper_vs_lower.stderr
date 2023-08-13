@@ -1,0 +1,6 @@
+error: The lower bound (`greater` or `greater_or_equal`) cannot be greater than the upper bound (`less or `less_or_equal`).
+       Sometimes we all need a little break.
+ --> tests/ui/integer/validate/bounds/upper_vs_lower.rs:3:35
+  |
+3 | #[nutype(validate(less_or_equal = 0, greater = 20))]
+  |                                   ^
