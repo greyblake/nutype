@@ -17,13 +17,17 @@ use super::gen::type_custom_closure;
 
 /// A spanned item. An item can be anything that cares a domain value.
 /// Keeping a span allows to throw good precise error messages at the validation stage.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SpannedItem<T> {
     pub item: T,
     pub span: Span,
 }
 
 impl<T> SpannedItem<T> {
+    pub fn new(item: T, span: Span) -> Self {
+        Self { item, span }
+    }
+
     pub fn span(&self) -> Span {
         self.span
     }
