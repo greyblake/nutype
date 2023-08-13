@@ -23,8 +23,8 @@ pub type SpannedFloatSanitizer<T> = SpannedItem<FloatSanitizer<T>>;
 pub enum FloatValidator<T> {
     Greater(T),
     GreaterOrEqual(T),
+    Less(T),
     LessOrEqual(T),
-    // Less(T),
     Predicate(TypedCustomFunction),
     Finite,
 }

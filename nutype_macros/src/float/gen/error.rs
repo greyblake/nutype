@@ -42,6 +42,9 @@ fn gen_definition<T>(
             FloatValidator::LessOrEqual(_) => {
                 quote!(LessOrEqualViolated,)
             }
+            FloatValidator::Less(_) => {
+                quote!(LessViolated,)
+            }
             FloatValidator::Predicate(_) => {
                 quote!(PredicateViolated,)
             }
@@ -71,6 +74,9 @@ fn gen_impl_display_trait<T>(
         },
         FloatValidator::LessOrEqual(_) => quote! {
              #error_type_name::LessOrEqualViolated=> write!(f, "too big")
+        },
+        FloatValidator::Less(_) => quote! {
+             #error_type_name::LessViolated=> write!(f, "too big")
         },
         FloatValidator::Predicate(_) => quote! {
              #error_type_name::PredicateViolated => write!(f, "invalid")

@@ -60,6 +60,13 @@ where
             _ => None,
         })
         .next();
+    let maybe_less = validators
+        .iter()
+        .flat_map(|v| match v.item {
+            FloatValidator::Less(ref value) => Some((v.span, value.clone())),
+            _ => None,
+        })
+        .next();
     let maybe_less_or_equal = validators
         .iter()
         .flat_map(|v| match v.item {
@@ -72,19 +79,28 @@ where
     //
     if let (Some((_, _)), Some((span, _))) = (maybe_greater.clone(), maybe_greater_or_equal.clone())
     {
-        let msg = "The lower boundary can be specified with EITHER `greater` OR `greater_or_equal`, but not both.";
+        let msg = "The lower bound can be specified with EITHER `greater` OR `greater_or_equal`, but not both.";
+        let err = syn::Error::new(span, msg);
+        return Err(err);
+    }
+    // less VS less_or_equal
+    //
+    if let (Some((_, _)), Some((span, _))) = (maybe_less.clone(), maybe_less_or_equal.clone()) {
+        let msg =
+            "The upper bound can be specified with EITHER `less` OR `less_or_equal`, but not both.";
         let err = syn::Error::new(span, msg);
         return Err(err);
     }
 
     let maybe_lower_bound = maybe_greater.or(maybe_greater_or_equal);
+    let maybe_upper_bound = maybe_less.or(maybe_less_or_equal);
 
     // less_or_equal VS greater_or_equal
     //
-    if let (Some((_, lower_bound)), Some((span, less_or_equal))) =
-        (maybe_lower_bound, maybe_less_or_equal)
+    if let (Some((_, lower_bound)), Some((span, upper_bound))) =
+        (maybe_lower_bound, maybe_upper_bound)
     {
-        if lower_bound > less_or_equal {
+        if lower_bound > upper_bound {
             let msg = "The lower bound (`greater` or `greater_or_equal`) cannot be greater than the upper bound (`less or `less_or_equal`).\nSometimes we all need a little break.";
             let err = syn::Error::new(span, msg);
             return Err(err);

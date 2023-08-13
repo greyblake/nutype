@@ -1,4 +1,4 @@
-error: The lower boundary can be specified with EITHER `greater` OR `greater_or_equal`, but not both.
+error: The lower bound can be specified with EITHER `greater` OR `greater_or_equal`, but not both.
  --> tests/ui/float/validate/bounds/greater_and_greater_or_equal.rs:3:53
   |
 3 | #[nutype(validate(greater = 0.0, greater_or_equal = 0.5))]

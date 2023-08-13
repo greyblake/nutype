@@ -73,6 +73,15 @@ mod validators {
     }
 
     #[test]
+    fn test_less() {
+        #[nutype(validate(less = 99.0), derive(Debug))]
+        struct Age(f64);
+
+        assert_eq!(Age::new(99.0).unwrap_err(), AgeError::LessViolated);
+        assert_eq!(Age::new(98.99999).unwrap().into_inner(), 98.99999);
+    }
+
+    #[test]
     fn test_less_or_equal() {
         #[nutype(validate(less_or_equal = 99.0), derive(Debug))]
         struct Age(f32);
