@@ -409,3 +409,11 @@ impl ToTokens for TypedCustomFunction {
         };
     }
 }
+
+/// This trait allows to reuse validation of numeric validators.
+pub trait NumericBoundValidator<T: Clone> {
+    fn greater(&self) -> Option<T>;
+    fn greater_or_equal(&self) -> Option<T>;
+    fn less(&self) -> Option<T>;
+    fn less_or_equal(&self) -> Option<T>;
+}

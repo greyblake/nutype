@@ -1,9 +1,8 @@
+use proc_macro2::Span;
 use std::collections::HashSet;
 
-use proc_macro2::Span;
-
 use crate::common::{
-    models::{DeriveTrait, SpannedDeriveTrait},
+    models::{DeriveTrait, NumericBoundValidator, SpannedDeriveTrait, SpannedItem},
     validate::validate_duplicates,
 };
 
@@ -35,27 +34,29 @@ where
 }
 
 macro_rules! find_variant {
-    ($validators:ident, $variant:ident) => {
+    ($validators:ident, $method:ident) => {
         $validators
             .iter()
-            .flat_map(|v| match &v.item {
-                FloatValidator::$variant(ref value) => Some(
-                    crate::common::models::SpannedItem::new(value.clone(), v.span),
-                ),
-                _ => None,
+            .flat_map(|validator| {
+                if let Some(value) = validator.item.$method() {
+                    Some(SpannedItem::new(value, validator.span()))
+                } else {
+                    None
+                }
             })
             .next()
     };
 }
 
-fn validate_validator_bounds<T>(validators: &[SpannedFloatValidator<T>]) -> Result<(), syn::Error>
+fn validate_numeric_bounds<V, T>(validators: &[SpannedItem<V>]) -> Result<(), syn::Error>
 where
-    T: PartialOrd + Clone,
+    V: NumericBoundValidator<T>,
+    T: Clone + PartialOrd,
 {
-    let maybe_greater = find_variant!(validators, Greater);
-    let maybe_greater_or_equal = find_variant!(validators, GreaterOrEqual);
-    let maybe_less = find_variant!(validators, Less);
-    let maybe_less_or_equal = find_variant!(validators, LessOrEqual);
+    let maybe_greater = find_variant!(validators, greater);
+    let maybe_greater_or_equal = find_variant!(validators, greater_or_equal);
+    let maybe_less = find_variant!(validators, less);
+    let maybe_less_or_equal = find_variant!(validators, less_or_equal);
 
     // greater VS greater_or_equal
     //
@@ -101,7 +102,7 @@ where
         )
     })?;
 
-    validate_validator_bounds(&validators)?;
+    validate_numeric_bounds(&validators)?;
 
     let validators: Vec<_> = validators.into_iter().map(|v| v.item).collect();
     Ok(validators)

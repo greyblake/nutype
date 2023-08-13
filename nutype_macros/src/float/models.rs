@@ -1,7 +1,10 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
+use std::fmt::Debug;
 
-use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{
+    Guard, NumericBoundValidator, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction,
+};
 
 // Sanitizer
 //
@@ -27,6 +30,40 @@ pub enum FloatValidator<T> {
     LessOrEqual(T),
     Predicate(TypedCustomFunction),
     Finite,
+}
+
+impl<T: Clone> NumericBoundValidator<T> for FloatValidator<T> {
+    fn greater(&self) -> Option<T> {
+        if let FloatValidator::Greater(value) = self {
+            Some(value.clone())
+        } else {
+            None
+        }
+    }
+
+    fn greater_or_equal(&self) -> Option<T> {
+        if let FloatValidator::GreaterOrEqual(value) = self {
+            Some(value.clone())
+        } else {
+            None
+        }
+    }
+
+    fn less(&self) -> Option<T> {
+        if let FloatValidator::Less(value) = self {
+            Some(value.clone())
+        } else {
+            None
+        }
+    }
+
+    fn less_or_equal(&self) -> Option<T> {
+        if let FloatValidator::LessOrEqual(value) = self {
+            Some(value.clone())
+        } else {
+            None
+        }
+    }
 }
 
 pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
