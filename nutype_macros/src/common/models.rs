@@ -417,3 +417,43 @@ pub trait NumericBoundValidator<T: Clone> {
     fn less(&self) -> Option<T>;
     fn less_or_equal(&self) -> Option<T>;
 }
+
+macro_rules! impl_numeric_bound_validator {
+    ($tp:ident) => {
+        impl<T: Clone> crate::common::models::NumericBoundValidator<T> for $tp<T> {
+            fn greater(&self) -> Option<T> {
+                if let $tp::Greater(value) = self {
+                    Some(value.clone())
+                } else {
+                    None
+                }
+            }
+
+            fn greater_or_equal(&self) -> Option<T> {
+                if let $tp::GreaterOrEqual(value) = self {
+                    Some(value.clone())
+                } else {
+                    None
+                }
+            }
+
+            fn less(&self) -> Option<T> {
+                if let $tp::Less(value) = self {
+                    Some(value.clone())
+                } else {
+                    None
+                }
+            }
+
+            fn less_or_equal(&self) -> Option<T> {
+                if let $tp::LessOrEqual(value) = self {
+                    Some(value.clone())
+                } else {
+                    None
+                }
+            }
+        }
+    };
+}
+
+pub(crate) use impl_numeric_bound_validator;
