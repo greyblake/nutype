@@ -1,7 +1,9 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
 
-use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{
+    impl_numeric_bound_validator, Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction,
+};
 
 // Sanitizer
 //
@@ -27,6 +29,8 @@ pub enum IntegerValidator<T> {
     LessOrEqual(T),
     Predicate(TypedCustomFunction),
 }
+
+impl_numeric_bound_validator!(IntegerValidator);
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 

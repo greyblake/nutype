@@ -1,0 +1,5 @@
+error: The lower bound can be specified with EITHER `greater` OR `greater_or_equal`, but not both.
+ --> tests/ui/integer/validate/bounds/greater_and_greater_or_equal.rs:3:55
+  |
+3 | #[nutype(validate(greater = -272, greater_or_equal = -272))]
+  |                                                       ^^^
