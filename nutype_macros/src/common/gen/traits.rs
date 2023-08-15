@@ -165,7 +165,7 @@ pub fn gen_impl_trait_from_str(
     let inner_type: InnerType = inner_type.into();
     let parse_error_type_name = gen_parse_error_name(type_name);
     let def_parse_error = gen_def_parse_error(
-        inner_type,
+        inner_type.clone(),
         type_name,
         maybe_error_type_name,
         &parse_error_type_name,

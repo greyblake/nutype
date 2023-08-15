@@ -42,7 +42,7 @@ impl<T: Kinded> Kinded for SpannedItem<T> {
 }
 
 /// Represents the inner type of a newtype.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InnerType {
     String(StringInnerType),
     Integer(IntegerInnerType),
