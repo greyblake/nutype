@@ -51,7 +51,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
 
     let seg = fields_unnamed.unnamed.iter().next().ok_or_else(|| {
         let suggested_struct = quote::quote!(
-            #vis #type_name(i32)
+            #vis struct #type_name(i32)
         )
         .to_string();
         let msg = format!(
