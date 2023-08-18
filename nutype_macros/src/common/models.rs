@@ -9,7 +9,7 @@ use syn::{
 };
 
 use crate::{
-    float::models::FloatInnerType, integer::models::IntegerInnerType,
+    any::models::AnyInnerType, float::models::FloatInnerType, integer::models::IntegerInnerType,
     string::models::StringInnerType,
 };
 
@@ -47,6 +47,7 @@ pub enum InnerType {
     String(StringInnerType),
     Integer(IntegerInnerType),
     Float(FloatInnerType),
+    Any(AnyInnerType),
 }
 
 impl From<IntegerInnerType> for InnerType {
@@ -90,6 +91,9 @@ impl ToTokens for InnerType {
             }
             InnerType::Float(float_type) => {
                 float_type.to_tokens(token_stream);
+            }
+            InnerType::Any(any_type) => {
+                any_type.to_tokens(token_stream);
             }
         };
     }
