@@ -80,6 +80,12 @@ impl From<StringInnerType> for InnerType {
     }
 }
 
+impl From<AnyInnerType> for InnerType {
+    fn from(any_inner_type: AnyInnerType) -> InnerType {
+        InnerType::Any(any_inner_type)
+    }
+}
+
 impl ToTokens for InnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         match self {

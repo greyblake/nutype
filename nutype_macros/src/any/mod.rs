@@ -1,3 +1,4 @@
+pub mod gen;
 pub mod models;
 pub mod parse;
 pub mod validate;
@@ -6,6 +7,7 @@ use proc_macro2::TokenStream;
 use std::collections::HashSet;
 
 use self::models::{AnyDeriveTrait, AnyGuard, AnyInnerType, AnySanitizer, AnyValidator};
+use crate::common::gen::GenerateNewtype;
 use crate::{
     any::validate::validate_any_derive_traits,
     common::models::{Attributes, GenerateParams, Newtype, SpannedDeriveTrait},
@@ -33,7 +35,6 @@ impl Newtype for AnyNewtype {
     }
 
     fn generate(params: GenerateParams<AnyInnerType, Self::TypedTrait, AnyGuard>) -> TokenStream {
-        // StringNewtype::gen_nutype(params)
-        todo!()
+        AnyNewtype::gen_nutype(params)
     }
 }

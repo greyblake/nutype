@@ -35,10 +35,10 @@ pub enum AnyDeriveTrait {
     PartialOrd,
     Ord,
     Display,
-    FromStr,
-    // AsRef,
-    // Into,
-    // From,
+    AsRef,
+    Into,
+    From,
+    // FromStr,
     // TryFrom,
     // Borrow,
     // Default,
@@ -53,7 +53,9 @@ pub enum AnyDeriveTrait {
 
 impl TypeTrait for AnyDeriveTrait {
     fn is_from_str(&self) -> bool {
-        self == &AnyDeriveTrait::FromStr
+        false
+        // TODO: adjust it when FromStr is added
+        // self == &AnyDeriveTrait::FromStr
     }
 }
 

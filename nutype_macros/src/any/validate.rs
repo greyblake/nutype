@@ -62,14 +62,14 @@ pub fn validate_any_derive_traits(
 
     for spanned_trait in spanned_derive_traits {
         let string_derive_trait =
-            to_string_derive_trait(spanned_trait.item, has_validation, spanned_trait.span)?;
+            to_any_derive_trait(spanned_trait.item, has_validation, spanned_trait.span)?;
         traits.insert(string_derive_trait);
     }
 
     Ok(traits)
 }
 
-fn to_string_derive_trait(
+fn to_any_derive_trait(
     tr: DeriveTrait,
     _has_validation: bool,
     span: Span,
@@ -83,7 +83,7 @@ fn to_string_derive_trait(
         DeriveTrait::Ord => Ok(AnyDeriveTrait::Ord),
         DeriveTrait::PartialOrd => Ok(AnyDeriveTrait::PartialOrd),
         DeriveTrait::Display => Ok(AnyDeriveTrait::Display),
-        DeriveTrait::FromStr => Ok(AnyDeriveTrait::FromStr),
+        DeriveTrait::AsRef => Ok(AnyDeriveTrait::AsRef),
         _ => {
             // TODO
             let msg = format!("Trait {tr:?} is not supported yet");
