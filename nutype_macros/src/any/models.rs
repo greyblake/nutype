@@ -4,13 +4,13 @@ use quote::ToTokens;
 use std::fmt::Debug;
 use syn::Field;
 
-use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{CustomFunction, Guard, RawGuard, SpannedItem, TypeTrait};
 
 /// Sanitizer for "any" type.
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum AnySanitizer {
-    With(TypedCustomFunction),
+    With(CustomFunction),
 }
 
 pub type SpannedAnySanitizer = SpannedItem<AnySanitizer>;
@@ -19,7 +19,7 @@ pub type SpannedAnySanitizer = SpannedItem<AnySanitizer>;
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum AnyValidator {
-    Predicate(TypedCustomFunction),
+    Predicate(CustomFunction),
 }
 
 pub type SpannedAnyValidator = SpannedItem<AnyValidator>;
@@ -34,21 +34,21 @@ pub enum AnyDeriveTrait {
     Eq,
     PartialOrd,
     Ord,
+    Display,
     FromStr,
-    AsRef,
-    Into,
-    From,
-    TryFrom,
-    Borrow,
-    // Display,
-    Default,
-    Deref,
+    // AsRef,
+    // Into,
+    // From,
+    // TryFrom,
+    // Borrow,
+    // Default,
+    // Deref,
 
-    // External crates
-    SerdeSerialize,
-    SerdeDeserialize,
-    SchemarsJsonSchema,
-    // Arbitrary,
+    // // External crates
+    // SerdeSerialize,
+    // SerdeDeserialize,
+    // SchemarsJsonSchema,
+    // // Arbitrary,
 }
 
 impl TypeTrait for AnyDeriveTrait {

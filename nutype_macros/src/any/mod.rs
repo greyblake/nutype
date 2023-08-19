@@ -1,10 +1,15 @@
 pub mod models;
+pub mod parse;
+pub mod validate;
 
 use proc_macro2::TokenStream;
 use std::collections::HashSet;
 
 use self::models::{AnyDeriveTrait, AnyGuard, AnyInnerType, AnySanitizer, AnyValidator};
-use crate::common::models::{Attributes, GenerateParams, Newtype, SpannedDeriveTrait};
+use crate::{
+    any::validate::validate_any_derive_traits,
+    common::models::{Attributes, GenerateParams, Newtype, SpannedDeriveTrait},
+};
 
 pub struct AnyNewtype;
 
@@ -17,16 +22,14 @@ impl Newtype for AnyNewtype {
     fn parse_attributes(
         attrs: TokenStream,
     ) -> Result<Attributes<AnyGuard, SpannedDeriveTrait>, syn::Error> {
-        //parse::parse_attributes(attrs)
-        todo!()
+        parse::parse_attributes(attrs)
     }
 
     fn validate(
         guard: &AnyGuard,
         derive_traits: Vec<SpannedDeriveTrait>,
     ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
-        //validate_string_derive_traits(guard, derive_traits)
-        todo!()
+        validate_any_derive_traits(guard, derive_traits)
     }
 
     fn generate(params: GenerateParams<AnyInnerType, Self::TypedTrait, AnyGuard>) -> TokenStream {
