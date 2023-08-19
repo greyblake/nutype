@@ -1,14 +1,6 @@
-use std::{
-    fmt::{Debug, Display},
-    str::FromStr,
-};
-
 use crate::common::{
     models::{Attributes, CustomFunction, SpannedDeriveTrait},
-    parse::{
-        parse_number, parse_sanitizer_kind, parse_typed_custom_function,
-        parse_typed_custom_function_raw, parse_validator_kind, ParseableAttributes,
-    },
+    parse::{parse_sanitizer_kind, parse_validator_kind, ParseableAttributes},
 };
 use proc_macro2::TokenStream;
 use syn::{

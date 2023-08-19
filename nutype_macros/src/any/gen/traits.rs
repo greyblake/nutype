@@ -111,9 +111,9 @@ pub fn gen_traits(
 fn gen_implemented_traits(
     type_name: &TypeName,
     inner_type: &AnyInnerType,
-    maybe_error_type_name: Option<ErrorTypeName>,
+    _maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<AnyIrregularTrait>,
-    maybe_default_value: Option<syn::Expr>,
+    _maybe_default_value: Option<syn::Expr>,
 ) -> TokenStream {
     impl_traits
         .iter()

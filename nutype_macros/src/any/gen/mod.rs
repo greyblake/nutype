@@ -1,3 +1,4 @@
+mod error;
 mod traits;
 
 use std::collections::HashSet;
@@ -9,6 +10,8 @@ use crate::common::{
     gen::{error::gen_error_type_name, traits::GeneratedTraits, GenerateNewtype},
     models::{ErrorTypeName, TypeName},
 };
+
+use self::error::gen_validation_error_type;
 
 use super::{
     models::{AnyDeriveTrait, AnyInnerType, AnySanitizer, AnyValidator},
@@ -72,7 +75,6 @@ impl GenerateNewtype for AnyNewtype {
 
         quote!(
             fn validate(val: &#inner_type) -> ::core::result::Result<(), #error_name> {
-                let val = *val;
                 #validations
                 Ok(())
             }
@@ -83,8 +85,7 @@ impl GenerateNewtype for AnyNewtype {
         type_name: &TypeName,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        todo!("IMPL gen_validation_error_type")
-        //gen_validation_error_type(type_name, validators)
+        gen_validation_error_type(type_name, validators)
     }
 
     fn gen_traits(

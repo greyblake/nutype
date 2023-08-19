@@ -94,7 +94,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
         "isize" => InnerType::Integer(IntegerInnerType::Isize),
         "f32" => InnerType::Float(FloatInnerType::F32),
         "f64" => InnerType::Float(FloatInnerType::F64),
-        tp => InnerType::Any(AnyInnerType::new(seg.clone())),
+        _ => InnerType::Any(AnyInnerType::new(seg.clone())),
     };
 
     Ok(Meta {
