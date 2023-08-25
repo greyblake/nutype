@@ -88,6 +88,7 @@ fn to_any_derive_trait(
         DeriveTrait::From => Ok(AnyDeriveTrait::From),
         DeriveTrait::Deref => Ok(AnyDeriveTrait::Deref),
         DeriveTrait::Borrow => Ok(AnyDeriveTrait::Borrow),
+        DeriveTrait::FromStr => Ok(AnyDeriveTrait::FromStr),
         _ => {
             // TODO
             let msg = format!("Trait {tr:?} is not supported yet");

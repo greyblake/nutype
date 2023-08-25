@@ -22,14 +22,31 @@ impl Point {
 
 impl std::fmt::Display for Point {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({}, {})", self.x, self.y)
+        write!(f, "{},{}", self.x, self.y)
+    }
+}
+
+impl std::str::FromStr for Point {
+    type Err = &'static str;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let items = s
+            .split(',')
+            .map(|part| part.parse::<i32>().map_err(|_| "Invalid integer"))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        if items.len() != 2 {
+            return Err("Point must be two comma separated integers");
+        }
+        Ok(Point::new(items[0], items[1]))
     }
 }
 
 #[nutype(derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Display, AsRef, Into, From, Deref, Borrow
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Display, AsRef, Into, From, Deref, Borrow,
+    FromStr
 ))]
-struct Location(Point);
+pub struct Location(Point);
 
 mod traits {
     use super::*;
@@ -95,7 +112,7 @@ mod traits {
     #[test]
     fn test_display() {
         let location = Location::new(Point::new(4, 7));
-        assert_eq!(location.to_string(), "(4, 7)");
+        assert_eq!(location.to_string(), "4,7");
     }
 
     #[test]
@@ -133,5 +150,45 @@ mod traits {
         let location = Location::from(Point::new(3, 4));
         let point: &Point = location.borrow();
         assert_eq!(point, &Point::new(3, 4));
+    }
+
+    mod from_str {
+        use super::*;
+
+        #[test]
+        fn test_without_validation() {
+            let loc: Location = "3,5".parse().unwrap();
+            assert_eq!(loc, Location::new(Point::new(3, 5)));
+
+            let err = "3,lol".parse::<Location>().unwrap_err();
+            assert_eq!(err.to_string(), "Failed to parse Location: Invalid integer");
+        }
+
+        #[test]
+        fn test_with_validation() {
+            #[nutype(
+                derive(Debug, FromStr),
+                validate(predicate = |p: &Point| p.x > p.y)
+            )]
+            pub struct Position(Point);
+
+            {
+                let pos = "6,5".parse::<Position>().unwrap();
+                assert_eq!(pos.into_inner(), Point::new(6, 5));
+            }
+
+            {
+                let err = "6,5,4".parse::<Position>().unwrap_err();
+                assert_eq!(
+                    err.to_string(),
+                    "Failed to parse Position: Point must be two comma separated integers"
+                );
+            }
+
+            {
+                let err = "5,5".parse::<Position>().unwrap_err();
+                assert_eq!(err.to_string(), "Failed to parse Position: invalid");
+            }
+        }
     }
 }

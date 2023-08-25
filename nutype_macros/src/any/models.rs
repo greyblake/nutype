@@ -40,7 +40,7 @@ pub enum AnyDeriveTrait {
     From,
     Deref,
     Borrow,
-    // FromStr,
+    FromStr,
     // TryFrom,
     // Default,
 
@@ -53,9 +53,7 @@ pub enum AnyDeriveTrait {
 
 impl TypeTrait for AnyDeriveTrait {
     fn is_from_str(&self) -> bool {
-        false
-        // TODO: adjust it when FromStr is added
-        // self == &AnyDeriveTrait::FromStr
+        self == &AnyDeriveTrait::FromStr
     }
 }
 

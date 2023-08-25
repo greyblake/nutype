@@ -8,8 +8,9 @@ use crate::{
     common::{
         gen::traits::{
             gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_deref,
-            gen_impl_trait_dislpay, gen_impl_trait_from, gen_impl_trait_into,
-            split_into_generatable_traits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_dislpay, gen_impl_trait_from, gen_impl_trait_from_str,
+            gen_impl_trait_into, split_into_generatable_traits, GeneratableTrait,
+            GeneratableTraits, GeneratedTraits,
         },
         models::{ErrorTypeName, TypeName},
     },
@@ -37,6 +38,7 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::Display => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Display),
             AnyDeriveTrait::Deref => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Deref),
             AnyDeriveTrait::Borrow => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Borrow),
+            AnyDeriveTrait::FromStr => AnyGeneratableTrait::Irregular(AnyIrregularTrait::FromStr),
         }
     }
 }
@@ -78,6 +80,7 @@ enum AnyIrregularTrait {
     Display,
     Deref,
     Borrow,
+    FromStr,
 }
 
 pub fn gen_traits(
@@ -115,7 +118,7 @@ pub fn gen_traits(
 fn gen_implemented_traits(
     type_name: &TypeName,
     inner_type: &AnyInnerType,
-    _maybe_error_type_name: Option<ErrorTypeName>,
+    maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<AnyIrregularTrait>,
     _maybe_default_value: Option<syn::Expr>,
 ) -> TokenStream {
@@ -128,6 +131,9 @@ fn gen_implemented_traits(
             AnyIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
             AnyIrregularTrait::Deref => gen_impl_trait_deref(type_name, inner_type),
             AnyIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
+            AnyIrregularTrait::FromStr => {
+                gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
+            }
         })
         .collect()
 }
