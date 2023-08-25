@@ -38,11 +38,11 @@ pub enum AnyDeriveTrait {
     AsRef,
     Into,
     From,
+    Deref,
+    Borrow,
     // FromStr,
     // TryFrom,
-    // Borrow,
     // Default,
-    // Deref,
 
     // // External crates
     // SerdeSerialize,

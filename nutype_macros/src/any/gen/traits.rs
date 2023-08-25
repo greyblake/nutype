@@ -7,9 +7,9 @@ use crate::{
     any::models::AnyInnerType,
     common::{
         gen::traits::{
-            gen_impl_trait_as_ref, gen_impl_trait_dislpay, gen_impl_trait_from,
-            gen_impl_trait_into, split_into_generatable_traits, GeneratableTrait,
-            GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_deref,
+            gen_impl_trait_dislpay, gen_impl_trait_from, gen_impl_trait_into,
+            split_into_generatable_traits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
         models::{ErrorTypeName, TypeName},
     },
@@ -35,6 +35,8 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::From => AnyGeneratableTrait::Irregular(AnyIrregularTrait::From),
             AnyDeriveTrait::Into => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Into),
             AnyDeriveTrait::Display => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Display),
+            AnyDeriveTrait::Deref => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Deref),
+            AnyDeriveTrait::Borrow => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Borrow),
         }
     }
 }
@@ -74,6 +76,8 @@ enum AnyIrregularTrait {
     From,
     Into,
     Display,
+    Deref,
+    Borrow,
 }
 
 pub fn gen_traits(
@@ -122,6 +126,8 @@ fn gen_implemented_traits(
             AnyIrregularTrait::From => gen_impl_trait_from(type_name, inner_type),
             AnyIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type.clone()),
             AnyIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
+            AnyIrregularTrait::Deref => gen_impl_trait_deref(type_name, inner_type),
+            AnyIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
         })
         .collect()
 }

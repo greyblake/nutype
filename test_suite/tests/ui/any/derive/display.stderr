@@ -1,0 +1,14 @@
+error[E0277]: `Weight` doesn't implement `std::fmt::Display`
+ --> tests/ui/any/derive/display.rs:5:1
+  |
+5 | #[nutype(derive(Display))]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^ `Weight` cannot be formatted with the default formatter
+  |
+  = help: the trait `std::fmt::Display` is not implemented for `Weight`
+  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
+note: required by a bound in `display`
+ --> tests/ui/any/derive/display.rs:5:1
+  |
+5 | #[nutype(derive(Display))]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `display`
+  = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)

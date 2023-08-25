@@ -6,7 +6,7 @@ use nutype::nutype;
 pub struct Another(Vec<i32>);
 
 fn another_predicate(x: &Vec<i32>) -> bool {
-    x.len() > 0
+    x.len() > 1
 }
 
 fn main() {}
