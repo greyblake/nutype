@@ -538,52 +538,92 @@ mod traits {
     }
 
     #[cfg(feature = "serde")]
-    #[test]
-    fn test_trait_serialize() {
-        #[nutype(derive(Serialize))]
-        pub struct Offset(f64);
+    mod serialization {
+        use super::*;
 
-        let offset = Offset::new(-33.5);
-        let offset_json = serde_json::to_string(&offset).unwrap();
-        assert_eq!(offset_json, "-33.5");
-    }
+        mod json_format {
+            use super::*;
 
-    #[cfg(feature = "serde")]
-    #[test]
-    fn test_trait_deserialize_without_validation() {
-        #[nutype(derive(Deserialize))]
-        pub struct Offset(f64);
+            #[test]
+            fn test_trait_serialize() {
+                #[nutype(derive(Serialize))]
+                pub struct Offset(f64);
 
-        {
-            let res: Result<Offset, _> = serde_json::from_str("three");
-            assert!(res.is_err());
+                let offset = Offset::new(-33.5);
+                let offset_json = serde_json::to_string(&offset).unwrap();
+                assert_eq!(offset_json, "-33.5");
+            }
+
+            #[test]
+            fn test_trait_deserialize_without_validation() {
+                #[nutype(derive(Deserialize))]
+                pub struct Offset(f64);
+
+                {
+                    let res: Result<Offset, _> = serde_json::from_str("three");
+                    assert!(res.is_err());
+                }
+
+                {
+                    let offset: Offset = serde_json::from_str("-259.28").unwrap();
+                    assert_eq!(offset.into_inner(), -259.28);
+                }
+            }
+
+            #[test]
+            fn test_trait_deserialize_with_validation() {
+                #[nutype(validate(greater_or_equal = 13.3), derive(Deserialize))]
+                pub struct Offset(f32);
+
+                {
+                    let res: Result<Offset, _> = serde_json::from_str("three");
+                    assert!(res.is_err());
+                }
+
+                {
+                    let res: Result<Offset, _> = serde_json::from_str("13.2");
+                    assert!(res.is_err());
+                }
+
+                {
+                    let offset: Offset = serde_json::from_str("13.3").unwrap();
+                    assert_eq!(offset.into_inner(), 13.3);
+                }
+            }
         }
 
-        {
-            let offset: Offset = serde_json::from_str("-259.28").unwrap();
-            assert_eq!(offset.into_inner(), -259.28);
-        }
-    }
+        mod ron_format {
+            use super::*;
 
-    #[cfg(feature = "serde")]
-    #[test]
-    fn test_trait_deserialize_with_validation() {
-        #[nutype(validate(greater_or_equal = 13.3), derive(Deserialize))]
-        pub struct Offset(f32);
+            #[test]
+            fn test_ron_roundtrip() {
+                #[nutype(derive(Serialize, Deserialize, PartialEq, Debug))]
+                pub struct Weight(f64);
 
-        {
-            let res: Result<Offset, _> = serde_json::from_str("three");
-            assert!(res.is_err());
-        }
+                let weight = Weight::new(33.5);
 
-        {
-            let res: Result<Offset, _> = serde_json::from_str("13.2");
-            assert!(res.is_err());
+                let serialized = ron::to_string(&weight).unwrap();
+                let deserialized: Weight = ron::from_str(&serialized).unwrap();
+
+                assert_eq!(deserialized, weight);
+            }
         }
 
-        {
-            let offset: Offset = serde_json::from_str("13.3").unwrap();
-            assert_eq!(offset.into_inner(), 13.3);
+        mod message_pack_format {
+            use super::*;
+
+            #[test]
+            fn test_rmp_roundtrip() {
+                #[nutype(derive(Serialize, Deserialize, PartialEq, Debug))]
+                pub struct Weight(f64);
+
+                let weight = Weight::new(77.7);
+
+                let bytes = rmp_serde::to_vec(&weight).unwrap();
+                let deserialized: Weight = rmp_serde::from_slice(&bytes).unwrap();
+
+                assert_eq!(deserialized, weight);
+            }
         }
     }
 

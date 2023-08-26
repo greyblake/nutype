@@ -224,7 +224,7 @@ pub fn gen_impl_trait_serde_deserialize(
     let inner_type: InnerType = inner_type.into();
     let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
         quote! {
-            #type_name::new(raw_value).map_err(<D::Error as serde::de::Error>::custom)
+            #type_name::new(raw_value).map_err(<DE::Error as serde::de::Error>::custom)
         }
     } else {
         quote! {
@@ -232,11 +232,44 @@ pub fn gen_impl_trait_serde_deserialize(
         }
     };
 
+    let expecting_str = format!("tuple struct {type_name}");
+    let type_name_str = type_name.to_string();
+
     quote! {
         impl<'de> ::serde::Deserialize<'de> for #type_name {
             fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-                let raw_value = #inner_type::deserialize(deserializer)?;
-                #raw_value_to_result
+                struct __Visitor<'de> {
+                    marker: ::std::marker::PhantomData<#type_name>,
+                    lifetime: ::std::marker::PhantomData<&'de ()>,
+                }
+
+                impl<'de> ::serde::de::Visitor<'de> for __Visitor<'de> {
+                    type Value = #type_name;
+
+                    fn expecting(&self, formatter: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                        write!(formatter, #expecting_str)
+                    }
+
+                    fn visit_newtype_struct<DE>(self, deserializer: DE) -> Result<Self::Value, DE::Error>
+                    where
+                        DE: ::serde::Deserializer<'de>
+                    {
+                        let raw_value: #inner_type = match <#inner_type as ::serde::Deserialize>::deserialize(deserializer) {
+                            Ok(val) => val,
+                            Err(err) => return Err(err)
+                        };
+                        #raw_value_to_result
+                    }
+                }
+
+                ::serde::de::Deserializer::deserialize_newtype_struct(
+                    deserializer,
+                    #type_name_str,
+                    __Visitor {
+                        marker: Default::default(),
+                        lifetime: Default::default(),
+                    }
+                )
             }
         }
     }

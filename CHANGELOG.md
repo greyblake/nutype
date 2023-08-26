@@ -19,6 +19,7 @@
   * `TooSmall` -> `GreaterOrEqualViolated`
   * `NotFinite` -> `FiniteViolated`
 * Better error messages: in case of unknown attribute, validator or sanitizer the possible values are listed.
+* [FIX] Make derived `Deserialize` work with RON format
 
 ### v0.3.1 - 2023-06-30
 * Support deriving of `Deref`
