@@ -443,50 +443,89 @@ mod derives {
     }
 
     #[cfg(feature = "serde")]
-    #[test]
-    fn test_trait_serialize() {
-        #[nutype(derive(Serialize))]
-        pub struct Email(String);
+    mod serialization {
+        use super::*;
 
-        let email = Email::new("my@example.com");
-        let email_json = serde_json::to_string(&email).unwrap();
-        assert_eq!(email_json, "\"my@example.com\"");
-    }
+        mod json_format {
+            use super::*;
 
-    #[cfg(feature = "serde")]
-    #[test]
-    fn test_trait_deserialize_without_validation() {
-        #[nutype(derive(Deserialize))]
-        pub struct NaiveEmail(String);
+            #[test]
+            fn test_trait_serialize() {
+                #[nutype(derive(Serialize))]
+                pub struct Email(String);
 
-        {
-            let email: NaiveEmail = serde_json::from_str("\"foobar\"").unwrap();
-            assert_eq!(email.into_inner(), "foobar");
+                let email = Email::new("my@example.com");
+                let email_json = serde_json::to_string(&email).unwrap();
+                assert_eq!(email_json, "\"my@example.com\"");
+            }
+
+            #[test]
+            fn test_trait_deserialize_without_validation() {
+                #[nutype(derive(Deserialize))]
+                pub struct NaiveEmail(String);
+
+                {
+                    let email: NaiveEmail = serde_json::from_str("\"foobar\"").unwrap();
+                    assert_eq!(email.into_inner(), "foobar");
+                }
+            }
+
+            #[test]
+            fn test_trait_deserialize_with_validation() {
+                #[nutype(
+                    validate(predicate = |address| address.contains('@') ),
+                    derive(Deserialize),
+                )]
+                pub struct NaiveEmail(String);
+
+                {
+                    let res: Result<NaiveEmail, _> = serde_json::from_str("\"foobar\"");
+                    assert!(res.is_err());
+                }
+
+                {
+                    let email: NaiveEmail = serde_json::from_str("\"foo@bar.com\"").unwrap();
+                    assert_eq!(email.into_inner(), "foo@bar.com");
+                }
+            }
         }
-    }
 
-    #[cfg(feature = "serde")]
-    #[test]
-    fn test_trait_deserialize_with_validation() {
-        #[nutype(
-            validate(predicate = |address| address.contains('@') ),
-            derive(Deserialize),
-        )]
-        pub struct NaiveEmail(String);
+        mod ron_format {
+            use super::*;
 
-        {
-            let res: Result<NaiveEmail, _> = serde_json::from_str("\"foobar\"");
-            assert!(res.is_err());
+            #[test]
+            fn test_ron_roundtrip() {
+                #[nutype(derive(Serialize, Deserialize, PartialEq, Debug))]
+                pub struct Email(String);
+
+                let email = Email::new("me@example.com");
+
+                let serialized = ron::to_string(&email).unwrap();
+                let deserialized: Email = ron::from_str(&serialized).unwrap();
+
+                assert_eq!(deserialized, email);
+            }
         }
 
-        {
-            let email: NaiveEmail = serde_json::from_str("\"foo@bar.com\"").unwrap();
-            assert_eq!(email.into_inner(), "foo@bar.com");
+        mod message_pack_format {
+            use super::*;
+
+            #[test]
+            fn test_rmp_roundtrip() {
+                #[nutype(derive(Serialize, Deserialize, PartialEq, Debug))]
+                pub struct Email(String);
+
+                let email = Email::new("me@example.com");
+
+                let bytes = rmp_serde::to_vec(&email).unwrap();
+                let deserialized: Email = rmp_serde::from_slice(&bytes).unwrap();
+
+                assert_eq!(deserialized, email);
+            }
         }
     }
 }
 
-#[cfg(test)]
 #[cfg(feature = "new_unchecked")]
 mod new_unchecked {
     use super::*;
