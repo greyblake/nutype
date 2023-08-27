@@ -9,7 +9,7 @@ use syn::{
 };
 
 use crate::{
-    float::models::FloatInnerType, integer::models::IntegerInnerType,
+    any::models::AnyInnerType, float::models::FloatInnerType, integer::models::IntegerInnerType,
     string::models::StringInnerType,
 };
 
@@ -42,11 +42,12 @@ impl<T: Kinded> Kinded for SpannedItem<T> {
 }
 
 /// Represents the inner type of a newtype.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InnerType {
     String(StringInnerType),
     Integer(IntegerInnerType),
     Float(FloatInnerType),
+    Any(AnyInnerType),
 }
 
 impl From<IntegerInnerType> for InnerType {
@@ -79,6 +80,18 @@ impl From<StringInnerType> for InnerType {
     }
 }
 
+impl From<AnyInnerType> for InnerType {
+    fn from(any_inner_type: AnyInnerType) -> InnerType {
+        InnerType::Any(any_inner_type)
+    }
+}
+
+impl From<&AnyInnerType> for InnerType {
+    fn from(any_inner_type: &AnyInnerType) -> InnerType {
+        InnerType::Any(any_inner_type.clone())
+    }
+}
+
 impl ToTokens for InnerType {
     fn to_tokens(&self, token_stream: &mut TokenStream) {
         match self {
@@ -90,6 +103,9 @@ impl ToTokens for InnerType {
             }
             InnerType::Float(float_type) => {
                 float_type.to_tokens(token_stream);
+            }
+            InnerType::Any(any_type) => {
+                any_type.to_tokens(token_stream);
             }
         };
     }

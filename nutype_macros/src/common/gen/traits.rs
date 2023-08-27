@@ -94,8 +94,14 @@ pub fn gen_impl_trait_dislpay(type_name: &TypeName) -> TokenStream {
     quote! {
         impl ::core::fmt::Display for #type_name {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
-                use ::core::fmt::Display;
-                self.0.fmt(f)
+                // A tiny wrapper function with trait boundary that improves error reporting.
+                // It makes it clear for the end-user that the inner type has to implement Display
+                // in order to derive display for the newtype.
+                fn display<T: ::core::fmt::Display>(f: &mut ::core::fmt::Formatter<'_>, val: &T) -> ::core::fmt::Result {
+                    use ::core::fmt::Display;
+                    val.fmt(f)
+                }
+                display(f, &self.0)
             }
         }
     }
@@ -165,7 +171,7 @@ pub fn gen_impl_trait_from_str(
     let inner_type: InnerType = inner_type.into();
     let parse_error_type_name = gen_parse_error_name(type_name);
     let def_parse_error = gen_def_parse_error(
-        inner_type,
+        inner_type.clone(),
         type_name,
         maybe_error_type_name,
         &parse_error_type_name,

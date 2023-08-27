@@ -3,6 +3,7 @@ use quote::ToTokens;
 use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
 
 use crate::{
+    any::models::AnyInnerType,
     common::{
         models::{InnerType, Meta, TypeName},
         parse::{intercept_derive_macro, is_derive_attribute, is_doc_attribute},
@@ -51,7 +52,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
 
     let seg = fields_unnamed.unnamed.iter().next().ok_or_else(|| {
         let suggested_struct = quote::quote!(
-            #vis #type_name(i32)
+            #vis struct #type_name(i32)
         )
         .to_string();
         let msg = format!(
@@ -93,13 +94,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
         "isize" => InnerType::Integer(IntegerInnerType::Isize),
         "f32" => InnerType::Float(FloatInnerType::F32),
         "f64" => InnerType::Float(FloatInnerType::F64),
-        tp => {
-            let error = syn::Error::new(
-                seg.span(),
-                format!("#[nutype] does not support `{tp}` as inner type."),
-            );
-            return Err(error);
-        }
+        _ => InnerType::Any(AnyInnerType::new(seg.clone())),
     };
 
     Ok(Meta {

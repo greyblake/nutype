@@ -2,7 +2,7 @@ error: Your wish to use #[nutype] with an empty tuple struct is respected.
        But how about NO?
        I bet you'll be luckier trying out something like this:
 
-       pub EmptyTuple(i32);
+       pub struct EmptyTuple(i32);
 
  --> tests/ui/common/empty_tuple.rs:4:22
   |
