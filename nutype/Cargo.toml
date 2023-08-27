@@ -1,10 +1,10 @@
 [package]
 name = "nutype"
-version = "0.3.1"
-authors = ["Sergey Potapov <blake131313@gmail.com>"]
+version = "0.4.0-beta.1"
+authors = ["Serhii Potapov <blake131313@gmail.com>"]
 edition = "2021"
 description = "The newtype with guarantees."
-keywords = ["newtype", "validation", "sanitization", "derive"]
+keywords = ["newtype", "validation", "sanitization", "derive", "invariant"]
 license = "MIT"
 repository = "https://github.com/greyblake/nutype"
 homepage = "https://github.com/greyblake/nutype"
