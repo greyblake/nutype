@@ -88,6 +88,7 @@
 //! * String
 //! * Integer (`u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`, `usize`, `isize`)
 //! * Float (`f32`, `f64`)
+//! * Any other arbitrary type
 //!
 //! ## String
 //!
@@ -233,6 +234,56 @@
 //! struct Size(f64);
 //! ```
 //!
+//! ## Arbitrary inner types
+//!
+//! Any other type would still allow to define custom sanitizers with `with = ` and custom
+//! validations with `predicate = `. It allows deriving most of the common traits:
+//!
+//! ```
+//! use nutype::nutype;
+//!
+//! #[nutype(
+//!     derive(Debug, PartialEq, Deref, AsRef),
+//!     sanitize(with = |mut guests: Vec<String>| { guests.sort(); guests }),
+//!     validate(predicate = |guests| !guests.is_empty() ),
+//! )]
+//! pub struct GuestList(Vec<String>);
+//!
+//! // Empty list is not allowed
+//! assert_eq!(
+//!     GuestList::new(vec![]),
+//!     Err(GuestListError::PredicateViolated)
+//! );
+//!
+//! // Create the list of our guests
+//! let guest_list = GuestList::new(vec![
+//!     "Seneca".to_string(),
+//!     "Marcus Aurelius".to_string(),
+//!     "Socrates".to_string(),
+//!     "Epictetus".to_string(),
+//! ]).unwrap();
+//!
+//! // The list is sorted (thanks to sanitize)
+//! assert_eq!(
+//!     guest_list.as_ref(),
+//!     &[
+//!         "Epictetus".to_string(),
+//!         "Marcus Aurelius".to_string(),
+//!         "Seneca".to_string(),
+//!         "Socrates".to_string(),
+//!     ]
+//! );
+//!
+//! // Since GuestList derives Deref, we can use methods from `Vec<T>`
+//! // due to deref coercion (if it's a good idea or not, it's left up to you to decide!).
+//! assert_eq!(guest_list.len(), 4);
+//!
+//! for guest in guest_list.iter() {
+//!     println!("{guest}");
+//! }
+//!
+//! ```
+//!
 //! ## Custom sanitizers
 //!
 //! You can set custom sanitizers using the `with` option.
@@ -240,7 +291,7 @@
 //!
 //! For example, this one
 //!
-//! ```ignroe
+//! ```ignore
 //! use nutype::nutype;
 //!
 //! fn new_to_old(s: String) -> String {
