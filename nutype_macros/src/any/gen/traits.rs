@@ -9,8 +9,8 @@ use crate::{
         gen::traits::{
             gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_deref,
             gen_impl_trait_dislpay, gen_impl_trait_from, gen_impl_trait_from_str,
-            gen_impl_trait_into, split_into_generatable_traits, GeneratableTrait,
-            GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_into, gen_impl_trait_try_from, split_into_generatable_traits,
+            GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
         models::{ErrorTypeName, TypeName},
     },
@@ -39,6 +39,7 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::Deref => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Deref),
             AnyDeriveTrait::Borrow => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Borrow),
             AnyDeriveTrait::FromStr => AnyGeneratableTrait::Irregular(AnyIrregularTrait::FromStr),
+            AnyDeriveTrait::TryFrom => AnyGeneratableTrait::Irregular(AnyIrregularTrait::TryFrom),
         }
     }
 }
@@ -81,6 +82,7 @@ enum AnyIrregularTrait {
     Deref,
     Borrow,
     FromStr,
+    TryFrom,
 }
 
 pub fn gen_traits(
@@ -133,6 +135,9 @@ fn gen_implemented_traits(
             AnyIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
             AnyIrregularTrait::FromStr => {
                 gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
+            }
+            AnyIrregularTrait::TryFrom => {
+                gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
             }
         })
         .collect()

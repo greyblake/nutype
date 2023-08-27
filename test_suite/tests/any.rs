@@ -13,6 +13,7 @@ impl Point {
         Self { x, y }
     }
 
+    #[cfg(test)]
     fn magnitude(&self) -> f64 {
         let x: f64 = self.x.into();
         let y: f64 = self.y.into();
@@ -188,6 +189,40 @@ mod traits {
             {
                 let err = "5,5".parse::<Position>().unwrap_err();
                 assert_eq!(err.to_string(), "Failed to parse Position: invalid");
+            }
+        }
+    }
+
+    mod try_from {
+        use super::*;
+
+        #[test]
+        fn test_without_validation() {
+            // Note: here we're deriving TryFrom without From, because if T implements From, then
+            // TryFrom is implemented automatically (blanket implementation)
+            #[nutype(derive(Debug, TryFrom))]
+            pub struct Destination(Point);
+
+            let dest = Destination::try_from(Point::new(3, 2)).unwrap();
+            assert_eq!(dest.into_inner(), Point::new(3, 2));
+        }
+
+        #[test]
+        fn test_with_validation() {
+            #[nutype(
+                derive(Debug, TryFrom),
+                validate(predicate = |p: &Point| p.x > p.y)
+            )]
+            pub struct Position(Point);
+
+            {
+                let err = Position::try_from(Point::new(2, 2)).unwrap_err();
+                assert_eq!(err, PositionError::PredicateViolated);
+            }
+
+            {
+                let pos = Position::try_from(Point::new(3, 2)).unwrap();
+                assert_eq!(pos.into_inner(), Point::new(3, 2));
             }
         }
     }

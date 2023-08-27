@@ -41,7 +41,7 @@ pub enum AnyDeriveTrait {
     Deref,
     Borrow,
     FromStr,
-    // TryFrom,
+    TryFrom,
     // Default,
 
     // // External crates
