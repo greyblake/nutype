@@ -2,9 +2,7 @@ use nutype::nutype;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
-#[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Point {
     x: i32,
