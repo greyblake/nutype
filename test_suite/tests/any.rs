@@ -324,6 +324,24 @@ mod traits {
     }
 }
 
+#[test]
+fn test_sanitize_and_validate_with_untyped_closures() {
+    #[nutype(
+        derive(Debug),
+        sanitize(with = |p| {
+            Point {
+                x: p.x.clamp(0, 100),
+                y: p.y.clamp(0, 100),
+            }
+        }),
+        validate(predicate = |p| p.x > p.y),
+    )]
+    pub struct Pos(Point);
+
+    let pos = Pos::new(Point::new(123, 91)).unwrap();
+    assert_eq!(pos.into_inner(), Point::new(100, 91))
+}
+
 #[cfg(test)]
 #[cfg(feature = "new_unchecked")]
 mod new_unchecked {

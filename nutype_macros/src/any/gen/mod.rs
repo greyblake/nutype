@@ -5,10 +5,11 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::parse_quote;
 
 use crate::common::{
     gen::{error::gen_error_type_name, traits::GeneratedTraits, GenerateNewtype},
-    models::{ErrorTypeName, TypeName},
+    models::{ErrorTypeName, TypeName, TypedCustomFunction},
 };
 
 use self::error::gen_validation_error_type;
@@ -34,10 +35,15 @@ impl GenerateNewtype for AnyNewtype {
             .iter()
             .map(|san| match san {
                 AnySanitizer::With(custom_sanitizer) => {
-                    // TODO: convert into typed closure!
-                    // let typed_custom_sanitized: TypedCustomFunction = custom_sanitizer.try_into_typed(
+                    let inner_type_ref: syn::Type = parse_quote!(
+                        #inner_type
+                    );
+                    let typed_sanitizer: TypedCustomFunction = custom_sanitizer
+                        .clone()
+                        .try_into_typed(&inner_type_ref)
+                        .expect("Failed to convert `with` sanitizer into a typed closure");
                     quote!(
-                        value = (#custom_sanitizer)(value);
+                        value = (#typed_sanitizer)(value);
                     )
                 }
             })
@@ -61,11 +67,16 @@ impl GenerateNewtype for AnyNewtype {
         let validations: TokenStream = validators
             .iter()
             .map(|validator| match validator {
-                AnyValidator::Predicate(custom_is_valid_fn) => {
-                    // TODO: convert into typed closure!
-                    // let typed_custom: TypedCustomFunction = custom_is_valid_fn.try_into_typed(
+                AnyValidator::Predicate(predicate) => {
+                    let inner_type_ref: syn::Type = parse_quote!(
+                        &'a #inner_type
+                    );
+                    let typed_predicate: TypedCustomFunction = predicate
+                        .clone()
+                        .try_into_typed(&inner_type_ref)
+                        .expect("Failed to convert predicate into a typed closure");
                     quote!(
-                        if !(#custom_is_valid_fn)(&val) {
+                        if !(#typed_predicate)(val) {
                             return Err(#error_name::PredicateViolated);
                         }
                     )
@@ -74,7 +85,7 @@ impl GenerateNewtype for AnyNewtype {
             .collect();
 
         quote!(
-            fn validate(val: &#inner_type) -> ::core::result::Result<(), #error_name> {
+            fn validate<'a>(val: &'a #inner_type) -> ::core::result::Result<(), #error_name> {
                 #validations
                 Ok(())
             }
