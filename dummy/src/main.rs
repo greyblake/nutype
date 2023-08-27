@@ -20,7 +20,8 @@ fn main() {
         "Marcus Aurelius".to_string(),
         "Socrates".to_string(),
         "Epictetus".to_string(),
-    ]).unwrap();
+    ])
+    .unwrap();
 
     // The list is sorted (thanks to sanitize)
     assert_eq!(
