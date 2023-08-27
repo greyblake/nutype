@@ -226,4 +226,18 @@ mod traits {
             }
         }
     }
+
+    #[test]
+    fn test_default() {
+        #[nutype(
+            derive(Debug, Default),
+            default = Point { x: 6, y: 9 }
+        )]
+        pub struct Lugar(Point);
+
+        assert_eq!(
+            Lugar::default().into_inner(),
+            Point::new(6, 9),
+        );
+    }
 }

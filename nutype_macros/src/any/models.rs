@@ -42,8 +42,7 @@ pub enum AnyDeriveTrait {
     Borrow,
     FromStr,
     TryFrom,
-    // Default,
-
+    Default,
     // // External crates
     // SerdeSerialize,
     // SerdeDeserialize,

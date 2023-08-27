@@ -7,10 +7,10 @@ use crate::{
     any::models::AnyInnerType,
     common::{
         gen::traits::{
-            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_deref,
-            gen_impl_trait_dislpay, gen_impl_trait_from, gen_impl_trait_from_str,
-            gen_impl_trait_into, gen_impl_trait_try_from, split_into_generatable_traits,
-            GeneratableTrait, GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
+            gen_impl_trait_deref, gen_impl_trait_dislpay, gen_impl_trait_from,
+            gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from,
+            split_into_generatable_traits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
         models::{ErrorTypeName, TypeName},
     },
@@ -40,6 +40,7 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::Borrow => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Borrow),
             AnyDeriveTrait::FromStr => AnyGeneratableTrait::Irregular(AnyIrregularTrait::FromStr),
             AnyDeriveTrait::TryFrom => AnyGeneratableTrait::Irregular(AnyIrregularTrait::TryFrom),
+            AnyDeriveTrait::Default => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Default),
         }
     }
 }
@@ -83,6 +84,7 @@ enum AnyIrregularTrait {
     Borrow,
     FromStr,
     TryFrom,
+    Default,
 }
 
 pub fn gen_traits(
@@ -122,7 +124,7 @@ fn gen_implemented_traits(
     inner_type: &AnyInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<AnyIrregularTrait>,
-    _maybe_default_value: Option<syn::Expr>,
+    maybe_default_value: Option<syn::Expr>,
 ) -> TokenStream {
     impl_traits
         .iter()
@@ -138,6 +140,19 @@ fn gen_implemented_traits(
             }
             AnyIrregularTrait::TryFrom => {
                 gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
+            }
+            AnyIrregularTrait::Default => {
+                match maybe_default_value {
+                    Some(ref default_value) => {
+                        let has_validation = maybe_error_type_name.is_some();
+                        gen_impl_trait_default(type_name, default_value, has_validation)
+                    }
+                    None => {
+                        panic!(
+                            "Default trait is derived for type {type_name}, but `default = ` is missing"
+                        );
+                    }
+                }
             }
         })
         .collect()
