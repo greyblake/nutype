@@ -25,6 +25,7 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::Debug => AnyGeneratableTrait::Transparent(AnyTransparentTrait::Debug),
             AnyDeriveTrait::Clone => AnyGeneratableTrait::Transparent(AnyTransparentTrait::Clone),
             AnyDeriveTrait::Copy => AnyGeneratableTrait::Transparent(AnyTransparentTrait::Copy),
+            AnyDeriveTrait::Hash => AnyGeneratableTrait::Transparent(AnyTransparentTrait::Hash),
             AnyDeriveTrait::PartialEq => {
                 AnyGeneratableTrait::Transparent(AnyTransparentTrait::PartialEq)
             }
@@ -62,6 +63,7 @@ enum AnyTransparentTrait {
     Eq,
     PartialOrd,
     Ord,
+    Hash,
 }
 
 impl ToTokens for AnyTransparentTrait {
@@ -74,6 +76,7 @@ impl ToTokens for AnyTransparentTrait {
             Self::Eq => quote!(Eq),
             Self::PartialOrd => quote!(PartialOrd),
             Self::Ord => quote!(Ord),
+            Self::Hash => quote!(Hash),
         };
         tokens.to_tokens(token_stream)
     }

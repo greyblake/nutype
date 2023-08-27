@@ -43,6 +43,7 @@ pub enum AnyDeriveTrait {
     FromStr,
     TryFrom,
     Default,
+    Hash,
 
     // External crates
     SerdeSerialize,

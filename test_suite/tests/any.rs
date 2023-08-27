@@ -3,8 +3,9 @@ use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash,
 )]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Point {
     x: i32,
     y: i32,
@@ -47,7 +48,7 @@ impl std::str::FromStr for Point {
 
 #[nutype(derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Display, AsRef, Into, From, Deref, Borrow,
-    FromStr
+    FromStr, Hash
 ))]
 pub struct Location(Point);
 
@@ -116,6 +117,17 @@ mod traits {
     fn test_display() {
         let location = Location::new(Point::new(4, 7));
         assert_eq!(location.to_string(), "4,7");
+    }
+
+    #[test]
+    fn test_hash() {
+        use std::collections::HashMap;
+        let mut hashmap: HashMap<Location, i32> = HashMap::new();
+
+        let loc = Location::new(Point::new(3, 4));
+
+        hashmap.insert(loc, 7);
+        assert_eq!(hashmap.get(&loc), Some(&7));
     }
 
     #[test]

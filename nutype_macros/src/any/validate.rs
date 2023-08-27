@@ -93,7 +93,7 @@ fn to_any_derive_trait(
         DeriveTrait::Default => Ok(AnyDeriveTrait::Default),
         DeriveTrait::SerdeSerialize => Ok(AnyDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(AnyDeriveTrait::SerdeDeserialize),
-        DeriveTrait::Hash => todo!(),
+        DeriveTrait::Hash => Ok(AnyDeriveTrait::Hash),
         DeriveTrait::SchemarsJsonSchema => {
             let msg =
                 format!("Deriving of trait `{tr:?}` is not (yet) supported for an arbitrary type");
