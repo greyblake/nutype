@@ -325,3 +325,22 @@ mod traits {
         }
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "new_unchecked")]
+mod new_unchecked {
+    use super::*;
+
+    #[nutype(
+        derive(Debug),
+        validate(predicate = |p: &Point| p.y == p.x ),
+        new_unchecked,
+    )]
+    pub struct LinePoint(Point);
+
+    #[test]
+    fn test_new_unchecked() {
+        let line_point = unsafe { LinePoint::new_unchecked(Point::new(3, 4)) };
+        assert_eq!(line_point.into_inner(), Point::new(3, 4));
+    }
+}
