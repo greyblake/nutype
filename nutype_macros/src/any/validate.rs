@@ -91,9 +91,12 @@ fn to_any_derive_trait(
         DeriveTrait::FromStr => Ok(AnyDeriveTrait::FromStr),
         DeriveTrait::TryFrom => Ok(AnyDeriveTrait::TryFrom),
         DeriveTrait::Default => Ok(AnyDeriveTrait::Default),
-        _ => {
-            // TODO
-            let msg = format!("Trait {tr:?} is not supported yet");
+        DeriveTrait::SerdeSerialize => Ok(AnyDeriveTrait::SerdeSerialize),
+        DeriveTrait::SerdeDeserialize => Ok(AnyDeriveTrait::SerdeDeserialize),
+        DeriveTrait::Hash => todo!(),
+        DeriveTrait::SchemarsJsonSchema => {
+            let msg =
+                format!("Deriving of trait `{tr:?}` is not (yet) supported for an arbitrary type");
             Err(syn::Error::new(span, msg))
         }
     }

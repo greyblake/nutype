@@ -9,8 +9,9 @@ use crate::{
         gen::traits::{
             gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
             gen_impl_trait_deref, gen_impl_trait_dislpay, gen_impl_trait_from,
-            gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_try_from,
-            split_into_generatable_traits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
+            gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
+            GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
         models::{ErrorTypeName, TypeName},
     },
@@ -41,6 +42,12 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::FromStr => AnyGeneratableTrait::Irregular(AnyIrregularTrait::FromStr),
             AnyDeriveTrait::TryFrom => AnyGeneratableTrait::Irregular(AnyIrregularTrait::TryFrom),
             AnyDeriveTrait::Default => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Default),
+            AnyDeriveTrait::SerdeSerialize => {
+                AnyGeneratableTrait::Irregular(AnyIrregularTrait::SerdeSerialize)
+            }
+            AnyDeriveTrait::SerdeDeserialize => {
+                AnyGeneratableTrait::Irregular(AnyIrregularTrait::SerdeDeserialize)
+            }
         }
     }
 }
@@ -85,6 +92,8 @@ enum AnyIrregularTrait {
     FromStr,
     TryFrom,
     Default,
+    SerdeSerialize,
+    SerdeDeserialize,
 }
 
 pub fn gen_traits(
@@ -153,6 +162,12 @@ fn gen_implemented_traits(
                         );
                     }
                 }
+            }
+            AnyIrregularTrait::SerdeSerialize => {
+                gen_impl_trait_serde_serialize(type_name)
+            }
+            AnyIrregularTrait::SerdeDeserialize => {
+                gen_impl_trait_serde_deserialize(type_name, inner_type, maybe_error_type_name.as_ref())
             }
         })
         .collect()

@@ -2,7 +2,9 @@ use nutype::nutype;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, serde::Serialize, serde::Deserialize,
+)]
 pub struct Point {
     x: i32,
     y: i32,
@@ -235,9 +237,79 @@ mod traits {
         )]
         pub struct Lugar(Point);
 
-        assert_eq!(
-            Lugar::default().into_inner(),
-            Point::new(6, 9),
-        );
+        assert_eq!(Lugar::default().into_inner(), Point::new(6, 9),);
+    }
+
+    #[cfg(feature = "serde")]
+    mod serialization {
+        use super::*;
+
+        #[nutype(derive(Debug, Serialize, Deserialize, PartialEq))]
+        struct Place(Point);
+
+        mod json_format {
+            use super::*;
+
+            #[test]
+            fn test_trait_serialize() {
+                let place = Place::new(Point::new(22, 99));
+
+                let place_json = serde_json::to_string(&place).unwrap();
+                assert_eq!(place_json, "{\"x\":22,\"y\":99}");
+            }
+
+            #[test]
+            fn test_trait_deserialize_without_validation() {
+                let place: Place = serde_json::from_str("{\"x\":22,\"y\":99}").unwrap();
+                assert_eq!(place.into_inner(), Point::new(22, 99));
+            }
+
+            #[test]
+            fn test_trait_deserialize_with_validation() {
+                #[nutype(
+                    derive(Deserialize, Debug),
+                    validate(predicate = |p: &Point| p.y == p.x ),
+                )]
+                pub struct LinePoint(Point);
+
+                {
+                    let err = serde_json::from_str::<LinePoint>("{\"x\":7,\"y\":9}").unwrap_err();
+                    assert_eq!(err.to_string(), "invalid");
+                }
+
+                {
+                    let lp = serde_json::from_str::<LinePoint>("{\"x\":7,\"y\":7}").unwrap();
+                    assert_eq!(lp.into_inner(), Point::new(7, 7));
+                }
+            }
+        }
+
+        mod ron_format {
+            use super::*;
+
+            #[test]
+            fn test_ron_roundtrip() {
+                let place = Place::new(Point::new(44, 55));
+
+                let serialized = ron::to_string(&place).unwrap();
+                let deserialized: Place = ron::from_str(&serialized).unwrap();
+
+                assert_eq!(deserialized, place);
+            }
+        }
+
+        mod message_pack_format {
+            use super::*;
+
+            #[test]
+            fn test_rmp_roundtrip() {
+                let place = Place::new(Point::new(44, 55));
+
+                let bytes = rmp_serde::to_vec(&place).unwrap();
+                let deserialized: Place = rmp_serde::from_slice(&bytes).unwrap();
+
+                assert_eq!(deserialized, place);
+            }
+        }
     }
 }

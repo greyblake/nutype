@@ -43,11 +43,10 @@ pub enum AnyDeriveTrait {
     FromStr,
     TryFrom,
     Default,
-    // // External crates
-    // SerdeSerialize,
-    // SerdeDeserialize,
-    // SchemarsJsonSchema,
-    // // Arbitrary,
+
+    // External crates
+    SerdeSerialize,
+    SerdeDeserialize,
 }
 
 impl TypeTrait for AnyDeriveTrait {
