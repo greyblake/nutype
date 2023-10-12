@@ -2,7 +2,7 @@ use nutype::nutype;
 
 #[nutype(
     derive(Debug, PartialEq, Deref, AsRef),
-    sanitize(with = |mut guests: Vec<String>| { guests.sort(); guests }),
+    sanitize(with = |mut guests| { guests.sort(); guests }),
     validate(predicate = |guests| !guests.is_empty() ),
 )]
 pub struct GuestList(Vec<String>);
