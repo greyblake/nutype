@@ -28,6 +28,14 @@ use syn::Visibility;
 ///   |s| s.trim().to_lowercase()
 /// Output:
 ///   |s: String| s.trim().to_lowercase()
+///
+/// or
+///
+/// Input:
+///   |mut s| s.trim().to_lowercase()
+/// Output:
+///   |mut s: String| s.trim().to_lowercase()
+// TODO: consider using syn instead messing with TokenStream directly
 pub fn type_custom_closure(
     closure_or_func_path: &TokenStream,
     inner_type: impl ToTokens,
@@ -35,18 +43,34 @@ pub fn type_custom_closure(
     let inner_type_tokens = quote!(#inner_type);
     let mut ts: Vec<TokenTree> = closure_or_func_path.clone().into_iter().collect();
 
-    // Check if the tokens match `|s|` pattern
-    // If so, inject the type, e.g. `|s: String|`
     if ts.len() >= 3 && is_pipe(&ts[0]) && is_ident(&ts[1]) && is_pipe(&ts[2]) {
-        let colon = TokenTree::Punct(Punct::new(':', Spacing::Alone));
-        ts.insert(2, colon);
-        for (index, tok) in inner_type_tokens.into_iter().enumerate() {
-            let pos = index + 3;
-            ts.insert(pos, tok);
-        }
+        // If the tokens match `|s|` pattern
+        // then inject the type, e.g. `|s: String|`
+        insert_type_at_position(&mut ts, inner_type_tokens, 2);
+    } else if ts.len() >= 4
+        && is_pipe(&ts[0])
+        && is_mut(&ts[1])
+        && is_ident(&ts[2])
+        && is_pipe(&ts[3])
+    {
+        // If the tokens match `|mut s|` pattern,
+        // then inject the type, e.g. `|mut s: String|`
+        insert_type_at_position(&mut ts, inner_type_tokens, 3);
     }
 
     ts.into_iter().collect()
+}
+
+fn insert_type_at_position(ts: &mut Vec<TokenTree>, inner_type: TokenStream, pos: usize) {
+    // Insert `:`
+    let colon = TokenTree::Punct(Punct::new(':', Spacing::Alone));
+    ts.insert(pos, colon);
+
+    // Insert tokens of the type at position `pos +1` (basically after `:`)
+    for (index, tok) in inner_type.into_iter().enumerate() {
+        let pos = pos + 1 + index;
+        ts.insert(pos, tok);
+    }
 }
 
 fn is_pipe(token: &TokenTree) -> bool {
@@ -58,6 +82,13 @@ fn is_pipe(token: &TokenTree) -> bool {
 
 fn is_ident(token: &TokenTree) -> bool {
     matches!(token, TokenTree::Ident(_))
+}
+
+fn is_mut(token: &TokenTree) -> bool {
+    match token {
+        TokenTree::Ident(ident) => ident == "mut",
+        _ => false,
+    }
 }
 
 pub fn gen_module_name_for_type(type_name: &TypeName) -> ModuleName {

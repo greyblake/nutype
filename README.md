@@ -448,4 +448,4 @@ Thank you.
 
 ## License
 
-MIT © [Sergey Potapov](https://www.greyblake.com)
+MIT © [Serhii Potapov](https://www.greyblake.com)
