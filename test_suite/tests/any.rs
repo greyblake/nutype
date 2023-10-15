@@ -325,7 +325,7 @@ mod traits {
 }
 
 #[test]
-fn test_sanitize_and_validate_with_untyped_closures() {
+fn test_sanitize_and_validate_with_untyped_closure() {
     #[nutype(
         derive(Debug),
         sanitize(with = |p| {
@@ -339,6 +339,22 @@ fn test_sanitize_and_validate_with_untyped_closures() {
     pub struct Pos(Point);
 
     let pos = Pos::new(Point::new(123, 91)).unwrap();
+    assert_eq!(pos.into_inner(), Point::new(100, 91))
+}
+
+#[test]
+fn test_sanitize_with_untyped_mut_closure() {
+    #[nutype(
+        derive(Debug),
+        sanitize(with = |mut p| {
+            p.x = p.x.clamp(0, 100);
+            p.y = p.y.clamp(0, 100);
+            p
+        }),
+    )]
+    pub struct Pos(Point);
+
+    let pos = Pos::new(Point::new(123, 91));
     assert_eq!(pos.into_inner(), Point::new(100, 91))
 }
 
