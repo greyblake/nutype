@@ -7,4 +7,5 @@ members = [
     "nutype_macros",
     "test_suite",
     "dummy",
+    "examples/*",
 ]
