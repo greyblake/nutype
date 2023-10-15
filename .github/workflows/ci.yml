@@ -108,5 +108,5 @@ jobs:
       - name: Run examples
         run: |
           for example in $(ls ./examples/); do
-            echo $example
+            cargo run --bin $example
           done
