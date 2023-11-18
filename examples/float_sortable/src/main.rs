@@ -1,3 +1,6 @@
+// This example shows how an f64 newtype can derive `Ord` and be sortable
+// if it defines `finite` validation.
+
 use nutype::nutype;
 
 #[nutype(derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord), validate(finite))]
