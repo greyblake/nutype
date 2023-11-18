@@ -55,6 +55,7 @@ fn gen_definition<T>(
         .collect();
 
     quote! {
+        #[allow(clippy::enum_variant_names)]
         pub enum #error_type_name {
             #error_variants
         }

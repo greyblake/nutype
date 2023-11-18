@@ -1,4 +1,4 @@
-all: test-all clippy
+all: fmt test-all clippy examples
 
 test-all:
 	cargo test --features nutype_test
@@ -14,6 +14,9 @@ test:
 test-ui:
 	cargo test --features nutype_test,ui
 
+fmt:
+  cargo fmt
+
 watch:
 	cargo watch -x test
 
@@ -22,3 +25,6 @@ watch-dummy:
 
 clippy:
 	cargo clippy -- -D warnings
+
+examples:
+  for example in `ls examples`; do cargo run --bin $example; done

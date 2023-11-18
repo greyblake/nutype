@@ -91,3 +91,22 @@ jobs:
         with:
           command: clippy
           args: -- -D warnings
+
+  examples:
+    name: Examples
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          components: clippy
+
+      - name: Run examples
+        run: |
+          for example in $(ls ./examples/); do
+            cargo run --bin $example
+          done
