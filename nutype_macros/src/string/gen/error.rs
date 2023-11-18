@@ -50,6 +50,7 @@ fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator
         .collect();
 
     quote! {
+        #[allow(clippy::enum_variant_names)]
         pub enum #error_type_name {
             #error_variants
         }

@@ -1,5 +1,5 @@
-use nutype::nutype;
 use lazy_static::lazy_static;
+use nutype::nutype;
 use regex::Regex;
 
 lazy_static! {
@@ -23,10 +23,7 @@ struct Email(String);
 
 fn main() {
     // Too short
-    assert_eq!(
-        Email::new("a@b"),
-        Err(EmailError::CharLenMinViolated)
-    );
+    assert_eq!(Email::new("a@b"), Err(EmailError::CharLenMinViolated));
 
     // Too long
     assert_eq!(
@@ -35,10 +32,7 @@ fn main() {
     );
 
     // Does not match the regex
-    assert_eq!(
-        Email::new("foo@barcom"),
-        Err(EmailError::RegexViolated)
-    );
+    assert_eq!(Email::new("foo@barcom"), Err(EmailError::RegexViolated));
 
     // A valid email
     let email: Email = Email::new("\t Nutype@Example.Com \n").unwrap();
