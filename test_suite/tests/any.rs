@@ -284,7 +284,7 @@ mod traits {
 
                 {
                     let err = serde_json::from_str::<LinePoint>("{\"x\":7,\"y\":9}").unwrap_err();
-                    assert_eq!(err.to_string(), "invalid");
+                    assert_eq!(err.to_string(), "invalid, expected valid LinePoint");
                 }
 
                 {

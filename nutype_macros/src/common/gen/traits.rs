@@ -229,8 +229,13 @@ pub fn gen_impl_trait_serde_deserialize(
 ) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
     let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
+        let type_name_str = type_name.to_string();
         quote! {
-            #type_name::new(raw_value).map_err(<DE::Error as serde::de::Error>::custom)
+            #type_name::new(raw_value).map_err(|validation_error| {
+                // Add a hint about which type is causing the error,
+                let err_msg = format!("{validation_error}, expected valid {}", #type_name_str);
+                <DE::Error as serde::de::Error>::custom(err_msg)
+            })
         }
     } else {
         quote! {
