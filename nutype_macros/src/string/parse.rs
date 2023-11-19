@@ -85,19 +85,19 @@ impl Parse for SpannedStringValidator {
         let (kind, ident) = parse_validator_kind(input)?;
 
         match kind {
-            StringValidatorKind::CharLenMin => {
+            StringValidatorKind::LenCharMin => {
                 let _: Token![=] = input.parse()?;
                 let (min_len, span) = parse_number::<usize>(input)?;
                 Ok(SpannedStringValidator {
-                    item: StringValidator::CharLenMin(min_len),
+                    item: StringValidator::LenCharMin(min_len),
                     span,
                 })
             }
-            StringValidatorKind::CharLenMax => {
+            StringValidatorKind::LenCharMax => {
                 let _: Token![=] = input.parse()?;
                 let (max_len, span) = parse_number::<usize>(input)?;
                 Ok(SpannedStringValidator {
-                    item: StringValidator::CharLenMax(max_len),
+                    item: StringValidator::LenCharMax(max_len),
                     span,
                 })
             }

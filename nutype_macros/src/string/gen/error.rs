@@ -31,11 +31,11 @@ fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator
     let error_variants: TokenStream = validators
         .iter()
         .map(|validator| match validator {
-            StringValidator::CharLenMax(_len) => {
-                quote!(CharLenMaxViolated,)
+            StringValidator::LenCharMax(_len) => {
+                quote!(LenCharMaxViolated,)
             }
-            StringValidator::CharLenMin(_len) => {
-                quote!(CharLenMinViolated,)
+            StringValidator::LenCharMin(_len) => {
+                quote!(LenCharMinViolated,)
             }
             StringValidator::NotEmpty => {
                 quote!(NotEmptyViolated,)
@@ -62,11 +62,11 @@ fn gen_impl_display_trait(
     validators: &[StringValidator],
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
-        StringValidator::CharLenMax(_len) => quote! {
-             #error_type_name::CharLenMaxViolated => write!(f, "too long")
+        StringValidator::LenCharMax(_len) => quote! {
+             #error_type_name::LenCharMaxViolated => write!(f, "too long")
         },
-        StringValidator::CharLenMin(_len) => quote! {
-             #error_type_name::CharLenMinViolated => write!(f, "too short")
+        StringValidator::LenCharMin(_len) => quote! {
+             #error_type_name::LenCharMinViolated => write!(f, "too short")
         },
         StringValidator::NotEmpty => quote! {
              #error_type_name::NotEmptyViolated => write!(f, "empty")

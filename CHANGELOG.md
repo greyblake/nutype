@@ -6,13 +6,13 @@
 * [BREAKING] Use commas to separate high level attributes
 * [BREAKING] Traits are derived with `#[nutype(derive(Debug))]`. The regular `#[derive(Debug)]` syntax is not supported anymore.
 * [BREAKING] Validator `with` has been renamed to `predicate` to reflect the boolean nature of its range
-* [BREAKING] String validator `min_len` has been renamed to `char_len_min` to reflect that is based on UTF8 chars.
-* [BREAKING] String validator `max_len` has been renamed to `char_len_max` to reflect that is based on UTF8 chars.
+* [BREAKING] String validator `min_len` has been renamed to `len_char_min` to reflect that is based on UTF8 chars.
+* [BREAKING] String validator `max_len` has been renamed to `len_char_max` to reflect that is based on UTF8 chars.
 * [BREAKING] Rename numeric validator `max` to `less_or_equal`
 * [BREAKING] Rename numeric validator `min` to `greater_or_equal`
 * [BREAKING] Rename error variants to follow the following formula: `<ValidationRule>Violated`. This implies the following renames:
-  * `TooShort` -> `CharLenMinViolated`
-  * `TooLong` -> `CharLenMaxViolated`
+  * `TooShort` -> `LenCharMinViolated`
+  * `TooLong` -> `LenCharMaxViolated`
   * `Empty` -> `NotEmptyViolated`
   * `RegexMismatch` -> `RegexViolated`
   * `Invalid` -> `PredicateViolated`

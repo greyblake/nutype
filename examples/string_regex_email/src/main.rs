@@ -13,8 +13,8 @@ lazy_static! {
 #[nutype(
     sanitize(trim, lowercase),
     validate(
-        char_len_min = 5,
-        char_len_max = 20,
+        len_char_min = 5,
+        len_char_max = 20,
         regex = EMAIL_REGEX,
     ),
     derive(Debug, PartialEq, AsRef),
@@ -23,12 +23,12 @@ struct Email(String);
 
 fn main() {
     // Too short
-    assert_eq!(Email::new("a@b"), Err(EmailError::CharLenMinViolated));
+    assert_eq!(Email::new("a@b"), Err(EmailError::LenCharMinViolated));
 
     // Too long
     assert_eq!(
         Email::new("abcedfghijklmnopqrstuvwxyz@b.example"),
-        Err(EmailError::CharLenMaxViolated)
+        Err(EmailError::LenCharMaxViolated)
     );
 
     // Does not match the regex

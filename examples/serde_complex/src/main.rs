@@ -10,7 +10,7 @@ struct Product {
 
 #[nutype(
     sanitize(trim),
-    validate(not_empty, char_len_max = 50),
+    validate(not_empty, len_char_max = 50),
     derive(Debug, Clone, PartialEq, AsRef, Serialize, Deserialize)
 )]
 struct Name(String);

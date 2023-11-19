@@ -91,30 +91,30 @@ mod validators {
     use super::*;
 
     #[test]
-    fn test_char_len_max() {
+    fn test_len_char_max() {
         #[nutype(
-            validate(char_len_max = 5),
+            validate(len_char_max = 5),
             derive(TryFrom, Debug, Clone, PartialEq, PartialOrd, FromStr, AsRef)
         )]
         pub struct Name(String);
 
         assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
-        assert_eq!(Name::new("Serhii"), Err(NameError::CharLenMaxViolated));
+        assert_eq!(Name::new("Serhii"), Err(NameError::LenCharMaxViolated));
 
         // Ukranian, Cyrillic. Every char is 2 bytes.
         assert_eq!(Name::new("Антон").unwrap().into_inner(), "Антон");
     }
 
     #[test]
-    fn test_char_len_min() {
-        #[nutype(validate(char_len_min = 6), derive(Debug, PartialEq))]
+    fn test_len_char_min() {
+        #[nutype(validate(len_char_min = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new("Anton"), Err(NameError::CharLenMinViolated));
+        assert_eq!(Name::new("Anton"), Err(NameError::LenCharMinViolated));
         assert_eq!(Name::new("Serhii").unwrap().into_inner(), "Serhii");
 
         // Ukranian, Cyrillic. Every char is 2 bytes.
-        assert_eq!(Name::new("Антон"), Err(NameError::CharLenMinViolated));
+        assert_eq!(Name::new("Антон"), Err(NameError::LenCharMinViolated));
     }
 
     #[test]
@@ -129,11 +129,11 @@ mod validators {
 
     #[test]
     fn test_many_validators() {
-        #[nutype(validate(char_len_min = 3, char_len_max = 6), derive(Debug, PartialEq))]
+        #[nutype(validate(len_char_min = 3, len_char_max = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new("Jo"), Err(NameError::CharLenMinViolated));
-        assert_eq!(Name::new("Friedrich"), Err(NameError::CharLenMaxViolated));
+        assert_eq!(Name::new("Jo"), Err(NameError::LenCharMinViolated));
+        assert_eq!(Name::new("Friedrich"), Err(NameError::LenCharMaxViolated));
         assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
     }
 
@@ -237,7 +237,7 @@ mod complex {
         /// goes here.
         #[nutype(
             sanitize(trim, with = |s| s.to_uppercase()),
-            validate(not_empty, char_len_max = 6),
+            validate(not_empty, len_char_max = 6),
             derive(Debug, PartialEq)
         )]
         pub struct Name(String);
@@ -245,7 +245,7 @@ mod complex {
         assert_eq!(Name::new("    "), Err(NameError::NotEmptyViolated));
         assert_eq!(
             Name::new("Willy Brandt"),
-            Err(NameError::CharLenMaxViolated)
+            Err(NameError::LenCharMaxViolated)
         );
         assert_eq!(Name::new("   Brandt  ").unwrap().into_inner(), "BRANDT");
     }
@@ -426,7 +426,7 @@ mod derives {
 
         #[test]
         fn test_default_with_validation_when_valid() {
-            #[nutype(validate(char_len_min = 5), default = "Anonymous", derive(Default))]
+            #[nutype(validate(len_char_min = 5), default = "Anonymous", derive(Default))]
             pub struct Name(String);
 
             assert_eq!(Name::default().into_inner(), "Anonymous");
@@ -435,7 +435,7 @@ mod derives {
         #[test]
         #[should_panic(expected = "Default value for type Name is invalid")]
         fn test_default_with_validation_when_invalid() {
-            #[nutype(validate(char_len_min = 5), default = "Nope", derive(Default))]
+            #[nutype(validate(len_char_min = 5), default = "Nope", derive(Default))]
             pub struct Name(String);
 
             Name::default();
@@ -532,7 +532,7 @@ mod new_unchecked {
 
     #[test]
     fn test_new_unchecked() {
-        #[nutype(new_unchecked, sanitize(trim), validate(char_len_min = 8))]
+        #[nutype(new_unchecked, sanitize(trim), validate(len_char_min = 8))]
         pub struct Name(String);
 
         let name = unsafe { Name::new_unchecked(" boo ".to_string()) };

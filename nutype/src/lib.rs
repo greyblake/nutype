@@ -14,7 +14,7 @@
 //!
 //! #[nutype(
 //!     sanitize(trim, lowercase),
-//!     validate(not_empty, char_len_max = 20),
+//!     validate(not_empty, len_char_max = 20),
 //!     derive(Debug, PartialEq),
 //! )]
 //! pub struct Username(String);
@@ -33,7 +33,7 @@
 //!
 //! assert_eq!(
 //!     Username::new("TheUserNameIsVeryVeryLong"),
-//!     Err(UsernameError::CharLenMaxViolated),
+//!     Err(UsernameError::LenCharMaxViolated),
 //! );
 //! ```
 //!
@@ -107,8 +107,8 @@
 //!
 //! | Validator      | Description                                                                     | Error variant        | Example                                      |
 //! |----------------|---------------------------------------------------------------------------------|----------------------|----------------------------------------------|
-//! | `char_len_min` | Min length of the string (in chars, not bytes)                                  | `CharLenMinViolated` | `char_len_min = 5`                           |
-//! | `char_len_max` | Max length of the string (in chars, not bytes)                                  | `CharLenMaxViolated` | `char_len_max = 255`                         |
+//! | `len_char_min` | Min length of the string (in chars, not bytes)                                  | `LenCharMinViolated` | `len_char_min = 5`                           |
+//! | `len_char_max` | Max length of the string (in chars, not bytes)                                  | `LenCharMaxViolated` | `len_char_max = 255`                         |
 //! | `not_empty`    | Rejects an empty string                                                         | `NotEmptyViolated`   | `not_empty`                                  |
 //! | `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexViolated`      | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
 //! | `predicate`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `PredicateViolated`  | `predicate = \|s: &str\| s.contains('@')`    |
@@ -375,7 +375,7 @@
 //! #[nutype(
 //!     new_unchecked
 //!     sanitize(trim)
-//!     validate(char_len_min = 8)
+//!     validate(len_char_min = 8)
 //! )]
 //! pub struct Name(String);
 //!
