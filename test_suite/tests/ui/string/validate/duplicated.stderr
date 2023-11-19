@@ -1,6 +1,6 @@
-error: Duplicated validators `char_len_min`.
+error: Duplicated validators `len_char_min`.
        Don't worry, you still remain ingenious!
  --> tests/ui/string/validate/duplicated.rs:3:72
   |
-3 | #[nutype(validate(char_len_min = 5, char_len_max = 255, char_len_min = 6))]
+3 | #[nutype(validate(len_char_min = 5, len_char_max = 255, len_char_min = 6))]
   |                                                                        ^

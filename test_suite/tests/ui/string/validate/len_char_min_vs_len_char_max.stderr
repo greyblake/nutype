@@ -1,0 +1,6 @@
+error: `len_char_min` cannot be greater than `len_char_max`.
+       Don't you find this obvious?
+ --> tests/ui/string/validate/len_char_min_vs_len_char_max.rs:3:54
+  |
+3 | #[nutype(validate(len_char_min = 127, len_char_max = 63))]
+  |                                                      ^^

@@ -1,5 +1,5 @@
-error: Unknown validator `charLenMax`. Did you mean `char_len_max`?
+error: Unknown validator `lenCharMax`. Did you mean `len_char_max`?
  --> tests/ui/common/attribute_with_wrong_case.rs:3:19
   |
-3 | #[nutype(validate(charLenMax = 255))]
+3 | #[nutype(validate(lenCharMax = 255))]
   |                   ^^^^^^^^^^

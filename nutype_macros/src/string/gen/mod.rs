@@ -85,19 +85,19 @@ impl GenerateNewtype for StringNewtype {
         let validations: TokenStream = validators
             .iter()
             .map(|validator| match validator {
-                StringValidator::CharLenMax(max_len) => {
+                StringValidator::LenCharMax(max_len) => {
                     requires_chars_count = true;
                     quote!(
                         if chars_count > #max_len {
-                            return Err(#error_name::CharLenMaxViolated);
+                            return Err(#error_name::LenCharMaxViolated);
                         }
                     )
                 }
-                StringValidator::CharLenMin(min_len) => {
+                StringValidator::LenCharMin(min_len) => {
                     requires_chars_count = true;
                     quote!(
                         if chars_count < #min_len {
-                            return Err(#error_name::CharLenMinViolated);
+                            return Err(#error_name::LenCharMinViolated);
                         }
                     )
                 }

@@ -1,6 +1,6 @@
 use nutype::nutype;
 
-#[nutype(validate(char_len_min = 127, char_len_max = 63))]
+#[nutype(validate(len_char_min = 127, len_char_max = 63))]
 pub struct Email(String);
 
 fn main () {}

@@ -25,8 +25,8 @@ pub type SpannedStringValidator = SpannedItem<StringValidator>;
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum StringValidator {
-    CharLenMin(usize),
-    CharLenMax(usize),
+    LenCharMin(usize),
+    LenCharMax(usize),
     NotEmpty,
     Predicate(TypedCustomFunction),
     #[cfg_attr(not(feature = "regex"), allow(dead_code))]
