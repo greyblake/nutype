@@ -1,3 +1,9 @@
+//! Macro implementations for `nutype` crate.
+//!
+//! Don't use this crate directly, use `nutype` instead.
+//!
+//! For more information please refer to [nutype](https://docs.rs/nutype) documentation.
+
 mod any;
 mod common;
 mod float;
@@ -14,6 +20,9 @@ use integer::{models::IntegerInnerType, IntegerNewtype};
 use proc_macro2::TokenStream;
 use string::StringNewtype;
 
+/// Defines sanitizers and validators on a newtype.
+/// Guarantees that the type can be instantiated only with valid values.
+/// See the documentation for [nutype](https://docs.rs/nutype) crate for more information.
 #[proc_macro_attribute]
 pub fn nutype(
     attrs: proc_macro::TokenStream,
