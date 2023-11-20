@@ -1,4 +1,4 @@
-### v0.4.0 - 2023-xx-xx
+### v0.4.0 - 2023-11-21
 * [FEATURE] Support of arbitrary inner types with custom sanitizers and validators.
 * [FEATURE] Add numeric validator `greater`
 * [FEATURE] Add numeric validator `less`
