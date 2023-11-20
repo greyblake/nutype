@@ -1,11 +1,8 @@
 //! <p align="center"><img width="300" src="https://raw.githubusercontent.com/greyblake/nutype/master/art/rust_nutype.png" alt="Rust Nutype Logo"></p>
 //! <h2 align="center">The newtype with guarantees.</h2>
 //!
-//! ## Philosophy
+//! Nutype is a proc macro that allows adding extra constraints like _sanitization_ and _validation_ to the regular [newtype pattern](https://doc.rust-lang.org/rust-by-example/generics/new_types.html). The generated code makes it impossible to instantiate a value without passing the checks. It works this way even with `serde` deserialization.
 //!
-//! Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
-//!
-//! If a piece of data was once sanitized and validated we can rely on the types instead of sanitizing and validating again and again.
 //!
 //! ## Quick start
 //!
@@ -234,10 +231,10 @@
 //! struct Size(f64);
 //! ```
 //!
-//! ## Arbitrary inner types
+//! ## Other inner types
 //!
-//! Any other type would still allow to define custom sanitizers with `with = ` and custom
-//! validations with `predicate = `. It allows deriving most of the common traits:
+//! For any other type it is possible to define custom sanitizers with `with` and custom
+//! validations with `predicate`:
 //!
 //! ```
 //! use nutype::nutype;
@@ -331,9 +328,9 @@
 //!     name.chars().next().map(char::is_uppercase).unwrap_or(false)
 //! }
 //! ```
-//! ## Deriving recipes
+//! ## Recipes
 //!
-//! ### Deriving `Default`
+//! ### Derive `Default`
 //!
 //! ```
 //! use nutype::nutype;
@@ -345,7 +342,7 @@
 //! pub struct Name(String);
 //! ```
 //!
-//! ### Deriving `Eq` and `Ord` on float types
+//! ### Derive `Eq` and `Ord` on float types
 //!
 //! With nutype it's possible to derive `Eq` and `Ord` if there is `finite` validation set.
 //! The `finite` validation ensures that the valid value excludes `NaN`.
@@ -362,12 +359,7 @@
 //!
 //! ## How to break the constraints?
 //!
-//! First you need to know, you SHOULD NOT do it.
-//!
-//! But let's pretend for some imaginary performance reasons you really need to avoid validation when instantiating a value of newtype
-//! (e.g. loading earlier "validated" data from DB).
-//!
-//! You can achieve this by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:
+//! It's discouraged, but it's possible to bypass the constraints by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:
 //!
 //! ```ignore
 //! use nutype::nutype;

@@ -14,87 +14,56 @@
 <a href="https://github.com/greyblake/nutype/discussions"><img src="https://img.shields.io/github/discussions/greyblake/nutype"/></a>
 <p>
 
-## Philosophy
 
-Nutype embraces the simple idea: **the type system can be leveraged to track the fact that something was done, so there is no need to do it again**.
+Nutype is a proc macro that allows adding extra constraints like _sanitization_ and _validation_ to the regular [newtype pattern](https://doc.rust-lang.org/rust-by-example/generics/new_types.html). The generated code makes it impossible to instantiate a value without passing the checks. It works this way even with `serde` deserialization.
 
-If a piece of data was once sanitized and validated we can rely on the types instead of sanitizing and validating again and again when we're in doubt.
 
+* [Quick start](#quick-start)
+* [Inner types](#inner-types) ([String](#string) | [Integer](#integer) | [Float](#float) | [Other](#other-inner-types))
+* [Custom](#custom-sanitizers) ([sanitizers](#custom-sanitizers) | [validators](#custom-validators))
+* [Recipes](#recipes)
+* [Breaking constraints with new_unchecked](#breaking-constraints-with-new_unchecked)
+* [Feature Flags](#feature-flags)
+* [Support Ukrainian military forces](#support-ukrainian-military-forces)
+* [Similar projects](#similar-projects)
 
 ## Quick start
 
 ```rust
 use nutype::nutype;
 
+// Define newtype Username
 #[nutype(
-    sanitize(trim, lowercase)
-    validate(not_empty, max_len = 20)
+    sanitize(trim, lowercase),
+    validate(not_empty, len_char_max = 20),
+    derive(Debug, PartialEq, Clone),
 )]
 pub struct Username(String);
-```
 
-Now we can create usernames:
-
-```rust
+// We can obtain a value of Username with `::new()`.
+// Note that Username holds a sanitized string
 assert_eq!(
     Username::new("   FooBar  ").unwrap().into_inner(),
     "foobar"
 );
-```
 
-But we cannot create invalid ones:
-
-```rust
+// It's impossible to obtain an invalid Username
+// Note that we also got `UsernameError` enum generated implicitly
+// based on the validation rules.
 assert_eq!(
     Username::new("   "),
-    Err(UsernameError::Empty),
+    Err(UsernameError::NotEmptyViolated),
 );
-
 assert_eq!(
     Username::new("TheUserNameIsVeryVeryLong"),
-    Err(UsernameError::TooLong),
+    Err(UsernameError::LenCharMaxViolated),
 );
 ```
 
-Note, that we also got `UsernameError` enum generated implicitly.
+For more please see:
+* [Examples](https://github.com/greyblake/nutype/tree/master/examples)
+* [Tests](https://github.com/greyblake/nutype/tree/master/test_suite/tests)
 
-Ok, but let's try to obtain an instance of `Username` that violates the validation rules:
-
-```rust
-let username = Username("".to_string())
-
-// error[E0423]: cannot initialize a tuple struct which contains private fields
-```
-
-```rust
-let mut username = Username::new("foo").unwrap();
-username.0 = "".to_string();
-
-// error[E0616]: field `0` of struct `Username` is private
-```
-
-Haha. It's does not seem to be easy!
-
-
-## A few more examples
-
-Here are some other examples of what you can do with `nutype`.
-
-You can skip `sanitize` and use a custom validator `with`:
-
-```rust
-#[nutype(validate(with = |n| n % 2 == 1))]
-struct OddNumber(i64);
-```
-
-You can skip validation, if you need sanitization only:
-
-```rust
-#[nutype(sanitize(trim, lowercase))]
-struct Username(String);
-```
-
-In that case `Username::new(String)` simply returns `Username`, not `Result`.
 
 ## Inner types
 
@@ -102,6 +71,7 @@ Available sanitizers, validators, and derivable traits are determined by the inn
 * String
 * Integer (`u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`, `usize`, `isize`)
 * Float (`f32`, `f64`)
+* Anything else
 
 ## String
 
@@ -118,13 +88,13 @@ At the moment the string inner type supports only `String` (owned) type.
 
 ### String validators
 
-| Validator   | Description                                                                     | Error variant   | Example                                      |
-|-------------|---------------------------------------------------------------------------------|-----------------|----------------------------------------------|
-| `max_len`   | Max length of the string (in chars, not bytes)                                  | `TooLong`       | `max_len = 255`                              |
-| `min_len`   | Min length of the string (in chars, not bytes)                                  | `TooShort`      | `min_len = 5`                                |
-| `not_empty` | Rejects an empty string                                                         | `Empty`         | `not_empty`                                  |
-| `regex`     | Validates format with a regex. Requires `regex` feature.                        | `RegexMismatch` | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
-| `with`      | Custom validator. A function or closure that receives `&str` and returns `bool` | `Invalid`       | `with = \|s: &str\| s.contains('@')`         |
+| Validator      | Description                                                                     | Error variant        | Example                                      |
+|----------------|---------------------------------------------------------------------------------|----------------------|----------------------------------------------|
+| `len_char_min` | Min length of the string (in chars, not bytes)                                  | `LenCharMinViolated` | `len_char_min = 5`                           |
+| `len_char_max` | Max length of the string (in chars, not bytes)                                  | `LenCharMaxViolated` | `len_char_max = 255`                         |
+| `not_empty`    | Rejects an empty string                                                         | `NotEmptyViolated`   | `not_empty`                                  |
+| `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexViolated`      | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
+| `predicate`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `PredicateViolated`  | `predicate = \|s: &str\| s.contains('@')`    |
 
 
 #### Regex validation
@@ -189,11 +159,13 @@ The integer inner types are: `u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32
 
 ### Integer validators
 
-| Validator | Description         | Error variant | Example                       |
-|-----------|---------------------|---------------|-------------------------------|
-| `max`     | Maximum valid value | `TooBig`      | `max = 99`                    |
-| `min`     | Minimum valid value | `TooSmall`    | `min = 18`                    |
-| `with`    | Custom validator    | `Invalid`     | `with = \|num\| num % 2 == 0` |
+| Validator           | Description           | Error variant             | Example                              |
+| ------------------- | --------------------- | ------------------------- | ------------------------------------ |
+| `less`              | Exclusive upper bound | `LessViolated`            | `less = 100`                         |
+| `less_or_equal`     | Inclusive upper bound | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
+| `greater`           | Exclusive lower bound | `GreaterViolated`         | `greater = 17`                       |
+| `greater_or_equal`  | Inclusive lower bound | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
+| `predicate`         | Custom predicate      | `PredicateViolated`       | `predicate = \|num\| num % 2 == 0`   |
 
 ### Integer derivable traits
 
@@ -214,12 +186,14 @@ The float inner types are: `f32`, `f64`.
 
 ### Float validators
 
-| Validator | Description                    | Error variant | Example                      |
-|-----------|--------------------------------|---------------|------------------------------|
-| `max`     | Maximum valid value            | `TooBig`      | `max = 100.0`                |
-| `min`     | Minimum valid value            | `TooSmall`    | `min = 0.0`                  |
-| `finite`  | Check against NaN and infinity | `NotFinite`   | `finite`                     |
-| `with`    | Custom validator               | `Invalid`     | `with = \|val\| val != 50.0` |
+| Validator          | Description                      | Error variant            | Example                             |
+| ------------------ | -------------------------------- | ---------------------    | ----------------------------------- |
+| `less`             | Exclusive upper bound            | `LessViolated`           | `less = 100.0`                      |
+| `less_or_equal`    | Inclusive upper bound            | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
+| `greater`          | Exclusive lower bound            | `GreaterViolated`        | `greater = 0.0`                     |
+| `greater_or_equal` | Inclusive lower bound            | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
+| `finite`           | Check against NaN and infinity   | `FiniteViolated`         | `finite`                            |
+| `predicate`        | Custom predicate                 | `PredicateViolated`      | `predicate = \|val\| val != 50.0`   |
 
 ### Float derivable traits
 
@@ -231,9 +205,61 @@ It's also possible to derive `Eq` and `Ord` if the validation rules guarantee th
 This can be done applying by `finite` validation. For example:
 
 ```rust
-#[nutype(validate(finite))]
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[nutype(
+    validate(finite),
+    derive(PartialEq, Eq, PartialOrd, Ord),
+)]
 struct Size(f64);
+```
+
+## Other inner types
+
+For any other type it is possible to define custom sanitizers with `with` and custom
+validations with `predicate`:
+
+```rs
+use nutype::nutype;
+
+#[nutype(
+    derive(Debug, PartialEq, Deref, AsRef),
+    sanitize(with = |mut guests| { guests.sort(); guests }),
+    validate(predicate = |guests| !guests.is_empty() ),
+)]
+pub struct GuestList(Vec<String>);
+
+// Empty list is not allowed
+assert_eq!(
+    GuestList::new(vec![]),
+    Err(GuestListError::PredicateViolated)
+);
+
+// Create the list of our guests
+let guest_list = GuestList::new(vec![
+    "Seneca".to_string(),
+    "Marcus Aurelius".to_string(),
+    "Socrates".to_string(),
+    "Epictetus".to_string(),
+]).unwrap();
+
+// The list is sorted (thanks to sanitize)
+assert_eq!(
+    guest_list.as_ref(),
+    &[
+        "Epictetus".to_string(),
+        "Marcus Aurelius".to_string(),
+        "Seneca".to_string(),
+        "Socrates".to_string(),
+    ]
+);
+
+// Since GuestList derives Deref, we can use methods from `Vec<T>`
+// due to deref coercion (if it's a good idea or not, it's left up to you to decide!).
+assert_eq!(guest_list.len(), 4);
+
+for guest in guest_list.iter() {
+    println!("{guest}");
+}
+
 ```
 
 ## Custom sanitizers
@@ -281,42 +307,41 @@ fn is_valid_name(name: &str) -> bool {
 }
 ```
 
-## Deriving recipes
+## Recipes
 
-### Deriving `Default`
+### Derive `Default`
 
 ```rs
-#[nutype(default = "Anonymous")]
-#[derive(Default)]
+#[nutype(
+    derive(Default),
+    default = "Anonymous",
+)]
 pub struct Name(String);
 ```
 
-### Deriving `Eq` and `Ord` on float types
+### Derive `Eq` and `Ord` on float types
 
 With nutype it's possible to derive `Eq` and `Ord` if there is `finite` validation set.
 The `finite` validation ensures that the valid value excludes `NaN`.
 
 ```rs
-#[nutype(validate(finite))]
-#[derive(PartialEq, Eq, PartialOrd, Ord)]
+#[nutype(
+    validate(finite),
+    derive(PartialEq, Eq, PartialOrd, Ord),
+)]
 pub struct Weight(f64);
 ```
 
 
-## How to break the constraints?
+## Breaking constraints with new_unchecked
 
-First you need to know, you SHOULD NOT do it.
-
-But let's pretend for some imaginary performance reasons you really need to avoid validation when instantiating a value of newtype
-(e.g. loading earlier "validated" data from DB).
-
-You can achieve this by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:
+It's discouraged, but it's possible to bypass the constraints by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:
 
 ```rs
 #[nutype(
-    new_unchecked
-    sanitize(trim)
-    validate(min_len = 8)
+    new_unchecked,
+    sanitize(trim),
+    validate(len_char_min = 8)
 )]
 pub struct Name(String);
 
@@ -338,6 +363,7 @@ assert_eq!(name.into_inner(), " boo ");
 
 * If you enjoy [newtype](https://doc.rust-lang.org/book/ch19-04-advanced-types.html#using-the-newtype-pattern-for-type-safety-and-abstraction)
   pattern and you like the idea of leveraging the Rust type system to enforce the correctness of the business logic.
+* If you want to use type system to hold invariants
 * If you're a DDD fan, nutype is a great helper to make your domain models even more expressive.
 * You want to prototype quickly without sacrificing quality.
 
@@ -348,81 +374,13 @@ assert_eq!(name.into_inner(), " boo ");
 * IDEs may not be very helpful at giving you hints about proc macros.
 * Design of nutype may enforce you to run unnecessary validation (e.g. on loading data from DB), which may have a negative impact if you aim for extreme performance.
 
-## How it works?
-
-
-The following snippet
-
-```rust
-#[nutype(
-    sanitize(trim, lowercase)
-    validate(not_empty, max_len = 20)
-)]
-pub struct Username(String);
-```
-
-eventually is transformed into something similar to this:
-
-```rust
-// Everything is wrapped into the module,
-// so the internal tuple value of Username is private and cannot be directly manipulated.
-mod __nutype_private_Username__ {
-    pub struct Username(String);
-
-    pub enum UsernameError {
-        // Occurs when a string is empty
-        Empty,
-
-        // Occurs when a string is longer than 255 chars.
-        TooLong,
-    }
-
-    impl Username {
-        // The only legit way to construct Username.
-        // All other constructors (From, FromStr, Deserialize, etc.)
-        // are built on top of this one.
-        pub fn new(raw_username: impl Into<String>) -> Result<Username, UsernameError> {
-            // Sanitize
-            let sanitized_username = raw_username.into().trim().lowercase();
-
-            // Validate
-            if sanitized_username.empty() {
-                Err(UsernameError::Empty)
-            } else if (sanitized_username.len() > 40 {
-                Err(UsernameError::TooLong)
-            } else {
-                Ok(Username(sanitized_username))
-            }
-        }
-
-        // Convert back to the inner type.
-        pub fn into_inner(self) -> String {
-            self.0
-        }
-    }
-}
-
-pub use __nutype_private_Username__::{Username, UsernameError};
-```
-
-As you can see, `#[nutype]`  macro gets sanitization and validation rules and turns them into Rust code.
-
-The `Username::new()` constructor performs sanitization and validation and in case of success returns an instance of `Username`.
-
-The `Username::into_inner(self)` allows converting `Username` back into the inner type (`String`).
-
-And of course, the variants of `UsernameError` are derived from the validation rules.
-
-**But the whole point of the `nutype` crate is that there is no legit way to obtain an instance of `Username` that violates the sanitization or validation rules.**
-The author put a lot of effort into this. If you find a way to obtain the instance of a newtype bypassing the validation rules, please open an issue.
-
 ## A note about #[derive(...)]
 
 You've got to know that the `#[nutype]` macro intercepts `#[derive(...)]` macro.
 It's done on purpose to ensure that anything like `DerefMut` or `BorrowMut`, that can lead to a violation of the validation rules is excluded.
 The library takes a conservative approach and it has its downside: deriving traits that are not known to the library is not possible.
 
-## Support Ukrainian military forces 🇺🇦
+## Support Ukrainian military forces
 
 Today I live in Berlin, I have the luxury to live a physically safe life.
 But I am Ukrainian. The first 25 years of my life I spent in [Kharkiv](https://en.wikipedia.org/wiki/Kharkiv),
