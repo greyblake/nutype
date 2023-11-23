@@ -298,7 +298,7 @@ In similar fashion it's possible to define custom validators, but a validation f
 Think of it as a predicate.
 
 ```rust
-#[nutype(validate(with = is_valid_name))]
+#[nutype(validate(predicate = is_valid_name))]
 pub struct Name(String);
 
 fn is_valid_name(name: &str) -> bool {

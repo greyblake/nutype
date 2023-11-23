@@ -317,17 +317,20 @@
 //! In similar fashion it's possible to define custom validators, but a validation function receives a reference and returns `bool`.
 //! Think of it as a predicate.
 //!
-//! ```ignore
+//! ```
 //! use nutype::nutype;
 //!
-//! #[nutype(validate(with = is_valid_name))]
+//! #[nutype(validate(predicate = is_valid_name))]
 //! pub struct Name(String);
 //!
 //! fn is_valid_name(name: &str) -> bool {
 //!     // A fancy way to verify if the first character is uppercase
 //!     name.chars().next().map(char::is_uppercase).unwrap_or(false)
 //! }
+//!
+//! fn main() { }
 //! ```
+//!
 //! ## Recipes
 //!
 //! ### Derive `Default`
