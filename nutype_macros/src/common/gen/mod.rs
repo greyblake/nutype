@@ -180,6 +180,7 @@ pub trait GenerateNewtype {
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
     ) -> GeneratedTraits;
 
     fn gen_new_with_validation(
@@ -328,6 +329,7 @@ pub trait GenerateNewtype {
             maybe_error_type_name,
             traits,
             maybe_default_value,
+            &guard,
         );
 
         quote!(

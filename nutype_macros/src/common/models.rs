@@ -263,6 +263,9 @@ pub enum DeriveTrait {
 
     #[cfg_attr(not(feature = "schemars08"), allow(dead_code))]
     SchemarsJsonSchema,
+
+    #[cfg_attr(not(feature = "arbitrary"), allow(dead_code))]
+    ArbitraryArbitrary,
 }
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;

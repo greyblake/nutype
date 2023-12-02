@@ -105,6 +105,7 @@ fn to_integer_derive_trait(
         DeriveTrait::SerdeSerialize => Ok(IntegerDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(IntegerDeriveTrait::SerdeDeserialize),
         DeriveTrait::SchemarsJsonSchema => Ok(IntegerDeriveTrait::SchemarsJsonSchema),
+        DeriveTrait::ArbitraryArbitrary => Ok(IntegerDeriveTrait::ArbitraryArbitrary),
         DeriveTrait::TryFrom => Ok(IntegerDeriveTrait::TryFrom),
         DeriveTrait::From => {
             if has_validation {

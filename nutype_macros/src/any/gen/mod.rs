@@ -15,7 +15,7 @@ use crate::common::{
 use self::error::gen_validation_error_type;
 
 use super::{
-    models::{AnyDeriveTrait, AnyInnerType, AnySanitizer, AnyValidator},
+    models::{AnyDeriveTrait, AnyGuard, AnyInnerType, AnySanitizer, AnyValidator},
     AnyNewtype,
 };
 
@@ -105,6 +105,7 @@ impl GenerateNewtype for AnyNewtype {
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
+        _guard: &AnyGuard,
     ) -> GeneratedTraits {
         gen_traits(
             type_name,

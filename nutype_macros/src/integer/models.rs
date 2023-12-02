@@ -61,7 +61,7 @@ pub enum IntegerDeriveTrait {
     SerdeSerialize,
     SerdeDeserialize,
     SchemarsJsonSchema,
-    // Arbitrary,
+    ArbitraryArbitrary,
 }
 
 impl TypeTrait for IntegerDeriveTrait {

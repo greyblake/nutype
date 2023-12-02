@@ -53,6 +53,15 @@ impl Parse for SpannedDeriveTrait {
                     }
                 }
             }
+            "Arbitrary" => {
+                cfg_if! {
+                    if #[cfg(feature = "arbitrary")] {
+                        DeriveTrait::ArbitraryArbitrary
+                    } else {
+                        return Err(syn::Error::new(ident.span(), "To derive Arbitrary, the feature `arbitrary` of the crate `nutype` needs to be enabled."));
+                    }
+                }
+            }
             _ => {
                 return Err(syn::Error::new(
                     ident.span(),

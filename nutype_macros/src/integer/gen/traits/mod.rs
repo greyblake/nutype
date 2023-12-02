@@ -1,3 +1,5 @@
+mod arbitrary;
+
 use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
@@ -14,17 +16,18 @@ use crate::{
         },
         models::{ErrorTypeName, TypeName},
     },
-    integer::models::{IntegerDeriveTrait, IntegerInnerType},
+    integer::models::{IntegerDeriveTrait, IntegerGuard, IntegerInnerType},
 };
 
 type IntegerGeneratableTrait = GeneratableTrait<IntegerTransparentTrait, IntegerIrregularTrait>;
 
-pub fn gen_traits(
+pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
     inner_type: &IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<IntegerDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
+    guard: &IntegerGuard<T>,
 ) -> GeneratedTraits {
     let GeneratableTraits {
         transparent_traits,
@@ -43,6 +46,7 @@ pub fn gen_traits(
         maybe_error_type_name,
         irregular_traits,
         maybe_default_value,
+        guard,
     );
 
     GeneratedTraits {
@@ -114,6 +118,9 @@ impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
             IntegerDeriveTrait::SchemarsJsonSchema => {
                 IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::SchemarsJsonSchema)
             }
+            IntegerDeriveTrait::ArbitraryArbitrary => {
+                IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::ArbitraryArbitrary)
+            }
         }
     }
 }
@@ -147,6 +154,7 @@ enum IntegerIrregularTrait {
     Default,
     SerdeSerialize,
     SerdeDeserialize,
+    ArbitraryArbitrary,
 }
 
 impl ToTokens for IntegerTransparentTrait {
@@ -166,12 +174,13 @@ impl ToTokens for IntegerTransparentTrait {
     }
 }
 
-fn gen_implemented_traits(
+fn gen_implemented_traits<T: ToTokens>(
     type_name: &TypeName,
     inner_type: &IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<IntegerIrregularTrait>,
     maybe_default_value: Option<syn::Expr>,
+    guard: &IntegerGuard<T>,
 ) -> TokenStream {
     impl_traits
         .iter()
@@ -205,6 +214,9 @@ fn gen_implemented_traits(
                 inner_type,
                 maybe_error_type_name.as_ref(),
             ),
+            IntegerIrregularTrait::ArbitraryArbitrary => {
+                arbitrary::gen_impl_trait_arbitrary(type_name, inner_type, guard)
+            }
         })
         .collect()
 }

@@ -16,7 +16,10 @@ use crate::{
 
 use self::{error::gen_validation_error_type, traits::gen_traits};
 
-use super::{models::StringDeriveTrait, StringNewtype};
+use super::{
+    models::{StringDeriveTrait, StringGuard},
+    StringNewtype,
+};
 
 impl GenerateNewtype for StringNewtype {
     type Sanitizer = StringSanitizer;
@@ -172,6 +175,7 @@ impl GenerateNewtype for StringNewtype {
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
+        _guard: &StringGuard,
     ) -> GeneratedTraits {
         gen_traits(
             type_name,
