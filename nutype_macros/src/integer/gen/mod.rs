@@ -9,7 +9,8 @@ use quote::{quote, ToTokens};
 use self::{error::gen_validation_error_type, traits::gen_traits};
 use super::{
     models::{
-        IntegerDeriveTrait, IntegerInnerType, IntegerSanitizer, IntegerType, IntegerValidator,
+        IntegerDeriveTrait, IntegerGuard, IntegerInnerType, IntegerSanitizer, IntegerType,
+        IntegerValidator,
     },
     IntegerNewtype,
 };
@@ -123,13 +124,15 @@ where
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
-    ) -> GeneratedTraits {
+        guard: &IntegerGuard<T>,
+    ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
             inner_type,
             maybe_error_type_name,
             traits,
             maybe_default_value,
+            guard,
         )
     }
 }

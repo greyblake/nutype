@@ -34,7 +34,9 @@ impl Newtype for AnyNewtype {
         validate_any_derive_traits(guard, derive_traits)
     }
 
-    fn generate(params: GenerateParams<AnyInnerType, Self::TypedTrait, AnyGuard>) -> TokenStream {
+    fn generate(
+        params: GenerateParams<AnyInnerType, Self::TypedTrait, AnyGuard>,
+    ) -> Result<TokenStream, syn::Error> {
         AnyNewtype::gen_nutype(params)
     }
 }

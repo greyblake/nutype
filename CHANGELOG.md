@@ -1,7 +1,12 @@
+### v0.4.1 - xxxx-xx-xx
+
+* Support integration with [`arbitrary`](https://crates.io/crates/arbitrary) crate (see `arbitrary` feature).
+  * Support `Arbitrary` for integer types
+
 ### v0.4.0 - 2023-11-21
-* [FEATURE] Support of arbitrary inner types with custom sanitizers and validators.
-* [FEATURE] Add numeric validator `greater`
-* [FEATURE] Add numeric validator `less`
+* Support of arbitrary inner types with custom sanitizers and validators.
+* Add numeric validator `greater`
+* Add numeric validator `less`
 * [BREAKING] Removal of asterisk derive
 * [BREAKING] Use commas to separate high level attributes
 * [BREAKING] Traits are derived with `#[nutype(derive(Debug))]`. The regular `#[derive(Debug)]` syntax is not supported anymore.

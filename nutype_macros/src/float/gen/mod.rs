@@ -8,7 +8,7 @@ use quote::{quote, ToTokens};
 
 use self::error::gen_validation_error_type;
 use super::{
-    models::{FloatDeriveTrait, FloatSanitizer, FloatType, FloatValidator},
+    models::{FloatDeriveTrait, FloatGuard, FloatSanitizer, FloatType, FloatValidator},
     FloatNewtype,
 };
 use crate::{
@@ -132,13 +132,14 @@ where
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
-    ) -> GeneratedTraits {
-        gen_traits(
+        _guard: &FloatGuard<T>,
+    ) -> Result<GeneratedTraits, syn::Error> {
+        Ok(gen_traits(
             type_name,
             inner_type,
             maybe_error_type_name,
             maybe_default_value,
             traits,
-        )
+        ))
     }
 }

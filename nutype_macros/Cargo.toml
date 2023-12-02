@@ -24,6 +24,7 @@ syn = { version = "2.0", features = ["extra-traits", "full"] }
 regex = { version = "1", optional = true }
 cfg-if = "1.0.0"
 kinded = "0.3.0"
+urlencoding = "2.0"
 
 [lib]
 proc-macro = true
@@ -32,6 +33,7 @@ proc-macro = true
 serde = []
 schemars08 = []
 new_unchecked = []
+arbitrary = []
 
 # nutype_test is set when unit tests for nutype is running.
 # Why: we don't want to generate unit tests when we're already within a unit test, because it results

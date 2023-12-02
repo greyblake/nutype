@@ -41,7 +41,7 @@ impl Newtype for StringNewtype {
 
     fn generate(
         params: GenerateParams<StringInnerType, Self::TypedTrait, StringGuard>,
-    ) -> TokenStream {
+    ) -> Result<TokenStream, syn::Error> {
         StringNewtype::gen_nutype(params)
     }
 }

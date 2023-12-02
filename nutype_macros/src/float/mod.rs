@@ -56,7 +56,7 @@ where
             Self::TypedTrait,
             Guard<Self::Sanitizer, Self::Validator>,
         >,
-    ) -> TokenStream {
+    ) -> Result<TokenStream, syn::Error> {
         FloatNewtype::gen_nutype(params)
     }
 }

@@ -263,6 +263,9 @@ pub enum DeriveTrait {
 
     #[cfg_attr(not(feature = "schemars08"), allow(dead_code))]
     SchemarsJsonSchema,
+
+    #[cfg_attr(not(feature = "arbitrary"), allow(dead_code))]
+    ArbitraryArbitrary,
 }
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
@@ -319,7 +322,7 @@ pub trait Newtype {
             Self::TypedTrait,
             Guard<Self::Sanitizer, Self::Validator>,
         >,
-    ) -> TokenStream;
+    ) -> Result<TokenStream, syn::Error>;
 
     fn expand(
         typed_meta: TypedMeta,
@@ -347,7 +350,7 @@ pub trait Newtype {
             new_unchecked,
             maybe_default_value,
             inner_type,
-        });
+        })?;
         Ok(generated_output)
     }
 }
