@@ -106,13 +106,13 @@ impl GenerateNewtype for AnyNewtype {
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         _guard: &AnyGuard,
-    ) -> GeneratedTraits {
-        gen_traits(
+    ) -> Result<GeneratedTraits, syn::Error> {
+        Ok(gen_traits(
             type_name,
             inner_type,
             maybe_error_type_name,
             traits,
             maybe_default_value,
-        )
+        ))
     }
 }

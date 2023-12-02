@@ -28,7 +28,7 @@ pub fn gen_traits<T: ToTokens>(
     traits: HashSet<IntegerDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
     guard: &IntegerGuard<T>,
-) -> GeneratedTraits {
+) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
         irregular_traits,
@@ -47,12 +47,12 @@ pub fn gen_traits<T: ToTokens>(
         irregular_traits,
         maybe_default_value,
         guard,
-    );
+    )?;
 
-    GeneratedTraits {
+    Ok(GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
-    }
+    })
 }
 
 impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
@@ -181,39 +181,41 @@ fn gen_implemented_traits<T: ToTokens>(
     impl_traits: Vec<IntegerIrregularTrait>,
     maybe_default_value: Option<syn::Expr>,
     guard: &IntegerGuard<T>,
-) -> TokenStream {
+) -> Result<TokenStream, syn::Error> {
     impl_traits
         .iter()
         .map(|t| match t {
-            IntegerIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
-            IntegerIrregularTrait::Deref => gen_impl_trait_deref(type_name, inner_type),
+            IntegerIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, inner_type)),
+            IntegerIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, inner_type)),
             IntegerIrregularTrait::FromStr => {
-                gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
+                Ok(gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
-            IntegerIrregularTrait::From => gen_impl_trait_from(type_name, inner_type),
-            IntegerIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
+            IntegerIrregularTrait::From => Ok(gen_impl_trait_from(type_name, inner_type)),
+            IntegerIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type)),
             IntegerIrregularTrait::TryFrom => {
-                gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
+                Ok(gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
-            IntegerIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
-            IntegerIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
+            IntegerIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),
+            IntegerIrregularTrait::Display => Ok(gen_impl_trait_dislpay(type_name)),
             IntegerIrregularTrait::Default => {
                 match maybe_default_value {
                     Some(ref default_value) => {
                         let has_validation = maybe_error_type_name.is_some();
-                        gen_impl_trait_default(type_name, default_value, has_validation)
+                        Ok(gen_impl_trait_default(type_name, default_value, has_validation))
                     },
                     None => {
-                        panic!("Default trait is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro");
+                        let span = proc_macro2::Span::call_site();
+                        let msg = format!("Trait `Default` is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro");
+                        Err(syn::Error::new(span, msg))
                     }
                 }
             }
-            IntegerIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
-            IntegerIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
+            IntegerIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name)),
+            IntegerIrregularTrait::SerdeDeserialize => Ok(gen_impl_trait_serde_deserialize(
                 type_name,
                 inner_type,
                 maybe_error_type_name.as_ref(),
-            ),
+            )),
             IntegerIrregularTrait::ArbitraryArbitrary => {
                 arbitrary::gen_impl_trait_arbitrary(type_name, inner_type, guard)
             }

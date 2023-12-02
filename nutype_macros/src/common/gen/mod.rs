@@ -181,7 +181,7 @@ pub trait GenerateNewtype {
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-    ) -> GeneratedTraits;
+    ) -> Result<GeneratedTraits, syn::Error>;
 
     fn gen_new_with_validation(
         type_name: &TypeName,
@@ -284,7 +284,7 @@ pub trait GenerateNewtype {
             Self::TypedTrait,
             Guard<Self::Sanitizer, Self::Validator>,
         >,
-    ) -> TokenStream {
+    ) -> Result<TokenStream, syn::Error> {
         let GenerateParams {
             doc_attrs,
             traits,
@@ -330,9 +330,9 @@ pub trait GenerateNewtype {
             traits,
             maybe_default_value,
             &guard,
-        );
+        )?;
 
-        quote!(
+        Ok(quote!(
             #[doc(hidden)]
             mod #module_name {
                 use super::*;
@@ -345,6 +345,6 @@ pub trait GenerateNewtype {
                 #implement_traits
             }
             #reimports
-        )
+        ))
     }
 }

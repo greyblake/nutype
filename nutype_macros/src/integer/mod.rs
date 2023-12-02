@@ -58,7 +58,7 @@ where
             Self::TypedTrait,
             Guard<Self::Sanitizer, Self::Validator>,
         >,
-    ) -> TokenStream {
+    ) -> Result<TokenStream, syn::Error> {
         IntegerNewtype::gen_nutype(params)
     }
 }

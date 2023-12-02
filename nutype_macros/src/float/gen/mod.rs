@@ -133,13 +133,13 @@ where
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         _guard: &FloatGuard<T>,
-    ) -> GeneratedTraits {
-        gen_traits(
+    ) -> Result<GeneratedTraits, syn::Error> {
+        Ok(gen_traits(
             type_name,
             inner_type,
             maybe_error_type_name,
             maybe_default_value,
             traits,
-        )
+        ))
     }
 }

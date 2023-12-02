@@ -45,10 +45,7 @@ fn render_issue(issue: &Issue) -> RenderedIssue {
         Issue::ArbitraryGeneratedInvalidValue {
             inner_type: type_name,
         } => RenderedIssue {
-            title: format!(
-                "Arbitrary generates an invalid value for {}",
-                type_name
-            ),
+            title: format!("Arbitrary generates an invalid value for {}", type_name),
             body: "
 Having my type defined as:
 

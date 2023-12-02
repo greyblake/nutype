@@ -125,7 +125,7 @@ where
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         guard: &IntegerGuard<T>,
-    ) -> GeneratedTraits {
+    ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
             inner_type,

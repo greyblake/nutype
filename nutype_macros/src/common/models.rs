@@ -322,7 +322,7 @@ pub trait Newtype {
             Self::TypedTrait,
             Guard<Self::Sanitizer, Self::Validator>,
         >,
-    ) -> TokenStream;
+    ) -> Result<TokenStream, syn::Error>;
 
     fn expand(
         typed_meta: TypedMeta,
@@ -350,7 +350,7 @@ pub trait Newtype {
             new_unchecked,
             maybe_default_value,
             inner_type,
-        });
+        })?;
         Ok(generated_output)
     }
 }
