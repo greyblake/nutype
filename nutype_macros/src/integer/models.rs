@@ -102,6 +102,16 @@ macro_rules! define_integer_inner_type {
                 type_stream.to_tokens(token_stream);
             }
         }
+
+        impl ::core::fmt::Display for IntegerInnerType {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> Result<(), ::core::fmt::Error> {
+                match self {
+                    $(
+                        Self::$variant => stringify!($tp).fmt(f),
+                    )*
+                }
+            }
+        }
     }
 }
 

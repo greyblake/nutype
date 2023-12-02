@@ -9,6 +9,7 @@ mod common;
 mod float;
 mod integer;
 mod string;
+mod utils;
 
 use any::AnyNewtype;
 use common::{

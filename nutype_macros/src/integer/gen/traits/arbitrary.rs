@@ -4,6 +4,7 @@ use quote::{quote, ToTokens};
 use crate::{
     common::models::TypeName,
     integer::models::{IntegerGuard, IntegerInnerType, IntegerValidator},
+    utils::issue_reporter::{build_github_link_with_issue, Issue},
 };
 
 pub fn gen_impl_trait_arbitrary<T: ToTokens>(
@@ -14,11 +15,14 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
     let Boundary { min, max } = guard_to_boundary(inner_type, guard);
 
     let construct_value = if guard.has_validation() {
-        // TODO:
-        // * Use a constant instead of hardcoded URL
-        // * Add predefined `title` and `body` parameters so there is already some text in the issue
-        // * Move it all into some helper function that can be reused
-        let error_text = format!("Arbitrary generated an invalid value for {type_name}.\nPlease report the issue at https://github.com/greyblake/nutype/issues/new");
+        // If by some reason we generate an invalid value, make it very easy for user to report
+        let report_issue_msg = build_github_link_with_issue(
+            &Issue::ArbitraryGeneratedInvalidValue {
+                inner_type: inner_type.to_string(),
+            },
+        );
+        let error_text =
+            format!("Arbitrary generated an invalid value for {type_name}.\n\n{report_issue_msg}");
         quote!(
             Self::new(inner_value).expect(#error_text)
         )
