@@ -1,18 +1,18 @@
 all: fmt test-all clippy examples
 
 test-all:
-	cargo test --features nutype_test
-	cargo test --features nutype_test,serde
-	cargo test --features nutype_test,regex
-	cargo test --features nutype_test,new_unchecked
-	cargo test --features nutype_test,schemars08
+	cargo test
+	cargo test --features serde
+	cargo test --features regex
+	cargo test --features new_unchecked
+	cargo test --features schemars08
 	cargo test --all-features
 
 test:
-	cargo test --features nutype_test
+	cargo test
 
 test-ui:
-	cargo test --features nutype_test,ui
+	cargo test --features ui
 
 fmt:
   cargo fmt
