@@ -3,7 +3,7 @@ use nutype::nutype;
 #[nutype(
     validate(predicate = |v| v),
     derive(Default),
-    default = false
+    default = true
 )]
 pub struct TestData(bool);
 

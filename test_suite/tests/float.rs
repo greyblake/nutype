@@ -683,7 +683,7 @@ mod traits {
         }
 
         #[test]
-        #[should_panic(expected = "Default value for type Number is invalid")]
+        #[should_panic(expected = "Default value for type `Number` is invalid")]
         fn test_default_with_validation_when_invalid() {
             #[nutype(validate(less_or_equal = 20.0), default = 20.1, derive(Default))]
             pub struct Number(f64);

@@ -461,7 +461,7 @@ mod derives {
         }
 
         #[test]
-        #[should_panic(expected = "Default value for type Name is invalid")]
+        #[should_panic(expected = "Default value for type `Name` is invalid")]
         fn test_default_with_validation_when_invalid() {
             #[nutype(validate(len_char_min = 5), default = "Nope", derive(Default))]
             pub struct Name(String);
