@@ -2,7 +2,9 @@ use kinded::Kinded;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
-use crate::common::models::{Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction};
+use crate::common::models::{
+    Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction, ValueOrExpr,
+};
 
 // Sanitizer
 
@@ -25,8 +27,8 @@ pub type SpannedStringValidator = SpannedItem<StringValidator>;
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 pub enum StringValidator {
-    LenCharMin(usize),
-    LenCharMax(usize),
+    LenCharMin(ValueOrExpr<usize>),
+    LenCharMax(ValueOrExpr<usize>),
     NotEmpty,
     Predicate(TypedCustomFunction),
     #[cfg_attr(not(feature = "regex"), allow(dead_code))]

@@ -225,6 +225,34 @@ mod validators {
 
         assert_eq!(EmailError::NotEmptyViolated.to_string(), "empty");
     }
+
+    mod when_boundaries_defined_as_constants {
+        use super::*;
+
+        const MIN_LEN: usize = 3;
+        const MAX_LEN: usize = 10;
+
+        #[nutype(validate(len_char_min = MIN_LEN, len_char_max = MAX_LEN), derive(Debug))]
+        struct Login(String);
+
+        #[test]
+        fn test_boundaries_defined_as_constants() {
+            assert_eq!(
+                Login::new("ab").unwrap_err(),
+                LoginError::LenCharMinViolated,
+            );
+            assert_eq!(Login::new("abc").unwrap().into_inner(), "abc".to_string(),);
+
+            assert_eq!(
+                Login::new("abcdefghijk").unwrap_err(),
+                LoginError::LenCharMaxViolated,
+            );
+            assert_eq!(
+                Login::new("abcdefghij").unwrap().into_inner(),
+                "abcdefghij".to_string(),
+            );
+        }
+    }
 }
 
 #[cfg(test)]

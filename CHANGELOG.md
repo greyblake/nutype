@@ -2,6 +2,7 @@
 
 * Support integration with [`arbitrary`](https://crates.io/crates/arbitrary) crate (see `arbitrary` feature).
   * Support `Arbitrary` for integer types
+* Ability to specify boundaries (`greater`, `greater_or_equal`, `less`, `less_or_equal`, `len_char_min`, `len_char_max`) with expressions or constants.
 
 ### v0.4.0 - 2023-11-21
 * Support of arbitrary inner types with custom sanitizers and validators.

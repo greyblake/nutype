@@ -313,7 +313,13 @@ pub trait GenerateNewtype {
             None
         };
 
-        let tests = Self::gen_tests(&type_name, &inner_type, &maybe_default_value, &guard);
+        let tests = Self::gen_tests(
+            &type_name,
+            &inner_type,
+            &maybe_default_value,
+            &guard,
+            &traits,
+        );
 
         let reimports = gen_reimports(
             vis,
@@ -354,11 +360,10 @@ pub trait GenerateNewtype {
     }
 
     fn gen_tests(
-        _type_name: &TypeName,
-        _inner_type: &Self::InnerType,
-        _maybe_default_value: &Option<syn::Expr>,
-        _guard: &Guard<Self::Sanitizer, Self::Validator>,
-    ) -> TokenStream {
-        quote!()
-    }
+        type_name: &TypeName,
+        inner_type: &Self::InnerType,
+        maybe_default_value: &Option<syn::Expr>,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        traits: &HashSet<Self::TypedTrait>,
+    ) -> TokenStream;
 }

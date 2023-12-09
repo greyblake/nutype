@@ -8,8 +8,11 @@ use quote::quote;
 use syn::parse_quote;
 
 use crate::common::{
-    gen::{error::gen_error_type_name, traits::GeneratedTraits, GenerateNewtype},
-    models::{ErrorTypeName, TypeName, TypedCustomFunction},
+    gen::{
+        error::gen_error_type_name, tests::gen_test_should_have_valid_default_value,
+        traits::GeneratedTraits, GenerateNewtype,
+    },
+    models::{ErrorTypeName, Guard, TypeName, TypedCustomFunction},
 };
 
 use self::error::gen_validation_error_type;
@@ -114,5 +117,23 @@ impl GenerateNewtype for AnyNewtype {
             traits,
             maybe_default_value,
         ))
+    }
+
+    fn gen_tests(
+        type_name: &TypeName,
+        _inner_type: &Self::InnerType,
+        maybe_default_value: &Option<syn::Expr>,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        _traits: &HashSet<Self::TypedTrait>,
+    ) -> TokenStream {
+        let test_valid_default_value = gen_test_should_have_valid_default_value(
+            type_name,
+            maybe_default_value,
+            guard.has_validation(),
+        );
+
+        quote! {
+            #test_valid_default_value
+        }
     }
 }

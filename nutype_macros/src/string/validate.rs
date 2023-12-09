@@ -5,7 +5,7 @@ use proc_macro2::Span;
 
 use crate::{
     common::{
-        models::{DeriveTrait, SpannedDeriveTrait},
+        models::{DeriveTrait, SpannedDeriveTrait, ValueOrExpr},
         validate::validate_duplicates,
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
@@ -48,14 +48,14 @@ fn validate_validators(
     let maybe_len_char_min = validators
         .iter()
         .flat_map(|v| match v.item {
-            StringValidator::LenCharMin(len) => Some((v.span, len)),
+            StringValidator::LenCharMin(ValueOrExpr::Value(len)) => Some((v.span, len)),
             _ => None,
         })
         .next();
     let maybe_len_char_max = validators
         .iter()
         .flat_map(|v| match v.item {
-            StringValidator::LenCharMax(len) => Some((v.span, len)),
+            StringValidator::LenCharMax(ValueOrExpr::Value(len)) => Some((v.span, len)),
             _ => None,
         })
         .next();

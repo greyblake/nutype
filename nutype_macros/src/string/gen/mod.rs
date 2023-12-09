@@ -1,4 +1,5 @@
 pub mod error;
+pub mod tests;
 pub mod traits;
 
 use std::collections::HashSet;
@@ -8,8 +9,11 @@ use quote::quote;
 
 use crate::{
     common::{
-        gen::{error::gen_error_type_name, traits::GeneratedTraits, GenerateNewtype},
-        models::{ErrorTypeName, TypeName},
+        gen::{
+            error::gen_error_type_name, tests::gen_test_should_have_valid_default_value,
+            traits::GeneratedTraits, GenerateNewtype,
+        },
+        models::{ErrorTypeName, Guard, TypeName},
     },
     string::models::{RegexDef, StringInnerType, StringSanitizer, StringValidator},
 };
@@ -183,5 +187,28 @@ impl GenerateNewtype for StringNewtype {
             traits,
             maybe_default_value,
         ))
+    }
+
+    fn gen_tests(
+        type_name: &TypeName,
+        _inner_type: &Self::InnerType,
+        maybe_default_value: &Option<syn::Expr>,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        _traits: &HashSet<Self::TypedTrait>,
+    ) -> TokenStream {
+        let test_len_char_min_vs_max = guard.validators().and_then(|validators| {
+            tests::gen_test_should_have_consistent_len_char_boundaries(type_name, validators)
+        });
+
+        let test_valid_default_value = gen_test_should_have_valid_default_value(
+            type_name,
+            maybe_default_value,
+            guard.has_validation(),
+        );
+
+        quote! {
+            #test_len_char_min_vs_max
+            #test_valid_default_value
+        }
     }
 }

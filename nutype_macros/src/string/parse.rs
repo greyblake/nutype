@@ -2,7 +2,7 @@ use crate::{
     common::{
         models::{Attributes, SpannedDeriveTrait, SpannedItem},
         parse::{
-            parse_number, parse_sanitizer_kind, parse_typed_custom_function_raw,
+            parse_number_or_expr, parse_sanitizer_kind, parse_typed_custom_function_raw,
             parse_validator_kind, ParseableAttributes,
         },
     },
@@ -87,7 +87,7 @@ impl Parse for SpannedStringValidator {
         match kind {
             StringValidatorKind::LenCharMin => {
                 let _: Token![=] = input.parse()?;
-                let (min_len, span) = parse_number::<usize>(input)?;
+                let (min_len, span) = parse_number_or_expr::<usize>(input)?;
                 Ok(SpannedStringValidator {
                     item: StringValidator::LenCharMin(min_len),
                     span,
@@ -95,7 +95,7 @@ impl Parse for SpannedStringValidator {
             }
             StringValidatorKind::LenCharMax => {
                 let _: Token![=] = input.parse()?;
-                let (max_len, span) = parse_number::<usize>(input)?;
+                let (max_len, span) = parse_number_or_expr::<usize>(input)?;
                 Ok(SpannedStringValidator {
                     item: StringValidator::LenCharMax(max_len),
                     span,
