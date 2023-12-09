@@ -1,6 +1,7 @@
 pub mod error;
 pub mod new_unchecked;
 pub mod parse_error;
+pub mod tests;
 pub mod traits;
 
 use std::{collections::HashSet, hash::Hash};
@@ -92,7 +93,7 @@ fn is_mut(token: &TokenTree) -> bool {
 }
 
 pub fn gen_module_name_for_type(type_name: &TypeName) -> ModuleName {
-    let ident = format_ident!("__nutype_private_{type_name}__");
+    let ident = format_ident!("__nutype_{type_name}__");
     ModuleName::new(ident)
 }
 
@@ -312,6 +313,8 @@ pub trait GenerateNewtype {
             None
         };
 
+        let tests = Self::gen_tests(&type_name, &inner_type, &maybe_default_value, &guard);
+
         let reimports = gen_reimports(
             vis,
             &type_name,
@@ -343,8 +346,19 @@ pub trait GenerateNewtype {
 
                 #implementation
                 #implement_traits
+
+                #tests
             }
             #reimports
         ))
+    }
+
+    fn gen_tests(
+        _type_name: &TypeName,
+        _inner_type: &Self::InnerType,
+        _maybe_default_value: &Option<syn::Expr>,
+        _guard: &Guard<Self::Sanitizer, Self::Validator>,
+    ) -> TokenStream {
+        quote!()
     }
 }

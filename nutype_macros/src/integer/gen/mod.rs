@@ -15,8 +15,12 @@ use super::{
     IntegerNewtype,
 };
 use crate::common::{
-    gen::{error::gen_error_type_name, traits::GeneratedTraits, GenerateNewtype},
-    models::{ErrorTypeName, TypeName},
+    gen::{
+        error::gen_error_type_name,
+        tests::gen_test_should_have_consistent_lower_and_upper_boundaries, traits::GeneratedTraits,
+        GenerateNewtype,
+    },
+    models::{ErrorTypeName, Guard, TypeName},
 };
 
 impl<T> GenerateNewtype for IntegerNewtype<T>
@@ -134,5 +138,20 @@ where
             maybe_default_value,
             guard,
         )
+    }
+
+    fn gen_tests(
+        type_name: &TypeName,
+        _inner_type: &Self::InnerType,
+        _maybe_default_value: &Option<syn::Expr>,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+    ) -> TokenStream {
+        let test_lower_vs_upper = guard.validators().and_then(|validators| {
+            gen_test_should_have_consistent_lower_and_upper_boundaries(type_name, validators)
+        });
+
+        quote! {
+            #test_lower_vs_upper
+        }
     }
 }

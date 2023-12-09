@@ -217,11 +217,39 @@ pub struct Attributes<G, DT> {
     pub derive_traits: Vec<DT>,
 }
 
+/// Represents a value known at compile time or an expression.
+/// Knowing value at compile time allows to run some extra validations to prevent potential errors.
+#[derive(Debug)]
+pub enum ValueOrExpr<T> {
+    Value(T),
+    Expr(syn::Expr),
+}
+
+impl<T: ToTokens> ToTokens for ValueOrExpr<T> {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        match self {
+            Self::Value(value) => {
+                value.to_tokens(token_stream);
+            }
+            Self::Expr(expr) => {
+                expr.to_tokens(token_stream);
+            }
+        };
+    }
+}
+
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
     pub fn has_validation(&self) -> bool {
         match self {
             Self::WithoutValidation { .. } => false,
             Self::WithValidation { .. } => true,
+        }
+    }
+
+    pub fn validators(&self) -> Option<&Vec<Validator>> {
+        match self {
+            Self::WithValidation { validators, .. } => Some(validators),
+            Self::WithoutValidation { .. } => None,
         }
     }
 }
@@ -441,7 +469,7 @@ macro_rules! impl_numeric_bound_validator {
     ($tp:ident) => {
         impl<T: Clone> crate::common::models::NumericBoundValidator<T> for $tp<T> {
             fn greater(&self) -> Option<T> {
-                if let $tp::Greater(value) = self {
+                if let $tp::Greater(ValueOrExpr::Value(value)) = self {
                     Some(value.clone())
                 } else {
                     None
@@ -449,7 +477,7 @@ macro_rules! impl_numeric_bound_validator {
             }
 
             fn greater_or_equal(&self) -> Option<T> {
-                if let $tp::GreaterOrEqual(value) = self {
+                if let $tp::GreaterOrEqual(ValueOrExpr::Value(value)) = self {
                     Some(value.clone())
                 } else {
                     None
@@ -457,7 +485,7 @@ macro_rules! impl_numeric_bound_validator {
             }
 
             fn less(&self) -> Option<T> {
-                if let $tp::Less(value) = self {
+                if let $tp::Less(ValueOrExpr::Value(value)) = self {
                     Some(value.clone())
                 } else {
                     None
@@ -465,7 +493,7 @@ macro_rules! impl_numeric_bound_validator {
             }
 
             fn less_or_equal(&self) -> Option<T> {
-                if let $tp::LessOrEqual(value) = self {
+                if let $tp::LessOrEqual(ValueOrExpr::Value(value)) = self {
                     Some(value.clone())
                 } else {
                     None
@@ -476,3 +504,66 @@ macro_rules! impl_numeric_bound_validator {
 }
 
 pub(crate) use impl_numeric_bound_validator;
+
+/// The trait is used to generate tests for integer and float types, to ensure that
+/// the upper boundary is not below the lower boundary.
+pub trait NumericBound {
+    fn upper(&self) -> Option<TokenStream>;
+    fn lower(&self) -> Option<TokenStream>;
+}
+
+macro_rules! impl_numeric_bound_on_vec_of {
+    ($validator:ident) => {
+        impl<T: ::quote::ToTokens> crate::common::models::NumericBound for Vec<$validator<T>> {
+            fn upper(&self) -> Option<TokenStream> {
+                use ::quote::ToTokens;
+
+                let values: Vec<TokenStream> = self
+                    .iter()
+                    .filter_map(|v| match v {
+                        $validator::LessOrEqual(v) => Some(v),
+                        $validator::Less(v) => Some(v),
+                        _ => None,
+                    })
+                    .map(|v| v.to_token_stream())
+                    .collect();
+
+                if values.len() > 1 {
+                    // This should actually never happened, since there are validation in place that
+                    // prevents usage of `less_or_equal` and `less` at the same time,
+                    // but we want to be sure.
+                    panic!("It's not allowed to use less_or_equal and less validators at the same time");
+                }
+
+                values.into_iter().next()
+            }
+
+            fn lower(&self) -> Option<TokenStream> {
+                use ::quote::ToTokens;
+
+                let values: Vec<TokenStream> = self
+                    .iter()
+                    .filter_map(|v| match v {
+                        $validator::GreaterOrEqual(v) => Some(v),
+                        $validator::Greater(v) => Some(v),
+                        _ => None,
+                    })
+                    .map(|v| v.to_token_stream())
+                    .collect();
+
+                if values.len() > 1 {
+                    // This should actually never happened, since there are validation in place that
+                    // prevents usage of `greater_or_equal` and `greater` at the same time,
+                    // but we want to be sure.
+                    panic!(
+                        "It's not allowed to use greater_or_equal and greater validators at the same time"
+                    );
+                }
+
+                values.into_iter().next()
+            }
+        }
+    }
+}
+
+pub(crate) use impl_numeric_bound_on_vec_of;

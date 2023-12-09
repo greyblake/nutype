@@ -15,7 +15,7 @@ use syn::{
 
 use crate::common::models::SpannedDeriveTrait;
 
-use super::models::{CustomFunction, NewUnchecked, TypedCustomFunction};
+use super::models::{CustomFunction, NewUnchecked, TypedCustomFunction, ValueOrExpr};
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
     match attribute.path().segments.first() {
@@ -187,6 +187,21 @@ where
     })?;
 
     Ok((number, lit.span()))
+}
+
+/// Try to parse input as a number of type T (if the value specified directly)
+/// If that fails then try to parse it as an expression (if the value is specified as an expression, a constant, etc.)
+pub fn parse_number_or_expr<T>(input: ParseStream) -> syn::Result<(ValueOrExpr<T>, Span)>
+where
+    T: FromStr,
+{
+    if let Ok((number, span)) = parse_number::<T>(input) {
+        Ok((ValueOrExpr::Value(number), span))
+    } else {
+        let expr: Expr = input.parse()?;
+        let span = expr.span();
+        Ok((ValueOrExpr::Expr(expr), span))
+    }
 }
 
 // NOTE: This is a quite hacky way to obtain a syn::Type from `T`.
