@@ -89,7 +89,7 @@ pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> 
     }
 }
 
-pub fn gen_impl_trait_dislpay(type_name: &TypeName) -> TokenStream {
+pub fn gen_impl_trait_display(type_name: &TypeName) -> TokenStream {
     quote! {
         impl ::core::fmt::Display for #type_name {
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {

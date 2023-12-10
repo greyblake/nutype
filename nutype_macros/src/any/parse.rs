@@ -49,9 +49,9 @@ impl Parse for SpannedAnySanitizer {
             AnySanitizerKind::With => {
                 let _eq: Token![=] = input.parse()?;
                 let span = input.span();
-                let custom_funciton: CustomFunction = input.parse()?;
+                let custom_function: CustomFunction = input.parse()?;
                 Ok(SpannedAnySanitizer {
-                    item: AnySanitizer::With(custom_funciton),
+                    item: AnySanitizer::With(custom_function),
                     span,
                 })
             }
@@ -67,9 +67,9 @@ impl Parse for SpannedAnyValidator {
             AnyValidatorKind::Predicate => {
                 let _eq: Token![=] = input.parse()?;
                 let span = input.span();
-                let custom_funciton: CustomFunction = input.parse()?;
+                let custom_function: CustomFunction = input.parse()?;
                 Ok(SpannedAnyValidator {
-                    item: AnyValidator::Predicate(custom_funciton),
+                    item: AnyValidator::Predicate(custom_function),
                     span,
                 })
             }
