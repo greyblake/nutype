@@ -1,6 +1,5 @@
 use std::collections::HashSet;
 
-use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
@@ -297,7 +296,7 @@ pub fn gen_impl_trait_default(
             Self::new(#default_value)
                 .unwrap_or_else(|err| {
                     let tp = #tp;
-                    panic!("\nDefault value for type {tp} is invalid.\nERROR: {err}\n")
+                    panic!("\nDefault value for type `{tp}` is invalid.\nERROR: {err:?}\n");
                 })
         )
     } else {
@@ -306,33 +305,11 @@ pub fn gen_impl_trait_default(
         )
     };
 
-    // Unfortunately it's not possible to guarantee at the compile time that the default value will always
-    // satisfy the validation rules.
-    // For this purpose we generate a unit test to verify this at run time.
-    let unit_test = if has_validation {
-        cfg_if! {
-            if #[cfg(feature = "nutype_test")] {
-                quote!()
-            } else {
-                quote!(
-                    #[test]
-                    fn should_have_valid_default_value() {
-                        let default_inner_value = #type_name::default().into_inner();
-                        #type_name::new(default_inner_value).expect("Default value must be valid");
-                    }
-                )
-            }
-        }
-    } else {
-        quote!()
-    };
-
     quote!(
         impl ::core::default::Default for #type_name {
             fn default() -> Self {
                 #default_implementation
             }
         }
-        #unit_test
     )
 }

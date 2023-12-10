@@ -100,6 +100,42 @@ mod validators {
         assert_eq!(Age::new(25).unwrap().into_inner(), 25);
     }
 
+    mod when_boundaries_defined_as_constants {
+        use super::*;
+
+        const MIN_MINUTE: i32 = 0;
+        const MAX_MINUTE: i32 = 59;
+        const MIN_HOUR: i32 = 0;
+        const MAX_HOUR: i32 = 25; // this is weird, but it's just for the sake of testing
+
+        // Inclusive range
+        #[nutype(validate(greater_or_equal = MIN_MINUTE, less_or_equal = MAX_MINUTE), derive(Debug))]
+        struct Minute(i32);
+
+        // Exclusive range
+        #[nutype(validate(greater = MIN_HOUR, less = MAX_HOUR), derive(Debug))]
+        struct Hour(i32);
+
+        #[test]
+        fn test_boundaries_defined_as_constants() {
+            assert_eq!(
+                Minute::new(-1).unwrap_err(),
+                MinuteError::GreaterOrEqualViolated
+            );
+            assert_eq!(Minute::new(0).unwrap().into_inner(), 0);
+            assert_eq!(
+                Minute::new(60).unwrap_err(),
+                MinuteError::LessOrEqualViolated
+            );
+            assert_eq!(Minute::new(59).unwrap().into_inner(), 59);
+
+            assert_eq!(Hour::new(0).unwrap_err(), HourError::GreaterViolated);
+            assert_eq!(Hour::new(1).unwrap().into_inner(), 1);
+            assert_eq!(Hour::new(25).unwrap_err(), HourError::LessViolated);
+            assert_eq!(Hour::new(24).unwrap().into_inner(), 24);
+        }
+    }
+
     #[cfg(test)]
     mod with {
         use super::*;
@@ -698,7 +734,7 @@ mod traits {
         }
 
         #[test]
-        #[should_panic(expected = "Default value for type Number is invalid")]
+        #[should_panic(expected = "Default value for type `Number` is invalid")]
         fn test_default_with_validation_when_invalid() {
             #[nutype(validate(less_or_equal = 20), default = 21, derive(Default))]
             pub struct Number(i16);

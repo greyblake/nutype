@@ -139,6 +139,41 @@ mod validators {
         assert_eq!(Dist::new(-999.12).unwrap().into_inner(), -999.12);
     }
 
+    mod when_boundaries_defined_as_constants {
+        use super::*;
+
+        // Inclusive range
+        const MIN_WEIGHT: f32 = 2.0;
+        const MAX_WEIGHT: f32 = 5.0;
+        #[nutype(validate(greater_or_equal = MIN_WEIGHT, less_or_equal = MAX_WEIGHT), derive(Debug))]
+        struct Weight(f32);
+
+        // // Exclusive range
+        const MIN_SPEED: f64 = 60.0;
+        const MAX_SPEED: f64 = 130.0; // this is weird, but it's just for the sake of testing
+        #[nutype(validate(greater = MIN_SPEED, less = MAX_SPEED), derive(Debug))]
+        struct Speed(f64);
+
+        #[test]
+        fn test_boundaries_defined_as_constants() {
+            assert_eq!(
+                Weight::new(1.99999).unwrap_err(),
+                WeightError::GreaterOrEqualViolated
+            );
+            assert_eq!(Weight::new(2.0).unwrap().into_inner(), 2.0);
+            assert_eq!(
+                Weight::new(5.00001).unwrap_err(),
+                WeightError::LessOrEqualViolated
+            );
+            assert_eq!(Weight::new(5.0).unwrap().into_inner(), 5.0);
+
+            assert_eq!(Speed::new(60.0).unwrap_err(), SpeedError::GreaterViolated);
+            assert_eq!(Speed::new(60.00001).unwrap().into_inner(), 60.00001);
+            assert_eq!(Speed::new(130.0).unwrap_err(), SpeedError::LessViolated);
+            assert_eq!(Speed::new(129.99999).unwrap().into_inner(), 129.99999);
+        }
+    }
+
     #[cfg(test)]
     mod with {
         use super::*;
@@ -648,7 +683,7 @@ mod traits {
         }
 
         #[test]
-        #[should_panic(expected = "Default value for type Number is invalid")]
+        #[should_panic(expected = "Default value for type `Number` is invalid")]
         fn test_default_with_validation_when_invalid() {
             #[nutype(validate(less_or_equal = 20.0), default = 20.1, derive(Default))]
             pub struct Number(f64);

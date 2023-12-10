@@ -382,6 +382,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "string_bounded_len"
+version = "0.1.0"
+dependencies = [
+ "nutype",
+]
+
+[[package]]
 name = "string_regex_email"
 version = "0.1.0"
 dependencies = [

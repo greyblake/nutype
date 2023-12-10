@@ -13,8 +13,16 @@ use super::{
 };
 use crate::{
     common::{
-        gen::{error::gen_error_type_name, traits::GeneratedTraits, GenerateNewtype},
-        models::{ErrorTypeName, TypeName},
+        gen::{
+            error::gen_error_type_name,
+            tests::{
+                gen_test_should_have_consistent_lower_and_upper_boundaries,
+                gen_test_should_have_valid_default_value,
+            },
+            traits::GeneratedTraits,
+            GenerateNewtype,
+        },
+        models::{ErrorTypeName, Guard, TypeName},
     },
     float::models::FloatInnerType,
 };
@@ -141,5 +149,28 @@ where
             maybe_default_value,
             traits,
         ))
+    }
+
+    fn gen_tests(
+        type_name: &TypeName,
+        _inner_type: &Self::InnerType,
+        maybe_default_value: &Option<syn::Expr>,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        _traits: &HashSet<Self::TypedTrait>,
+    ) -> TokenStream {
+        let test_lower_vs_upper = guard.validators().and_then(|validators| {
+            gen_test_should_have_consistent_lower_and_upper_boundaries(type_name, validators)
+        });
+
+        let test_valid_default_value = gen_test_should_have_valid_default_value(
+            type_name,
+            maybe_default_value,
+            guard.has_validation(),
+        );
+
+        quote! {
+            #test_lower_vs_upper
+            #test_valid_default_value
+        }
     }
 }

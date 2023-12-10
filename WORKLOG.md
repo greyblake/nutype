@@ -1,5 +1,4 @@
 ## TODO
-* Use syn::Expr instead of TokenStream
 
 ## Tech debt
 * Make individual UI tests possible to opt-out depending on the feature flags.
@@ -136,3 +135,10 @@
 * Prop-based tests for Ord
 * Add note about Eq and Ord on floats in README
 * Update CHANGELOG
+* Impl tests for const boundaries for integer-based types
+* Impl tests for const boundaries for float-based types
+* Support consts for Strings: len_char_min and len_char_max
+  * Gen tests to ensure the boundaries are consistent
+  * Impl tests
+* Add note to the CHANGELOG
+* Move generation of test for default

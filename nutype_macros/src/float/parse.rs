@@ -6,8 +6,8 @@ use std::{
 use crate::common::{
     models::{Attributes, SpannedDeriveTrait},
     parse::{
-        parse_number, parse_sanitizer_kind, parse_typed_custom_function, parse_validator_kind,
-        ParseableAttributes,
+        parse_number_or_expr, parse_sanitizer_kind, parse_typed_custom_function,
+        parse_validator_kind, ParseableAttributes,
     },
 };
 use proc_macro2::TokenStream;
@@ -65,7 +65,7 @@ where
         match kind {
             FloatValidatorKind::Greater => {
                 let _eq: Token![=] = input.parse()?;
-                let (number, span) = parse_number::<T>(input)?;
+                let (number, span) = parse_number_or_expr::<T>(input)?;
                 Ok(SpannedFloatValidator {
                     item: FloatValidator::Greater(number),
                     span,
@@ -73,7 +73,7 @@ where
             }
             FloatValidatorKind::GreaterOrEqual => {
                 let _eq: Token![=] = input.parse()?;
-                let (number, span) = parse_number::<T>(input)?;
+                let (number, span) = parse_number_or_expr::<T>(input)?;
                 Ok(SpannedFloatValidator {
                     item: FloatValidator::GreaterOrEqual(number),
                     span,
@@ -81,7 +81,7 @@ where
             }
             FloatValidatorKind::Less => {
                 let _eq: Token![=] = input.parse()?;
-                let (number, span) = parse_number::<T>(input)?;
+                let (number, span) = parse_number_or_expr::<T>(input)?;
                 Ok(SpannedFloatValidator {
                     item: FloatValidator::Less(number),
                     span,
@@ -89,7 +89,7 @@ where
             }
             FloatValidatorKind::LessOrEqual => {
                 let _eq: Token![=] = input.parse()?;
-                let (number, span) = parse_number::<T>(input)?;
+                let (number, span) = parse_number_or_expr::<T>(input)?;
                 Ok(SpannedFloatValidator {
                     item: FloatValidator::LessOrEqual(number),
                     span,
