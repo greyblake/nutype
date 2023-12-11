@@ -387,7 +387,7 @@ But I am Ukrainian. The first 25 years of my life I spent in [Kharkiv](https://e
 the second-largest city in Ukraine, 60km away from the border with russia. Today about [a third of my home city is destroyed](https://www.youtube.com/watch?v=ihoufBFSZds) by russians.
 My parents, my relatives and my friends had to survive the artillery and air attack, living for over a month in basements.
 
-Some of them have managed to evacuate to EU. Some others are trying to live "normal lifes" in Kharkiv, doing there daily duties.
+Some of them have managed to evacuate to EU. Some others are trying to live "normal lives" in Kharkiv, doing there daily duties.
 And some are at the front line right now, risking their lives every second to protect the rest.
 
 I encourage you to donate to [Charity foundation of Serhiy Prytula](https://prytulafoundation.org/en).

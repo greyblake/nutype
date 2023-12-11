@@ -140,7 +140,7 @@ macro_rules! define_ident_type {
 // For example: `Username`, `Email`, etc.
 define_ident_type!(TypeName);
 
-// Repesents a type for a validation error.
+// Represents a type for a validation error.
 // For example, if `TypeName` is `Email`, then `ErrorTypeName` would usually be `EmailError`.
 define_ident_type!(ErrorTypeName);
 

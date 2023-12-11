@@ -6,7 +6,7 @@
 
 ### TODO Refactor:
 * Refactor parsers
-* Try to generelize the parsing, validation and generation over types
+* Try to generalize the parsing, validation and generation over types
 
 ### TODO UI:
 * UI: Impl  "did you mean" hints:
@@ -34,7 +34,7 @@
   * truncate
   * Remove extra spaces
 * Extra validations for floats:
-  * `is_number` / `is_finite` (aka not NaN, and not `Inifinity`)
+  * `is_number` / `is_finite` (aka not NaN, and not `Infinity`)
   * This should allow to derive Eq and Ord
 * Consider extending errors to keep the invalid value?
 

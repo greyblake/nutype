@@ -8,7 +8,7 @@ use crate::{
     common::{
         gen::traits::{
             gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
-            gen_impl_trait_deref, gen_impl_trait_dislpay, gen_impl_trait_from,
+            gen_impl_trait_deref, gen_impl_trait_display, gen_impl_trait_from,
             gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
             GeneratableTrait, GeneratableTraits, GeneratedTraits,
@@ -144,7 +144,7 @@ fn gen_implemented_traits(
             AnyIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
             AnyIrregularTrait::From => gen_impl_trait_from(type_name, inner_type),
             AnyIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type.clone()),
-            AnyIrregularTrait::Display => gen_impl_trait_dislpay(type_name),
+            AnyIrregularTrait::Display => gen_impl_trait_display(type_name),
             AnyIrregularTrait::Deref => gen_impl_trait_deref(type_name, inner_type),
             AnyIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
             AnyIrregularTrait::FromStr => {
