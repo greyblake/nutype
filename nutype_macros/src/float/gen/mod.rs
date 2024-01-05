@@ -140,15 +140,16 @@ where
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
-        _guard: &FloatGuard<T>,
+        guard: &FloatGuard<T>,
     ) -> Result<GeneratedTraits, syn::Error> {
-        Ok(gen_traits(
+        gen_traits(
             type_name,
             inner_type,
             maybe_error_type_name,
             maybe_default_value,
             traits,
-        ))
+            guard,
+        )
     }
 
     fn gen_tests(

@@ -1,3 +1,4 @@
+pub mod arbitrary;
 use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
@@ -14,7 +15,7 @@ use crate::{
         },
         models::{ErrorTypeName, TypeName},
     },
-    float::models::{FloatDeriveTrait, FloatInnerType},
+    float::models::{FloatDeriveTrait, FloatGuard, FloatInnerType},
 };
 
 type FloatGeneratableTrait = GeneratableTrait<FloatTransparentTrait, FloatIrregularTrait>;
@@ -47,6 +48,7 @@ enum FloatIrregularTrait {
     Default,
     SerdeSerialize,
     SerdeDeserialize,
+    ArbitraryArbitrary,
 }
 
 impl From<FloatDeriveTrait> for FloatGeneratableTrait {
@@ -94,6 +96,9 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             FloatDeriveTrait::SerdeDeserialize => {
                 FloatGeneratableTrait::Irregular(FloatIrregularTrait::SerdeDeserialize)
             }
+            FloatDeriveTrait::ArbitraryArbitrary => {
+                FloatGeneratableTrait::Irregular(FloatIrregularTrait::ArbitraryArbitrary)
+            }
             FloatDeriveTrait::SchemarsJsonSchema => {
                 FloatGeneratableTrait::Transparent(FloatTransparentTrait::SchemarsJsonSchema)
             }
@@ -115,13 +120,14 @@ impl ToTokens for FloatTransparentTrait {
     }
 }
 
-pub fn gen_traits(
+pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
     inner_type: &FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     traits: HashSet<FloatDeriveTrait>,
-) -> GeneratedTraits {
+    guard: &FloatGuard<T>,
+) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
         irregular_traits,
@@ -139,55 +145,60 @@ pub fn gen_traits(
         maybe_error_type_name,
         maybe_default_value,
         irregular_traits,
-    );
+        guard,
+    )?;
 
-    GeneratedTraits {
+    Ok(GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
-    }
+    })
 }
 
-fn gen_implemented_traits(
+fn gen_implemented_traits<T: ToTokens>(
     type_name: &TypeName,
     inner_type: &FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<FloatIrregularTrait>,
-) -> TokenStream {
+    guard: &FloatGuard<T>,
+) -> Result<TokenStream, syn::Error> {
     impl_traits
         .iter()
         .map(|t| match t {
-            FloatIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
-            FloatIrregularTrait::Deref => gen_impl_trait_deref(type_name, inner_type),
+            FloatIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, inner_type)),
+            FloatIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, inner_type)),
             FloatIrregularTrait::FromStr => {
-                gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
+                Ok(gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
-            FloatIrregularTrait::From => gen_impl_trait_from(type_name, inner_type),
-            FloatIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
+            FloatIrregularTrait::From => Ok(gen_impl_trait_from(type_name, inner_type)),
+            FloatIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type)),
             FloatIrregularTrait::TryFrom => {
-                gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
+                Ok(gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
-            FloatIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
-            FloatIrregularTrait::Display => gen_impl_trait_display(type_name),
+            FloatIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),
+            FloatIrregularTrait::Display => Ok(gen_impl_trait_display(type_name)),
             FloatIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {
                     let has_validation = maybe_error_type_name.is_some();
-                    gen_impl_trait_default(type_name, default_value, has_validation)
+                    Ok(gen_impl_trait_default(type_name, default_value, has_validation))
                 }
                 None => {
-                    panic!(
-                        "Default trait is derived for type {type_name}, but `default = ` is missing"
-                    );
+                    let span = proc_macro2::Span::call_site();
+                    let msg = format!("Trait `Default` is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro");
+                    Err(syn::Error::new(span, msg))
                 }
             },
-            FloatIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
-            FloatIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
+            FloatIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name)),
+            FloatIrregularTrait::SerdeDeserialize => Ok(gen_impl_trait_serde_deserialize(
                 type_name,
                 inner_type,
                 maybe_error_type_name.as_ref(),
-            ),
-            FloatIrregularTrait::Eq => gen_impl_trait_eq(type_name),
-            FloatIrregularTrait::Ord => gen_impl_trait_ord(type_name),
+            )),
+            FloatIrregularTrait::Eq => Ok(gen_impl_trait_eq(type_name)),
+            FloatIrregularTrait::Ord => Ok(gen_impl_trait_ord(type_name)),
+            FloatIrregularTrait::ArbitraryArbitrary => {
+                arbitrary::gen_impl_trait_arbitrary(type_name, inner_type, guard)
+            }
         })
         .collect()
 }

@@ -59,7 +59,7 @@ pub enum IntegerDeriveTrait {
     Default,
     Deref,
 
-    // // External crates
+    // External crates
     SerdeSerialize,
     SerdeDeserialize,
     SchemarsJsonSchema,

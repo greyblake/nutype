@@ -1,6 +1,5 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
-use std::fmt::Debug;
 
 use crate::common::models::{
     impl_numeric_bound_on_vec_of, impl_numeric_bound_validator, Guard, RawGuard, SpannedItem,
@@ -11,7 +10,7 @@ use crate::common::models::{
 //
 
 #[derive(Debug, Kinded)]
-#[kinded(display = "snake_case")]
+#[kinded(display = "snake_case", derive(Hash))]
 pub enum FloatSanitizer<T> {
     With(TypedCustomFunction),
     _Phantom(std::marker::PhantomData<T>),
@@ -23,7 +22,7 @@ pub type SpannedFloatSanitizer<T> = SpannedItem<FloatSanitizer<T>>;
 //
 
 #[derive(Debug, Kinded)]
-#[kinded(display = "snake_case")]
+#[kinded(display = "snake_case", derive(Hash))]
 pub enum FloatValidator<T> {
     Greater(ValueOrExpr<T>),
     GreaterOrEqual(ValueOrExpr<T>),
@@ -64,7 +63,7 @@ pub enum FloatDeriveTrait {
     SerdeSerialize,
     SerdeDeserialize,
     SchemarsJsonSchema,
-    // Arbitrary,
+    ArbitraryArbitrary,
 }
 
 impl TypeTrait for FloatDeriveTrait {
@@ -103,6 +102,16 @@ macro_rules! define_float_inner_type {
                     )*
                 };
                 type_stream.to_tokens(token_stream);
+            }
+        }
+
+        impl ::core::fmt::Display for FloatInnerType {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> Result<(), ::core::fmt::Error> {
+                match self {
+                    $(
+                        Self::$variant => stringify!($tp).fmt(f),
+                    )*
+                }
             }
         }
     }
