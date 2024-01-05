@@ -36,6 +36,12 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
                 Ok(#construct_value)
             }
         }
+
+        #[inline]
+        fn size_hint(_depth: usize) -> (usize, Option<usize>) {
+            let n = ::core::mem::size_of::<#inner_type>();
+            (n, Some(n))
+        }
     ))
 }
 

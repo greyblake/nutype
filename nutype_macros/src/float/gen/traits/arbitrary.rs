@@ -42,6 +42,12 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
                 };
                 Ok(#construct_value)
             }
+
+            #[inline]
+            fn size_hint(_depth: usize) -> (usize, Option<usize>) {
+                let n = ::core::mem::size_of::<#inner_type>();
+                (n, Some(n))
+            }
         }
     ))
 }
@@ -355,7 +361,7 @@ fn generate_float_with_condition(
                     break original_value;
                 } else {
                     // If the original value obtained from arbitrary does not match the condition,
-                    // we try to mangle/randomize it deterministically in a loop 100 times, until we
+                    // we try to mangle/randomize it deterministically in a loop 1000 times, until we
                     // reach out for another value from arbitrary.
                     // Generally it must be more than enough, cause what we typically need is to avoid
                     // NaN and infinity.
@@ -364,7 +370,7 @@ fn generate_float_with_condition(
                     // * [u8; 4] for f32
                     // * [u8; 8] for f64
                     let mut bytes = original_value.to_be_bytes();
-                    for i in 0..100 {
+                    for i in 0..1000 {
                         // With every iteration we modify next single byte by adding `i` value to
                         // it.
                         let index = i % std::mem::size_of::<#inner_type>();
