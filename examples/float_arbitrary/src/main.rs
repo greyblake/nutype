@@ -96,7 +96,7 @@ fn main() {
 
     arbtest::builder().run(|u| {
         let value: f32 = GreaterOrEqualAndLessF32::arbitrary(u)?.into_inner();
-        assert!(value >= -10.0 && value < 10.0);
+        assert!((-10.0..10.0).contains(&value));
         Ok(())
     });
 
@@ -108,7 +108,7 @@ fn main() {
 
     arbtest::builder().run(|u| {
         let value: f64 = GreaterOrEqualAndLessOrEqualF64::arbitrary(u)?.into_inner();
-        assert!(value >= -1.0 && value <= -0.5);
+        assert!((-1.0..=-0.5).contains(&value));
         Ok(())
     });
 }
