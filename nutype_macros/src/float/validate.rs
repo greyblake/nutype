@@ -196,10 +196,6 @@ fn to_float_derive_trait(
         DeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),
         DeriveTrait::SchemarsJsonSchema => Ok(FloatDeriveTrait::SchemarsJsonSchema),
-        DeriveTrait::ArbitraryArbitrary => {
-            // TODO: Implement deriving Arbitrary
-            let msg = "Deriving Arbitrary trait for float types is not yet implemented";
-            Err(syn::Error::new(span, msg))
-        }
+        DeriveTrait::ArbitraryArbitrary => Ok(FloatDeriveTrait::ArbitraryArbitrary),
     }
 }

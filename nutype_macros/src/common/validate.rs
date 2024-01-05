@@ -78,6 +78,15 @@ where
         return Err(err);
     }
 
+    // less VS greater
+    if let (Some(lower), Some(upper)) = (maybe_greater.clone(), maybe_less.clone()) {
+        if lower.item >= upper.item {
+            let msg = "The lower bound (`greater`) cannot be equal or higher than the upper bound (`less`).";
+            let err = syn::Error::new(upper.span(), msg);
+            return Err(err);
+        }
+    }
+
     let maybe_lower_bound = maybe_greater.or(maybe_greater_or_equal);
     let maybe_upper_bound = maybe_less.or(maybe_less_or_equal);
 
