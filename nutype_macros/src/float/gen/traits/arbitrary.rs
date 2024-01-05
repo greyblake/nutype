@@ -32,7 +32,7 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
         quote!(Self::new(inner_value))
     };
 
-    let generate_inner_value = gen_generate_valid_inner_value(type_name, inner_type, guard)?;
+    let generate_inner_value = gen_generate_valid_inner_value(inner_type, guard)?;
 
     Ok(quote!(
         impl ::arbitrary::Arbitrary<'_> for #type_name {
@@ -48,7 +48,6 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
 
 /// Generates a code that generates a valid inner value.
 fn gen_generate_valid_inner_value<T: ToTokens>(
-    type_name: &TypeName,
     inner_type: &FloatInnerType,
     guard: &FloatGuard<T>,
 ) -> Result<TokenStream, syn::Error> {
@@ -63,15 +62,12 @@ fn gen_generate_valid_inner_value<T: ToTokens>(
             validators,
         } => {
             // When there is validation, then we need to generate a valid value.
-            gen_generate_valid_inner_value_with_validators(
-                type_name, inner_type, sanitizers, validators,
-            )
+            gen_generate_valid_inner_value_with_validators(inner_type, sanitizers, validators)
         }
     }
 }
 
 fn gen_generate_valid_inner_value_with_validators<T: ToTokens>(
-    _type_name: &TypeName,
     inner_type: &FloatInnerType,
     sanitizers: &[FloatSanitizer<T>],
     validators: &[FloatValidator<T>],
@@ -92,17 +88,13 @@ fn gen_generate_valid_inner_value_with_validators<T: ToTokens>(
 
     let basic_value_kind = compute_basic_value_kind(&validator_kinds);
     let basic_value = generate_basic_value(inner_type, basic_value_kind);
+    let boundaries = compute_boundaries(validators);
 
-    let maybe_boundaries = compute_boundaries(validators);
-    if let Some(boundaries) = maybe_boundaries {
-        Ok(normalize_basic_value_for_boundaries(
-            inner_type,
-            basic_value,
-            boundaries,
-        ))
-    } else {
-        Ok(basic_value)
-    }
+    Ok(normalize_basic_value_for_boundaries(
+        inner_type,
+        basic_value,
+        boundaries,
+    ))
 }
 
 fn normalize_basic_value_for_boundaries(
@@ -112,9 +104,12 @@ fn normalize_basic_value_for_boundaries(
 ) -> TokenStream {
     match (boundaries.lower, boundaries.upper) {
         (Some(lower), Some(upper)) => {
+            // In this case we don't use `basic_value` we generate a new value that lays in between
+            // 0.0 and 1.0 and then scale it to the range of the boundaries.
+            let arbitrary_in_01_range = gen_in_01_range(inner_type);
+
             let lower_value = &lower.value;
             let upper_value = &upper.value;
-            let arbitrary_in_01_range = gen_in_01_range(inner_type);
             let adjust_x_lower = gen_adjust_x_for_lower_boundary(inner_type, &lower);
             let adjust_x_upper = gen_adjust_x_for_upper_boundary(inner_type, &lower);
             quote! {
@@ -152,10 +147,7 @@ fn normalize_basic_value_for_boundaries(
                 #adjust_x
             }
         }
-        (None, None) => {
-            // This case is impossible, but we have to handle it to make the compiler happy.
-            basic_value
-        }
+        (None, None) => basic_value,
     }
 }
 
@@ -163,12 +155,11 @@ fn gen_adjust_x_for_upper_boundary(
     float_type: &FloatInnerType,
     upper_boundary: &Boundary,
 ) -> TokenStream {
-    let upper_value = &upper_boundary.value;
-    let is_inclusive = upper_boundary.is_inclusive;
-    let correction_delta = correction_delta_for_float_type(float_type);
-    if is_inclusive {
+    if upper_boundary.is_inclusive {
         quote! { x }
     } else {
+        let upper_value = &upper_boundary.value;
+        let correction_delta = correction_delta_for_float_type(float_type);
         quote! {
             if x >= #upper_value {
                 x - #correction_delta
@@ -183,12 +174,11 @@ fn gen_adjust_x_for_lower_boundary(
     float_type: &FloatInnerType,
     lower_boundary: &Boundary,
 ) -> TokenStream {
-    let lower_value = &lower_boundary.value;
-    let is_inclusive = lower_boundary.is_inclusive;
-    let correction_delta = correction_delta_for_float_type(float_type);
-    if is_inclusive {
+    if lower_boundary.is_inclusive {
         quote! { x }
     } else {
+        let lower_value = &lower_boundary.value;
+        let correction_delta = correction_delta_for_float_type(float_type);
         quote! {
             if x <= #lower_value {
                 // Since there is no upper boundary, we are free to add any positive value here
@@ -245,13 +235,13 @@ struct Boundary {
 
 /// Describes a type of initial basic value that has to be generated.
 enum BasicValueKind {
-    /// Any float value including NaN and Infinity.
-    Anything,
+    /// All float values including NaN and Infinity.
+    All,
 
-    /// Any float value except NaN
+    /// All float values except NaN
     NotNaN,
 
-    /// Any float value except NaN and infinities
+    /// All float values except NaN and infinities
     Finite,
 }
 
@@ -268,11 +258,11 @@ fn compute_basic_value_kind(validators: &[FloatValidatorKind]) -> BasicValueKind
     } else if has_boundaries() {
         BasicValueKind::NotNaN
     } else {
-        BasicValueKind::Anything
+        BasicValueKind::All
     }
 }
 
-fn compute_boundaries<T: ToTokens>(validators: &[FloatValidator<T>]) -> Option<Boundaries> {
+fn compute_boundaries<T: ToTokens>(validators: &[FloatValidator<T>]) -> Boundaries {
     let mut lower = None;
     let mut upper = None;
 
@@ -319,16 +309,12 @@ fn compute_boundaries<T: ToTokens>(validators: &[FloatValidator<T>]) -> Option<B
         }
     }
 
-    if lower.is_none() && upper.is_none() {
-        None
-    } else {
-        Some(Boundaries { lower, upper })
-    }
+    Boundaries { lower, upper }
 }
 
 fn generate_basic_value(inner_type: &FloatInnerType, kind: BasicValueKind) -> TokenStream {
     match kind {
-        BasicValueKind::Anything => quote!(u.arbitrary()?),
+        BasicValueKind::All => quote!(u.arbitrary()?),
         BasicValueKind::NotNaN => generate_not_nan_float(inner_type),
         BasicValueKind::Finite => generate_finite_float(inner_type),
     }
@@ -349,11 +335,11 @@ fn generate_not_nan_float(inner_type: &FloatInnerType) -> TokenStream {
 // Generates a block of code that uses arbitrary and deterministic mutations to find a value that
 // matches the given condition.
 // IMPORTANT: The condition must be something like check against NaN or infinity and should not be
-// a check against a range of values (otherwise it may loop almost forever).
+// a check against a range of values (otherwise it may loop forever).
 //
 // The generated code takes the following assumptions:
 // * There is variable `u` in the given context which is a value of `arbitrary::Unstructured`.
-// * `condition` is a good that does a check against variable `value` and returns a bool.
+// * `condition` is a closure that does a check against variable `value` and returns a bool.
 fn generate_float_with_condition(
     inner_type: &FloatInnerType,
     condition: TokenStream,
@@ -373,16 +359,18 @@ fn generate_float_with_condition(
                     // reach out for another value from arbitrary.
                     // Generally it must be more than enough, cause what we typically need is to avoid
                     // NaN and infinity.
-                    //
-                    // This returns [u8; 4] for f32 and [u8; 8] for f64
+
+                    // This returns
+                    // * [u8; 4] for f32
+                    // * [u8; 8] for f64
                     let mut bytes = original_value.to_be_bytes();
                     for i in 0..100 {
-                        // With every iteration we just modify one single byte by adding `i` value to
+                        // With every iteration we modify next single byte by adding `i` value to
                         // it.
                         let index = i % std::mem::size_of::<#inner_type>();
                         bytes[index] = bytes[index].wrapping_add((i % 256) as u8);
 
-                        // We try to convert the bytes back to float in both BE and NE formats and see
+                        // Try to convert the bytes back to float in both BE and NE formats and see
                         // if we get something what we need
                         let new_float_be = #inner_type::from_be_bytes(bytes);
                         if condition(new_float_be) {
