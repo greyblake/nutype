@@ -6,6 +6,7 @@ use nutype::nutype;
 #[nutype(derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord), validate(finite))]
 pub struct Width(f64);
 
+// Corrrect (test typos)
 fn main() {
     let raw_widths = vec![1.5, 1.4, 2.1, 1.8];
 

@@ -1,4 +1,4 @@
-all: fmt test-all clippy examples
+all: fmt test-all clippy examples typos
 
 test-all:
 	cargo test
@@ -28,3 +28,7 @@ clippy:
 
 examples:
   for example in `ls examples`; do cargo run --bin $example; done
+
+typos:
+    which typos >/dev/null || cargo install typos-cli
+    typos

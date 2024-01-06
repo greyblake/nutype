@@ -101,12 +101,19 @@ jobs:
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: clippy
 
       - name: Run examples
         run: |
           for example in $(ls ./examples/); do
             cargo run --bin $example
           done
+
+  typos:
+    name: Typos
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: typos-action
+        uses: crate-ci/typos@v1.17.0
+
