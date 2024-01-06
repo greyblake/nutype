@@ -60,6 +60,7 @@ pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType
     //     From<Type> for Inner
     quote! {
         impl ::core::convert::From<#type_name> for #inner_type {
+            #[inline]
             fn from(value: #type_name) -> Self {
                 value.into_inner()
             }
@@ -70,6 +71,7 @@ pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType
 pub fn gen_impl_trait_as_ref(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
     quote! {
         impl ::core::convert::AsRef<#inner_type> for #type_name {
+            #[inline]
             fn as_ref(&self) -> &#inner_type {
                 &self.0
             }
@@ -82,6 +84,7 @@ pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> 
         impl ::core::ops::Deref for #type_name {
             type Target = #inner_type;
 
+            #[inline]
             fn deref(&self) -> &Self::Target {
                 &self.0
             }
@@ -92,10 +95,12 @@ pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> 
 pub fn gen_impl_trait_display(type_name: &TypeName) -> TokenStream {
     quote! {
         impl ::core::fmt::Display for #type_name {
+            #[inline]
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 // A tiny wrapper function with trait boundary that improves error reporting.
                 // It makes it clear for the end-user that the inner type has to implement Display
                 // in order to derive display for the newtype.
+                #[inline]
                 fn display<T: ::core::fmt::Display>(f: &mut ::core::fmt::Formatter<'_>, val: &T) -> ::core::fmt::Result {
                     use ::core::fmt::Display;
                     val.fmt(f)
@@ -109,6 +114,7 @@ pub fn gen_impl_trait_display(type_name: &TypeName) -> TokenStream {
 pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens) -> TokenStream {
     quote! {
         impl ::core::borrow::Borrow<#borrowed_type> for #type_name {
+            #[inline]
             fn borrow(&self) -> &#borrowed_type {
                 &self.0
             }
@@ -119,6 +125,7 @@ pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens)
 pub fn gen_impl_trait_from(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
     quote! {
         impl ::core::convert::From<#inner_type> for #type_name {
+            #[inline]
             fn from(raw_value: #inner_type) -> Self {
                 Self::new(raw_value)
             }
@@ -139,6 +146,7 @@ pub fn gen_impl_trait_try_from(
                 impl ::core::convert::TryFrom<#inner_type> for #type_name {
                     type Error = #error_type_name;
 
+                    #[inline]
                     fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
                         Self::new(raw_value)
                     }
@@ -152,6 +160,7 @@ pub fn gen_impl_trait_try_from(
                 impl ::core::convert::TryFrom<#inner_type> for #type_name {
                     type Error = ::core::convert::Infallible;
 
+                    #[inline]
                     fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
                         Ok(Self::new(raw_value))
                     }
@@ -290,26 +299,27 @@ pub fn gen_impl_trait_default(
     default_value: impl ToTokens,
     has_validation: bool,
 ) -> TokenStream {
-    let default_implementation = if has_validation {
+    if has_validation {
         let tp = type_name.to_string();
         quote!(
-            Self::new(#default_value)
-                .unwrap_or_else(|err| {
-                    let tp = #tp;
-                    panic!("\nDefault value for type `{tp}` is invalid.\nERROR: {err:?}\n");
-                })
+            impl ::core::default::Default for #type_name {
+                fn default() -> Self {
+                    Self::new(#default_value)
+                        .unwrap_or_else(|err| {
+                            let tp = #tp;
+                            panic!("\nDefault value for type `{tp}` is invalid.\nERROR: {err:?}\n");
+                        })
+                }
+            }
         )
     } else {
         quote!(
-            Self::new(#default_value)
-        )
-    };
-
-    quote!(
-        impl ::core::default::Default for #type_name {
-            fn default() -> Self {
-                #default_implementation
+            impl ::core::default::Default for #type_name {
+                #[inline]
+                fn default() -> Self {
+                    Self::new(#default_value)
+                }
             }
-        }
-    )
+        )
+    }
 }
