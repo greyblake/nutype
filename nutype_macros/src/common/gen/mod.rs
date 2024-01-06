@@ -136,6 +136,7 @@ pub fn gen_reimports(
 pub fn gen_impl_into_inner(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
     quote! {
         impl #type_name {
+            #[inline]
             pub fn into_inner(self) -> #inner_type {
                 self.0
             }

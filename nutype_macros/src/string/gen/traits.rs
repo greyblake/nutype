@@ -212,6 +212,7 @@ fn gen_impl_from_str(
             impl core::str::FromStr for #type_name {
                 type Err = #error_type_name;
 
+                #[inline]
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     #type_name::new(raw_string)
                 }
@@ -222,6 +223,7 @@ fn gen_impl_from_str(
             impl core::str::FromStr for #type_name {
                 type Err = ::core::convert::Infallible;
 
+                #[inline]
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     Ok(#type_name::new(raw_string))
                 }
