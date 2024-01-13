@@ -108,15 +108,16 @@ impl GenerateNewtype for AnyNewtype {
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
-        _guard: &AnyGuard,
+        guard: &AnyGuard,
     ) -> Result<GeneratedTraits, syn::Error> {
-        Ok(gen_traits(
+        gen_traits(
             type_name,
             inner_type,
             maybe_error_type_name,
             traits,
             maybe_default_value,
-        ))
+            guard,
+        )
     }
 
     fn gen_tests(

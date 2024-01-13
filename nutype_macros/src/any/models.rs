@@ -48,6 +48,7 @@ pub enum AnyDeriveTrait {
     // External crates
     SerdeSerialize,
     SerdeDeserialize,
+    ArbitraryArbitrary,
 }
 
 impl TypeTrait for AnyDeriveTrait {
