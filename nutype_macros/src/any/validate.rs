@@ -94,11 +94,7 @@ fn to_any_derive_trait(
         DeriveTrait::SerdeSerialize => Ok(AnyDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(AnyDeriveTrait::SerdeDeserialize),
         DeriveTrait::Hash => Ok(AnyDeriveTrait::Hash),
-        DeriveTrait::ArbitraryArbitrary => {
-            // TODO: Allow deriving Arbitrary if there is no validation
-            let msg = "Deriving Arbitrary trait for any type is not yet possible";
-            Err(syn::Error::new(span, msg))
-        }
+        DeriveTrait::ArbitraryArbitrary => Ok(AnyDeriveTrait::ArbitraryArbitrary),
         DeriveTrait::SchemarsJsonSchema => {
             let msg =
                 format!("Deriving of trait `{tr:?}` is not (yet) supported for an arbitrary type");

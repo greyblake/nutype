@@ -1,10 +1,12 @@
+pub mod arbitrary;
+
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use std::collections::HashSet;
 
 use crate::{
     any::models::AnyDeriveTrait,
-    any::models::AnyInnerType,
+    any::models::{AnyGuard, AnyInnerType},
     common::{
         gen::traits::{
             gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
@@ -48,6 +50,9 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             }
             AnyDeriveTrait::SerdeDeserialize => {
                 AnyGeneratableTrait::Irregular(AnyIrregularTrait::SerdeDeserialize)
+            }
+            AnyDeriveTrait::ArbitraryArbitrary => {
+                AnyGeneratableTrait::Irregular(AnyIrregularTrait::ArbitraryArbitrary)
             }
         }
     }
@@ -97,6 +102,7 @@ enum AnyIrregularTrait {
     Default,
     SerdeSerialize,
     SerdeDeserialize,
+    ArbitraryArbitrary,
 }
 
 pub fn gen_traits(
@@ -105,7 +111,8 @@ pub fn gen_traits(
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<AnyDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
-) -> GeneratedTraits {
+    guard: &AnyGuard,
+) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
         irregular_traits,
@@ -123,12 +130,13 @@ pub fn gen_traits(
         maybe_error_type_name,
         irregular_traits,
         maybe_default_value,
-    );
+        guard,
+    )?;
 
-    GeneratedTraits {
+    Ok(GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
-    }
+    })
 }
 
 fn gen_implemented_traits(
@@ -137,23 +145,24 @@ fn gen_implemented_traits(
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<AnyIrregularTrait>,
     maybe_default_value: Option<syn::Expr>,
-) -> TokenStream {
+    guard: &AnyGuard,
+) -> Result<TokenStream, syn::Error> {
     impl_traits
         .iter()
         .map(|t| match t {
-            AnyIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, inner_type),
-            AnyIrregularTrait::From => gen_impl_trait_from(type_name, inner_type),
-            AnyIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type.clone()),
-            AnyIrregularTrait::Display => gen_impl_trait_display(type_name),
-            AnyIrregularTrait::Deref => gen_impl_trait_deref(type_name, inner_type),
-            AnyIrregularTrait::Borrow => gen_impl_trait_borrow(type_name, inner_type),
-            AnyIrregularTrait::FromStr => {
+            AnyIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, inner_type)),
+            AnyIrregularTrait::From => Ok(gen_impl_trait_from(type_name, inner_type)),
+            AnyIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type.clone())),
+            AnyIrregularTrait::Display => Ok(gen_impl_trait_display(type_name)),
+            AnyIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, inner_type)),
+            AnyIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),
+            AnyIrregularTrait::FromStr => Ok(
                 gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
-            }
-            AnyIrregularTrait::TryFrom => {
+            ),
+            AnyIrregularTrait::TryFrom => Ok(
                 gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
-            }
-            AnyIrregularTrait::Default => {
+            ),
+            AnyIrregularTrait::Default => Ok(
                 match maybe_default_value {
                     Some(ref default_value) => {
                         let has_validation = maybe_error_type_name.is_some();
@@ -165,13 +174,14 @@ fn gen_implemented_traits(
                         );
                     }
                 }
-            }
-            AnyIrregularTrait::SerdeSerialize => {
+            ),
+            AnyIrregularTrait::SerdeSerialize => Ok(
                 gen_impl_trait_serde_serialize(type_name)
-            }
-            AnyIrregularTrait::SerdeDeserialize => {
+            ),
+            AnyIrregularTrait::SerdeDeserialize => Ok(
                 gen_impl_trait_serde_deserialize(type_name, inner_type, maybe_error_type_name.as_ref())
-            }
+            ),
+            AnyIrregularTrait::ArbitraryArbitrary => arbitrary::gen_impl_trait_arbitrary(type_name, inner_type, guard),
         })
         .collect()
 }
