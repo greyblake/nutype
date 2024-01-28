@@ -383,10 +383,12 @@
 //!
 //! ## Feature flags
 //!
-//! * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
+//! * `arbitrary` - enables derive of [`arbitrary::Arbitrary`](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html).
 //! * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
-//! * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
 //! * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` and `lazy_static` within dependencies.
+//! * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
+//! * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
+//! * `std` - enabled by default. Use `default-features = false` to disable.
 //!
 //! ## Support Ukrainian military forces 🇺🇦
 //!
@@ -403,6 +405,9 @@
 //! Your contribution to the Ukrainian military force is a contribution to my calmness, so I can spend more time developing the project.
 //!
 //! Thank you.
+
+// Set `no_std` flag if `std` feature is disabled.
+#![cfg_attr(not(feature = "std"), no_std)]
 
 pub use nutype_macros::nutype;
 

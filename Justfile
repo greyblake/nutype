@@ -27,7 +27,18 @@ clippy:
 	cargo clippy -- -D warnings
 
 examples:
-  for example in `ls examples`; do cargo run --bin $example; done
+    #!/usr/bin/env bash
+    set -euxo pipefail
+    ROOT_DIR=$(pwd)
+    for EXAMPLE in `ls examples`; do
+        cd $ROOT_DIR/examples/$EXAMPLE;
+        if [[ "$EXAMPLE" == "no_std_example" ]]
+        then
+            cargo build
+        else
+            cargo run
+        fi
+    done
 
 typos:
     which typos >/dev/null || cargo install typos-cli

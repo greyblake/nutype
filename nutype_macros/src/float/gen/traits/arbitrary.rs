@@ -373,7 +373,7 @@ fn generate_float_with_condition(
                     for i in 0..1000 {
                         // With every iteration we modify next single byte by adding `i` value to
                         // it.
-                        let index = i % std::mem::size_of::<#inner_type>();
+                        let index = i % core::mem::size_of::<#inner_type>();
                         bytes[index] = bytes[index].wrapping_add((i % 256) as u8);
 
                         // Try to convert the bytes back to float in both BE and NE formats and see

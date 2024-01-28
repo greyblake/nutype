@@ -1,5 +1,6 @@
 ### v0.4.1 - xxxx-xx-xx
 
+* Support `no_std` ( the dependency needs to be declared as `nutype = { default-features = false }` )
 * Support integration with [`arbitrary`](https://crates.io/crates/arbitrary) crate (see `arbitrary` feature).
   * Support `Arbitrary` for integer types
   * Support `Arbitrary` for float types

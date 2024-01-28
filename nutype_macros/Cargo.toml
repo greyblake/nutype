@@ -30,6 +30,7 @@ urlencoding = "2.0"
 proc-macro = true
 
 [features]
+std = []
 serde = []
 schemars08 = []
 new_unchecked = []
