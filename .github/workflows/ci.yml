@@ -103,11 +103,20 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          target: thumbv7m-none-eabi   # Needed for no_std_example
 
       - name: Run examples
         run: |
-          for example in $(ls ./examples/); do
-            cargo run --bin $example
+          set -euxo pipefail
+          ROOT_DIR=$(pwd)
+          for EXAMPLE in `ls examples`; do
+            cd $ROOT_DIR/examples/$EXAMPLE;
+            if [[ "$EXAMPLE" == "no_std_example" ]]
+            then
+              cargo build
+            else
+              cargo run
+            fi
           done
 
   typos:

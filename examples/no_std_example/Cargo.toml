@@ -1,0 +1,12 @@
+[package]
+name = "no_std_example"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nutype = { path = "../../nutype", default-features = false }
+
+# Exclude this package from the common workspace, since it's no_std.
+[workspace]
