@@ -103,6 +103,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+          target: thumbv7m-none-eabi   # Needed for no_std_example
 
       - name: Run examples
         run: |
