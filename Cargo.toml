@@ -7,5 +7,16 @@ members = [
     "nutype_macros",
     "test_suite",
     "dummy",
-    "examples/*",
+
+    # All examples except "no_std_example" are tested in the test suite
+    "examples/any_arbitrary",
+    "examples/float_arbitrary",
+    "examples/float_sortable",
+    "examples/integer_arbitrary",
+    "examples/integer_bounded",
+    "examples/new_unchecked_example",
+    # "examples/no_std_example",
+    "examples/serde_complex",
+    "examples/string_bounded_len",
+    "examples/string_regex_email",
 ]

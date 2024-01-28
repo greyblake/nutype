@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 nutype = { path = "../../nutype", default-features = false }
+
+# Exclude this package from the common workspace, since it's no_std.
+[workspace]

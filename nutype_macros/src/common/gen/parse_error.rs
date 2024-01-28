@@ -1,3 +1,4 @@
+use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
@@ -55,11 +56,19 @@ pub fn gen_def_parse_error(
         }
     };
 
-    let impl_std_error = quote! {
-        impl ::std::error::Error for #parse_error_type_name {
-            fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
-                None
-            }
+    cfg_if! {
+        if #[cfg(feature = "std")] {
+            let impl_std_error = quote! {
+                impl ::std::error::Error for #parse_error_type_name {
+                    fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
+                        None
+                    }
+                }
+            };
+        } else {
+            // NOTE: There is no `::core::error::Error` yet in stable Rust.
+            // So for `no_std` we just don't implement `Error` trait.
+            let impl_std_error = quote! {};
         }
     };
 
