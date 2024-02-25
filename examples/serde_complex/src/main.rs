@@ -43,7 +43,10 @@ fn main() {
         "#;
         let res: Result<Product, _> = serde_json::from_str(json);
         let err = res.unwrap_err();
-        assert!(err.to_string().contains("empty, expected valid Name"));
+        assert_eq!(
+            err.to_string(),
+            "Name is empty. Expected valid Name at line 3 column 27"
+        );
     }
 
     {
@@ -57,7 +60,10 @@ fn main() {
         "#;
         let res: Result<Product, _> = serde_json::from_str(json);
         let err = res.unwrap_err();
-        assert!(err.to_string().contains("invalid, expected valid ImageUrl"));
+        assert_eq!(
+            err.to_string(),
+            "ImageUrl failed the predicate test. Expected valid ImageUrl at line 4 column 60"
+        );
     }
 
     {
@@ -71,7 +77,10 @@ fn main() {
         "#;
         let res: Result<Product, _> = serde_json::from_str(json);
         let err = res.unwrap_err();
-        assert!(err.to_string().contains("too small, expected valid Price"));
+        assert_eq!(
+            err.to_string(),
+            "Price is too small. The value must be greater than 0.0. Expected valid Price at line 6 column 13"
+        );
     }
 
     {

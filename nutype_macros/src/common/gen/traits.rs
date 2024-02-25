@@ -241,7 +241,7 @@ pub fn gen_impl_trait_serde_deserialize(
         quote! {
             #type_name::new(raw_value).map_err(|validation_error| {
                 // Add a hint about which type is causing the error,
-                let err_msg = format!("{validation_error}, expected valid {}", #type_name_str);
+                let err_msg = format!("{validation_error} Expected valid {}", #type_name_str);
                 <DE::Error as serde::de::Error>::custom(err_msg)
             })
         }
