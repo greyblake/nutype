@@ -15,7 +15,7 @@ pub fn gen_validation_error_type(
 ) -> TokenStream {
     let error_type_name = gen_error_type_name(type_name);
     let definition = gen_definition(&error_type_name, validators);
-    let impl_display_trait = gen_impl_display_trait(&error_type_name, validators);
+    let impl_display_trait = gen_impl_display_trait(type_name, &error_type_name, validators);
     let impl_error_trait = gen_impl_error_trait(&error_type_name);
 
     quote! {
@@ -58,24 +58,25 @@ fn gen_definition(error_type_name: &ErrorTypeName, validators: &[StringValidator
 }
 
 fn gen_impl_display_trait(
+    type_name: &TypeName,
     error_type_name: &ErrorTypeName,
     validators: &[StringValidator],
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
-        StringValidator::LenCharMax(_len) => quote! {
-             #error_type_name::LenCharMaxViolated => write!(f, "too long")
+        StringValidator::LenCharMax(len_char_max) => quote! {
+             #error_type_name::LenCharMaxViolated => write!(f, "{} is too long. The value length must be less than {:#?} character(s).", stringify!(#type_name), #len_char_max)
         },
-        StringValidator::LenCharMin(_len) => quote! {
-             #error_type_name::LenCharMinViolated => write!(f, "too short")
+        StringValidator::LenCharMin(len_char_min) => quote! {
+             #error_type_name::LenCharMinViolated => write!(f, "{} is too short. The value length must be more than {:#?} character(s).", stringify!(#type_name), #len_char_min)
         },
         StringValidator::NotEmpty => quote! {
-             #error_type_name::NotEmptyViolated => write!(f, "empty")
+             #error_type_name::NotEmptyViolated => write!(f, "{} is empty.", stringify!(#type_name))
         },
         StringValidator::Predicate(_) => quote! {
-             #error_type_name::PredicateViolated => write!(f, "invalid")
+             #error_type_name::PredicateViolated => write!(f, "{} failed the predicate test.", stringify!(#type_name))
         },
         StringValidator::Regex(_) => quote! {
-             #error_type_name::RegexViolated => write!(f, "regex violated")
+             #error_type_name::RegexViolated => write!(f, "{} violated the regular expression.", stringify!(#type_name))
         },
     });
 
