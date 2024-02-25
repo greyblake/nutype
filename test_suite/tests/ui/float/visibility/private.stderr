@@ -13,5 +13,5 @@ note: ...and refers to the struct `Percentage` which is defined here
   --> tests/ui/float/visibility/private.rs:4:5
    |
 4  |     #[nutype(sanitize(with = |n| n.clamp(0.0, 100.0)))]
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider importing it directly
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
    = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)

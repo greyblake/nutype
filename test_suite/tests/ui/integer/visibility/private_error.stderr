@@ -13,5 +13,5 @@ note: ...and refers to the enum `PercentageError` which is defined here
  --> tests/ui/integer/visibility/private_error.rs:4:5
   |
 4 |     #[nutype(validate(greater_or_equal = 0, less_or_equal = 100))]
-  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ consider importing it directly
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
   = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
