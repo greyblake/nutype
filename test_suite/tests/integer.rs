@@ -220,7 +220,10 @@ mod validators {
 
             let err = Age::try_from(17).unwrap_err();
 
-            assert_eq!(err.to_string(), "too small");
+            assert_eq!(
+                err.to_string(),
+                "Age is too small. The value must be greater or equal to 18."
+            );
         }
     }
 }
@@ -608,7 +611,10 @@ mod traits {
 
         // Unhappy path: validation error
         let err: AgeParseError = "101".parse::<Age>().unwrap_err();
-        assert_eq!(err.to_string(), "Failed to parse Age: too big");
+        assert_eq!(
+            err.to_string(),
+            "Failed to parse Age: Age is too big. The value must be less or equal to 99."
+        );
     }
 
     #[test]

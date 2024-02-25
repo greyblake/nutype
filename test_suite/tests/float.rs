@@ -253,7 +253,10 @@ mod validators {
 
             let err = Percentage::try_from(-0.1).unwrap_err();
 
-            assert_eq!(err.to_string(), "too small");
+            assert_eq!(
+                err.to_string(),
+                "Percentage is too small. The value must be greater or equal to 0.0."
+            );
         }
     }
 }
@@ -457,7 +460,10 @@ mod traits {
 
         // Unhappy path: validation error
         let err: DistParseError = "12.35".parse::<Dist>().unwrap_err();
-        assert_eq!(err.to_string(), "Failed to parse Dist: too big");
+        assert_eq!(
+            err.to_string(),
+            "Failed to parse Dist: Dist is too big. The value must be less than 12.34."
+        );
     }
 
     #[test]

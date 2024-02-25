@@ -200,7 +200,10 @@ mod traits {
 
             {
                 let err = "5,5".parse::<Position>().unwrap_err();
-                assert_eq!(err.to_string(), "Failed to parse Position: invalid");
+                assert_eq!(
+                    err.to_string(),
+                    "Failed to parse Position: Position failed the predicate test."
+                );
             }
         }
     }
@@ -284,7 +287,10 @@ mod traits {
 
                 {
                     let err = serde_json::from_str::<LinePoint>("{\"x\":7,\"y\":9}").unwrap_err();
-                    assert_eq!(err.to_string(), "invalid, expected valid LinePoint");
+                    assert_eq!(
+                        err.to_string(),
+                        "LinePoint failed the predicate test. Expected valid LinePoint"
+                    );
                 }
 
                 {
