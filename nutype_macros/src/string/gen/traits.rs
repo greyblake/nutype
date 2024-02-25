@@ -234,11 +234,11 @@ fn gen_impl_from_str(
 
 fn gen_impl_from_str_and_string(type_name: &TypeName) -> TokenStream {
     let impl_from_string = gen_impl_trait_from(type_name, quote!(String));
-    let impl_from_str = gen_impl_trait_from(type_name, quote!(&str));
+    // let impl_from_str = gen_impl_trait_from(type_name, quote!(&str));
 
     quote! {
         #impl_from_string
-        #impl_from_str
+        //#impl_from_str
     }
 }
 

@@ -65,6 +65,16 @@ pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType
                 value.into_inner()
             }
         }
+
+        // Alt implementation for Into without From.
+        // That works, but it breaks the symmetry between Into and From.
+        //
+        // impl ::core::convert::Into<#inner_type> for #type_name {
+        //     #[inline]
+        //     fn into(self) -> #inner_type {
+        //         self.0
+        //     }
+        // }
     }
 }
 
@@ -123,11 +133,17 @@ pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens)
 }
 
 pub fn gen_impl_trait_from(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+    dbg!(quote!(#inner_type).to_string());
+
     quote! {
-        impl ::core::convert::From<#inner_type> for #type_name {
+        impl<T> ::core::convert::From<T> for #type_name
+        where
+            #inner_type: ::core::convert::From<T>
+        {
             #[inline]
-            fn from(raw_value: #inner_type) -> Self {
-                Self::new(raw_value)
+            fn from(raw_value: T) -> Self {
+                let inner_value = #inner_type::from(raw_value);
+                Self::new(inner_value)
             }
         }
     }

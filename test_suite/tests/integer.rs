@@ -460,8 +460,14 @@ mod types {
         )]
         struct Amount(isize);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
-        assert_eq!(Amount::new(2001), Err(AmountError::LessOrEqualViolated));
+        assert_eq!(
+            Amount::new(999isize),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::new(2001isize),
+            Err(AmountError::LessOrEqualViolated)
+        );
         assert!(Amount::new(1000).is_ok());
         assert!(Amount::new(2000).is_ok());
     }
@@ -532,7 +538,7 @@ mod traits {
         #[nutype(derive(From))]
         pub struct Amount(u32);
 
-        let amount = Amount::from(350);
+        let amount = Amount::from(350u32);
         assert_eq!(amount.into_inner(), 350);
     }
 
