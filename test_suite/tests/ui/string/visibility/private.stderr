@@ -13,5 +13,5 @@ note: ...and refers to the struct `Email` which is defined here
   --> tests/ui/string/visibility/private.rs:4:5
    |
 4  |     #[nutype(sanitize(trim))]
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ consider importing it directly
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
    = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)

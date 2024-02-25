@@ -223,7 +223,7 @@ mod validators {
         #[nutype(validate(not_empty))]
         pub struct Email(String);
 
-        assert_eq!(EmailError::NotEmptyViolated.to_string(), "empty");
+        assert_eq!(EmailError::NotEmptyViolated.to_string(), "Email is empty.");
     }
 
     mod when_boundaries_defined_as_constants {
