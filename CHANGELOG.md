@@ -7,6 +7,7 @@
   * Support `Arbitrary` for any inner types
 * Ability to specify boundaries (`greater`, `greater_or_equal`, `less`, `less_or_equal`, `len_char_min`, `len_char_max`) with expressions or named constants.
 * Add `#[inline]` attribute to trivial functions
+* Improve error messages
 
 ### v0.4.0 - 2023-11-21
 * Support of arbitrary inner types with custom sanitizers and validators.
