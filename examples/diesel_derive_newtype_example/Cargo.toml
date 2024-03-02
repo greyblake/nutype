@@ -1,0 +1,11 @@
+[package]
+name = "diesel_derive_newtype_example"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+diesel-derive-newtype = "2.1.0"
+diesel = { version = "2.1.4", features = ["sqlite"], default-features = false }
+nutype = { path = "../../nutype", features = ["diesel-derive-newtype"] }

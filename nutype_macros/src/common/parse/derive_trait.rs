@@ -62,6 +62,15 @@ impl Parse for SpannedDeriveTrait {
                     }
                 }
             }
+            "DieselNewType" => {
+                cfg_if! {
+                    if #[cfg(feature = "diesel-derive-newtype")] {
+                        DeriveTrait::DieselNewType
+                    } else {
+                        return Err(syn::Error::new(ident.span(), "To derive DieselNewType, the feature `diesel-derive-newtype` of the crate `nutype` needs to be enabled."));
+                    }
+                }
+            }
             _ => {
                 return Err(syn::Error::new(
                     ident.span(),

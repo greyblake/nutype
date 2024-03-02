@@ -121,6 +121,9 @@ impl From<IntegerDeriveTrait> for IntegerGeneratableTrait {
             IntegerDeriveTrait::ArbitraryArbitrary => {
                 IntegerGeneratableTrait::Irregular(IntegerIrregularTrait::ArbitraryArbitrary)
             }
+            IntegerDeriveTrait::DieselNewType => {
+                IntegerGeneratableTrait::Transparent(IntegerTransparentTrait::DieselNewType)
+            }
         }
     }
 }
@@ -137,6 +140,7 @@ enum IntegerTransparentTrait {
     Ord,
     Hash,
     SchemarsJsonSchema,
+    DieselNewType,
 }
 
 /// A trait that can not be automatically derived and we need to generate
@@ -169,6 +173,7 @@ impl ToTokens for IntegerTransparentTrait {
             Self::Ord => quote!(Ord),
             Self::Hash => quote!(Hash),
             Self::SchemarsJsonSchema => quote!(::schemars::JsonSchema),
+            Self::DieselNewType => quote!(::diesel_derive_newtype::DieselNewType),
         };
         tokens.to_tokens(token_stream)
     }

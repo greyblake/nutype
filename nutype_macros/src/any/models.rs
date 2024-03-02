@@ -49,6 +49,7 @@ pub enum AnyDeriveTrait {
     SerdeSerialize,
     SerdeDeserialize,
     ArbitraryArbitrary,
+    DieselNewType,
 }
 
 impl TypeTrait for AnyDeriveTrait {

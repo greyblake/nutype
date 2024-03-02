@@ -54,6 +54,9 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::ArbitraryArbitrary => {
                 AnyGeneratableTrait::Irregular(AnyIrregularTrait::ArbitraryArbitrary)
             }
+            AnyDeriveTrait::DieselNewType => {
+                AnyGeneratableTrait::Transparent(AnyTransparentTrait::DieselNewType)
+            }
         }
     }
 }
@@ -69,6 +72,7 @@ enum AnyTransparentTrait {
     PartialOrd,
     Ord,
     Hash,
+    DieselNewType,
 }
 
 impl ToTokens for AnyTransparentTrait {
@@ -82,6 +86,7 @@ impl ToTokens for AnyTransparentTrait {
             Self::PartialOrd => quote!(PartialOrd),
             Self::Ord => quote!(Ord),
             Self::Hash => quote!(Hash),
+            Self::DieselNewType => quote!(::diesel_derive_newtype::DieselNewType),
         };
         tokens.to_tokens(token_stream)
     }

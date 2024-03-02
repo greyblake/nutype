@@ -172,6 +172,7 @@ fn to_string_derive_trait(
             let msg = "Deriving Arbitrary trait for string types is not yet implemented";
             Err(syn::Error::new(span, msg))
         }
+        DeriveTrait::DieselNewType => Ok(StringDeriveTrait::DieselNewType),
     }
 }
 

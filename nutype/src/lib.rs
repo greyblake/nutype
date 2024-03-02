@@ -384,6 +384,7 @@
 //! ## Feature flags
 //!
 //! * `arbitrary` - enables derive of [`arbitrary::Arbitrary`](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html).
+//! * `diesel_derive_newtype` - enables derive of [`diesel_derive_newtype::DieselNewType`](https://docs.rs/diesel-derive-newtype/latest/diesel_derive_newtype/).
 //! * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 //! * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` and `lazy_static` within dependencies.
 //! * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.

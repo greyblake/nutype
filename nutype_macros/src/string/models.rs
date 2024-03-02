@@ -75,6 +75,7 @@ pub enum StringDeriveTrait {
     SerdeDeserialize,
     SchemarsJsonSchema,
     // Arbitrary,
+    DieselNewType,
 }
 
 impl TypeTrait for StringDeriveTrait {

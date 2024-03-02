@@ -30,6 +30,7 @@ enum StringTransparentTrait {
     Ord,
     Hash,
     SchemarsJsonSchema,
+    DieselNewType,
 }
 
 /// A trait that can not be automatically derived and we need to generate
@@ -109,6 +110,9 @@ impl From<StringDeriveTrait> for StringGeneratableTrait {
             StringDeriveTrait::SchemarsJsonSchema => {
                 StringGeneratableTrait::Transparent(StringTransparentTrait::SchemarsJsonSchema)
             }
+            StringDeriveTrait::DieselNewType => {
+                StringGeneratableTrait::Transparent(StringTransparentTrait::DieselNewType)
+            }
         }
     }
 }
@@ -124,6 +128,7 @@ impl ToTokens for StringTransparentTrait {
             Self::Ord => quote!(Ord),
             Self::Hash => quote!(Hash),
             Self::SchemarsJsonSchema => quote!(::schemars::JsonSchema),
+            Self::DieselNewType => quote!(::diesel_derive_newtype::DieselNewType),
         };
         tokens.to_tokens(token_stream)
     }

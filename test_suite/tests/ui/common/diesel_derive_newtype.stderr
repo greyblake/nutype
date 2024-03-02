@@ -1,0 +1,5 @@
+error: To derive DieselNewType, the feature `diesel-derive-newtype` of the crate `nutype` needs to be enabled.
+ --> tests/ui/common/diesel_derive_newtype.rs:3:24
+  |
+3 | #[nutype(derive(Debug, DieselNewType))]
+  |                        ^^^^^^^^^^^^^

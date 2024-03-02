@@ -294,6 +294,9 @@ pub enum DeriveTrait {
 
     #[cfg_attr(not(feature = "arbitrary"), allow(dead_code))]
     ArbitraryArbitrary,
+
+    #[cfg_attr(not(feature = "diesel-derive-newtype"), allow(dead_code))]
+    DieselNewType,
 }
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;

@@ -781,3 +781,50 @@ mod derive_schemars_json_schema {
         let _schema = schema_for!(CustomerId);
     }
 }
+
+#[cfg(test)]
+#[cfg(feature = "diesel-derive-newtype")]
+mod derive_diesel_derive_newtype {
+    use super::*;
+    use diesel::dsl::sql;
+    use diesel::prelude::*;
+    use diesel::sqlite::SqliteConnection;
+    use test_suite::prepare_database_table_for_type;
+
+    #[test]
+    fn test_diesel_derive_newtype() {
+        table! {
+            diesel_derive_newtype_test {
+                id -> Integer,
+                value -> Integer,
+            }
+        }
+        let mut conn = prepare_database_table_for_type!(diesel_derive_newtype_test, "INTEGER");
+
+        #[nutype(derive(Debug, DieselNewType))]
+        pub struct IntegerValue(i32);
+
+        #[derive(Debug, Insertable, Queryable, Selectable)]
+        #[diesel(table_name = diesel_derive_newtype_test)]
+        pub struct DieselDeriveNewtypeTest {
+            pub id: i32,
+            pub value: IntegerValue,
+        }
+
+        let obj = DieselDeriveNewtypeTest {
+            id: 1,
+            value: IntegerValue::new(123),
+        };
+
+        diesel::insert_into(diesel_derive_newtype_test::table)
+            .values(&obj)
+            .execute(&mut conn)
+            .expect("Could not insert struct into database table");
+        let inserted_obj = diesel_derive_newtype_test::table
+            .select(DieselDeriveNewtypeTest::as_select())
+            .first(&mut conn)
+            .expect("Could not get struct from database table");
+
+        assert_eq!(inserted_obj.value.into_inner(), 123);
+    }
+}
