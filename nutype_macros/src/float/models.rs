@@ -64,6 +64,7 @@ pub enum FloatDeriveTrait {
     SerdeDeserialize,
     SchemarsJsonSchema,
     ArbitraryArbitrary,
+    DieselNewType,
 }
 
 impl TypeTrait for FloatDeriveTrait {

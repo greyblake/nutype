@@ -48,6 +48,12 @@ jobs:
           command: test
           args: --features schemars08
 
+      - name: cargo test --features nutype_test,diesel-derive-newtype
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features diesel-derive-newtype
+  
       - name: cargo test --all-features
         uses: actions-rs/cargo@v1
         with:
