@@ -162,19 +162,17 @@ fn gen_implemented_traits(
             AnyIrregularTrait::TryFrom => Ok(
                 gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref())
             ),
-            AnyIrregularTrait::Default => Ok(
-                match maybe_default_value {
-                    Some(ref default_value) => {
-                        let has_validation = maybe_error_type_name.is_some();
-                        gen_impl_trait_default(type_name, default_value, has_validation)
-                    }
-                    None => {
-                        panic!(
-                            "Default trait is derived for type {type_name}, but `default = ` is missing"
-                        );
-                    }
+            AnyIrregularTrait::Default => match maybe_default_value {
+                Some(ref default_value) => {
+                    let has_validation = maybe_error_type_name.is_some();
+                    Ok(gen_impl_trait_default(type_name, default_value, has_validation))
                 }
-            ),
+                None => {
+                    let span = proc_macro2::Span::call_site();
+                    let msg = format!("Trait `Default` is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro");
+                    Err(syn::Error::new(span, msg))
+                }
+            },
             AnyIrregularTrait::SerdeSerialize => Ok(
                 gen_impl_trait_serde_serialize(type_name)
             ),

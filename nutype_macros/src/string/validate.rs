@@ -167,11 +167,7 @@ fn to_string_derive_trait(
             }
         }
         DeriveTrait::TryFrom => Ok(StringDeriveTrait::TryFrom),
-        DeriveTrait::ArbitraryArbitrary => {
-            // TODO: Implement deriving Arbitrary
-            let msg = "Deriving Arbitrary trait for string types is not yet implemented";
-            Err(syn::Error::new(span, msg))
-        }
+        DeriveTrait::ArbitraryArbitrary => Ok(StringDeriveTrait::ArbitraryArbitrary),
     }
 }
 

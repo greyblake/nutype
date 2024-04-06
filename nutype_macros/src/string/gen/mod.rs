@@ -179,14 +179,15 @@ impl GenerateNewtype for StringNewtype {
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
-        _guard: &StringGuard,
+        guard: &StringGuard,
     ) -> Result<GeneratedTraits, syn::Error> {
-        Ok(gen_traits(
+        gen_traits(
             type_name,
             maybe_error_type_name,
             traits,
             maybe_default_value,
-        ))
+            guard,
+        )
     }
 
     fn gen_tests(
