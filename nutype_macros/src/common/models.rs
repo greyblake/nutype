@@ -1,4 +1,5 @@
 use kinded::Kinded;
+use std::ops::Add;
 use std::{collections::HashSet, fmt::Debug};
 
 use proc_macro2::{Span, TokenStream};
@@ -219,7 +220,7 @@ pub struct Attributes<G, DT> {
 
 /// Represents a value known at compile time or an expression.
 /// Knowing value at compile time allows to run some extra validations to prevent potential errors.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ValueOrExpr<T> {
     Value(T),
     Expr(syn::Expr),
@@ -235,6 +236,25 @@ impl<T: ToTokens> ToTokens for ValueOrExpr<T> {
                 expr.to_tokens(token_stream);
             }
         };
+    }
+}
+
+impl<T> Add<T> for ValueOrExpr<T>
+where
+    T: Add<T, Output = T> + ToTokens,
+{
+    type Output = ValueOrExpr<T>;
+
+    fn add(self, rhs: T) -> Self::Output {
+        match self {
+            Self::Value(lhs) => Self::Value(lhs + rhs),
+            Self::Expr(lhs) => {
+                let token_stream = quote!(#lhs + #rhs);
+                let expr = syn::parse2(token_stream)
+                    .expect("Failed to parse token stream in ValueOrExpr::add");
+                Self::Expr(expr)
+            }
+        }
     }
 }
 

@@ -1,3 +1,5 @@
+pub mod arbitrary;
+
 use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
@@ -14,7 +16,7 @@ use crate::{
         },
         models::{ErrorTypeName, TypeName},
     },
-    string::models::{StringDeriveTrait, StringInnerType},
+    string::models::{StringDeriveTrait, StringGuard, StringInnerType},
 };
 
 type StringGeneratableTrait = GeneratableTrait<StringTransparentTrait, StringIrregularTrait>;
@@ -47,6 +49,7 @@ enum StringIrregularTrait {
     Default,
     SerdeSerialize,
     SerdeDeserialize,
+    ArbitraryArbitrary,
 }
 
 impl From<StringDeriveTrait> for StringGeneratableTrait {
@@ -109,6 +112,9 @@ impl From<StringDeriveTrait> for StringGeneratableTrait {
             StringDeriveTrait::SchemarsJsonSchema => {
                 StringGeneratableTrait::Transparent(StringTransparentTrait::SchemarsJsonSchema)
             }
+            StringDeriveTrait::ArbitraryArbitrary => {
+                StringGeneratableTrait::Irregular(StringIrregularTrait::ArbitraryArbitrary)
+            }
         }
     }
 }
@@ -134,7 +140,8 @@ pub fn gen_traits(
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<StringDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
-) -> GeneratedTraits {
+    guard: &StringGuard,
+) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
         irregular_traits,
@@ -151,12 +158,13 @@ pub fn gen_traits(
         maybe_error_type_name,
         maybe_default_value,
         irregular_traits,
-    );
+        guard,
+    )?;
 
-    GeneratedTraits {
+    Ok(GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
-    }
+    })
 }
 
 fn gen_implemented_traits(
@@ -164,41 +172,49 @@ fn gen_implemented_traits(
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<StringIrregularTrait>,
-) -> TokenStream {
+    guard: &StringGuard,
+) -> Result<TokenStream, syn::Error> {
     let inner_type = StringInnerType;
 
     impl_traits
         .iter()
         .map(|t| match t {
-            StringIrregularTrait::AsRef => gen_impl_trait_as_ref(type_name, quote!(str)),
-            StringIrregularTrait::Deref => gen_impl_trait_deref(type_name, quote!(String)),
+            StringIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, quote!(str))),
+            StringIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, quote!(String))),
             StringIrregularTrait::FromStr => {
-                gen_impl_from_str(type_name, maybe_error_type_name.as_ref())
+                Ok(gen_impl_from_str(type_name, maybe_error_type_name.as_ref()))
             }
-            StringIrregularTrait::From => gen_impl_from_str_and_string(type_name),
-            StringIrregularTrait::Into => gen_impl_trait_into(type_name, inner_type),
+            StringIrregularTrait::From => Ok(gen_impl_from_str_and_string(type_name)),
+            StringIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type)),
             StringIrregularTrait::TryFrom => {
-                gen_impl_try_from(type_name, maybe_error_type_name.as_ref())
+                Ok(gen_impl_try_from(type_name, maybe_error_type_name.as_ref()))
             }
-            StringIrregularTrait::Borrow => gen_impl_borrow_str_and_string(type_name),
-            StringIrregularTrait::Display => gen_impl_trait_display(type_name),
+            StringIrregularTrait::Borrow => Ok(gen_impl_borrow_str_and_string(type_name)),
+            StringIrregularTrait::Display => Ok(gen_impl_trait_display(type_name)),
             StringIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {
                     let has_validation = maybe_error_type_name.is_some();
-                    gen_impl_trait_default(type_name, default_value, has_validation)
+                    Ok(gen_impl_trait_default(
+                        type_name,
+                        default_value,
+                        has_validation,
+                    ))
                 }
                 None => {
-                    panic!(
-                        "Default trait is derived for type {type_name}, but `default = ` is missing"
-                    );
+                    let span = proc_macro2::Span::call_site();
+                    let msg = format!("Trait `Default` is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro");
+                    Err(syn::Error::new(span, msg))
                 }
             },
-            StringIrregularTrait::SerdeSerialize => gen_impl_trait_serde_serialize(type_name),
-            StringIrregularTrait::SerdeDeserialize => gen_impl_trait_serde_deserialize(
+            StringIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name)),
+            StringIrregularTrait::SerdeDeserialize => Ok(gen_impl_trait_serde_deserialize(
                 type_name,
                 inner_type,
                 maybe_error_type_name.as_ref(),
-            ),
+            )),
+            StringIrregularTrait::ArbitraryArbitrary => {
+                arbitrary::gen_impl_trait_arbitrary(type_name, guard)
+            }
         })
         .collect()
 }

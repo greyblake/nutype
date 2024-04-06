@@ -16,7 +16,7 @@ name = "any_arbitrary"
 version = "0.1.0"
 dependencies = [
  "arbitrary",
- "arbtest",
+ "arbtest 0.2.0",
  "nutype",
 ]
 
@@ -34,6 +34,15 @@ name = "arbtest"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d48cee94156b8405b421abf4dc77852a150448f2ece19293238693aa316c75ab"
+dependencies = [
+ "arbitrary",
+]
+
+[[package]]
+name = "arbtest"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23909d5fb517fac2a8a4c887e847dbe41dd22ec46914586f5727980d0a193fdc"
 dependencies = [
  "arbitrary",
 ]
@@ -110,6 +119,7 @@ checksum = "210ec60ae7d710bed8683e333e9d2855a8a56a3e9892b38bad3bb0d4d29b0d5e"
 name = "dummy"
 version = "0.1.0"
 dependencies = [
+ "arbitrary",
  "lazy_static",
  "nutype",
  "once_cell",
@@ -131,7 +141,7 @@ name = "float_arbitrary"
 version = "0.1.0"
 dependencies = [
  "arbitrary",
- "arbtest",
+ "arbtest 0.2.0",
  "nutype",
 ]
 
@@ -153,7 +163,7 @@ name = "integer_arbitrary"
 version = "0.1.0"
 dependencies = [
  "arbitrary",
- "arbtest",
+ "arbtest 0.2.0",
  "nutype",
 ]
 
@@ -414,6 +424,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "string_arbitrary"
+version = "0.1.0"
+dependencies = [
+ "arbitrary",
+ "arbtest 0.3.1",
+ "nutype",
+]
+
+[[package]]
 name = "string_bounded_len"
 version = "0.1.0"
 dependencies = [
@@ -465,7 +484,7 @@ name = "test_suite"
 version = "0.1.0"
 dependencies = [
  "arbitrary",
- "arbtest",
+ "arbtest 0.2.0",
  "lazy_static",
  "nutype",
  "once_cell",
