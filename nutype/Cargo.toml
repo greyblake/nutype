@@ -1,6 +1,6 @@
 [package]
 name = "nutype"
-version = "0.4.1-beta.1"
+version = "0.4.1"
 authors = ["Serhii Potapov <blake131313@gmail.com>"]
 edition = "2021"
 description = "The newtype with guarantees."
@@ -15,7 +15,7 @@ categories = ["data-structures", "rust-patterns"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nutype_macros = { version = "0.4.1-beta.1", path = "../nutype_macros" }
+nutype_macros = { version = "0.4.1", path = "../nutype_macros" }
 
 [features]
 default = ["std"]

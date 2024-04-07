@@ -1,11 +1,11 @@
-### v0.4.1 - xxxx-xx-xx
+### v0.4.1 - 2024-04-07
 
 * Support `no_std` ( the dependency needs to be declared as `nutype = { default-features = false }` )
 * Support integration with [`arbitrary`](https://crates.io/crates/arbitrary) crate (see `arbitrary` feature).
   * Support `Arbitrary` for integer types
   * Support `Arbitrary` for float types
   * Support `Arbitrary` for any inner types
-* Ability to specify boundaries (`greater`, `greater_or_equal`, `less`, `less_or_equal`, `len_char_min`, `len_char_max`) with expressions or named constants.
+* Possibility to specify boundaries (`greater`, `greater_or_equal`, `less`, `less_or_equal`, `len_char_min`, `len_char_max`) with expressions or named constants.
 * Add `#[inline]` attribute to trivial functions
 * Improve error messages
 
