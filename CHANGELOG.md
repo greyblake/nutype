@@ -1,4 +1,4 @@
-### v0.4.1 - 2024-04-07
+### v0.4.2 - 2024-04-07
 
 * Support `no_std` ( the dependency needs to be declared as `nutype = { default-features = false }` )
 * Support integration with [`arbitrary`](https://crates.io/crates/arbitrary) crate (see `arbitrary` feature).
@@ -9,6 +9,10 @@
 * Possibility to specify boundaries (`greater`, `greater_or_equal`, `less`, `less_or_equal`, `len_char_min`, `len_char_max`) with expressions or named constants.
 * Add `#[inline]` attribute to trivial functions
 * Improve error messages
+
+### v0.4.1 - 2024-04-07
+
+* Failed release. Includes everything from v0.4.2 except support of `Arbitrary` for `String` based types.
 
 ### v0.4.0 - 2023-11-21
 * Support of arbitrary inner types with custom sanitizers and validators.
