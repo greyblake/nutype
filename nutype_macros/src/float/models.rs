@@ -75,9 +75,7 @@ impl TypeTrait for FloatDeriveTrait {
 pub type FloatRawGuard<T> = RawGuard<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
 pub type FloatGuard<T> = Guard<FloatSanitizer<T>, FloatValidator<T>>;
 
-pub trait FloatType {
-    fn float_inner_type() -> FloatInnerType;
-}
+pub trait FloatType {}
 
 macro_rules! define_float_inner_type {
     ($($tp:ty => $variant:ident),*) => {
@@ -88,9 +86,6 @@ macro_rules! define_float_inner_type {
 
         $(
             impl FloatType for $tp {
-                fn float_inner_type() -> FloatInnerType {
-                    FloatInnerType::$variant
-                }
             }
         )*
 

@@ -75,9 +75,7 @@ impl TypeTrait for IntegerDeriveTrait {
 pub type IntegerRawGuard<T> = RawGuard<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;
 pub type IntegerGuard<T> = Guard<IntegerSanitizer<T>, IntegerValidator<T>>;
 
-pub trait IntegerType {
-    fn integer_inner_type() -> IntegerInnerType;
-}
+pub trait IntegerType {}
 
 macro_rules! define_integer_inner_type {
     ($($tp:ty => $variant:ident),*) => {
@@ -88,9 +86,6 @@ macro_rules! define_integer_inner_type {
 
         $(
             impl IntegerType for $tp {
-                fn integer_inner_type() -> IntegerInnerType {
-                    IntegerInnerType::$variant
-                }
             }
         )*
 
