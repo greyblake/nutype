@@ -53,7 +53,7 @@ impl GenerateNewtype for AnyNewtype {
             .collect();
 
         quote!(
-            fn sanitize(mut value: #inner_type) -> #inner_type {
+            fn __sanitize__(mut value: #inner_type) -> #inner_type {
                 #transformations
                 value
             }
@@ -88,7 +88,7 @@ impl GenerateNewtype for AnyNewtype {
             .collect();
 
         quote!(
-            fn validate<'a>(val: &'a #inner_type) -> ::core::result::Result<(), #error_name> {
+            fn __validate__<'a>(val: &'a #inner_type) -> ::core::result::Result<(), #error_name> {
                 #validations
                 Ok(())
             }

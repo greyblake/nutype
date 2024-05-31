@@ -22,7 +22,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
         data,
         vis,
         ident: type_name,
-        generics: _,
+        generics,
     } = input;
 
     let type_name = TypeName::new(type_name);
@@ -100,6 +100,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
     Ok(Meta {
         doc_attrs,
         type_name,
+        generics,
         inner_type,
         vis,
     })

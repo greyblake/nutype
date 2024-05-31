@@ -20,7 +20,7 @@ use crate::common::{
 };
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
 use quote::{format_ident, quote, ToTokens};
-use syn::Visibility;
+use syn::{Generics, Visibility};
 
 /// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
 /// the expected closure pattern.
@@ -133,9 +133,13 @@ pub fn gen_reimports(
     }
 }
 
-pub fn gen_impl_into_inner(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_into_inner(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl ToTokens,
+) -> TokenStream {
     quote! {
-        impl #type_name {
+        impl #generics #type_name #generics {
             #[inline]
             pub fn into_inner(self) -> #inner_type {
                 self.0
@@ -187,14 +191,15 @@ pub trait GenerateNewtype {
 
     fn gen_new_with_validation(
         type_name: &TypeName,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
         validators: &[Self::Validator],
     ) -> TokenStream {
-        let sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
+        let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
         let validation_error = Self::gen_validation_error_type(type_name, validators);
         let error_type_name = gen_error_type_name(type_name);
-        let validate = Self::gen_fn_validate(inner_type, type_name, validators);
+        let fn_validate = Self::gen_fn_validate(inner_type, type_name, validators);
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
             (
@@ -208,29 +213,30 @@ pub trait GenerateNewtype {
         quote!(
             #validation_error
 
-            impl #type_name {
+            impl #generics #type_name #generics {
                 pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
-                    // Keep sanitize() and validate() within new() so they do not overlap with outer
-                    // scope imported with `use super::*`.
-                    #sanitize
-                    #validate
-
                     #convert_raw_value_if_necessary
 
-                    let sanitized_value: #inner_type = sanitize(raw_value);
-                    validate(&sanitized_value)?;
+                    let sanitized_value: #inner_type = Self::__sanitize__(raw_value);
+                    Self::__validate__(&sanitized_value)?;
                     Ok(#type_name(sanitized_value))
                 }
+
+                // Definite associated private functions __sanitize__() and __validate__() with underscores so they do not overlap with outer
+                // scope imported with `use super::*`.
+                #fn_sanitize
+                #fn_validate
             }
         )
     }
 
     fn gen_new_without_validation(
         type_name: &TypeName,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
     ) -> TokenStream {
-        let sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
+        let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
             (
@@ -242,34 +248,37 @@ pub trait GenerateNewtype {
         };
 
         quote!(
-            impl #type_name {
+            impl #generics #type_name #generics {
                 pub fn new(raw_value: #input_type) -> Self {
-                    #sanitize
-
                     #convert_raw_value_if_necessary
-
-                    Self(sanitize(raw_value))
+                    Self(Self::__sanitize__(raw_value))
                 }
+                // Definite associated private function __sanitize__() with underscores so they do not overlap with outer
+                // scope imported with `use super::*`.
+                #fn_sanitize
             }
         )
     }
 
     fn gen_implementation(
         type_name: &TypeName,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         new_unchecked: NewUnchecked,
     ) -> TokenStream {
         let impl_new = match guard {
             Guard::WithoutValidation { sanitizers } => {
-                Self::gen_new_without_validation(type_name, inner_type, sanitizers)
+                Self::gen_new_without_validation(type_name, generics, inner_type, sanitizers)
             }
             Guard::WithValidation {
                 sanitizers,
                 validators,
-            } => Self::gen_new_with_validation(type_name, inner_type, sanitizers, validators),
+            } => Self::gen_new_with_validation(
+                type_name, generics, inner_type, sanitizers, validators,
+            ),
         };
-        let impl_into_inner = gen_impl_into_inner(type_name, inner_type);
+        let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type);
         let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
 
         quote! {
@@ -296,11 +305,12 @@ pub trait GenerateNewtype {
             new_unchecked,
             maybe_default_value,
             inner_type,
+            generics,
         } = params;
 
         let module_name = gen_module_name_for_type(&type_name);
         let implementation =
-            Self::gen_implementation(&type_name, &inner_type, &guard, new_unchecked);
+            Self::gen_implementation(&type_name, &generics, &inner_type, &guard, new_unchecked);
 
         let maybe_error_type_name: Option<ErrorTypeName> = match guard {
             Guard::WithoutValidation { .. } => None,
@@ -349,7 +359,7 @@ pub trait GenerateNewtype {
 
                 #(#doc_attrs)*
                 #derive_transparent_traits
-                pub struct #type_name(#inner_type);
+                pub struct #type_name #generics(#inner_type);
 
                 #implementation
                 #implement_traits

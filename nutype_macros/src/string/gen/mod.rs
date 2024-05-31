@@ -71,7 +71,7 @@ impl GenerateNewtype for StringNewtype {
             .collect();
 
         quote!(
-            fn sanitize(value: String) -> String {
+            fn __sanitize__(value: String) -> String {
                 #transformations
                 value
             }
@@ -158,7 +158,7 @@ impl GenerateNewtype for StringNewtype {
         };
 
         quote!(
-            fn validate(val: &str) -> ::core::result::Result<(), #error_name> {
+            fn __validate__(val: &str) -> ::core::result::Result<(), #error_name> {
                 #chars_count_if_required
                 #validations
                 Ok(())

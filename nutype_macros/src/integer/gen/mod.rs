@@ -55,7 +55,7 @@ where
             .collect();
 
         quote!(
-            fn sanitize(mut value: #inner_type) -> #inner_type {
+            fn __sanitize__(mut value: #inner_type) -> #inner_type {
                 #transformations
                 value
             }
@@ -111,7 +111,7 @@ where
             .collect();
 
         quote!(
-            fn validate(val: &#inner_type) -> ::core::result::Result<(), #error_name> {
+            fn __validate__(val: &#inner_type) -> ::core::result::Result<(), #error_name> {
                 let val = *val;
                 #validations
                 Ok(())

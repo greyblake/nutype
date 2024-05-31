@@ -1,10 +1,9 @@
 use nutype::nutype;
 
 #[nutype(
-    validate(predicate = |v| v),
-    derive(Default),
-    default = true
+    sanitize(with = |v| v),
+    validate(predicate = |v| v.len() > 0)
 )]
-pub struct TestData(bool);
+struct NonEmptyVec<T>(Vec<T>);
 
 fn main() {}
