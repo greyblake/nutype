@@ -382,3 +382,104 @@ mod new_unchecked {
         assert_eq!(line_point.into_inner(), Point::new(3, 4));
     }
 }
+
+#[cfg(test)]
+mod with_generics {
+    use super::*;
+
+    #[test]
+    fn test_generic_with_validate() {
+        #[nutype(
+            validate(predicate = |v| !v.is_empty()),
+            derive(Debug)
+        )]
+        struct NonEmptyVec<T>(Vec<T>);
+
+        {
+            let vec = NonEmptyVec::new(vec![1, 2, 3]).unwrap();
+            assert_eq!(vec.into_inner(), vec![1, 2, 3]);
+        }
+
+        {
+            let vec = NonEmptyVec::new(vec![5]).unwrap();
+            assert_eq!(vec.into_inner(), vec![5]);
+        }
+
+        {
+            let vec: Vec<u8> = vec![];
+            let err = NonEmptyVec::new(vec).unwrap_err();
+            assert_eq!(err, NonEmptyVecError::PredicateViolated);
+        }
+    }
+
+    #[test]
+    fn test_generic_with_sanitize() {
+        #[nutype(
+            sanitize(with = |mut v| { v.truncate(2); v }),
+            derive(Debug)
+        )]
+        struct UpToTwo<T>(Vec<T>);
+
+        {
+            let vec = UpToTwo::new(vec![1, 2, 3]);
+            assert_eq!(vec.into_inner(), vec![1, 2]);
+        }
+
+        {
+            let vec = UpToTwo::new(vec![5]);
+            assert_eq!(vec.into_inner(), vec![5]);
+        }
+    }
+
+    #[test]
+    fn test_generic_with_sanitize_and_validate() {
+        #[nutype(
+            sanitize(with = |mut v| { v.truncate(2); v }),
+            validate(predicate = |v| !v.is_empty()),
+            derive(Debug)
+        )]
+        struct OneOrTwo<T>(Vec<T>);
+
+        {
+            let vec = OneOrTwo::new(vec![1, 2, 3]).unwrap();
+            assert_eq!(vec.into_inner(), vec![1, 2]);
+        }
+
+        {
+            let vec = OneOrTwo::new(vec![5]).unwrap();
+            assert_eq!(vec.into_inner(), vec![5]);
+        }
+
+        {
+            let vec: Vec<u8> = vec![];
+            let err = OneOrTwo::new(vec).unwrap_err();
+            assert_eq!(err, OneOrTwoError::PredicateViolated);
+        }
+    }
+
+    // TODO
+    // #[test]
+    // fn test_generic_with_boundaries_and_sanitize() {
+    // #[nutype(
+    //     sanitize(with = |v| { v.sort(); v }),
+    //     derive(Debug)
+    // )]
+    // struct SortedVec<T: Ord>(Vec<T>);
+
+    // {
+    //     let vec = NonEmptyVec::new(vec![1, 2, 3]).unwrap();
+    //     assert_eq!(vec.into_inner(), vec![1, 2, 3]);
+    // }
+
+    // {
+    //     let vec = NonEmptyVec::new(vec![5]).unwrap();
+    //     assert_eq!(vec.into_inner(), vec![5]);
+    // }
+
+    // {
+    //     let vec: Vec<u8> = vec![];
+    //     let err = NonEmptyVec::new(vec).unwrap_err();
+    //     assert_eq!(err, NonEmptyVecError::PredicateViolated);
+    // }
+    // }
+}

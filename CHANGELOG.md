@@ -1,3 +1,8 @@
+### v0.x.x - 2024-xx-xx
+
+* Support newtypes with generics
+
+
 ### v0.4.2 - 2024-04-07
 
 * Support `no_std` ( the dependency needs to be declared as `nutype = { default-features = false }` )
