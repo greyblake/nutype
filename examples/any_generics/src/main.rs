@@ -9,7 +9,7 @@ struct NotEmpty<T>(Vec<T>);
 
 #[nutype(
     derive(Debug),
-    validate(predicate = |s| s.len() > 3),
+    validate(predicate = |s| s.len() >= 3),
 )]
 struct Clarabelle<'b>(Cow<'b, str>);
 
