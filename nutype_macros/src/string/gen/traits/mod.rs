@@ -267,9 +267,11 @@ fn gen_impl_try_from(
     type_name: &TypeName,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
+    let generics = Generics::default();
     let impl_try_from_string =
-        gen_impl_trait_try_from(type_name, quote!(String), maybe_error_type_name);
-    let impl_try_from_str = gen_impl_trait_try_from(type_name, quote!(&str), maybe_error_type_name);
+        gen_impl_trait_try_from(type_name, &generics, quote!(String), maybe_error_type_name);
+    let impl_try_from_str =
+        gen_impl_trait_try_from(type_name, &generics, quote!(&str), maybe_error_type_name);
 
     quote! {
         #impl_try_from_string

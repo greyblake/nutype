@@ -20,12 +20,12 @@ struct NotEmpty<T>(Vec<T>);
 
     // TODO
     // AsRef,
+    // FromStr,
 
     Into,
     From,
     Deref,
     Borrow,
-    // FromStr,
     // TryFrom,
     // Default,
 

@@ -152,6 +152,7 @@ pub fn gen_impl_trait_from(
 
 pub fn gen_impl_trait_try_from(
     type_name: &TypeName,
+    generics: &Generics,
     inner_type: impl ToTokens,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
@@ -160,11 +161,11 @@ pub fn gen_impl_trait_try_from(
             // The case when there are validation
             //
             quote! {
-                impl ::core::convert::TryFrom<#inner_type> for #type_name {
+                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics {
                     type Error = #error_type_name;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> Result<#type_name #generics, Self::Error> {
                         Self::new(raw_value)
                     }
                 }
@@ -174,11 +175,11 @@ pub fn gen_impl_trait_try_from(
             // The case when there are no validation
             //
             quote! {
-                impl ::core::convert::TryFrom<#inner_type> for #type_name {
+                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics {
                     type Error = ::core::convert::Infallible;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> Result<#type_name #generics, Self::Error> {
                         Ok(Self::new(raw_value))
                     }
                 }
