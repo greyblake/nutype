@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use crate::common::models::{ErrorTypeName, InnerType, TypeName};
 
@@ -51,7 +52,11 @@ where
     }
 }
 
-pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType>) -> TokenStream {
+pub fn gen_impl_trait_into(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl Into<InnerType>,
+) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
 
     // NOTE: We're getting blank implementation of
@@ -59,9 +64,9 @@ pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType
     // by implementing
     //     From<Type> for Inner
     quote! {
-        impl ::core::convert::From<#type_name> for #inner_type {
+        impl #generics ::core::convert::From<#type_name #generics> for #inner_type {
             #[inline]
-            fn from(value: #type_name) -> Self {
+            fn from(value: #type_name #generics) -> Self {
                 value.into_inner()
             }
         }
@@ -79,9 +84,13 @@ pub fn gen_impl_trait_as_ref(type_name: &TypeName, inner_type: impl ToTokens) ->
     }
 }
 
-pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_deref(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl ToTokens,
+) -> TokenStream {
     quote! {
-        impl ::core::ops::Deref for #type_name {
+        impl #generics ::core::ops::Deref for #type_name #generics {
             type Target = #inner_type;
 
             #[inline]
@@ -92,9 +101,9 @@ pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> 
     }
 }
 
-pub fn gen_impl_trait_display(type_name: &TypeName) -> TokenStream {
+pub fn gen_impl_trait_display(type_name: &TypeName, generics: &Generics) -> TokenStream {
     quote! {
-        impl ::core::fmt::Display for #type_name {
+        impl #generics ::core::fmt::Display for #type_name #generics {
             #[inline]
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 // A tiny wrapper function with trait boundary that improves error reporting.
@@ -111,9 +120,13 @@ pub fn gen_impl_trait_display(type_name: &TypeName) -> TokenStream {
     }
 }
 
-pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_borrow(
+    type_name: &TypeName,
+    generics: &Generics,
+    borrowed_type: impl ToTokens,
+) -> TokenStream {
     quote! {
-        impl ::core::borrow::Borrow<#borrowed_type> for #type_name {
+        impl #generics ::core::borrow::Borrow<#borrowed_type> for #type_name #generics {
             #[inline]
             fn borrow(&self) -> &#borrowed_type {
                 &self.0
@@ -122,9 +135,13 @@ pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens)
     }
 }
 
-pub fn gen_impl_trait_from(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_from(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl ToTokens,
+) -> TokenStream {
     quote! {
-        impl ::core::convert::From<#inner_type> for #type_name {
+        impl #generics ::core::convert::From<#inner_type> for #type_name #generics {
             #[inline]
             fn from(raw_value: #inner_type) -> Self {
                 Self::new(raw_value)
@@ -135,6 +152,7 @@ pub fn gen_impl_trait_from(type_name: &TypeName, inner_type: impl ToTokens) -> T
 
 pub fn gen_impl_trait_try_from(
     type_name: &TypeName,
+    generics: &Generics,
     inner_type: impl ToTokens,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
@@ -143,11 +161,11 @@ pub fn gen_impl_trait_try_from(
             // The case when there are validation
             //
             quote! {
-                impl ::core::convert::TryFrom<#inner_type> for #type_name {
+                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics {
                     type Error = #error_type_name;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> Result<#type_name #generics, Self::Error> {
                         Self::new(raw_value)
                     }
                 }
@@ -157,11 +175,11 @@ pub fn gen_impl_trait_try_from(
             // The case when there are no validation
             //
             quote! {
-                impl ::core::convert::TryFrom<#inner_type> for #type_name {
+                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics {
                     type Error = ::core::convert::Infallible;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> Result<#type_name, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> Result<#type_name #generics, Self::Error> {
                         Ok(Self::new(raw_value))
                     }
                 }

@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use crate::{
     common::{
@@ -137,6 +138,7 @@ impl ToTokens for StringTransparentTrait {
 
 pub fn gen_traits(
     type_name: &TypeName,
+    generics: &Generics,
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<StringDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
@@ -155,6 +157,7 @@ pub fn gen_traits(
 
     let implement_traits = gen_implemented_traits(
         type_name,
+        generics,
         maybe_error_type_name,
         maybe_default_value,
         irregular_traits,
@@ -169,6 +172,7 @@ pub fn gen_traits(
 
 fn gen_implemented_traits(
     type_name: &TypeName,
+    generics: &Generics,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<StringIrregularTrait>,
@@ -180,17 +184,17 @@ fn gen_implemented_traits(
         .iter()
         .map(|t| match t {
             StringIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, quote!(str))),
-            StringIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, quote!(String))),
+            StringIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, quote!(String))),
             StringIrregularTrait::FromStr => {
                 Ok(gen_impl_from_str(type_name, maybe_error_type_name.as_ref()))
             }
             StringIrregularTrait::From => Ok(gen_impl_from_str_and_string(type_name)),
-            StringIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type)),
+            StringIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, &Generics::default(), inner_type)),
             StringIrregularTrait::TryFrom => {
                 Ok(gen_impl_try_from(type_name, maybe_error_type_name.as_ref()))
             }
             StringIrregularTrait::Borrow => Ok(gen_impl_borrow_str_and_string(type_name)),
-            StringIrregularTrait::Display => Ok(gen_impl_trait_display(type_name)),
+            StringIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, &Generics::default())),
             StringIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {
                     let has_validation = maybe_error_type_name.is_some();
@@ -249,8 +253,9 @@ fn gen_impl_from_str(
 }
 
 fn gen_impl_from_str_and_string(type_name: &TypeName) -> TokenStream {
-    let impl_from_string = gen_impl_trait_from(type_name, quote!(String));
-    let impl_from_str = gen_impl_trait_from(type_name, quote!(&str));
+    let generics = Generics::default();
+    let impl_from_string = gen_impl_trait_from(type_name, &generics, quote!(String));
+    let impl_from_str = gen_impl_trait_from(type_name, &generics, quote!(&str));
 
     quote! {
         #impl_from_string
@@ -262,9 +267,11 @@ fn gen_impl_try_from(
     type_name: &TypeName,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
+    let generics = Generics::default();
     let impl_try_from_string =
-        gen_impl_trait_try_from(type_name, quote!(String), maybe_error_type_name);
-    let impl_try_from_str = gen_impl_trait_try_from(type_name, quote!(&str), maybe_error_type_name);
+        gen_impl_trait_try_from(type_name, &generics, quote!(String), maybe_error_type_name);
+    let impl_try_from_str =
+        gen_impl_trait_try_from(type_name, &generics, quote!(&str), maybe_error_type_name);
 
     quote! {
         #impl_try_from_string
@@ -273,8 +280,9 @@ fn gen_impl_try_from(
 }
 
 fn gen_impl_borrow_str_and_string(type_name: &TypeName) -> TokenStream {
-    let impl_borrow_string = gen_impl_trait_borrow(type_name, quote!(String));
-    let impl_borrow_str = gen_impl_trait_borrow(type_name, quote!(str));
+    let generics = Generics::default();
+    let impl_borrow_string = gen_impl_trait_borrow(type_name, &generics, quote!(String));
+    let impl_borrow_str = gen_impl_trait_borrow(type_name, &generics, quote!(str));
 
     quote! {
         #impl_borrow_string

@@ -3,6 +3,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use crate::{
     common::{
@@ -122,6 +123,7 @@ impl ToTokens for FloatTransparentTrait {
 
 pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
+    generics: &Generics,
     inner_type: &FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
@@ -141,6 +143,7 @@ pub fn gen_traits<T: ToTokens>(
 
     let implement_traits = gen_implemented_traits(
         type_name,
+        generics,
         inner_type,
         maybe_error_type_name,
         maybe_default_value,
@@ -156,6 +159,7 @@ pub fn gen_traits<T: ToTokens>(
 
 fn gen_implemented_traits<T: ToTokens>(
     type_name: &TypeName,
+    generics: &Generics,
     inner_type: &FloatInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
@@ -166,17 +170,17 @@ fn gen_implemented_traits<T: ToTokens>(
         .iter()
         .map(|t| match t {
             FloatIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, inner_type)),
-            FloatIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, inner_type)),
+            FloatIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, inner_type)),
             FloatIrregularTrait::FromStr => {
                 Ok(gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
-            FloatIrregularTrait::From => Ok(gen_impl_trait_from(type_name, inner_type)),
-            FloatIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type)),
+            FloatIrregularTrait::From => Ok(gen_impl_trait_from(type_name, generics, inner_type)),
+            FloatIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, generics, inner_type)),
             FloatIrregularTrait::TryFrom => {
-                Ok(gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref()))
+                Ok(gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name.as_ref()))
             }
-            FloatIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),
-            FloatIrregularTrait::Display => Ok(gen_impl_trait_display(type_name)),
+            FloatIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, generics, inner_type)),
+            FloatIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, generics)),
             FloatIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {
                     let has_validation = maybe_error_type_name.is_some();

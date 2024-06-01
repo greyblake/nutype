@@ -6,6 +6,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Generics;
 
 use crate::{
     common::{
@@ -71,7 +72,7 @@ impl GenerateNewtype for StringNewtype {
             .collect();
 
         quote!(
-            fn sanitize(value: String) -> String {
+            fn __sanitize__(value: String) -> String {
                 #transformations
                 value
             }
@@ -158,7 +159,7 @@ impl GenerateNewtype for StringNewtype {
         };
 
         quote!(
-            fn validate(val: &str) -> ::core::result::Result<(), #error_name> {
+            fn __validate__(val: &str) -> ::core::result::Result<(), #error_name> {
                 #chars_count_if_required
                 #validations
                 Ok(())
@@ -175,6 +176,7 @@ impl GenerateNewtype for StringNewtype {
 
     fn gen_traits(
         type_name: &TypeName,
+        generics: &Generics,
         _inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
@@ -183,6 +185,7 @@ impl GenerateNewtype for StringNewtype {
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
+            generics,
             maybe_error_type_name,
             traits,
             maybe_default_value,

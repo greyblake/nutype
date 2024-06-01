@@ -1,4 +1,5 @@
 use nutype::nutype;
+use std::borrow::Cow;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
@@ -380,5 +381,123 @@ mod new_unchecked {
     fn test_new_unchecked() {
         let line_point = unsafe { LinePoint::new_unchecked(Point::new(3, 4)) };
         assert_eq!(line_point.into_inner(), Point::new(3, 4));
+    }
+}
+
+#[cfg(test)]
+mod with_generics {
+    use super::*;
+
+    #[test]
+    fn test_generic_with_validate() {
+        #[nutype(
+            validate(predicate = |v| !v.is_empty()),
+            derive(Debug)
+        )]
+        struct NonEmptyVec<T>(Vec<T>);
+
+        {
+            let vec = NonEmptyVec::new(vec![1, 2, 3]).unwrap();
+            assert_eq!(vec.into_inner(), vec![1, 2, 3]);
+        }
+
+        {
+            let vec = NonEmptyVec::new(vec![5]).unwrap();
+            assert_eq!(vec.into_inner(), vec![5]);
+        }
+
+        {
+            let vec: Vec<u8> = vec![];
+            let err = NonEmptyVec::new(vec).unwrap_err();
+            assert_eq!(err, NonEmptyVecError::PredicateViolated);
+        }
+    }
+
+    #[test]
+    fn test_generic_with_sanitize() {
+        #[nutype(
+            sanitize(with = |mut v| { v.truncate(2); v }),
+            derive(Debug)
+        )]
+        struct UpToTwo<T>(Vec<T>);
+
+        {
+            let vec = UpToTwo::new(vec![1, 2, 3]);
+            assert_eq!(vec.into_inner(), vec![1, 2]);
+        }
+
+        {
+            let vec = UpToTwo::new(vec![5]);
+            assert_eq!(vec.into_inner(), vec![5]);
+        }
+    }
+
+    #[test]
+    fn test_generic_with_sanitize_and_validate() {
+        #[nutype(
+            sanitize(with = |mut v| { v.truncate(2); v }),
+            validate(predicate = |v| !v.is_empty()),
+            derive(Debug)
+        )]
+        struct OneOrTwo<T>(Vec<T>);
+
+        {
+            let vec = OneOrTwo::new(vec![1, 2, 3]).unwrap();
+            assert_eq!(vec.into_inner(), vec![1, 2]);
+        }
+
+        {
+            let vec = OneOrTwo::new(vec![5]).unwrap();
+            assert_eq!(vec.into_inner(), vec![5]);
+        }
+
+        {
+            let vec: Vec<u8> = vec![];
+            let err = OneOrTwo::new(vec).unwrap_err();
+            assert_eq!(err, OneOrTwoError::PredicateViolated);
+        }
+    }
+
+    // TODO
+    // #[test]
+    // fn test_generic_with_boundaries_and_sanitize() {
+    // #[nutype(
+    //     sanitize(with = |v| { v.sort(); v }),
+    //     derive(Debug)
+    // )]
+    // struct SortedVec<T: Ord>(Vec<T>);
+
+    // {
+    //     let vec = NonEmptyVec::new(vec![1, 2, 3]).unwrap();
+    //     assert_eq!(vec.into_inner(), vec![1, 2, 3]);
+    // }
+
+    // {
+    //     let vec = NonEmptyVec::new(vec![5]).unwrap();
+    //     assert_eq!(vec.into_inner(), vec![5]);
+    // }
+
+    // {
+    //     let vec: Vec<u8> = vec![];
+    //     let err = NonEmptyVec::new(vec).unwrap_err();
+    //     assert_eq!(err, NonEmptyVecError::PredicateViolated);
+    // }
+    // }
+
+    #[test]
+    fn test_generic_with_lifetime_cow() {
+        #[nutype(
+            validate(predicate = |s| s.len() >= 3),
+            derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Into, Deref, Borrow, TryFrom)
+        )]
+        struct Clarabelle<'a>(Cow<'a, str>);
+
+        {
+            let clarabelle = Clarabelle::new(Cow::Borrowed("Clarabelle")).unwrap();
+            assert_eq!(clarabelle.to_string(), "Clarabelle");
+
+            let muu = Clarabelle::new(Cow::Owned("Muu".to_string())).unwrap();
+            assert_eq!(muu.to_string(), "Muu");
+        }
     }
 }

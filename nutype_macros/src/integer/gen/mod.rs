@@ -5,6 +5,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use self::{error::gen_validation_error_type, traits::gen_traits};
 use super::{
@@ -55,7 +56,7 @@ where
             .collect();
 
         quote!(
-            fn sanitize(mut value: #inner_type) -> #inner_type {
+            fn __sanitize__(mut value: #inner_type) -> #inner_type {
                 #transformations
                 value
             }
@@ -111,7 +112,7 @@ where
             .collect();
 
         quote!(
-            fn validate(val: &#inner_type) -> ::core::result::Result<(), #error_name> {
+            fn __validate__(val: &#inner_type) -> ::core::result::Result<(), #error_name> {
                 let val = *val;
                 #validations
                 Ok(())
@@ -128,6 +129,7 @@ where
 
     fn gen_traits(
         type_name: &TypeName,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
@@ -136,6 +138,7 @@ where
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
+            generics,
             inner_type,
             maybe_error_type_name,
             traits,

@@ -1,6 +1,7 @@
 use kinded::Kinded;
 use std::ops::Add;
 use std::{collections::HashSet, fmt::Debug};
+use syn::Generics;
 
 use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
@@ -158,6 +159,7 @@ pub struct Meta {
     pub inner_type: InnerType,
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
+    pub generics: Generics,
 }
 
 impl Meta {
@@ -167,10 +169,12 @@ impl Meta {
             type_name,
             inner_type,
             vis,
+            generics,
         } = self;
         let typed_meta = TypedMeta {
             doc_attrs,
             type_name,
+            generics,
             attrs,
             vis,
         };
@@ -189,6 +193,7 @@ pub struct TypedMeta {
 
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
+    pub generics: Generics,
 }
 
 /// Validated model, that represents precisely what needs to be generated.
@@ -342,6 +347,7 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub traits: HashSet<Trait>,
     pub vis: syn::Visibility,
     pub type_name: TypeName,
+    pub generics: Generics,
     pub guard: Guard,
     pub new_unchecked: NewUnchecked,
     pub maybe_default_value: Option<syn::Expr>,
@@ -381,6 +387,7 @@ pub trait Newtype {
             type_name,
             attrs,
             vis,
+            generics,
         } = typed_meta;
         let Attributes {
             guard,
@@ -394,6 +401,7 @@ pub trait Newtype {
             traits,
             vis,
             type_name,
+            generics,
             guard,
             new_unchecked,
             maybe_default_value,
