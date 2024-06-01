@@ -11,27 +11,23 @@ struct NotEmpty<T>(Vec<T>);
     Debug,
     Display,
     Clone,
-    // Copy,
     PartialEq,
     Eq,
     PartialOrd,
     Ord,
     Hash,
-
-    // TODO
-    // AsRef,
-    // FromStr,
-
     Into,
     From,
     Deref,
     Borrow,
+    // TODO
+    // AsRef,
+    // FromStr,
     // TryFrom,
     // Default,
-
-    // SerdeSerialize,
-    // SerdeDeserialize,
-    // ArbitraryArbitrary,
+    // Serialize,
+    // Deserialize,
+    // Arbitrary,
 ))]
 struct Clarabelle<'b>(Cow<'b, str>);
 
