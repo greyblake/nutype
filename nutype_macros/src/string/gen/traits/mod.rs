@@ -278,8 +278,9 @@ fn gen_impl_try_from(
 }
 
 fn gen_impl_borrow_str_and_string(type_name: &TypeName) -> TokenStream {
-    let impl_borrow_string = gen_impl_trait_borrow(type_name, quote!(String));
-    let impl_borrow_str = gen_impl_trait_borrow(type_name, quote!(str));
+    let generics = Generics::default();
+    let impl_borrow_string = gen_impl_trait_borrow(type_name, &generics, quote!(String));
+    let impl_borrow_str = gen_impl_trait_borrow(type_name, &generics, quote!(str));
 
     quote! {
         #impl_borrow_string

@@ -179,7 +179,7 @@ fn gen_implemented_traits<T: ToTokens>(
             FloatIrregularTrait::TryFrom => {
                 Ok(gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
-            FloatIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),
+            FloatIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, generics, inner_type)),
             FloatIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, generics)),
             FloatIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {

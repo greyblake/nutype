@@ -120,9 +120,13 @@ pub fn gen_impl_trait_display(type_name: &TypeName, generics: &Generics) -> Toke
     }
 }
 
-pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_borrow(
+    type_name: &TypeName,
+    generics: &Generics,
+    borrowed_type: impl ToTokens,
+) -> TokenStream {
     quote! {
-        impl ::core::borrow::Borrow<#borrowed_type> for #type_name {
+        impl #generics ::core::borrow::Borrow<#borrowed_type> for #type_name #generics {
             #[inline]
             fn borrow(&self) -> &#borrowed_type {
                 &self.0

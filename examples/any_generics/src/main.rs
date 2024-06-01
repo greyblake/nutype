@@ -24,7 +24,7 @@ struct NotEmpty<T>(Vec<T>);
     Into,
     From,
     Deref,
-    // Borrow,
+    Borrow,
     // FromStr,
     // TryFrom,
     // Default,
