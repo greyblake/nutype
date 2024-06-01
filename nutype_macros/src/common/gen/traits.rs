@@ -127,9 +127,13 @@ pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens)
     }
 }
 
-pub fn gen_impl_trait_from(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_from(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl ToTokens
+) -> TokenStream {
     quote! {
-        impl ::core::convert::From<#inner_type> for #type_name {
+        impl #generics ::core::convert::From<#inner_type> for #type_name #generics {
             #[inline]
             fn from(raw_value: #inner_type) -> Self {
                 Self::new(raw_value)

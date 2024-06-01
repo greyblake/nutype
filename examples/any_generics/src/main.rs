@@ -7,7 +7,32 @@ use std::borrow::Cow;
 )]
 struct NotEmpty<T>(Vec<T>);
 
-#[nutype(derive(Debug, Display))]
+#[nutype(derive(
+    Debug,
+    Display,
+    Clone,
+    // Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+
+    // TODO
+    // AsRef,
+
+    Into,
+    From,
+    // Deref,
+    // Borrow,
+    // FromStr,
+    // TryFrom,
+    // Default,
+
+    // SerdeSerialize,
+    // SerdeDeserialize,
+    // ArbitraryArbitrary,
+))]
 struct Clarabelle<'b>(Cow<'b, str>);
 
 fn main() {

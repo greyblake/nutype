@@ -137,7 +137,7 @@ where
 
     fn gen_traits(
         type_name: &TypeName,
-        _generics: &Generics,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
@@ -146,6 +146,7 @@ where
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
+            generics,
             inner_type,
             maybe_error_type_name,
             maybe_default_value,

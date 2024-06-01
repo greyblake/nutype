@@ -24,6 +24,7 @@ type IntegerGeneratableTrait = GeneratableTrait<IntegerTransparentTrait, Integer
 
 pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
+    generics: &Generics,
     inner_type: &IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<IntegerDeriveTrait>,
@@ -43,6 +44,7 @@ pub fn gen_traits<T: ToTokens>(
 
     let implement_traits = gen_implemented_traits(
         type_name,
+        generics,
         inner_type,
         maybe_error_type_name,
         irregular_traits,
@@ -177,6 +179,7 @@ impl ToTokens for IntegerTransparentTrait {
 
 fn gen_implemented_traits<T: ToTokens>(
     type_name: &TypeName,
+    generics: &Generics,
     inner_type: &IntegerInnerType,
     maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<IntegerIrregularTrait>,
@@ -191,13 +194,13 @@ fn gen_implemented_traits<T: ToTokens>(
             IntegerIrregularTrait::FromStr => {
                 Ok(gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
-            IntegerIrregularTrait::From => Ok(gen_impl_trait_from(type_name, inner_type)),
-            IntegerIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, &Generics::default(), inner_type)),
+            IntegerIrregularTrait::From => Ok(gen_impl_trait_from(type_name, generics, inner_type)),
+            IntegerIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, generics, inner_type)),
             IntegerIrregularTrait::TryFrom => {
                 Ok(gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
             IntegerIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),
-            IntegerIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, &Generics::default())),
+            IntegerIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, generics)),
             IntegerIrregularTrait::Default => {
                 match maybe_default_value {
                     Some(ref default_value) => {
