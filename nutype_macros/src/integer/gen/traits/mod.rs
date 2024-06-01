@@ -192,7 +192,7 @@ fn gen_implemented_traits<T: ToTokens>(
                 Ok(gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
             IntegerIrregularTrait::From => Ok(gen_impl_trait_from(type_name, inner_type)),
-            IntegerIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type)),
+            IntegerIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, &Generics::default(), inner_type)),
             IntegerIrregularTrait::TryFrom => {
                 Ok(gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref()))
             }

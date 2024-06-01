@@ -186,7 +186,7 @@ fn gen_implemented_traits(
                 Ok(gen_impl_from_str(type_name, maybe_error_type_name.as_ref()))
             }
             StringIrregularTrait::From => Ok(gen_impl_from_str_and_string(type_name)),
-            StringIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type)),
+            StringIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, &Generics::default(), inner_type)),
             StringIrregularTrait::TryFrom => {
                 Ok(gen_impl_try_from(type_name, maybe_error_type_name.as_ref()))
             }

@@ -52,7 +52,11 @@ where
     }
 }
 
-pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType>) -> TokenStream {
+pub fn gen_impl_trait_into(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl Into<InnerType>,
+) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
 
     // NOTE: We're getting blank implementation of
@@ -60,9 +64,9 @@ pub fn gen_impl_trait_into(type_name: &TypeName, inner_type: impl Into<InnerType
     // by implementing
     //     From<Type> for Inner
     quote! {
-        impl ::core::convert::From<#type_name> for #inner_type {
+        impl #generics ::core::convert::From<#type_name #generics> for #inner_type {
             #[inline]
-            fn from(value: #type_name) -> Self {
+            fn from(value: #type_name #generics) -> Self {
                 value.into_inner()
             }
         }

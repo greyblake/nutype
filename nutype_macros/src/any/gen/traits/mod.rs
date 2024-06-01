@@ -155,7 +155,7 @@ fn gen_implemented_traits(
         .map(|t| match t {
             AnyIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, inner_type)),
             AnyIrregularTrait::From => Ok(gen_impl_trait_from(type_name, inner_type)),
-            AnyIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, inner_type.clone())),
+            AnyIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, generics, inner_type.clone())),
             AnyIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, generics)),
             AnyIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, inner_type)),
             AnyIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),

@@ -488,7 +488,7 @@ mod with_generics {
     fn test_generic_with_lifetime_cow() {
         #[nutype(
             validate(predicate = |s| s.len() >= 3),
-            derive(Debug, Display)
+            derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Into)
         )]
         struct Clarabelle<'a>(Cow<'a, str>);
 
