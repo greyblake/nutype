@@ -7,10 +7,7 @@ use std::borrow::Cow;
 )]
 struct NotEmpty<T>(Vec<T>);
 
-#[nutype(
-    derive(Debug),
-    validate(predicate = |s| s.len() >= 3),
-)]
+#[nutype(derive(Debug))]
 struct Clarabelle<'b>(Cow<'b, str>);
 
 fn main() {
@@ -24,7 +21,7 @@ fn main() {
     }
 
     {
-        let c1 = Clarabelle::new(Cow::Borrowed("Muu")).unwrap();
+        let c1 = Clarabelle::new(Cow::Borrowed("Muu"));
         assert_eq!(c1.into_inner(), Cow::Borrowed("Muu"));
     }
 }

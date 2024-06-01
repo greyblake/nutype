@@ -72,7 +72,7 @@ impl GenerateNewtype for AnyNewtype {
             .map(|validator| match validator {
                 AnyValidator::Predicate(predicate) => {
                     let inner_type_ref: syn::Type = parse_quote!(
-                        &'a #inner_type
+                        &'nutype_a #inner_type
                     );
                     let typed_predicate: TypedCustomFunction = predicate
                         .clone()
@@ -88,7 +88,20 @@ impl GenerateNewtype for AnyNewtype {
             .collect();
 
         quote!(
-            fn __validate__<'a>(val: &'a #inner_type) -> ::core::result::Result<(), #error_name> {
+            // NOTE 1: we're using a unique lifetime name `nutype_a` in a hope that it will not clash
+            // with any other lifetimes in the user's code.
+            //
+            // NOTE 2:
+            // When inner type is Cow<'a, str>, the generated code will look like this (with 2
+            // lifetimes):
+            //
+            //     fn __validate__<'nutype_a>(val: &'nutype_a Cow<'a, str>)
+            //
+            // Clippy does not like passing a reference to a Cow. So we need to ignore the `clippy::ptr_arg` warning.
+            // Since this code is generic which is used for different inner types (not only Cow), we cannot easily fix it to make
+            // clippy happy.
+            #[allow(clippy::ptr_arg)]
+            fn __validate__<'nutype_a>(val: &'nutype_a #inner_type) -> ::core::result::Result<(), #error_name> {
                 #validations
                 Ok(())
             }

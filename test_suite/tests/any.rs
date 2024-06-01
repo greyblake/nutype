@@ -1,4 +1,5 @@
 use nutype::nutype;
+use std::borrow::Cow;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
@@ -482,4 +483,23 @@ mod with_generics {
     //     assert_eq!(err, NonEmptyVecError::PredicateViolated);
     // }
     // }
+
+    #[test]
+    fn test_generic_with_lifetime_cow() {
+        #[nutype(
+            validate(predicate = |s| s.len() >= 3),
+            derive(Debug)
+        )]
+        struct Clarabelle<'a>(Cow<'a, str>);
+
+        {
+            let clarabelle = Clarabelle::new(Cow::Borrowed("Clarabelle")).unwrap();
+            assert_eq!(clarabelle.into_inner(), Cow::Borrowed("Clarabelle"));
+        }
+
+        {
+            let err = Clarabelle::new(Cow::Borrowed("Mu")).unwrap_err();
+            assert_eq!(err, ClarabelleError::PredicateViolated);
+        }
+    }
 }

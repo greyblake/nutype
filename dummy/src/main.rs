@@ -1,9 +1,9 @@
 use nutype::nutype;
+use std::borrow::Cow;
 
 #[nutype(
-    sanitize(with = |v| v),
-    validate(predicate = |v| !v.is_empty() )
+    validate(predicate = |s| s.len() >= 3),
 )]
-struct NonEmptyVec<T>(Vec<T>);
+struct Clarabelle<'a>(Cow<'a, str>);
 
 fn main() {}
