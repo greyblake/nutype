@@ -23,7 +23,7 @@ struct NotEmpty<T>(Vec<T>);
 
     Into,
     From,
-    // Deref,
+    Deref,
     // Borrow,
     // FromStr,
     // TryFrom,

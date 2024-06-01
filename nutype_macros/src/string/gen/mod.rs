@@ -176,7 +176,7 @@ impl GenerateNewtype for StringNewtype {
 
     fn gen_traits(
         type_name: &TypeName,
-        _generics: &Generics,
+        generics: &Generics,
         _inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
@@ -185,6 +185,7 @@ impl GenerateNewtype for StringNewtype {
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
+            generics,
             maybe_error_type_name,
             traits,
             maybe_default_value,

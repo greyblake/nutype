@@ -489,7 +489,7 @@ mod with_generics {
         #[nutype(
             validate(predicate = |s| s.len() >= 3),
             // TODO: derive TryFrom
-            derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Into)
+            derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Into, Deref)
         )]
         struct Clarabelle<'a>(Cow<'a, str>);
 

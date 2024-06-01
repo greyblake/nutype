@@ -138,6 +138,7 @@ impl ToTokens for StringTransparentTrait {
 
 pub fn gen_traits(
     type_name: &TypeName,
+    generics: &Generics,
     maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<StringDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
@@ -156,6 +157,7 @@ pub fn gen_traits(
 
     let implement_traits = gen_implemented_traits(
         type_name,
+        generics,
         maybe_error_type_name,
         maybe_default_value,
         irregular_traits,
@@ -170,6 +172,7 @@ pub fn gen_traits(
 
 fn gen_implemented_traits(
     type_name: &TypeName,
+    generics: &Generics,
     maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<StringIrregularTrait>,
@@ -181,7 +184,7 @@ fn gen_implemented_traits(
         .iter()
         .map(|t| match t {
             StringIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, quote!(str))),
-            StringIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, quote!(String))),
+            StringIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, quote!(String))),
             StringIrregularTrait::FromStr => {
                 Ok(gen_impl_from_str(type_name, maybe_error_type_name.as_ref()))
             }

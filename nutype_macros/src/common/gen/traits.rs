@@ -84,9 +84,13 @@ pub fn gen_impl_trait_as_ref(type_name: &TypeName, inner_type: impl ToTokens) ->
     }
 }
 
-pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_deref(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl ToTokens,
+) -> TokenStream {
     quote! {
-        impl ::core::ops::Deref for #type_name {
+        impl #generics ::core::ops::Deref for #type_name #generics {
             type Target = #inner_type;
 
             #[inline]
@@ -130,7 +134,7 @@ pub fn gen_impl_trait_borrow(type_name: &TypeName, borrowed_type: impl ToTokens)
 pub fn gen_impl_trait_from(
     type_name: &TypeName,
     generics: &Generics,
-    inner_type: impl ToTokens
+    inner_type: impl ToTokens,
 ) -> TokenStream {
     quote! {
         impl #generics ::core::convert::From<#inner_type> for #type_name #generics {
