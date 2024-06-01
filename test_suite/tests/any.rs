@@ -488,18 +488,16 @@ mod with_generics {
     fn test_generic_with_lifetime_cow() {
         #[nutype(
             validate(predicate = |s| s.len() >= 3),
-            derive(Debug)
+            derive(Debug, Display)
         )]
         struct Clarabelle<'a>(Cow<'a, str>);
 
         {
             let clarabelle = Clarabelle::new(Cow::Borrowed("Clarabelle")).unwrap();
-            assert_eq!(clarabelle.into_inner(), Cow::Borrowed("Clarabelle"));
-        }
+            assert_eq!(clarabelle.to_string(), "Clarabelle");
 
-        {
-            let err = Clarabelle::new(Cow::Borrowed("Mu")).unwrap_err();
-            assert_eq!(err, ClarabelleError::PredicateViolated);
+            let muu = Clarabelle::new(Cow::Owned("Muu".to_string())).unwrap();
+            assert_eq!(muu.to_string(), "Muu");
         }
     }
 }

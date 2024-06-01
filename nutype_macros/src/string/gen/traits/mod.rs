@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use crate::{
     common::{
@@ -190,7 +191,7 @@ fn gen_implemented_traits(
                 Ok(gen_impl_try_from(type_name, maybe_error_type_name.as_ref()))
             }
             StringIrregularTrait::Borrow => Ok(gen_impl_borrow_str_and_string(type_name)),
-            StringIrregularTrait::Display => Ok(gen_impl_trait_display(type_name)),
+            StringIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, &Generics::default())),
             StringIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {
                     let has_validation = maybe_error_type_name.is_some();

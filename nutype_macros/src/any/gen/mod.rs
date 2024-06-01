@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::parse_quote;
+use syn::{parse_quote, Generics};
 
 use crate::common::{
     gen::{
@@ -117,6 +117,7 @@ impl GenerateNewtype for AnyNewtype {
 
     fn gen_traits(
         type_name: &TypeName,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
@@ -125,6 +126,7 @@ impl GenerateNewtype for AnyNewtype {
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
+            generics,
             inner_type,
             maybe_error_type_name,
             traits,

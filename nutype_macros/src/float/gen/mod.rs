@@ -5,6 +5,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use self::error::gen_validation_error_type;
 use super::{
@@ -136,6 +137,7 @@ where
 
     fn gen_traits(
         type_name: &TypeName,
+        _generics: &Generics,
         inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,

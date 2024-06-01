@@ -4,6 +4,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use crate::{
     common::{
@@ -196,7 +197,7 @@ fn gen_implemented_traits<T: ToTokens>(
                 Ok(gen_impl_trait_try_from(type_name, inner_type, maybe_error_type_name.as_ref()))
             }
             IntegerIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, inner_type)),
-            IntegerIrregularTrait::Display => Ok(gen_impl_trait_display(type_name)),
+            IntegerIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, &Generics::default())),
             IntegerIrregularTrait::Default => {
                 match maybe_default_value {
                     Some(ref default_value) => {

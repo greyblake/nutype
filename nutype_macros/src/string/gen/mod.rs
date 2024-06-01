@@ -6,6 +6,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::Generics;
 
 use crate::{
     common::{
@@ -175,6 +176,7 @@ impl GenerateNewtype for StringNewtype {
 
     fn gen_traits(
         type_name: &TypeName,
+        _generics: &Generics,
         _inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,

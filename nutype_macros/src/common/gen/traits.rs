@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use crate::common::models::{ErrorTypeName, InnerType, TypeName};
 
@@ -92,9 +93,9 @@ pub fn gen_impl_trait_deref(type_name: &TypeName, inner_type: impl ToTokens) -> 
     }
 }
 
-pub fn gen_impl_trait_display(type_name: &TypeName) -> TokenStream {
+pub fn gen_impl_trait_display(type_name: &TypeName, generics: &Generics) -> TokenStream {
     quote! {
-        impl ::core::fmt::Display for #type_name {
+        impl #generics ::core::fmt::Display for #type_name #generics {
             #[inline]
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 // A tiny wrapper function with trait boundary that improves error reporting.

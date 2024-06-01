@@ -182,6 +182,7 @@ pub trait GenerateNewtype {
 
     fn gen_traits(
         type_name: &TypeName,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
@@ -345,6 +346,7 @@ pub trait GenerateNewtype {
             implement_traits,
         } = Self::gen_traits(
             &type_name,
+            &generics,
             &inner_type,
             maybe_error_type_name,
             traits,
