@@ -1,5 +1,6 @@
 use nutype::nutype;
 use std::borrow::Cow;
+use std::collections::HashMap;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
@@ -488,7 +489,7 @@ mod with_generics {
     fn test_generic_with_lifetime_cow() {
         #[nutype(
             validate(predicate = |s| s.len() >= 3),
-            derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Into, Deref, Borrow, TryFrom)
+            derive(Debug, Display, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Into, Deref, Borrow, TryFrom, AsRef)
         )]
         struct Clarabelle<'a>(Cow<'a, str>);
 
@@ -499,5 +500,32 @@ mod with_generics {
             let muu = Clarabelle::new(Cow::Owned("Muu".to_string())).unwrap();
             assert_eq!(muu.to_string(), "Muu");
         }
+    }
+
+    #[test]
+    fn test_derive_as_ref_with_generic() {
+        #[nutype(derive(AsRef))]
+        struct SquareMap<K, V>(HashMap<K, V>);
+
+        let mut inner_map = HashMap::new();
+        inner_map.insert(4, 16);
+        inner_map.insert(5, 25);
+        let squares = SquareMap::new(inner_map.clone());
+        assert_eq!(squares.as_ref(), &inner_map);
+    }
+
+    #[test]
+    fn test_derive_as_ref_with_generic_and_validation() {
+        #[nutype(
+            validate(predicate = |map| map.len() > 1),
+            derive(AsRef)
+        )]
+        struct NonEmptyMap<K, V>(HashMap<K, V>);
+
+        let mut inner_map = HashMap::new();
+        inner_map.insert(4, 16);
+        inner_map.insert(5, 25);
+        let squares = NonEmptyMap::new(inner_map.clone()).unwrap();
+        assert_eq!(squares.as_ref(), &inner_map);
     }
 }
