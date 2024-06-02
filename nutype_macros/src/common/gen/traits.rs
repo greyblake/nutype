@@ -73,9 +73,13 @@ pub fn gen_impl_trait_into(
     }
 }
 
-pub fn gen_impl_trait_as_ref(type_name: &TypeName, inner_type: impl ToTokens) -> TokenStream {
+pub fn gen_impl_trait_as_ref(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl ToTokens,
+) -> TokenStream {
     quote! {
-        impl ::core::convert::AsRef<#inner_type> for #type_name {
+        impl #generics ::core::convert::AsRef<#inner_type> for #type_name #generics {
             #[inline]
             fn as_ref(&self) -> &#inner_type {
                 &self.0

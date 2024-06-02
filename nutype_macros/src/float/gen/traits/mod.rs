@@ -169,7 +169,7 @@ fn gen_implemented_traits<T: ToTokens>(
     impl_traits
         .iter()
         .map(|t| match t {
-            FloatIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, inner_type)),
+            FloatIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, generics, inner_type)),
             FloatIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, inner_type)),
             FloatIrregularTrait::FromStr => {
                 Ok(gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref()))

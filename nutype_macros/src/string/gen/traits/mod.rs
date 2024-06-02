@@ -183,7 +183,7 @@ fn gen_implemented_traits(
     impl_traits
         .iter()
         .map(|t| match t {
-            StringIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, quote!(str))),
+            StringIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, generics, quote!(str))),
             StringIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, quote!(String))),
             StringIrregularTrait::FromStr => {
                 Ok(gen_impl_from_str(type_name, maybe_error_type_name.as_ref()))
