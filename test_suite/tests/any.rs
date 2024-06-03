@@ -329,6 +329,53 @@ mod traits {
                 assert_eq!(deserialized, place);
             }
         }
+
+        mod with_generics {
+            use super::*;
+
+            // TODO: Uncomment when https://github.com/greyblake/nutype/issues/142 is fixed
+            // #[test]
+            // fn test_generic_with_serde() {
+            //     #[nutype(
+            //         derive(Debug, Serialize, Deserialize),
+            //         validate(predicate = |v| v.is_empty())
+            //     )]
+            //     struct EmptyVec<T>(Vec<T>);
+
+            //     {
+            //         let vec = EmptyVec::new(vec![]);
+            //         let json = serde_json::to_string(&vec).unwrap();
+            //         assert_eq!(json, "[]");
+
+            //         let same_vec: EmptyVec<u8> = serde_json::from_str(&json).unwrap();
+            //         assert_eq!(vec, same_vec);
+            //     }
+
+            //     {
+            //         let vec = EmptyVec::new(vec![1, 2, 3]);
+            //         let err = serde_json::to_string(&vec).unwrap_err();
+            //         assert_eq!(
+            //             err.to_string(),
+            //             "EmptyVec failed the predicate test. Expected valid EmptyVec"
+            //         );
+            //     }
+            // }
+
+            #[test]
+            fn serialize_and_deserialize_cow() {
+                #[nutype(
+                    validate(predicate = |s| s.len() >= 3),
+                    derive(Debug, Serialize, Deserialize, PartialEq)
+                )]
+                struct Clarabelle<'a>(Cow<'a, str>);
+
+                let muu = Clarabelle::new(Cow::Borrowed("Muu")).unwrap();
+                let json = serde_json::to_string(&muu).unwrap();
+                assert_eq!(json, "\"Muu\"");
+                let same_muu: Clarabelle = serde_json::from_str(&json).unwrap();
+                assert_eq!(muu, same_muu);
+            }
+        }
     }
 }
 

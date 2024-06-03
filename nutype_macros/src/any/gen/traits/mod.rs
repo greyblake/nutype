@@ -177,10 +177,10 @@ fn gen_implemented_traits(
                 }
             },
             AnyIrregularTrait::SerdeSerialize => Ok(
-                gen_impl_trait_serde_serialize(type_name)
+                gen_impl_trait_serde_serialize(type_name, generics)
             ),
             AnyIrregularTrait::SerdeDeserialize => Ok(
-                gen_impl_trait_serde_deserialize(type_name, inner_type, maybe_error_type_name.as_ref())
+                gen_impl_trait_serde_deserialize(type_name, generics, inner_type, maybe_error_type_name.as_ref())
             ),
             AnyIrregularTrait::ArbitraryArbitrary => arbitrary::gen_impl_trait_arbitrary(type_name, inner_type, guard),
         })

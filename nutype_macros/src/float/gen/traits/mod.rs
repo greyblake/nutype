@@ -192,9 +192,10 @@ fn gen_implemented_traits<T: ToTokens>(
                     Err(syn::Error::new(span, msg))
                 }
             },
-            FloatIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name)),
+            FloatIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name, generics)),
             FloatIrregularTrait::SerdeDeserialize => Ok(gen_impl_trait_serde_deserialize(
                 type_name,
+                generics,
                 inner_type,
                 maybe_error_type_name.as_ref(),
             )),

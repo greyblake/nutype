@@ -238,10 +238,10 @@ pub fn gen_impl_trait_from_str(
     }
 }
 
-pub fn gen_impl_trait_serde_serialize(type_name: &TypeName) -> TokenStream {
+pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics) -> TokenStream {
     let type_name_str = type_name.to_string();
     quote! {
-        impl ::serde::Serialize for #type_name {
+        impl #generics ::serde::Serialize for #type_name #generics {
             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
             where
                 S: ::serde::Serializer
@@ -254,6 +254,7 @@ pub fn gen_impl_trait_serde_serialize(type_name: &TypeName) -> TokenStream {
 
 pub fn gen_impl_trait_serde_deserialize(
     type_name: &TypeName,
+    type_generics: &Generics,
     inner_type: impl Into<InnerType>,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
@@ -276,16 +277,23 @@ pub fn gen_impl_trait_serde_deserialize(
     let expecting_str = format!("tuple struct {type_name}");
     let type_name_str = type_name.to_string();
 
+    // type generics + 'de lifetime for Deserialize
+    let all_generics = {
+        let mut all_generics = type_generics.clone();
+        all_generics.params.push(syn::parse_quote!('de));
+        all_generics
+    };
+
     quote! {
-        impl<'de> ::serde::Deserialize<'de> for #type_name {
+        impl #all_generics ::serde::Deserialize<'de> for #type_name #type_generics {
             fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-                struct __Visitor<'de> {
-                    marker: ::std::marker::PhantomData<#type_name>,
+                struct __Visitor #all_generics {
+                    marker: ::std::marker::PhantomData<#type_name #type_generics>,
                     lifetime: ::std::marker::PhantomData<&'de ()>,
                 }
 
-                impl<'de> ::serde::de::Visitor<'de> for __Visitor<'de> {
-                    type Value = #type_name;
+                impl #all_generics ::serde::de::Visitor<'de> for __Visitor #all_generics {
+                    type Value = #type_name #type_generics;
 
                     fn expecting(&self, formatter: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         write!(formatter, #expecting_str)
