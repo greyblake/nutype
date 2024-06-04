@@ -1,10 +1,13 @@
 use nutype::nutype;
-use std::borrow::Cow;
+use std::cmp::Ord;
 
-#[nutype(derive(Into))]
-struct Clarabelle<'a>(Cow<'a, str>);
+#[nutype(
+    sanitize(with = |mut v| { v.sort(); v }),
+    derive(Debug)
+)]
+struct SortedVec<T: Ord>(Vec<T>);
 
 fn main() {
-    // let clarabelle = Clarabelle::new(Cow::Borrowed("Clarabelle"));
-    // assert_eq!(clarabelle.to_string(), "Clarabelle");
+    let v = SortedVec::new(vec![10, 3, 5, 2, 4]);
+    assert_eq!(v.into_inner(), vec![2, 3, 4, 5, 10]);
 }

@@ -138,14 +138,27 @@ pub fn gen_impl_into_inner(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
+    // TODO: Consider stripping bounds only once instead of doing it every time?
+    let generics_without_bounds = strip_trait_bounds(generics);
     quote! {
-        impl #generics #type_name #generics {
+        impl #generics #type_name #generics_without_bounds {
             #[inline]
             pub fn into_inner(self) -> #inner_type {
                 self.0
             }
         }
     }
+}
+
+// TODO: Move to utils?
+fn strip_trait_bounds(original: &Generics) -> Generics {
+    let mut generics = original.clone();
+    for param in &mut generics.params {
+        if let syn::GenericParam::Type(syn::TypeParam { bounds, .. }) = param {
+            *bounds = syn::punctuated::Punctuated::new();
+        }
+    }
+    generics
 }
 
 pub trait GenerateNewtype {
@@ -197,6 +210,7 @@ pub trait GenerateNewtype {
         sanitizers: &[Self::Sanitizer],
         validators: &[Self::Validator],
     ) -> TokenStream {
+        let generics_without_bounds = strip_trait_bounds(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
         let validation_error = Self::gen_validation_error_type(type_name, validators);
         let error_type_name = gen_error_type_name(type_name);
@@ -214,7 +228,7 @@ pub trait GenerateNewtype {
         quote!(
             #validation_error
 
-            impl #generics #type_name #generics {
+            impl #generics #type_name #generics_without_bounds {
                 pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
                     #convert_raw_value_if_necessary
 
@@ -237,6 +251,7 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
     ) -> TokenStream {
+        let generics_without_bounds = strip_trait_bounds(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
@@ -249,7 +264,7 @@ pub trait GenerateNewtype {
         };
 
         quote!(
-            impl #generics #type_name #generics {
+            impl #generics #type_name #generics_without_bounds {
                 pub fn new(raw_value: #input_type) -> Self {
                     #convert_raw_value_if_necessary
                     Self(Self::__sanitize__(raw_value))
