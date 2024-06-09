@@ -138,8 +138,7 @@ pub fn gen_impl_into_inner(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
-    // TODO: Consider stripping bounds only once instead of doing it every time?
-    let generics_without_bounds = strip_trait_bounds(generics);
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
     quote! {
         impl #generics #type_name #generics_without_bounds {
             #[inline]
@@ -150,8 +149,14 @@ pub fn gen_impl_into_inner(
     }
 }
 
-// TODO: Move to utils?
-fn strip_trait_bounds(original: &Generics) -> Generics {
+/// Remove trait bounds from generics.
+///
+/// Input:
+///    <T: Display + Debug, U: Clone>
+///
+/// Output:
+///   <T, U>
+fn strip_trait_bounds_on_generics(original: &Generics) -> Generics {
     let mut generics = original.clone();
     for param in &mut generics.params {
         if let syn::GenericParam::Type(syn::TypeParam { bounds, .. }) = param {
@@ -210,7 +215,7 @@ pub trait GenerateNewtype {
         sanitizers: &[Self::Sanitizer],
         validators: &[Self::Validator],
     ) -> TokenStream {
-        let generics_without_bounds = strip_trait_bounds(generics);
+        let generics_without_bounds = strip_trait_bounds_on_generics(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
         let validation_error = Self::gen_validation_error_type(type_name, validators);
         let error_type_name = gen_error_type_name(type_name);
@@ -251,7 +256,7 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
     ) -> TokenStream {
-        let generics_without_bounds = strip_trait_bounds(generics);
+        let generics_without_bounds = strip_trait_bounds_on_generics(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {

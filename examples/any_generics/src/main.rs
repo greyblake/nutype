@@ -1,12 +1,21 @@
 use nutype::nutype;
 use std::borrow::Cow;
 
+/// A wrapper around a vector that is guaranteed to be sorted.
+#[nutype(
+    sanitize(with = |mut v| { v.sort(); v }),
+    derive(Debug)
+)]
+struct SortedVec<T: Ord>(Vec<T>);
+
+/// A wrapper around a vector that is guaranteed to be non-empty.
 #[nutype(
     validate(predicate = |vec| !vec.is_empty()),
     derive(Debug),
 )]
 struct NotEmpty<T>(Vec<T>);
 
+/// An example with lifetimes
 #[nutype(derive(
     Debug,
     Display,
@@ -33,10 +42,13 @@ struct Clarabelle<'a>(Cow<'a, str>);
 
 fn main() {
     {
-        let v = NotEmpty::new(vec![1, 2, 3]).unwrap();
-        assert_eq!(v.into_inner(), vec![1, 2, 3]);
+        let v = SortedVec::new(vec![3, 0, 2]);
+        assert_eq!(v.into_inner(), vec![0, 2, 3]);
     }
     {
+        let v = NotEmpty::new(vec![1, 2, 3]).unwrap();
+        assert_eq!(v.into_inner(), vec![1, 2, 3]);
+
         let err = NotEmpty::<i32>::new(vec![]).unwrap_err();
         assert_eq!(err, NotEmptyError::PredicateViolated);
     }

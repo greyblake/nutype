@@ -4,7 +4,10 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::Generics;
 
-use crate::common::models::{ErrorTypeName, InnerType, TypeName};
+use crate::common::{
+    gen::strip_trait_bounds_on_generics,
+    models::{ErrorTypeName, InnerType, TypeName},
+};
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
@@ -106,8 +109,9 @@ pub fn gen_impl_trait_deref(
 }
 
 pub fn gen_impl_trait_display(type_name: &TypeName, generics: &Generics) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
     quote! {
-        impl #generics ::core::fmt::Display for #type_name #generics {
+        impl #generics ::core::fmt::Display for #type_name #generics_without_bounds {
             #[inline]
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 // A tiny wrapper function with trait boundary that improves error reporting.

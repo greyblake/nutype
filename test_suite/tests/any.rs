@@ -1,6 +1,8 @@
 use nutype::nutype;
 use std::borrow::Cow;
 use std::collections::HashMap;
+use std::fmt::{Debug, Display};
+use std::hash::Hash;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
@@ -506,31 +508,123 @@ mod with_generics {
         }
     }
 
-    // TODO
-    // #[test]
-    // fn test_generic_with_boundaries_and_sanitize() {
-    // #[nutype(
-    //     sanitize(with = |v| { v.sort(); v }),
-    //     derive(Debug)
-    // )]
-    // struct SortedVec<T: Ord>(Vec<T>);
+    #[test]
+    fn test_generic_with_boundaries_and_sanitize() {
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            derive(Debug)
+        )]
+        struct SortedVec<T: Ord>(Vec<T>);
 
-    // {
-    //     let vec = NonEmptyVec::new(vec![1, 2, 3]).unwrap();
-    //     assert_eq!(vec.into_inner(), vec![1, 2, 3]);
-    // }
+        let sorted = SortedVec::new(vec![3, 1, 2]);
+        assert_eq!(sorted.into_inner(), vec![1, 2, 3]);
+    }
 
-    // {
-    //     let vec = NonEmptyVec::new(vec![5]).unwrap();
-    //     assert_eq!(vec.into_inner(), vec![5]);
-    // }
+    #[test]
+    fn test_generic_with_boundaries_and_many_derives() {
+        // The point of this test is to ensure that the generate code can be compiled at least
+        // with respect to the specified trait boundaries
 
-    // {
-    //     let vec: Vec<u8> = vec![];
-    //     let err = NonEmptyVec::new(vec).unwrap_err();
-    //     assert_eq!(err, NonEmptyVecError::PredicateViolated);
-    // }
-    // }
+        // #[nutype(
+        //     derive(Debug)
+        // )]
+        // struct Wrapper1<A: Hash + Eq + Clone, B: Ord>(HashMap<A, B>);
+    }
+
+    #[test]
+    fn test_generic_boundaries_debug() {
+        #[nutype(derive(Debug))]
+        struct WrapperDebug<T: Debug>(T);
+
+        let w = WrapperDebug::new(13);
+        assert_eq!(format!("{w:?}"), "WrapperDebug(13)");
+    }
+
+    #[test]
+    fn test_generic_boundaries_display() {
+        #[nutype(derive(Debug, Display))]
+        struct WrapperDisplay<T: Debug + Display>(T);
+
+        let number = WrapperDisplay::new(5);
+        assert_eq!(number.to_string(), "5");
+
+        let b = WrapperDisplay::new(true);
+        assert_eq!(b.to_string(), "true");
+    }
+
+    #[test]
+    fn test_generic_boundaries_clone() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_copy() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_partial_eq() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_eq() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_partial_ord() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_ord() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_hash() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_serialize() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_deserialize() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_from_str() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_arbitrary() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_with_boundaries_and_sanitize_and_validate() {
+        #[nutype(
+            validate(predicate = |v| !v.is_empty()),
+            sanitize(with = |mut v| { v.sort(); v }),
+            derive(Debug)
+        )]
+        struct NonEmptySortedVec<T: Ord>(Vec<T>);
+
+        {
+            let err = NonEmptySortedVec::<i32>::new(vec![]).unwrap_err();
+            assert_eq!(err, NonEmptySortedVecError::PredicateViolated);
+        }
+        {
+            let vec = NonEmptySortedVec::new(vec![3, 1, 2]).unwrap();
+            assert_eq!(vec.into_inner(), vec![1, 2, 3]);
+        }
+    }
 
     #[test]
     fn test_generic_with_lifetime_cow() {
