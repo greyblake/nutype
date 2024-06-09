@@ -1,5 +1,6 @@
 use nutype::nutype;
 use std::borrow::Cow;
+use std::cmp::{Ordering, PartialEq, PartialOrd};
 use std::collections::HashMap;
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
@@ -525,6 +526,7 @@ mod with_generics {
         // The point of this test is to ensure that the generate code can be compiled at least
         // with respect to the specified trait boundaries
 
+        // TODO
         // #[nutype(
         //     derive(Debug)
         // )]
@@ -554,32 +556,68 @@ mod with_generics {
 
     #[test]
     fn test_generic_boundaries_clone() {
-        // TODO
+        #[nutype(derive(Clone))]
+        struct WrapperClone<T: Clone>(T);
+
+        let val = WrapperClone::new(17);
+        let cloned = val.clone();
+        assert_eq!(val.into_inner(), cloned.into_inner());
     }
 
     #[test]
     fn test_generic_boundaries_copy() {
-        // TODO
+        #[nutype(derive(Clone, Copy))]
+        struct WrapperCopy<T: Clone + Copy>(T);
+
+        let val = WrapperCopy::new(17);
+        let copied = val;
+        assert_eq!(val.into_inner(), copied.into_inner());
     }
 
     #[test]
-    fn test_generic_boundaries_partial_eq() {
-        // TODO
-    }
+    fn test_generic_boundaries_partial_eq_and_eq() {
+        #[nutype(derive(PartialEq, Eq))]
+        struct WrapperPartialEq<T: PartialEq + Eq>(T);
 
-    #[test]
-    fn test_generic_boundaries_eq() {
-        // TODO
+        let v19 = WrapperPartialEq::new(19);
+        let v19x = WrapperPartialEq::new(19);
+        let v3 = WrapperPartialEq::new(20);
+        assert!(v19.eq(&v19x));
+        assert!(v19.ne(&v3));
     }
 
     #[test]
     fn test_generic_boundaries_partial_ord() {
-        // TODO
+        #[nutype(derive(PartialEq, PartialOrd))]
+        struct WrapperPartialOrd<T: PartialOrd>(T);
+
+        {
+            let v1 = WrapperPartialOrd::new(1);
+            let v2 = WrapperPartialOrd::new(2);
+            let v2x = WrapperPartialOrd::new(2);
+
+            assert_eq!(v1.partial_cmp(&v2).unwrap(), Ordering::Less);
+            assert_eq!(v2.partial_cmp(&v2x).unwrap(), Ordering::Equal);
+        }
+
+        {
+            let nan1 = WrapperPartialOrd::new(std::f64::NAN);
+            let nan2 = WrapperPartialOrd::new(std::f64::NAN);
+            assert_eq!(nan1.partial_cmp(&nan2), None);
+        }
     }
 
     #[test]
     fn test_generic_boundaries_ord() {
-        // TODO
+        #[nutype(derive(PartialEq, Eq, PartialOrd, Ord))]
+        struct WrapperOrd<T: Ord>(T);
+
+        let v1 = WrapperOrd::new(1);
+        let v2 = WrapperOrd::new(2);
+        let v2x = WrapperOrd::new(2);
+
+        assert_eq!(v2.cmp(&v1), Ordering::Greater);
+        assert_eq!(v2.cmp(&v2x), Ordering::Equal);
     }
 
     #[test]
