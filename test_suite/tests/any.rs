@@ -1,7 +1,7 @@
 use nutype::nutype;
 use std::borrow::Cow;
 use std::cmp::{Ordering, PartialEq, PartialOrd};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use test_suite::test_helpers::traits::*;
@@ -622,7 +622,19 @@ mod with_generics {
 
     #[test]
     fn test_generic_boundaries_hash() {
-        // TODO
+        #[nutype(derive(PartialEq, Eq, Hash))]
+        struct WrapperHash<T: PartialEq + Eq + Hash>(T);
+
+        #[derive(Hash, PartialEq, Eq)]
+        struct Number(i32);
+
+        let mut set = HashSet::new();
+        set.insert(WrapperHash::new(Number(1)));
+        set.insert(WrapperHash::new(Number(1)));
+        set.insert(WrapperHash::new(Number(2)));
+
+        // 1 is inserted twice, so the set should have only two elements
+        assert_eq!(set.len(), 2);
     }
 
     #[test]
