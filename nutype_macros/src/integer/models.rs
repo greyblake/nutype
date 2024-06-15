@@ -101,7 +101,7 @@ macro_rules! define_integer_inner_type {
         }
 
         impl ::core::fmt::Display for IntegerInnerType {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> Result<(), ::core::fmt::Error> {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                 match self {
                     $(
                         Self::$variant => stringify!($tp).fmt(f),

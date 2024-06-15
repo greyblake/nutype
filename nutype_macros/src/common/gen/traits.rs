@@ -169,7 +169,7 @@ pub fn gen_impl_trait_try_from(
                     type Error = #error_type_name;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> Result<#type_name #generics, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics, Self::Error> {
                         Self::new(raw_value)
                     }
                 }
@@ -183,7 +183,7 @@ pub fn gen_impl_trait_try_from(
                     type Error = ::core::convert::Infallible;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> Result<#type_name #generics, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics, Self::Error> {
                         Ok(Self::new(raw_value))
                     }
                 }
@@ -286,7 +286,7 @@ pub fn gen_impl_trait_serde_deserialize(
 
     quote! {
         impl #all_generics ::serde::Deserialize<'de> for #type_name #type_generics {
-            fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+            fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> ::core::result::Result<Self, D::Error> {
                 struct __Visitor #all_generics {
                     marker: ::std::marker::PhantomData<#type_name #type_generics>,
                     lifetime: ::std::marker::PhantomData<&'de ()>,
@@ -299,7 +299,7 @@ pub fn gen_impl_trait_serde_deserialize(
                         write!(formatter, #expecting_str)
                     }
 
-                    fn visit_newtype_struct<DE>(self, deserializer: DE) -> Result<Self::Value, DE::Error>
+                    fn visit_newtype_struct<DE>(self, deserializer: DE) -> ::core::result::Result<Self::Value, DE::Error>
                     where
                         DE: ::serde::Deserializer<'de>
                     {
