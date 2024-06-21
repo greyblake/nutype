@@ -376,12 +376,6 @@ assert_eq!(name.into_inner(), " boo ");
 * IDEs may not be very helpful at giving you hints about proc macros.
 * Design of nutype may enforce you to run unnecessary validation (e.g. on loading data from DB), which may have a negative impact if you aim for extreme performance.
 
-## A note about #[derive(...)]
-
-You've got to know that the `#[nutype]` macro intercepts `#[derive(...)]` macro.
-It's done on purpose to ensure that anything like `DerefMut` or `BorrowMut`, that can lead to a violation of the validation rules is excluded.
-The library takes a conservative approach and it has its downside: deriving traits that are not known to the library is not possible.
-
 ## Support Ukrainian military forces
 
 Today I live in Berlin, I have the luxury to live a physically safe life.

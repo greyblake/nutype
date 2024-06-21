@@ -637,15 +637,31 @@ mod with_generics {
         assert_eq!(set.len(), 2);
     }
 
-    #[test]
-    fn test_generic_boundaries_serialize() {
-        // TODO
+    #[cfg(feature = "serde")]
+    mod serialization_with_generics {
+        use super::*;
+        use serde::{Deserialize, Serialize};
+
+        #[test]
+        fn test_serialize() {
+            #[nutype(derive(Debug, Serialize))]
+            struct Wrapper<T: Serialize>(T);
+
+            let w = Wrapper::new(13);
+            let json = serde_json::to_string(&w).unwrap();
+            assert_eq!(json, "13");
+        }
     }
 
-    #[test]
-    fn test_generic_boundaries_deserialize() {
-        // TODO
-    }
+    // #[test]
+    // fn test_generic_boundaries_serialize() {
+    //     // TODO
+    // }
+
+    // #[test]
+    // fn test_generic_boundaries_deserialize() {
+    //     // TODO
+    // }
 
     #[test]
     fn test_generic_boundaries_from_str() {

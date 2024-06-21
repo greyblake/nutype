@@ -166,6 +166,26 @@ fn strip_trait_bounds_on_generics(original: &Generics) -> Generics {
     generics
 }
 
+/// Add a bound to all generics types.
+///
+/// Input:
+///     <T, U>
+///     Serialize
+///
+/// Output:
+///    <T: Serialize, U: Serialize>
+fn add_bound_to_all_type_params(generics: &Generics, bound: TokenStream) -> Generics {
+    let mut generics = generics.clone();
+    let parsed_bound: syn::TypeParamBound =
+        syn::parse2(bound).expect("Failed to parse TypeParamBound");
+    for param in &mut generics.params {
+        if let syn::GenericParam::Type(syn::TypeParam { bounds, .. }) = param {
+            bounds.push(parsed_bound.clone());
+        }
+    }
+    generics
+}
+
 pub trait GenerateNewtype {
     type Sanitizer;
     type Validator;
