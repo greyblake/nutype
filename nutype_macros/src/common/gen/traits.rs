@@ -247,7 +247,7 @@ pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics)
 
     // Turn `<T>` into `<T: Serialize>`
     let all_generics_with_serialize_bound =
-        add_bound_to_all_type_params(&generics, syn::parse_quote!(::serde::Serialize));
+        add_bound_to_all_type_params(generics, syn::parse_quote!(::serde::Serialize));
 
     let type_name_str = type_name.to_string();
     quote! {
@@ -294,7 +294,7 @@ pub fn gen_impl_trait_serde_deserialize(
         all_generics
     };
     let all_generics_without_bounds = strip_trait_bounds_on_generics(&all_generics);
-    let type_generics_without_bounds = strip_trait_bounds_on_generics(&type_generics);
+    let type_generics_without_bounds = strip_trait_bounds_on_generics(type_generics);
 
     // Turn `<'de, T>` into `<'de, T: Deserialize<'de>>`
     let all_generics_with_deserialize_bound =
