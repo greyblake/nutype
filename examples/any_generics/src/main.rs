@@ -81,8 +81,8 @@ fn main() {
     {
         // Not empty vec is fine
         let json = "[3, 1, 5, 2]";
-        let sv = serde_json::from_str::<SortedNotEmptyVec<i32>>(json).unwrap();
-        assert_eq!(sv.into_inner(), vec![1, 2, 3, 5]);
+        let snev = serde_json::from_str::<SortedNotEmptyVec<i32>>(json).unwrap();
+        assert_eq!(snev.into_inner(), vec![1, 2, 3, 5]);
     }
     {
         // Empty vec is not allowed

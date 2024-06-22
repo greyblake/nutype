@@ -2,7 +2,7 @@ use nutype::nutype;
 use std::borrow::Cow;
 use std::cmp::{Ordering, PartialEq, PartialOrd};
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::hash::Hash;
 use test_suite::test_helpers::traits::*;
 
@@ -336,33 +336,24 @@ mod traits {
         mod with_generics {
             use super::*;
 
-            // TODO: Uncomment when https://github.com/greyblake/nutype/issues/142 is fixed
-            // #[test]
-            // fn test_generic_with_serde() {
-            //     #[nutype(
-            //         derive(Debug, Serialize, Deserialize),
-            //         validate(predicate = |v| v.is_empty())
-            //     )]
-            //     struct EmptyVec<T>(Vec<T>);
+            #[test]
+            fn test_generic_with_serde() {
+                #[nutype(
+                    derive(Debug, Serialize, Deserialize),
+                    validate(predicate = |v| !v.is_empty())
+                )]
+                struct NonEmptyVec<T>(Vec<T>);
 
-            //     {
-            //         let vec = EmptyVec::new(vec![]);
-            //         let json = serde_json::to_string(&vec).unwrap();
-            //         assert_eq!(json, "[]");
+                {
+                    let result = NonEmptyVec::<i32>::new(vec![]);
+                    assert!(result.is_err());
+                }
 
-            //         let same_vec: EmptyVec<u8> = serde_json::from_str(&json).unwrap();
-            //         assert_eq!(vec, same_vec);
-            //     }
-
-            //     {
-            //         let vec = EmptyVec::new(vec![1, 2, 3]);
-            //         let err = serde_json::to_string(&vec).unwrap_err();
-            //         assert_eq!(
-            //             err.to_string(),
-            //             "EmptyVec failed the predicate test. Expected valid EmptyVec"
-            //         );
-            //     }
-            // }
+                {
+                    let nev = NonEmptyVec::new(vec![5, 2, 3]).unwrap();
+                    assert_eq!(nev.into_inner(), vec![5, 2, 3],);
+                }
+            }
 
             #[test]
             fn serialize_and_deserialize_cow() {
@@ -526,17 +517,14 @@ mod with_generics {
         // The point of this test is to ensure that the generate code can be compiled at least
         // with respect to the specified trait boundaries
 
-        // TODO
-        // #[nutype(
-        //     derive(Debug)
-        // )]
-        // struct Wrapper1<A: Hash + Eq + Clone, B: Ord>(HashMap<A, B>);
+        #[nutype(derive(Debug, Clone, PartialEq, Eq))]
+        struct Wrapper1<A: Hash + Eq + Clone, B: Ord>(HashMap<A, B>);
     }
 
     #[test]
     fn test_generic_boundaries_debug() {
         #[nutype(derive(Debug))]
-        struct WrapperDebug<T: Debug>(T);
+        struct WrapperDebug<T>(T);
 
         let w = WrapperDebug::new(13);
         assert_eq!(format!("{w:?}"), "WrapperDebug(13)");
@@ -545,7 +533,7 @@ mod with_generics {
     #[test]
     fn test_generic_boundaries_display() {
         #[nutype(derive(Debug, Display))]
-        struct WrapperDisplay<T: Debug + Display>(T);
+        struct WrapperDisplay<T>(T);
 
         let number = WrapperDisplay::new(5);
         assert_eq!(number.to_string(), "5");
@@ -557,7 +545,7 @@ mod with_generics {
     #[test]
     fn test_generic_boundaries_clone() {
         #[nutype(derive(Clone))]
-        struct WrapperClone<T: Clone>(T);
+        struct WrapperClone<T>(T);
 
         let val = WrapperClone::new(17);
         let cloned = val.clone();
@@ -567,7 +555,7 @@ mod with_generics {
     #[test]
     fn test_generic_boundaries_copy() {
         #[nutype(derive(Clone, Copy))]
-        struct WrapperCopy<T: Clone + Copy>(T);
+        struct WrapperCopy<T>(T);
 
         let val = WrapperCopy::new(17);
         let copied = val;
@@ -589,7 +577,7 @@ mod with_generics {
     #[test]
     fn test_generic_boundaries_partial_ord() {
         #[nutype(derive(PartialEq, PartialOrd))]
-        struct WrapperPartialOrd<T: PartialOrd>(T);
+        struct WrapperPartialOrd<T>(T);
 
         {
             let v1 = WrapperPartialOrd::new(1);
@@ -610,7 +598,7 @@ mod with_generics {
     #[test]
     fn test_generic_boundaries_ord() {
         #[nutype(derive(PartialEq, Eq, PartialOrd, Ord))]
-        struct WrapperOrd<T: Ord>(T);
+        struct WrapperOrd<T>(T);
 
         let v1 = WrapperOrd::new(1);
         let v2 = WrapperOrd::new(2);
@@ -640,28 +628,42 @@ mod with_generics {
     #[cfg(feature = "serde")]
     mod serialization_with_generics {
         use super::*;
-        use serde::{Deserialize, Serialize};
 
         #[test]
         fn test_serialize() {
             #[nutype(derive(Debug, Serialize))]
-            struct Wrapper<T: Serialize>(T);
+            struct Wrapper<T>(T);
 
             let w = Wrapper::new(13);
             let json = serde_json::to_string(&w).unwrap();
             assert_eq!(json, "13");
         }
+
+        #[test]
+        fn test_deserialize() {
+            #[nutype(derive(Debug, Deserialize, PartialEq, Eq))]
+            struct Wrapper<T>(T);
+
+            let json = "14";
+            let w = serde_json::from_str::<Wrapper<u8>>(json).unwrap();
+            assert_eq!(w, Wrapper::new(14));
+        }
+
+        #[test]
+        fn test_serialize_and_deserialize_type_with_sanitization_and_validations() {
+            #[nutype(
+                sanitize(with = |mut v| { v.sort(); v }),
+                validate(predicate = |vec| !vec.is_empty()),
+                derive(Debug, Deserialize, Serialize),
+            )]
+            struct SortedNotEmptyVec<T: Ord>(Vec<T>);
+
+            let input_json = "[3, 1, 5, 2]";
+            let snev = serde_json::from_str::<SortedNotEmptyVec<i32>>(input_json).unwrap();
+            let output_json = serde_json::to_string(&snev).unwrap();
+            assert_eq!(output_json, "[1,2,3,5]");
+        }
     }
-
-    // #[test]
-    // fn test_generic_boundaries_serialize() {
-    //     // TODO
-    // }
-
-    // #[test]
-    // fn test_generic_boundaries_deserialize() {
-    //     // TODO
-    // }
 
     #[test]
     fn test_generic_boundaries_from_str() {

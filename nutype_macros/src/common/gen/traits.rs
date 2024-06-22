@@ -110,8 +110,10 @@ pub fn gen_impl_trait_deref(
 
 pub fn gen_impl_trait_display(type_name: &TypeName, generics: &Generics) -> TokenStream {
     let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let generics_with_display_bound =
+        add_bound_to_all_type_params(generics, syn::parse_quote!(::core::fmt::Display));
     quote! {
-        impl #generics ::core::fmt::Display for #type_name #generics_without_bounds {
+        impl #generics_with_display_bound ::core::fmt::Display for #type_name #generics_without_bounds {
             #[inline]
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 // A tiny wrapper function with trait boundary that improves error reporting.
