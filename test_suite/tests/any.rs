@@ -666,8 +666,44 @@ mod with_generics {
     }
 
     #[test]
+    fn test_generic_boundaries_try_from_without_validation() {
+        // Note, that we get TryFrom thanks to the blanket implementation in core:
+        //
+        //    impl<T, U> TryFrom<U> for T
+        //    where
+        //       U: Into<T>
+        //
+        #[nutype(derive(Debug, From))]
+        struct Doener<T>(T);
+
+        let durum = Doener::try_from("Durum").unwrap();
+        assert_eq!(durum.into_inner(), "Durum");
+    }
+
+    #[test]
+    fn test_generic_boundaries_try_from_with_validation() {
+        #[nutype(
+            derive(Debug, TryFrom),
+            validate(predicate = |v| !v.is_empty())
+        )]
+        struct NotEmpty<T>(Vec<T>);
+        {
+            let err = NotEmpty::<i32>::try_from(vec![]).unwrap_err();
+            assert_eq!(err, NotEmptyError::PredicateViolated);
+        }
+        {
+            let v = NotEmpty::try_from(vec![1, 2, 3]).unwrap();
+            assert_eq!(v.into_inner(), vec![1, 2, 3]);
+        }
+    }
+
+    #[test]
     fn test_generic_boundaries_from_str() {
         // TODO
+        // #[nutype(
+        //     derive(Debug, FromStr),
+        // )]
+        // struct Wrapper<T>(T);
     }
 
     #[test]
