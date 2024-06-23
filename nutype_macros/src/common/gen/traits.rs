@@ -4,7 +4,10 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 use syn::Generics;
 
-use crate::common::models::{ErrorTypeName, InnerType, TypeName};
+use crate::common::{
+    gen::{add_bound_to_all_type_params, strip_trait_bounds_on_generics},
+    models::{ErrorTypeName, InnerType, TypeName},
+};
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
 
@@ -106,8 +109,11 @@ pub fn gen_impl_trait_deref(
 }
 
 pub fn gen_impl_trait_display(type_name: &TypeName, generics: &Generics) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let generics_with_display_bound =
+        add_bound_to_all_type_params(generics, syn::parse_quote!(::core::fmt::Display));
     quote! {
-        impl #generics ::core::fmt::Display for #type_name #generics {
+        impl #generics_with_display_bound ::core::fmt::Display for #type_name #generics_without_bounds {
             #[inline]
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 // A tiny wrapper function with trait boundary that improves error reporting.
@@ -239,9 +245,15 @@ pub fn gen_impl_trait_from_str(
 }
 
 pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
+    // Turn `<T>` into `<T: Serialize>`
+    let all_generics_with_serialize_bound =
+        add_bound_to_all_type_params(generics, syn::parse_quote!(::serde::Serialize));
+
     let type_name_str = type_name.to_string();
     quote! {
-        impl #generics ::serde::Serialize for #type_name #generics {
+        impl #all_generics_with_serialize_bound ::serde::Serialize for #type_name #generics_without_bounds {
             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
             where
                 S: ::serde::Serializer
@@ -283,17 +295,23 @@ pub fn gen_impl_trait_serde_deserialize(
         all_generics.params.push(syn::parse_quote!('de));
         all_generics
     };
+    let all_generics_without_bounds = strip_trait_bounds_on_generics(&all_generics);
+    let type_generics_without_bounds = strip_trait_bounds_on_generics(type_generics);
+
+    // Turn `<'de, T>` into `<'de, T: Deserialize<'de>>`
+    let all_generics_with_deserialize_bound =
+        add_bound_to_all_type_params(&all_generics, syn::parse_quote!(::serde::Deserialize<'de>));
 
     quote! {
-        impl #all_generics ::serde::Deserialize<'de> for #type_name #type_generics {
+        impl #all_generics_with_deserialize_bound ::serde::Deserialize<'de> for #type_name #type_generics_without_bounds {
             fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> ::core::result::Result<Self, D::Error> {
                 struct __Visitor #all_generics {
-                    marker: ::std::marker::PhantomData<#type_name #type_generics>,
+                    marker: ::std::marker::PhantomData<#type_name #type_generics_without_bounds>,
                     lifetime: ::std::marker::PhantomData<&'de ()>,
                 }
 
-                impl #all_generics ::serde::de::Visitor<'de> for __Visitor #all_generics {
-                    type Value = #type_name #type_generics;
+                impl #all_generics_with_deserialize_bound ::serde::de::Visitor<'de> for __Visitor #all_generics_without_bounds {
+                    type Value = #type_name #type_generics_without_bounds;
 
                     fn expecting(&self, formatter: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         write!(formatter, #expecting_str)

@@ -1,6 +1,9 @@
 use nutype::nutype;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::cmp::{Ordering, PartialEq, PartialOrd};
+use std::collections::{HashMap, HashSet};
+use std::fmt::Debug;
+use std::hash::Hash;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
@@ -333,33 +336,24 @@ mod traits {
         mod with_generics {
             use super::*;
 
-            // TODO: Uncomment when https://github.com/greyblake/nutype/issues/142 is fixed
-            // #[test]
-            // fn test_generic_with_serde() {
-            //     #[nutype(
-            //         derive(Debug, Serialize, Deserialize),
-            //         validate(predicate = |v| v.is_empty())
-            //     )]
-            //     struct EmptyVec<T>(Vec<T>);
+            #[test]
+            fn test_generic_with_serde() {
+                #[nutype(
+                    derive(Debug, Serialize, Deserialize),
+                    validate(predicate = |v| !v.is_empty())
+                )]
+                struct NonEmptyVec<T>(Vec<T>);
 
-            //     {
-            //         let vec = EmptyVec::new(vec![]);
-            //         let json = serde_json::to_string(&vec).unwrap();
-            //         assert_eq!(json, "[]");
+                {
+                    let result = NonEmptyVec::<i32>::new(vec![]);
+                    assert!(result.is_err());
+                }
 
-            //         let same_vec: EmptyVec<u8> = serde_json::from_str(&json).unwrap();
-            //         assert_eq!(vec, same_vec);
-            //     }
-
-            //     {
-            //         let vec = EmptyVec::new(vec![1, 2, 3]);
-            //         let err = serde_json::to_string(&vec).unwrap_err();
-            //         assert_eq!(
-            //             err.to_string(),
-            //             "EmptyVec failed the predicate test. Expected valid EmptyVec"
-            //         );
-            //     }
-            // }
+                {
+                    let nev = NonEmptyVec::new(vec![5, 2, 3]).unwrap();
+                    assert_eq!(nev.into_inner(), vec![5, 2, 3],);
+                }
+            }
 
             #[test]
             fn serialize_and_deserialize_cow() {
@@ -506,31 +500,199 @@ mod with_generics {
         }
     }
 
-    // TODO
-    // #[test]
-    // fn test_generic_with_boundaries_and_sanitize() {
-    // #[nutype(
-    //     sanitize(with = |v| { v.sort(); v }),
-    //     derive(Debug)
-    // )]
-    // struct SortedVec<T: Ord>(Vec<T>);
+    #[test]
+    fn test_generic_with_boundaries_and_sanitize() {
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            derive(Debug)
+        )]
+        struct SortedVec<T: Ord>(Vec<T>);
 
-    // {
-    //     let vec = NonEmptyVec::new(vec![1, 2, 3]).unwrap();
-    //     assert_eq!(vec.into_inner(), vec![1, 2, 3]);
-    // }
+        let sorted = SortedVec::new(vec![3, 1, 2]);
+        assert_eq!(sorted.into_inner(), vec![1, 2, 3]);
+    }
 
-    // {
-    //     let vec = NonEmptyVec::new(vec![5]).unwrap();
-    //     assert_eq!(vec.into_inner(), vec![5]);
-    // }
+    #[test]
+    fn test_generic_with_boundaries_and_many_derives() {
+        // The point of this test is to ensure that the generate code can be compiled at least
+        // with respect to the specified trait boundaries
 
-    // {
-    //     let vec: Vec<u8> = vec![];
-    //     let err = NonEmptyVec::new(vec).unwrap_err();
-    //     assert_eq!(err, NonEmptyVecError::PredicateViolated);
-    // }
-    // }
+        #[nutype(derive(Debug, Clone, PartialEq, Eq))]
+        struct Wrapper1<A: Hash + Eq + Clone, B: Ord>(HashMap<A, B>);
+    }
+
+    #[test]
+    fn test_generic_boundaries_debug() {
+        #[nutype(derive(Debug))]
+        struct WrapperDebug<T>(T);
+
+        let w = WrapperDebug::new(13);
+        assert_eq!(format!("{w:?}"), "WrapperDebug(13)");
+    }
+
+    #[test]
+    fn test_generic_boundaries_display() {
+        #[nutype(derive(Debug, Display))]
+        struct WrapperDisplay<T>(T);
+
+        let number = WrapperDisplay::new(5);
+        assert_eq!(number.to_string(), "5");
+
+        let b = WrapperDisplay::new(true);
+        assert_eq!(b.to_string(), "true");
+    }
+
+    #[test]
+    fn test_generic_boundaries_clone() {
+        #[nutype(derive(Clone))]
+        struct WrapperClone<T>(T);
+
+        let val = WrapperClone::new(17);
+        let cloned = val.clone();
+        assert_eq!(val.into_inner(), cloned.into_inner());
+    }
+
+    #[test]
+    fn test_generic_boundaries_copy() {
+        #[nutype(derive(Clone, Copy))]
+        struct WrapperCopy<T>(T);
+
+        let val = WrapperCopy::new(17);
+        let copied = val;
+        assert_eq!(val.into_inner(), copied.into_inner());
+    }
+
+    #[test]
+    fn test_generic_boundaries_partial_eq_and_eq() {
+        #[nutype(derive(PartialEq, Eq))]
+        struct WrapperPartialEq<T: PartialEq + Eq>(T);
+
+        let v19 = WrapperPartialEq::new(19);
+        let v19x = WrapperPartialEq::new(19);
+        let v3 = WrapperPartialEq::new(20);
+        assert!(v19.eq(&v19x));
+        assert!(v19.ne(&v3));
+    }
+
+    #[test]
+    fn test_generic_boundaries_partial_ord() {
+        #[nutype(derive(PartialEq, PartialOrd))]
+        struct WrapperPartialOrd<T>(T);
+
+        {
+            let v1 = WrapperPartialOrd::new(1);
+            let v2 = WrapperPartialOrd::new(2);
+            let v2x = WrapperPartialOrd::new(2);
+
+            assert_eq!(v1.partial_cmp(&v2).unwrap(), Ordering::Less);
+            assert_eq!(v2.partial_cmp(&v2x).unwrap(), Ordering::Equal);
+        }
+
+        {
+            let nan1 = WrapperPartialOrd::new(std::f64::NAN);
+            let nan2 = WrapperPartialOrd::new(std::f64::NAN);
+            assert_eq!(nan1.partial_cmp(&nan2), None);
+        }
+    }
+
+    #[test]
+    fn test_generic_boundaries_ord() {
+        #[nutype(derive(PartialEq, Eq, PartialOrd, Ord))]
+        struct WrapperOrd<T>(T);
+
+        let v1 = WrapperOrd::new(1);
+        let v2 = WrapperOrd::new(2);
+        let v2x = WrapperOrd::new(2);
+
+        assert_eq!(v2.cmp(&v1), Ordering::Greater);
+        assert_eq!(v2.cmp(&v2x), Ordering::Equal);
+    }
+
+    #[test]
+    fn test_generic_boundaries_hash() {
+        #[nutype(derive(PartialEq, Eq, Hash))]
+        struct WrapperHash<T: PartialEq + Eq + Hash>(T);
+
+        #[derive(Hash, PartialEq, Eq)]
+        struct Number(i32);
+
+        let mut set = HashSet::new();
+        set.insert(WrapperHash::new(Number(1)));
+        set.insert(WrapperHash::new(Number(1)));
+        set.insert(WrapperHash::new(Number(2)));
+
+        // 1 is inserted twice, so the set should have only two elements
+        assert_eq!(set.len(), 2);
+    }
+
+    #[cfg(feature = "serde")]
+    mod serialization_with_generics {
+        use super::*;
+
+        #[test]
+        fn test_serialize() {
+            #[nutype(derive(Debug, Serialize))]
+            struct Wrapper<T>(T);
+
+            let w = Wrapper::new(13);
+            let json = serde_json::to_string(&w).unwrap();
+            assert_eq!(json, "13");
+        }
+
+        #[test]
+        fn test_deserialize() {
+            #[nutype(derive(Debug, Deserialize, PartialEq, Eq))]
+            struct Wrapper<T>(T);
+
+            let json = "14";
+            let w = serde_json::from_str::<Wrapper<u8>>(json).unwrap();
+            assert_eq!(w, Wrapper::new(14));
+        }
+
+        #[test]
+        fn test_serialize_and_deserialize_type_with_sanitization_and_validations() {
+            #[nutype(
+                sanitize(with = |mut v| { v.sort(); v }),
+                validate(predicate = |vec| !vec.is_empty()),
+                derive(Debug, Deserialize, Serialize),
+            )]
+            struct SortedNotEmptyVec<T: Ord>(Vec<T>);
+
+            let input_json = "[3, 1, 5, 2]";
+            let snev = serde_json::from_str::<SortedNotEmptyVec<i32>>(input_json).unwrap();
+            let output_json = serde_json::to_string(&snev).unwrap();
+            assert_eq!(output_json, "[1,2,3,5]");
+        }
+    }
+
+    #[test]
+    fn test_generic_boundaries_from_str() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_boundaries_arbitrary() {
+        // TODO
+    }
+
+    #[test]
+    fn test_generic_with_boundaries_and_sanitize_and_validate() {
+        #[nutype(
+            validate(predicate = |v| !v.is_empty()),
+            sanitize(with = |mut v| { v.sort(); v }),
+            derive(Debug)
+        )]
+        struct NonEmptySortedVec<T: Ord>(Vec<T>);
+
+        {
+            let err = NonEmptySortedVec::<i32>::new(vec![]).unwrap_err();
+            assert_eq!(err, NonEmptySortedVecError::PredicateViolated);
+        }
+        {
+            let vec = NonEmptySortedVec::new(vec![3, 1, 2]).unwrap();
+            assert_eq!(vec.into_inner(), vec![1, 2, 3]);
+        }
+    }
 
     #[test]
     fn test_generic_with_lifetime_cow() {
