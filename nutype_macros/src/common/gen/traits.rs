@@ -166,16 +166,18 @@ pub fn gen_impl_trait_try_from(
     inner_type: impl ToTokens,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
     match maybe_error_type_name {
         Some(error_type_name) => {
             // The case when there are validation
             //
             quote! {
-                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics {
+                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics_without_bounds {
                     type Error = #error_type_name;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics_without_bounds, Self::Error> {
                         Self::new(raw_value)
                     }
                 }
@@ -185,11 +187,11 @@ pub fn gen_impl_trait_try_from(
             // The case when there are no validation
             //
             quote! {
-                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics {
+                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics_without_bounds {
                     type Error = ::core::convert::Infallible;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics_without_bounds, Self::Error> {
                         Ok(Self::new(raw_value))
                     }
                 }
