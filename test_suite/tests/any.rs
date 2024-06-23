@@ -179,7 +179,10 @@ mod traits {
             assert_eq!(loc, Location::new(Point::new(3, 5)));
 
             let err = "3,lol".parse::<Location>().unwrap_err();
-            assert_eq!(err.to_string(), "Failed to parse Location: Invalid integer");
+            assert_eq!(
+                err.to_string(),
+                "Failed to parse Location: \"Invalid integer\""
+            );
         }
 
         #[test]
@@ -699,11 +702,33 @@ mod with_generics {
 
     #[test]
     fn test_generic_boundaries_from_str() {
+        #[nutype(derive(Debug, FromStr))]
+        struct Parseable<T>(T);
+
+        {
+            let xiii = "13".parse::<Parseable<i32>>().unwrap();
+            assert_eq!(xiii.into_inner(), 13);
+        }
+
+        {
+            let vii = "vii".parse::<Parseable<String>>().unwrap();
+            assert_eq!(vii.into_inner(), "vii");
+        }
+
+        {
+            let err = "iv".parse::<Parseable<i32>>().unwrap_err();
+            assert_eq!(
+                err.to_string(),
+                "Failed to parse Parseable: ParseIntError { kind: InvalidDigit }"
+            );
+        }
+    }
+
+    #[test]
+    fn test_generic_boundaries_from_str_with_lifetime() {
         // TODO
-        // #[nutype(
-        //     derive(Debug, FromStr),
-        // )]
-        // struct Wrapper<T>(T);
+        // #[nutype(derive(FromStr))]
+        // struct Clarabelle<'a>(Cow<'a, str>);
     }
 
     #[test]

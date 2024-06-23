@@ -203,16 +203,24 @@ pub fn gen_impl_trait_try_from(
 /// Generate implementation of FromStr trait for non-string types (e.g. integers or floats).
 pub fn gen_impl_trait_from_str(
     type_name: &TypeName,
+    generics: &Generics,
     inner_type: impl Into<InnerType>,
     maybe_error_type_name: Option<&ErrorTypeName>,
 ) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
     let parse_error_type_name = gen_parse_error_name(type_name);
     let def_parse_error = gen_def_parse_error(
-        inner_type.clone(),
         type_name,
+        generics,
+        inner_type.clone(),
         maybe_error_type_name,
         &parse_error_type_name,
+    );
+
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let generics_with_fromstr_bound = add_bound_to_all_type_params(
+        generics,
+        syn::parse_quote!(::core::str::FromStr<Err: ::core::fmt::Debug>),
     );
 
     if let Some(_error_type_name) = maybe_error_type_name {
@@ -220,8 +228,8 @@ pub fn gen_impl_trait_from_str(
         quote! {
             #def_parse_error
 
-            impl ::core::str::FromStr for #type_name {
-                type Err = #parse_error_type_name;
+            impl #generics_with_fromstr_bound ::core::str::FromStr for #type_name #generics_without_bounds {
+                type Err = #parse_error_type_name #generics_without_bounds;
 
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     let raw_value: #inner_type = raw_string.parse().map_err(#parse_error_type_name::Parse)?;
@@ -234,8 +242,8 @@ pub fn gen_impl_trait_from_str(
         quote! {
             #def_parse_error
 
-            impl ::core::str::FromStr for #type_name {
-                type Err = #parse_error_type_name;
+            impl #generics_with_fromstr_bound ::core::str::FromStr for #type_name #generics_without_bounds {
+                type Err = #parse_error_type_name #generics_without_bounds;
 
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     let value: #inner_type = raw_string.parse().map_err(#parse_error_type_name::Parse)?;

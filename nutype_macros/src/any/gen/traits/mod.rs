@@ -160,7 +160,7 @@ fn gen_implemented_traits(
             AnyIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, inner_type)),
             AnyIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, generics, inner_type)),
             AnyIrregularTrait::FromStr => Ok(
-                gen_impl_trait_from_str(type_name, inner_type, maybe_error_type_name.as_ref())
+                gen_impl_trait_from_str(type_name, generics, inner_type, maybe_error_type_name.as_ref())
             ),
             AnyIrregularTrait::TryFrom => Ok(
                 gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name.as_ref())
