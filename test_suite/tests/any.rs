@@ -179,7 +179,10 @@ mod traits {
             assert_eq!(loc, Location::new(Point::new(3, 5)));
 
             let err = "3,lol".parse::<Location>().unwrap_err();
-            assert_eq!(err.to_string(), "Failed to parse Location: Invalid integer");
+            assert_eq!(
+                err.to_string(),
+                "Failed to parse Location: \"Invalid integer\""
+            );
         }
 
         #[test]
@@ -199,7 +202,7 @@ mod traits {
                 let err = "6,5,4".parse::<Position>().unwrap_err();
                 assert_eq!(
                     err.to_string(),
-                    "Failed to parse Position: Point must be two comma separated integers"
+                    "Failed to parse Position: \"Point must be two comma separated integers\""
                 );
             }
 
@@ -666,7 +669,7 @@ mod with_generics {
     }
 
     #[test]
-    fn test_generic_boundaries_try_from_without_validation() {
+    fn test_generic_try_from_without_validation() {
         // Note, that we get TryFrom thanks to the blanket implementation in core:
         //
         //    impl<T, U> TryFrom<U> for T
@@ -681,7 +684,7 @@ mod with_generics {
     }
 
     #[test]
-    fn test_generic_boundaries_try_from_with_validation() {
+    fn test_generic_try_from_with_validation() {
         #[nutype(
             derive(Debug, TryFrom),
             validate(predicate = |v| !v.is_empty())
@@ -698,12 +701,54 @@ mod with_generics {
     }
 
     #[test]
-    fn test_generic_boundaries_from_str() {
-        // TODO
-        // #[nutype(
-        //     derive(Debug, FromStr),
-        // )]
-        // struct Wrapper<T>(T);
+    fn test_generic_from_str_without_validation() {
+        #[nutype(derive(Debug, FromStr))]
+        struct Parseable<T>(T);
+
+        {
+            let xiii = "13".parse::<Parseable<i32>>().unwrap();
+            assert_eq!(xiii.into_inner(), 13);
+        }
+
+        {
+            let vii = "vii".parse::<Parseable<String>>().unwrap();
+            assert_eq!(vii.into_inner(), "vii");
+        }
+
+        {
+            let err = "iv".parse::<Parseable<i32>>().unwrap_err();
+            assert_eq!(
+                err.to_string(),
+                "Failed to parse Parseable: ParseIntError { kind: InvalidDigit }"
+            );
+        }
+
+        {
+            let four = "4".parse::<Parseable<Parseable<i32>>>().unwrap();
+            assert_eq!(four.into_inner().into_inner(), 4);
+        }
+    }
+
+    #[test]
+    fn test_generic_from_str_with_validation() {
+        #[nutype(
+            validate(predicate = |n| n.is_even()),
+            derive(Debug, FromStr),
+        )]
+        struct Even<T: ::num::Integer>(T);
+
+        {
+            let err = "13".parse::<Even<i32>>().unwrap_err();
+            assert_eq!(
+                err.to_string(),
+                "Failed to parse Even: Even failed the predicate test."
+            );
+        }
+
+        {
+            let twelve = "12".parse::<Even<i32>>().unwrap();
+            assert_eq!(twelve.into_inner(), 12);
+        }
     }
 
     #[test]

@@ -439,7 +439,7 @@ mod traits {
         let err: DistParseError = "foobar".parse::<Dist>().unwrap_err();
         assert_eq!(
             err.to_string(),
-            "Failed to parse Dist: invalid float literal"
+            "Failed to parse Dist: ParseFloatError { kind: Invalid }"
         );
     }
 
@@ -455,7 +455,7 @@ mod traits {
         let err: DistParseError = "foobar".parse::<Dist>().unwrap_err();
         assert_eq!(
             err.to_string(),
-            "Failed to parse Dist: invalid float literal"
+            "Failed to parse Dist: ParseFloatError { kind: Invalid }"
         );
 
         // Unhappy path: validation error

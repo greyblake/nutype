@@ -590,7 +590,7 @@ mod traits {
         let err: AgeParseError = "foobar".parse::<Age>().unwrap_err();
         assert_eq!(
             err.to_string(),
-            "Failed to parse Age: invalid digit found in string"
+            "Failed to parse Age: ParseIntError { kind: InvalidDigit }"
         );
     }
 
@@ -606,7 +606,7 @@ mod traits {
         let err: AgeParseError = "foobar".parse::<Age>().unwrap_err();
         assert_eq!(
             err.to_string(),
-            "Failed to parse Age: invalid digit found in string"
+            "Failed to parse Age: ParseIntError { kind: InvalidDigit }"
         );
 
         // Unhappy path: validation error
