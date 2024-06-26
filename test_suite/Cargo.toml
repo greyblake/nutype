@@ -19,6 +19,7 @@ arbitrary = "1.3.0"
 arbtest = "0.2.0"
 ron = "0.8.1"
 rmp-serde = "1.1.2"
+num = "0.4.3"
 
 [features]
 serde = ["nutype/serde", "dep:serde", "dep:serde_json"]

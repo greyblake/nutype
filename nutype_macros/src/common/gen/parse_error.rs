@@ -33,18 +33,17 @@ pub fn gen_def_parse_error(
     );
 
     let definition = if let Some(error_type_name) = maybe_error_type_name {
-        // TODO! Use generics here too!
         quote! {
-            #[derive(Debug)]
-            pub enum #parse_error_type_name {
-                Parse(<#inner_type as ::core::str::FromStr>::Err),
-                Validate(#error_type_name),
-            }
+            #[derive(Debug)]                                                                    // #[derive(Debug)]
+            pub enum #parse_error_type_name #generics_with_fromstr_bound {                      // pub enum ParseErrorFoo<T: ::core::str::FromStr<Err: ::core::fmt::Debug>> {
+                Parse(<#inner_type as ::core::str::FromStr>::Err),                              //     Parse(<Foo as ::core::str::FromStr>::Err),
+                Validate(#error_type_name),                                                     //     Validate(ErrorFoo),
+            }                                                                                   // }
 
-            impl ::core::fmt::Display for #parse_error_type_name {
+            impl #generics_with_fromstr_bound ::core::fmt::Display for #parse_error_type_name #generics_without_bounds {
                 fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                     match self {
-                        #parse_error_type_name::Parse(err) => write!(f, "Failed to parse {}: {}", #type_name_str, err),
+                        #parse_error_type_name::Parse(err) => write!(f, "Failed to parse {}: {:?}", #type_name_str, err),
                         #parse_error_type_name::Validate(err) => write!(f, "Failed to parse {}: {}", #type_name_str, err),
                     }
 
