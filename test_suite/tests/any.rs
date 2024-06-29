@@ -751,9 +751,25 @@ mod with_generics {
         }
     }
 
-    #[test]
-    fn test_generic_boundaries_arbitrary() {
-        // TODO
+    mod generics_and_arbitrary {
+        use super::*;
+        use arbitrary::Arbitrary;
+
+        #[nutype(derive(Debug, Arbitrary))]
+        struct Arbaro<T>(Vec<T>);
+
+        fn gen(bytes: &[u8]) -> Vec<bool> {
+            let mut u = arbitrary::Unstructured::new(&bytes);
+            let arbraro = Arbaro::<bool>::arbitrary(&mut u).unwrap();
+            arbraro.into_inner()
+        }
+
+        #[test]
+        fn test_generic_boundaries_arbitrary() {
+            assert_eq!(gen(&[]), Vec::<bool>::new());
+            assert_eq!(gen(&[1]), vec![false]);
+            assert_eq!(gen(&[1, 3, 5]), vec![true, false]);
+        }
     }
 
     #[test]

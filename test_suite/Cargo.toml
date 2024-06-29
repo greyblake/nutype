@@ -24,6 +24,7 @@ num = "0.4.3"
 [features]
 serde = ["nutype/serde", "dep:serde", "dep:serde_json"]
 regex = ["nutype/regex", "dep:regex", "dep:lazy_static", "dep:once_cell"]
+arbitrary = ["nutype/arbitrary"]
 schemars08 = ["schemars"]
 new_unchecked = []
 ui = []

@@ -19,30 +19,36 @@ jobs:
         with:
           toolchain: stable
 
-      - name: cargo test --features nutype_test
+      - name: cargo test
         uses: actions-rs/cargo@v1
         with:
           command: test
 
-      - name: cargo test --features nutype_test,serde
+      - name: cargo test --features serde
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --features serde
 
-      - name: cargo test --features nutype_test,regex
+      - name: cargo test --features regex
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --features regex
 
-      - name: cargo test --features nutype_test,new_unchecked
+      - name: cargo test --features new_unchecked
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --features new_unchecked
 
-      - name: cargo test --features nutype_test,schemars08
+      - name: cargo test --features arbitrary
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --features arbitrary
+
+      - name: cargo test --features schemars08
         uses: actions-rs/cargo@v1
         with:
           command: test

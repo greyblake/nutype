@@ -6,6 +6,7 @@ test-all:
 	cargo test --features regex
 	cargo test --features new_unchecked
 	cargo test --features schemars08
+	cargo test --features arbitrary
 	cargo test --all-features
 
 test:
