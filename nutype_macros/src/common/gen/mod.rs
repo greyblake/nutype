@@ -156,7 +156,7 @@ pub fn gen_impl_into_inner(
 ///
 /// Output:
 ///   <T, U>
-fn strip_trait_bounds_on_generics(original: &Generics) -> Generics {
+pub fn strip_trait_bounds_on_generics(original: &Generics) -> Generics {
     let mut generics = original.clone();
     for param in &mut generics.params {
         if let syn::GenericParam::Type(syn::TypeParam { bounds, .. }) = param {
@@ -174,7 +174,7 @@ fn strip_trait_bounds_on_generics(original: &Generics) -> Generics {
 ///
 /// Output:
 ///    <T: Serialize, U: Serialize>
-fn add_bound_to_all_type_params(generics: &Generics, bound: TokenStream) -> Generics {
+pub fn add_bound_to_all_type_params(generics: &Generics, bound: TokenStream) -> Generics {
     let mut generics = generics.clone();
     let parsed_bound: syn::TypeParamBound =
         syn::parse2(bound).expect("Failed to parse TypeParamBound");
@@ -183,6 +183,22 @@ fn add_bound_to_all_type_params(generics: &Generics, bound: TokenStream) -> Gene
             bounds.push(parsed_bound.clone());
         }
     }
+    generics
+}
+
+/// Add a parameter to generics.
+///
+/// Input:
+///     <T, U>
+///     'a
+///
+/// Output:
+///     <'a, T, U>
+///
+pub fn add_param(generics: &Generics, param: TokenStream) -> Generics {
+    let mut generics = generics.clone();
+    let parsed_param: syn::GenericParam = syn::parse2(param).expect("Failed to parse GenericParam");
+    generics.params.push(parsed_param);
     generics
 }
 

@@ -20,7 +20,7 @@ pub struct GeneratedTraits {
     pub implement_traits: TokenStream,
 }
 
-/// Split traits into 2 groups for generatation:
+/// Split traits into 2 groups for generation:
 /// * Transparent traits can be simply derived, e.g. `derive(Debug)`.
 /// * Irregular traits requires implementation to be generated.
 pub enum GeneratableTrait<TransparentTrait, IrregularTrait> {
