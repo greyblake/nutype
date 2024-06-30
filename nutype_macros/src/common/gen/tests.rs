@@ -1,5 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
+use syn::Generics;
 
 use crate::common::models::{NumericBound, TypeName};
 
@@ -34,12 +35,22 @@ Note: the test is generated automatically by #[nutype] macro.
 
 pub fn gen_test_should_have_valid_default_value(
     type_name: &TypeName,
+    generics: &Generics,
     maybe_default_value: &Option<syn::Expr>,
     has_validation: bool,
 ) -> Option<TokenStream> {
     if !has_validation {
         // If there is no validation, then every possible default value will be valid,
         // so there is no need to generate the test.
+        return None;
+    }
+
+    if !generics.params.is_empty() {
+        // If the type has generics, then it is not possible to generate the test,
+        // because the test would require concrete types to instantiate default value.
+        //
+        // It could be tempting to generate a test using some concrete types (e.g. `i32` for `T`),
+        // but it's not possible to guarantee that the type we pick will match the boundaries on `T`.
         return None;
     }
 

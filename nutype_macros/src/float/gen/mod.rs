@@ -157,6 +157,7 @@ where
 
     fn gen_tests(
         type_name: &TypeName,
+        generics: &Generics,
         _inner_type: &Self::InnerType,
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
@@ -168,6 +169,7 @@ where
 
         let test_valid_default_value = gen_test_should_have_valid_default_value(
             type_name,
+            generics,
             maybe_default_value,
             guard.has_validation(),
         );

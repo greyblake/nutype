@@ -834,4 +834,32 @@ mod with_generics {
         let squares = NonEmptyMap::new(inner_map.clone()).unwrap();
         assert_eq!(squares.as_ref(), &inner_map);
     }
+
+    #[test]
+    fn test_derive_default_with_generics() {
+        #[nutype(
+            derive(Debug, Default),
+            default = vec![T::default()],
+        )]
+        struct Collection<T: Default>(Vec<T>);
+
+        let ints = Collection::<u32>::default();
+        assert_eq!(ints.into_inner(), vec![0]);
+
+        let bools = Collection::<bool>::default();
+        assert_eq!(bools.into_inner(), vec![false]);
+    }
+
+    #[test]
+    fn test_derive_default_with_generics_and_validation() {
+        #[nutype(
+            derive(Debug, Default),
+            default = vec![T::default()],
+            validate(predicate = |c| !c.is_empty()),
+        )]
+        struct Collection<T: Default>(Vec<T>);
+
+        let collection = Collection::<u32>::default();
+        assert_eq!(collection.into_inner(), vec![0]);
+    }
 }
