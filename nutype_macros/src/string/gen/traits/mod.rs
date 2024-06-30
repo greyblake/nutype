@@ -200,6 +200,7 @@ fn gen_implemented_traits(
                     let has_validation = maybe_error_type_name.is_some();
                     Ok(gen_impl_trait_default(
                         type_name,
+                        generics,
                         default_value,
                         has_validation,
                     ))

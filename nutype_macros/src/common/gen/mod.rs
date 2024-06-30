@@ -383,6 +383,7 @@ pub trait GenerateNewtype {
 
         let tests = Self::gen_tests(
             &type_name,
+            &generics,
             &inner_type,
             &maybe_default_value,
             &guard,
@@ -430,6 +431,7 @@ pub trait GenerateNewtype {
 
     fn gen_tests(
         type_name: &TypeName,
+        generics: &Generics,
         inner_type: &Self::InnerType,
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,

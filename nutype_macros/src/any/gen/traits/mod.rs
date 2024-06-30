@@ -168,7 +168,7 @@ fn gen_implemented_traits(
             AnyIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {
                     let has_validation = maybe_error_type_name.is_some();
-                    Ok(gen_impl_trait_default(type_name, default_value, has_validation))
+                    Ok(gen_impl_trait_default(type_name, generics, default_value, has_validation))
                 }
                 None => {
                     let span = proc_macro2::Span::call_site();

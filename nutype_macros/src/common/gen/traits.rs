@@ -354,13 +354,16 @@ pub fn gen_impl_trait_serde_deserialize(
 
 pub fn gen_impl_trait_default(
     type_name: &TypeName,
+    generics: &Generics,
     default_value: impl ToTokens,
     has_validation: bool,
 ) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
     if has_validation {
         let tp = type_name.to_string();
         quote!(
-            impl ::core::default::Default for #type_name {
+            impl #generics ::core::default::Default for #type_name #generics_without_bounds {
                 fn default() -> Self {
                     Self::new(#default_value)
                         .unwrap_or_else(|err| {
@@ -372,7 +375,7 @@ pub fn gen_impl_trait_default(
         )
     } else {
         quote!(
-            impl ::core::default::Default for #type_name {
+            impl #generics ::core::default::Default for #type_name #generics_without_bounds {
                 #[inline]
                 fn default() -> Self {
                     Self::new(#default_value)
