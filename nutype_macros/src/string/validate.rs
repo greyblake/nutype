@@ -6,7 +6,7 @@ use proc_macro2::Span;
 use crate::{
     common::{
         models::{DeriveTrait, SpannedDeriveTrait, ValueOrExpr},
-        validate::validate_duplicates,
+        validate::{validate_duplicates, validate_traits_from_xor_try_from},
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
 };
@@ -117,6 +117,8 @@ pub fn validate_string_derive_traits(
     guard: &StringGuard,
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
 ) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
+    validate_traits_from_xor_try_from(&spanned_derive_traits)?;
+
     let mut traits = HashSet::with_capacity(24);
     let has_validation = guard.has_validation();
 

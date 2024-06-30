@@ -1,7 +1,7 @@
 use kinded::Kinded;
 use proc_macro2::Span;
 
-use super::models::{NumericBoundValidator, SpannedItem};
+use super::models::{DeriveTrait, NumericBoundValidator, SpannedDeriveTrait, SpannedItem};
 
 pub fn validate_duplicates<T>(
     items: &[SpannedItem<T>],
@@ -101,4 +101,24 @@ where
     }
 
     Ok(())
+}
+
+pub fn validate_traits_from_xor_try_from(
+    spanned_derive_traits: &[SpannedDeriveTrait],
+) -> Result<(), syn::Error> {
+    let maybe_from = spanned_derive_traits
+        .iter()
+        .find(|dt| dt.item == DeriveTrait::From);
+    let maybe_try_from = spanned_derive_traits
+        .iter()
+        .find(|dt| dt.item == DeriveTrait::TryFrom);
+
+    match (maybe_from, maybe_try_from) {
+        (Some(_from), Some(try_from)) => {
+            let msg = "There is no need to derive `TryFrom` when `From` is already derived.\nThere is a blanket implementation for `TryFrom` in std.";
+            let err = syn::Error::new(try_from.span(), msg);
+            Err(err)
+        }
+        _ => Ok(()),
+    }
 }

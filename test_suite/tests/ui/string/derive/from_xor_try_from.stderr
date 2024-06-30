@@ -1,0 +1,6 @@
+error: There is no need to derive `TryFrom` when `From` is already derived.
+       There is a blanket implementation for `TryFrom` in std.
+ --> tests/ui/string/derive/from_xor_try_from.rs:3:23
+  |
+3 | #[nutype(derive(From, TryFrom))]
+  |                       ^^^^^^^
