@@ -3,7 +3,7 @@ use std::collections::HashSet;
 
 use crate::common::{
     models::{DeriveTrait, SpannedDeriveTrait},
-    validate::{validate_duplicates, validate_numeric_bounds},
+    validate::{validate_duplicates, validate_numeric_bounds, validate_traits_from_xor_try_from},
 };
 
 use super::models::{
@@ -95,8 +95,9 @@ pub fn validate_float_derive_traits<T>(
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
     guard: &FloatGuard<T>,
 ) -> Result<HashSet<FloatDeriveTrait>, syn::Error> {
-    let validation = ValidationInfo::from_guard(guard);
+    validate_traits_from_xor_try_from(&spanned_derive_traits)?;
 
+    let validation = ValidationInfo::from_guard(guard);
     let mut traits = HashSet::with_capacity(24);
 
     for spanned_trait in spanned_derive_traits.iter() {

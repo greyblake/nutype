@@ -4,7 +4,7 @@ use proc_macro2::Span;
 
 use crate::common::{
     models::{DeriveTrait, SpannedDeriveTrait},
-    validate::{validate_duplicates, validate_numeric_bounds},
+    validate::{validate_duplicates, validate_numeric_bounds, validate_traits_from_xor_try_from},
 };
 
 use super::models::{
@@ -70,6 +70,8 @@ pub fn validate_integer_derive_traits(
     spanned_derive_traits: Vec<SpannedDeriveTrait>,
     has_validation: bool,
 ) -> Result<HashSet<IntegerDeriveTrait>, syn::Error> {
+    validate_traits_from_xor_try_from(&spanned_derive_traits)?;
+
     let mut traits = HashSet::with_capacity(24);
 
     for spanned_trait in spanned_derive_traits {
