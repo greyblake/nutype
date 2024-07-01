@@ -17,7 +17,7 @@ fn main() {
     // which excluded NaN values.
     let mut widths: Vec<Width> = raw_widths
         .into_iter()
-        .map(|w| Width::new(w).unwrap())
+        .map(|w| Width::try_new(w).unwrap())
         .collect();
 
     // Now we can sort
@@ -27,10 +27,10 @@ fn main() {
     assert_eq!(
         widths,
         vec![
-            Width::new(1.4).unwrap(),
-            Width::new(1.5).unwrap(),
-            Width::new(1.8).unwrap(),
-            Width::new(2.1).unwrap(),
+            Width::try_new(1.4).unwrap(),
+            Width::try_new(1.5).unwrap(),
+            Width::try_new(1.8).unwrap(),
+            Width::try_new(2.1).unwrap(),
         ],
     )
 }

@@ -69,7 +69,7 @@ Note: the test is generated automatically by #[nutype] macro
             let default_inner_value = #type_name::default().into_inner();
             // Typically `::default()` would already panic, but in case if the panic is removed by
             // some reason we still want the test to fail.
-            #type_name::new(default_inner_value).expect(#msg);
+            #type_name::try_new(default_inner_value).expect(#msg);
         }
     ))
 }

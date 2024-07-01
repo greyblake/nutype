@@ -307,7 +307,10 @@ dependencies = [
 name = "nutype"
 version = "0.4.2"
 dependencies = [
+ "lazy_static",
  "nutype_macros",
+ "once_cell",
+ "regex",
 ]
 
 [[package]]

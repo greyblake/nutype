@@ -59,8 +59,8 @@ mod validators {
         #[nutype(validate(greater = 18), derive(Debug))]
         struct Age(u8);
 
-        assert_eq!(Age::new(18).unwrap_err(), AgeError::GreaterViolated);
-        assert_eq!(Age::new(19).unwrap().into_inner(), 19);
+        assert_eq!(Age::try_new(18).unwrap_err(), AgeError::GreaterViolated);
+        assert_eq!(Age::try_new(19).unwrap().into_inner(), 19);
     }
 
     #[test]
@@ -68,8 +68,11 @@ mod validators {
         #[nutype(validate(greater_or_equal = 18), derive(Debug))]
         struct Age(u8);
 
-        assert_eq!(Age::new(17).unwrap_err(), AgeError::GreaterOrEqualViolated);
-        assert_eq!(Age::new(18).unwrap().into_inner(), 18);
+        assert_eq!(
+            Age::try_new(17).unwrap_err(),
+            AgeError::GreaterOrEqualViolated
+        );
+        assert_eq!(Age::try_new(18).unwrap().into_inner(), 18);
     }
 
     #[test]
@@ -77,8 +80,8 @@ mod validators {
         #[nutype(validate(less = -33), derive(Debug))]
         struct Degree(i32);
 
-        assert_eq!(Degree::new(-33).unwrap_err(), DegreeError::LessViolated);
-        assert_eq!(Degree::new(-34).unwrap().into_inner(), -34);
+        assert_eq!(Degree::try_new(-33).unwrap_err(), DegreeError::LessViolated);
+        assert_eq!(Degree::try_new(-34).unwrap().into_inner(), -34);
     }
 
     #[test]
@@ -86,8 +89,11 @@ mod validators {
         #[nutype(validate(less_or_equal = 99), derive(Debug))]
         struct Age(u8);
 
-        assert_eq!(Age::new(100).unwrap_err(), AgeError::LessOrEqualViolated);
-        assert_eq!(Age::new(99).unwrap().into_inner(), 99);
+        assert_eq!(
+            Age::try_new(100).unwrap_err(),
+            AgeError::LessOrEqualViolated
+        );
+        assert_eq!(Age::try_new(99).unwrap().into_inner(), 99);
     }
 
     #[test]
@@ -95,9 +101,15 @@ mod validators {
         #[nutype(validate(greater_or_equal = 18, less_or_equal = 99), derive(Debug))]
         struct Age(u8);
 
-        assert_eq!(Age::new(17).unwrap_err(), AgeError::GreaterOrEqualViolated);
-        assert_eq!(Age::new(100).unwrap_err(), AgeError::LessOrEqualViolated);
-        assert_eq!(Age::new(25).unwrap().into_inner(), 25);
+        assert_eq!(
+            Age::try_new(17).unwrap_err(),
+            AgeError::GreaterOrEqualViolated
+        );
+        assert_eq!(
+            Age::try_new(100).unwrap_err(),
+            AgeError::LessOrEqualViolated
+        );
+        assert_eq!(Age::try_new(25).unwrap().into_inner(), 25);
     }
 
     mod when_boundaries_defined_as_constants {
@@ -119,20 +131,20 @@ mod validators {
         #[test]
         fn test_boundaries_defined_as_constants() {
             assert_eq!(
-                Minute::new(-1).unwrap_err(),
+                Minute::try_new(-1).unwrap_err(),
                 MinuteError::GreaterOrEqualViolated
             );
-            assert_eq!(Minute::new(0).unwrap().into_inner(), 0);
+            assert_eq!(Minute::try_new(0).unwrap().into_inner(), 0);
             assert_eq!(
-                Minute::new(60).unwrap_err(),
+                Minute::try_new(60).unwrap_err(),
                 MinuteError::LessOrEqualViolated
             );
-            assert_eq!(Minute::new(59).unwrap().into_inner(), 59);
+            assert_eq!(Minute::try_new(59).unwrap().into_inner(), 59);
 
-            assert_eq!(Hour::new(0).unwrap_err(), HourError::GreaterViolated);
-            assert_eq!(Hour::new(1).unwrap().into_inner(), 1);
-            assert_eq!(Hour::new(25).unwrap_err(), HourError::LessViolated);
-            assert_eq!(Hour::new(24).unwrap().into_inner(), 24);
+            assert_eq!(Hour::try_new(0).unwrap_err(), HourError::GreaterViolated);
+            assert_eq!(Hour::try_new(1).unwrap().into_inner(), 1);
+            assert_eq!(Hour::try_new(25).unwrap_err(), HourError::LessViolated);
+            assert_eq!(Hour::try_new(24).unwrap().into_inner(), 24);
         }
     }
 
@@ -145,9 +157,9 @@ mod validators {
             #[nutype(validate(predicate = |c: &i32| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::new(-10), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(101), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
+            assert_eq!(Cent::try_new(-10), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(101), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100).unwrap().into_inner(), 100);
         }
 
         #[test]
@@ -155,9 +167,9 @@ mod validators {
             #[nutype(validate(predicate = |c| (0..=100).contains(c) ), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::new(-10), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(101), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
+            assert_eq!(Cent::try_new(-10), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(101), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100).unwrap().into_inner(), 100);
         }
 
         fn is_cent_valid(val: &i32) -> bool {
@@ -172,9 +184,9 @@ mod validators {
             )]
             pub struct Cent(i32);
 
-            assert_eq!(Cent::new(-1), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(101), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100).unwrap().into_inner(), 100);
+            assert_eq!(Cent::try_new(-1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(101), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100).unwrap().into_inner(), 100);
         }
     }
 
@@ -241,9 +253,9 @@ mod types {
         )]
         struct Age(u8);
 
-        assert_eq!(Age::new(17), Err(AgeError::GreaterOrEqualViolated));
-        assert_eq!(Age::new(100), Err(AgeError::LessOrEqualViolated));
-        assert!(Age::new(20).is_ok());
+        assert_eq!(Age::try_new(17), Err(AgeError::GreaterOrEqualViolated));
+        assert_eq!(Age::try_new(100), Err(AgeError::LessOrEqualViolated));
+        assert!(Age::try_new(20).is_ok());
     }
 
     #[test]
@@ -265,9 +277,9 @@ mod types {
         )]
         struct Age(u16);
 
-        assert_eq!(Age::new(17), Err(AgeError::GreaterOrEqualViolated));
-        assert_eq!(Age::new(65001), Err(AgeError::LessOrEqualViolated));
-        assert!(Age::new(20).is_ok());
+        assert_eq!(Age::try_new(17), Err(AgeError::GreaterOrEqualViolated));
+        assert_eq!(Age::try_new(65001), Err(AgeError::LessOrEqualViolated));
+        assert!(Age::try_new(20).is_ok());
     }
 
     #[test]
@@ -280,9 +292,15 @@ mod types {
         )]
         struct Amount(u32);
 
-        assert_eq!(Amount::new(17), Err(AmountError::GreaterOrEqualViolated));
-        assert_eq!(Amount::new(100_001), Err(AmountError::LessOrEqualViolated));
-        assert!(Amount::new(100_000).is_ok());
+        assert_eq!(
+            Amount::try_new(17),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_new(100_001),
+            Err(AmountError::LessOrEqualViolated)
+        );
+        assert!(Amount::try_new(100_000).is_ok());
     }
 
     #[test]
@@ -295,12 +313,15 @@ mod types {
         )]
         struct Amount(u64);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
         assert_eq!(
-            Amount::new(18446744073709551001),
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_new(18446744073709551001),
             Err(AmountError::LessOrEqualViolated)
         );
-        assert!(Amount::new(1000).is_ok());
+        assert!(Amount::try_new(1000).is_ok());
     }
 
     #[test]
@@ -316,13 +337,16 @@ mod types {
         )]
         struct Amount(u128);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
         assert_eq!(
-            Amount::new(170141183460469231731687303715884105829),
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_new(170141183460469231731687303715884105829),
             Err(AmountError::LessOrEqualViolated)
         );
-        assert!(Amount::new(1000).is_ok());
-        assert!(Amount::new(170141183460469231731687303715884105828).is_ok());
+        assert!(Amount::try_new(1000).is_ok());
+        assert!(Amount::try_new(170141183460469231731687303715884105828).is_ok());
     }
 
     #[test]
@@ -339,11 +363,14 @@ mod types {
         #[nutype(validate(greater_or_equal = -20, less_or_equal = 100), derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, FromStr, AsRef, Hash))]
         struct Offset(i8);
 
-        assert_eq!(Offset::new(-21), Err(OffsetError::GreaterOrEqualViolated));
-        assert_eq!(Offset::new(101), Err(OffsetError::LessOrEqualViolated));
-        assert!(Offset::new(100).is_ok());
-        assert!(Offset::new(-20).is_ok());
-        assert!(Offset::new(0).is_ok());
+        assert_eq!(
+            Offset::try_new(-21),
+            Err(OffsetError::GreaterOrEqualViolated)
+        );
+        assert_eq!(Offset::try_new(101), Err(OffsetError::LessOrEqualViolated));
+        assert!(Offset::try_new(100).is_ok());
+        assert!(Offset::try_new(-20).is_ok());
+        assert!(Offset::try_new(0).is_ok());
     }
 
     #[test]
@@ -356,10 +383,16 @@ mod types {
         )]
         struct Amount(i16);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
-        assert_eq!(Amount::new(32_001), Err(AmountError::LessOrEqualViolated));
-        assert!(Amount::new(1000).is_ok());
-        assert!(Amount::new(32_000).is_ok());
+        assert_eq!(
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_new(32_001),
+            Err(AmountError::LessOrEqualViolated)
+        );
+        assert!(Amount::try_new(1000).is_ok());
+        assert!(Amount::try_new(32_000).is_ok());
     }
 
     #[test]
@@ -373,12 +406,18 @@ mod types {
 
         struct Amount(i32);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
-        assert_eq!(Amount::new(320_001), Err(AmountError::LessOrEqualViolated));
-        assert!(Amount::new(1000).is_ok());
-        assert!(Amount::new(320_000).is_ok());
+        assert_eq!(
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_new(320_001),
+            Err(AmountError::LessOrEqualViolated)
+        );
+        assert!(Amount::try_new(1000).is_ok());
+        assert!(Amount::try_new(320_000).is_ok());
 
-        let amount = Amount::new(2055).unwrap();
+        let amount = Amount::try_new(2055).unwrap();
         assert_eq!(amount.into_inner(), 2055);
     }
 
@@ -392,12 +431,12 @@ mod types {
         pub struct Balance(i32);
 
         assert_eq!(
-            Balance::new(-300),
+            Balance::try_new(-300),
             Err(BalanceError::GreaterOrEqualViolated)
         );
-        assert_eq!(Balance::new(-4), Err(BalanceError::LessOrEqualViolated));
+        assert_eq!(Balance::try_new(-4), Err(BalanceError::LessOrEqualViolated));
 
-        let balance = Balance::new(-55).unwrap();
+        let balance = Balance::try_new(-55).unwrap();
         assert_eq!(balance.into_inner(), -55);
     }
 
@@ -409,13 +448,16 @@ mod types {
         )]
         struct Amount(i64);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
         assert_eq!(
-            Amount::new(8446744073709551001),
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_new(8446744073709551001),
             Err(AmountError::LessOrEqualViolated)
         );
-        assert!(Amount::new(1000).is_ok());
-        assert!(Amount::new(8446744073709551000).is_ok());
+        assert!(Amount::try_new(1000).is_ok());
+        assert!(Amount::try_new(8446744073709551000).is_ok());
     }
 
     #[test]
@@ -429,13 +471,16 @@ mod types {
         )]
         struct Amount(i128);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
         assert_eq!(
-            Amount::new(70141183460469231731687303715884105001),
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Amount::try_new(70141183460469231731687303715884105001),
             Err(AmountError::LessOrEqualViolated)
         );
-        assert!(Amount::new(1000).is_ok());
-        assert!(Amount::new(70141183460469231731687303715884105000).is_ok());
+        assert!(Amount::try_new(1000).is_ok());
+        assert!(Amount::try_new(70141183460469231731687303715884105000).is_ok());
     }
 
     #[test]
@@ -446,10 +491,13 @@ mod types {
         )]
         struct Amount(usize);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
-        assert_eq!(Amount::new(2001), Err(AmountError::LessOrEqualViolated));
-        assert!(Amount::new(1000).is_ok());
-        assert!(Amount::new(2000).is_ok());
+        assert_eq!(
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(Amount::try_new(2001), Err(AmountError::LessOrEqualViolated));
+        assert!(Amount::try_new(1000).is_ok());
+        assert!(Amount::try_new(2000).is_ok());
     }
 
     #[test]
@@ -460,10 +508,13 @@ mod types {
         )]
         struct Amount(isize);
 
-        assert_eq!(Amount::new(999), Err(AmountError::GreaterOrEqualViolated));
-        assert_eq!(Amount::new(2001), Err(AmountError::LessOrEqualViolated));
-        assert!(Amount::new(1000).is_ok());
-        assert!(Amount::new(2000).is_ok());
+        assert_eq!(
+            Amount::try_new(999),
+            Err(AmountError::GreaterOrEqualViolated)
+        );
+        assert_eq!(Amount::try_new(2001), Err(AmountError::LessOrEqualViolated));
+        assert!(Amount::try_new(1000).is_ok());
+        assert!(Amount::try_new(2000).is_ok());
     }
 }
 

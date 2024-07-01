@@ -18,18 +18,18 @@
 //!
 //! // Now we can create usernames:
 //! assert_eq!(
-//!     Username::new("   FooBar  ").unwrap().into_inner(),
+//!     Username::try_new("   FooBar  ").unwrap().into_inner(),
 //!     "foobar"
 //! );
 //!
 //! // But we cannot create invalid ones:
 //! assert_eq!(
-//!     Username::new("   "),
+//!     Username::try_new("   "),
 //!     Err(UsernameError::NotEmptyViolated),
 //! );
 //!
 //! assert_eq!(
-//!     Username::new("TheUserNameIsVeryVeryLong"),
+//!     Username::try_new("TheUserNameIsVeryVeryLong"),
 //!     Err(UsernameError::LenCharMaxViolated),
 //! );
 //! ```
@@ -45,7 +45,7 @@
 //! ```
 //!
 //! ```ignore
-//! let mut username = Username::new("foo").unwrap();
+//! let mut username = Username::try_new("foo").unwrap();
 //! username.0 = "".to_string();
 //!
 //! // error[E0616]: field `0` of struct `Username` is private
@@ -120,16 +120,22 @@
 //!
 //! A regular expression can be defined right in place:
 //!
-//! ```ignore
+//! ```
+//! # mod wrapper_module {
+//!
 //! use nutype::nutype;
 //!
 //! #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"))]
 //! pub struct PhoneNumber(String);
+//!
+//! # }
 //! ```
 //!
 //! or it can be defined with `lazy_static`:
 //!
-//! ```ignore
+//! ```
+//! # mod wrapper_module {
+//!
 //! use nutype::nutype;
 //! use lazy_static::lazy_static;
 //! use regex::Regex;
@@ -140,11 +146,15 @@
 //!
 //! #[nutype(validate(regex = PHONE_NUMBER_REGEX))]
 //! pub struct PhoneNumber(String);
+//!
+//! # }
 //! ```
 //!
 //! or `once_cell`:
 //!
-//! ```ignore
+//! ```
+//! # mod wrapper_module {
+//!
 //! use nutype::nutype;
 //! use once_cell::sync::Lazy;
 //! use regex::Regex;
@@ -154,6 +164,8 @@
 //!
 //! #[nutype(validate(regex = PHONE_NUMBER_REGEX))]
 //! pub struct PhoneNumber(String);
+//!
+//! # }
 //! ```
 //!
 //!
@@ -248,12 +260,12 @@
 //!
 //! // Empty list is not allowed
 //! assert_eq!(
-//!     GuestList::new(vec![]),
+//!     GuestList::try_new(vec![]),
 //!     Err(GuestListError::PredicateViolated)
 //! );
 //!
 //! // Create the list of our guests
-//! let guest_list = GuestList::new(vec![
+//! let guest_list = GuestList::try_new(vec![
 //!     "Seneca".to_string(),
 //!     "Marcus Aurelius".to_string(),
 //!     "Socrates".to_string(),
@@ -288,7 +300,9 @@
 //!
 //! For example, this one
 //!
-//! ```ignore
+//! ```
+//! # mod wrapper {
+//!
 //! use nutype::nutype;
 //!
 //! fn new_to_old(s: String) -> String {
@@ -297,6 +311,8 @@
 //!
 //! #[nutype(sanitize(with = new_to_old))]
 //! struct CityName(String);
+//!
+//! # }
 //! ```
 //!
 //! is equal to the following one:
@@ -364,13 +380,13 @@
 //!
 //! It's discouraged, but it's possible to bypass the constraints by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:
 //!
-//! ```ignore
+//! ```
 //! use nutype::nutype;
 //!
 //! #[nutype(
-//!     new_unchecked
-//!     sanitize(trim)
-//!     validate(len_char_min = 8)
+//!     new_unchecked,
+//!     sanitize(trim),
+//!     validate(len_char_min = 8),
 //! )]
 //! pub struct Name(String);
 //!
@@ -426,10 +442,10 @@ mod tests {
         )]
         pub struct Email(String);
 
-        let email = Email::new("  OH@my.example\n\n").unwrap();
+        let email = Email::try_new("  OH@my.example\n\n").unwrap();
         assert_eq!(email.into_inner(), "oh@my.example");
 
-        assert_eq!(Email::new("  \n"), Err(EmailError::NotEmptyViolated));
+        assert_eq!(Email::try_new("  \n"), Err(EmailError::NotEmptyViolated));
     }
 
     #[test]

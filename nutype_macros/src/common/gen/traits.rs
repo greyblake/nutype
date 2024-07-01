@@ -178,7 +178,7 @@ pub fn gen_impl_trait_try_from(
 
                     #[inline]
                     fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics_without_bounds, Self::Error> {
-                        Self::new(raw_value)
+                        Self::try_new(raw_value)
                     }
                 }
             }
@@ -233,7 +233,7 @@ pub fn gen_impl_trait_from_str(
 
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     let raw_value: #inner_type = raw_string.parse().map_err(#parse_error_type_name::Parse)?;
-                    Self::new(raw_value).map_err(#parse_error_type_name::Validate)
+                    Self::try_new(raw_value).map_err(#parse_error_type_name::Validate)
                 }
             }
         }
@@ -284,7 +284,7 @@ pub fn gen_impl_trait_serde_deserialize(
     let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
         let type_name_str = type_name.to_string();
         quote! {
-            #type_name::new(raw_value).map_err(|validation_error| {
+            #type_name::try_new(raw_value).map_err(|validation_error| {
                 // Add a hint about which type is causing the error,
                 let err_msg = format!("{validation_error} Expected valid {}", #type_name_str);
                 <DE::Error as serde::de::Error>::custom(err_msg)
@@ -365,7 +365,7 @@ pub fn gen_impl_trait_default(
         quote!(
             impl #generics ::core::default::Default for #type_name #generics_without_bounds {
                 fn default() -> Self {
-                    Self::new(#default_value)
+                    Self::try_new(#default_value)
                         .unwrap_or_else(|err| {
                             let tp = #tp;
                             panic!("\nDefault value for type `{tp}` is invalid.\nERROR: {err:?}\n");

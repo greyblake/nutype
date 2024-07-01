@@ -244,7 +244,7 @@ pub trait GenerateNewtype {
         guard: &Guard<Self::Sanitizer, Self::Validator>,
     ) -> Result<GeneratedTraits, syn::Error>;
 
-    fn gen_new_with_validation(
+    fn gen_try_new(
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
@@ -270,7 +270,7 @@ pub trait GenerateNewtype {
             #validation_error
 
             impl #generics #type_name #generics_without_bounds {
-                pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
+                pub fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
                     #convert_raw_value_if_necessary
 
                     let sanitized_value: #inner_type = Self::__sanitize__(raw_value);
@@ -282,11 +282,17 @@ pub trait GenerateNewtype {
                 // scope imported with `use super::*`.
                 #fn_sanitize
                 #fn_validate
+
+                // TODO: Remove in 0.5.0
+                #[deprecated(since="0.4.3", note="\nUse `try_new` instead.")]
+                pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
+                    Self::try_new(raw_value)
+                }
             }
         )
     }
 
-    fn gen_new_without_validation(
+    fn gen_new(
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
@@ -326,14 +332,12 @@ pub trait GenerateNewtype {
     ) -> TokenStream {
         let impl_new = match guard {
             Guard::WithoutValidation { sanitizers } => {
-                Self::gen_new_without_validation(type_name, generics, inner_type, sanitizers)
+                Self::gen_new(type_name, generics, inner_type, sanitizers)
             }
             Guard::WithValidation {
                 sanitizers,
                 validators,
-            } => Self::gen_new_with_validation(
-                type_name, generics, inner_type, sanitizers, validators,
-            ),
+            } => Self::gen_try_new(type_name, generics, inner_type, sanitizers, validators),
         };
         let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type);
         let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);

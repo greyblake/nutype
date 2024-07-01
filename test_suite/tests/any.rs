@@ -348,12 +348,12 @@ mod traits {
                 struct NonEmptyVec<T>(Vec<T>);
 
                 {
-                    let result = NonEmptyVec::<i32>::new(vec![]);
+                    let result = NonEmptyVec::<i32>::try_new(vec![]);
                     assert!(result.is_err());
                 }
 
                 {
-                    let nev = NonEmptyVec::new(vec![5, 2, 3]).unwrap();
+                    let nev = NonEmptyVec::try_new(vec![5, 2, 3]).unwrap();
                     assert_eq!(nev.into_inner(), vec![5, 2, 3],);
                 }
             }
@@ -366,7 +366,7 @@ mod traits {
                 )]
                 struct Clarabelle<'a>(Cow<'a, str>);
 
-                let muu = Clarabelle::new(Cow::Borrowed("Muu")).unwrap();
+                let muu = Clarabelle::try_new(Cow::Borrowed("Muu")).unwrap();
                 let json = serde_json::to_string(&muu).unwrap();
                 assert_eq!(json, "\"Muu\"");
                 let same_muu: Clarabelle = serde_json::from_str(&json).unwrap();
@@ -390,7 +390,7 @@ fn test_sanitize_and_validate_with_untyped_closure() {
     )]
     pub struct Pos(Point);
 
-    let pos = Pos::new(Point::new(123, 91)).unwrap();
+    let pos = Pos::try_new(Point::new(123, 91)).unwrap();
     assert_eq!(pos.into_inner(), Point::new(100, 91))
 }
 
@@ -442,18 +442,18 @@ mod with_generics {
         struct NonEmptyVec<T>(Vec<T>);
 
         {
-            let vec = NonEmptyVec::new(vec![1, 2, 3]).unwrap();
+            let vec = NonEmptyVec::try_new(vec![1, 2, 3]).unwrap();
             assert_eq!(vec.into_inner(), vec![1, 2, 3]);
         }
 
         {
-            let vec = NonEmptyVec::new(vec![5]).unwrap();
+            let vec = NonEmptyVec::try_new(vec![5]).unwrap();
             assert_eq!(vec.into_inner(), vec![5]);
         }
 
         {
             let vec: Vec<u8> = vec![];
-            let err = NonEmptyVec::new(vec).unwrap_err();
+            let err = NonEmptyVec::try_new(vec).unwrap_err();
             assert_eq!(err, NonEmptyVecError::PredicateViolated);
         }
     }
@@ -487,18 +487,18 @@ mod with_generics {
         struct OneOrTwo<T>(Vec<T>);
 
         {
-            let vec = OneOrTwo::new(vec![1, 2, 3]).unwrap();
+            let vec = OneOrTwo::try_new(vec![1, 2, 3]).unwrap();
             assert_eq!(vec.into_inner(), vec![1, 2]);
         }
 
         {
-            let vec = OneOrTwo::new(vec![5]).unwrap();
+            let vec = OneOrTwo::try_new(vec![5]).unwrap();
             assert_eq!(vec.into_inner(), vec![5]);
         }
 
         {
             let vec: Vec<u8> = vec![];
-            let err = OneOrTwo::new(vec).unwrap_err();
+            let err = OneOrTwo::try_new(vec).unwrap_err();
             assert_eq!(err, OneOrTwoError::PredicateViolated);
         }
     }
@@ -782,11 +782,11 @@ mod with_generics {
         struct NonEmptySortedVec<T: Ord>(Vec<T>);
 
         {
-            let err = NonEmptySortedVec::<i32>::new(vec![]).unwrap_err();
+            let err = NonEmptySortedVec::<i32>::try_new(vec![]).unwrap_err();
             assert_eq!(err, NonEmptySortedVecError::PredicateViolated);
         }
         {
-            let vec = NonEmptySortedVec::new(vec![3, 1, 2]).unwrap();
+            let vec = NonEmptySortedVec::try_new(vec![3, 1, 2]).unwrap();
             assert_eq!(vec.into_inner(), vec![1, 2, 3]);
         }
     }
@@ -800,10 +800,10 @@ mod with_generics {
         struct Clarabelle<'a>(Cow<'a, str>);
 
         {
-            let clarabelle = Clarabelle::new(Cow::Borrowed("Clarabelle")).unwrap();
+            let clarabelle = Clarabelle::try_new(Cow::Borrowed("Clarabelle")).unwrap();
             assert_eq!(clarabelle.to_string(), "Clarabelle");
 
-            let muu = Clarabelle::new(Cow::Owned("Muu".to_string())).unwrap();
+            let muu = Clarabelle::try_new(Cow::Owned("Muu".to_string())).unwrap();
             assert_eq!(muu.to_string(), "Muu");
         }
     }
@@ -831,7 +831,7 @@ mod with_generics {
         let mut inner_map = HashMap::new();
         inner_map.insert(4, 16);
         inner_map.insert(5, 25);
-        let squares = NonEmptyMap::new(inner_map.clone()).unwrap();
+        let squares = NonEmptyMap::try_new(inner_map.clone()).unwrap();
         assert_eq!(squares.as_ref(), &inner_map);
     }
 
