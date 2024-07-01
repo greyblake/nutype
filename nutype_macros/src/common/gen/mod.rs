@@ -283,7 +283,7 @@ pub trait GenerateNewtype {
                 #fn_sanitize
                 #fn_validate
 
-
+                // TODO: Remove in 0.5.0
                 #[deprecated(since="0.4.3", note="\nUse `try_new` instead.")]
                 pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
                     Self::try_new(raw_value)
