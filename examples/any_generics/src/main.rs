@@ -69,10 +69,10 @@ fn main() {
     // NotEmpty
     //
     {
-        let v = NotEmpty::new(vec![1, 2, 3]).unwrap();
+        let v = NotEmpty::try_new(vec![1, 2, 3]).unwrap();
         assert_eq!(v.into_inner(), vec![1, 2, 3]);
 
-        let err = NotEmpty::<i32>::new(vec![]).unwrap_err();
+        let err = NotEmpty::<i32>::try_new(vec![]).unwrap_err();
         assert_eq!(err, NotEmptyError::PredicateViolated);
     }
 

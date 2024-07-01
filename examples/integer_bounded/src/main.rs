@@ -11,13 +11,16 @@ struct Volume(i8);
 
 fn main() {
     // Too small
-    assert_eq!(Volume::new(-101), Err(VolumeError::GreaterOrEqualViolated),);
+    assert_eq!(
+        Volume::try_new(-101),
+        Err(VolumeError::GreaterOrEqualViolated),
+    );
 
     // Too big
-    assert_eq!(Volume::new(101), Err(VolumeError::LessOrEqualViolated),);
+    assert_eq!(Volume::try_new(101), Err(VolumeError::LessOrEqualViolated),);
 
     // Valid values
-    assert_eq!(Volume::new(-100).unwrap().into_inner(), -100);
-    assert_eq!(Volume::new(0).unwrap().into_inner(), 0);
-    assert_eq!(Volume::new(100).unwrap().into_inner(), 100);
+    assert_eq!(Volume::try_new(-100).unwrap().into_inner(), -100);
+    assert_eq!(Volume::try_new(0).unwrap().into_inner(), 0);
+    assert_eq!(Volume::try_new(100).unwrap().into_inner(), 100);
 }

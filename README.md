@@ -40,10 +40,10 @@ use nutype::nutype;
 )]
 pub struct Username(String);
 
-// We can obtain a value of Username with `::new()`.
+// We can obtain a value of Username with `::try_new()`.
 // Note that Username holds a sanitized string
 assert_eq!(
-    Username::new("   FooBar  ").unwrap().into_inner(),
+    Username::try_new("   FooBar  ").unwrap().into_inner(),
     "foobar"
 );
 
@@ -51,11 +51,11 @@ assert_eq!(
 // Note that we also got `UsernameError` enum generated implicitly
 // based on the validation rules.
 assert_eq!(
-    Username::new("   "),
+    Username::try_new("   "),
     Err(UsernameError::NotEmptyViolated),
 );
 assert_eq!(
-    Username::new("TheUserNameIsVeryVeryLong"),
+    Username::try_new("TheUserNameIsVeryVeryLong"),
     Err(UsernameError::LenCharMaxViolated),
 );
 ```
@@ -229,12 +229,12 @@ pub struct GuestList(Vec<String>);
 
 // Empty list is not allowed
 assert_eq!(
-    GuestList::new(vec![]),
+    GuestList::try_new(vec![]),
     Err(GuestListError::PredicateViolated)
 );
 
 // Create the list of our guests
-let guest_list = GuestList::new(vec![
+let guest_list = GuestList::try_new(vec![
     "Seneca".to_string(),
     "Marcus Aurelius".to_string(),
     "Socrates".to_string(),

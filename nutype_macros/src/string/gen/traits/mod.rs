@@ -236,7 +236,7 @@ fn gen_impl_from_str(
 
                 #[inline]
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
-                    #type_name::new(raw_string)
+                    #type_name::try_new(raw_string)
                 }
             }
         }

@@ -56,8 +56,8 @@ mod validators {
         #[nutype(validate(greater = 18.0), derive(Debug))]
         struct Age(f64);
 
-        assert_eq!(Age::new(18.0).unwrap_err(), AgeError::GreaterViolated);
-        assert_eq!(Age::new(18.00001).unwrap().into_inner(), 18.00001);
+        assert_eq!(Age::try_new(18.0).unwrap_err(), AgeError::GreaterViolated);
+        assert_eq!(Age::try_new(18.00001).unwrap().into_inner(), 18.00001);
     }
 
     #[test]
@@ -66,10 +66,10 @@ mod validators {
         struct Age(f32);
 
         assert_eq!(
-            Age::new(17.0).unwrap_err(),
+            Age::try_new(17.0).unwrap_err(),
             AgeError::GreaterOrEqualViolated
         );
-        assert_eq!(Age::new(18.0).unwrap().into_inner(), 18.0);
+        assert_eq!(Age::try_new(18.0).unwrap().into_inner(), 18.0);
     }
 
     #[test]
@@ -77,8 +77,8 @@ mod validators {
         #[nutype(validate(less = 99.0), derive(Debug))]
         struct Age(f64);
 
-        assert_eq!(Age::new(99.0).unwrap_err(), AgeError::LessViolated);
-        assert_eq!(Age::new(98.99999).unwrap().into_inner(), 98.99999);
+        assert_eq!(Age::try_new(99.0).unwrap_err(), AgeError::LessViolated);
+        assert_eq!(Age::try_new(98.99999).unwrap().into_inner(), 98.99999);
     }
 
     #[test]
@@ -86,8 +86,11 @@ mod validators {
         #[nutype(validate(less_or_equal = 99.0), derive(Debug))]
         struct Age(f32);
 
-        assert_eq!(Age::new(100.0).unwrap_err(), AgeError::LessOrEqualViolated);
-        assert_eq!(Age::new(99.0).unwrap().into_inner(), 99.0);
+        assert_eq!(
+            Age::try_new(100.0).unwrap_err(),
+            AgeError::LessOrEqualViolated
+        );
+        assert_eq!(Age::try_new(99.0).unwrap().into_inner(), 99.0);
     }
 
     #[test]
@@ -96,11 +99,14 @@ mod validators {
         struct Age(f32);
 
         assert_eq!(
-            Age::new(17.9).unwrap_err(),
+            Age::try_new(17.9).unwrap_err(),
             AgeError::GreaterOrEqualViolated
         );
-        assert_eq!(Age::new(99.1).unwrap_err(), AgeError::LessOrEqualViolated);
-        assert_eq!(Age::new(25.0).unwrap().into_inner(), 25.0);
+        assert_eq!(
+            Age::try_new(99.1).unwrap_err(),
+            AgeError::LessOrEqualViolated
+        );
+        assert_eq!(Age::try_new(25.0).unwrap().into_inner(), 25.0);
     }
 
     #[test]
@@ -109,16 +115,19 @@ mod validators {
         struct Dist(f64);
 
         // invalid
-        assert_eq!(Dist::new(f64::INFINITY), Err(DistError::FiniteViolated));
-        assert_eq!(Dist::new(f64::NEG_INFINITY), Err(DistError::FiniteViolated));
-        assert_eq!(Dist::new(f64::NAN), Err(DistError::FiniteViolated));
-        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::FiniteViolated));
-        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::FiniteViolated));
-        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::try_new(f64::INFINITY), Err(DistError::FiniteViolated));
+        assert_eq!(
+            Dist::try_new(f64::NEG_INFINITY),
+            Err(DistError::FiniteViolated)
+        );
+        assert_eq!(Dist::try_new(f64::NAN), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::try_new(-1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::try_new(1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::try_new(0.0 / 0.0), Err(DistError::FiniteViolated));
 
         // valid
-        assert_eq!(Dist::new(12.345).unwrap().into_inner(), 12.345);
-        assert_eq!(Dist::new(-999.12).unwrap().into_inner(), -999.12);
+        assert_eq!(Dist::try_new(12.345).unwrap().into_inner(), 12.345);
+        assert_eq!(Dist::try_new(-999.12).unwrap().into_inner(), -999.12);
     }
 
     #[test]
@@ -130,13 +139,13 @@ mod validators {
         struct Dist(f32);
 
         // invalid
-        assert_eq!(Dist::new(-1.0 / 0.0), Err(DistError::FiniteViolated));
-        assert_eq!(Dist::new(1.0 / 0.0), Err(DistError::FiniteViolated));
-        assert_eq!(Dist::new(0.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::try_new(-1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::try_new(1.0 / 0.0), Err(DistError::FiniteViolated));
+        assert_eq!(Dist::try_new(0.0 / 0.0), Err(DistError::FiniteViolated));
 
         // valid
-        assert_eq!(Dist::new(12.345).unwrap().into_inner(), 12.345);
-        assert_eq!(Dist::new(-999.12).unwrap().into_inner(), -999.12);
+        assert_eq!(Dist::try_new(12.345).unwrap().into_inner(), 12.345);
+        assert_eq!(Dist::try_new(-999.12).unwrap().into_inner(), -999.12);
     }
 
     mod when_boundaries_defined_as_constants {
@@ -157,20 +166,23 @@ mod validators {
         #[test]
         fn test_boundaries_defined_as_constants() {
             assert_eq!(
-                Weight::new(1.99999).unwrap_err(),
+                Weight::try_new(1.99999).unwrap_err(),
                 WeightError::GreaterOrEqualViolated
             );
-            assert_eq!(Weight::new(2.0).unwrap().into_inner(), 2.0);
+            assert_eq!(Weight::try_new(2.0).unwrap().into_inner(), 2.0);
             assert_eq!(
-                Weight::new(5.00001).unwrap_err(),
+                Weight::try_new(5.00001).unwrap_err(),
                 WeightError::LessOrEqualViolated
             );
-            assert_eq!(Weight::new(5.0).unwrap().into_inner(), 5.0);
+            assert_eq!(Weight::try_new(5.0).unwrap().into_inner(), 5.0);
 
-            assert_eq!(Speed::new(60.0).unwrap_err(), SpeedError::GreaterViolated);
-            assert_eq!(Speed::new(60.00001).unwrap().into_inner(), 60.00001);
-            assert_eq!(Speed::new(130.0).unwrap_err(), SpeedError::LessViolated);
-            assert_eq!(Speed::new(129.99999).unwrap().into_inner(), 129.99999);
+            assert_eq!(
+                Speed::try_new(60.0).unwrap_err(),
+                SpeedError::GreaterViolated
+            );
+            assert_eq!(Speed::try_new(60.00001).unwrap().into_inner(), 60.00001);
+            assert_eq!(Speed::try_new(130.0).unwrap_err(), SpeedError::LessViolated);
+            assert_eq!(Speed::try_new(129.99999).unwrap().into_inner(), 129.99999);
         }
     }
 
@@ -183,10 +195,10 @@ mod validators {
             #[nutype(validate(predicate = |&c: &f32| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
-            assert_eq!(Cent::new(-0.1), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100.1), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100.0).unwrap().into_inner(), 100.0);
-            assert_eq!(Cent::new(0.0).unwrap().into_inner(), 0.0);
+            assert_eq!(Cent::try_new(-0.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100.0).unwrap().into_inner(), 100.0);
+            assert_eq!(Cent::try_new(0.0).unwrap().into_inner(), 0.0);
         }
 
         #[test]
@@ -194,10 +206,10 @@ mod validators {
             #[nutype(validate(predicate = |&c| (0.0..=100.0).contains(&c) ), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
-            assert_eq!(Cent::new(-0.1), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100.1), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100.0).unwrap().into_inner(), 100.0);
-            assert_eq!(Cent::new(0.0).unwrap().into_inner(), 0.0);
+            assert_eq!(Cent::try_new(-0.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100.0).unwrap().into_inner(), 100.0);
+            assert_eq!(Cent::try_new(0.0).unwrap().into_inner(), 0.0);
         }
 
         fn is_cent_valid(&val: &f32) -> bool {
@@ -209,10 +221,10 @@ mod validators {
             #[nutype(validate(predicate = is_cent_valid), derive(TryFrom, Debug, Clone, Copy, PartialEq, PartialOrd, FromStr, AsRef))]
             pub struct Cent(f32);
 
-            assert_eq!(Cent::new(-0.1), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100.1), Err(CentError::PredicateViolated));
-            assert_eq!(Cent::new(100.0).unwrap().into_inner(), 100.0);
-            assert_eq!(Cent::new(0.0).unwrap().into_inner(), 0.0);
+            assert_eq!(Cent::try_new(-0.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100.1), Err(CentError::PredicateViolated));
+            assert_eq!(Cent::try_new(100.0).unwrap().into_inner(), 100.0);
+            assert_eq!(Cent::try_new(0.0).unwrap().into_inner(), 0.0);
         }
     }
 
@@ -273,10 +285,16 @@ mod types {
         )]
         pub struct Width(f32);
 
-        assert_eq!(Width::new(-0.0001), Err(WidthError::GreaterOrEqualViolated));
-        assert_eq!(Width::new(100.0001), Err(WidthError::LessOrEqualViolated));
-        assert!(Width::new(0.0).is_ok());
-        assert!(Width::new(100.0).is_ok());
+        assert_eq!(
+            Width::try_new(-0.0001),
+            Err(WidthError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Width::try_new(100.0001),
+            Err(WidthError::LessOrEqualViolated)
+        );
+        assert!(Width::try_new(0.0).is_ok());
+        assert!(Width::try_new(100.0).is_ok());
     }
 
     #[test]
@@ -287,12 +305,18 @@ mod types {
         )]
         pub struct Width(f64);
 
-        assert_eq!(Width::new(-0.0001), Err(WidthError::GreaterOrEqualViolated));
-        assert_eq!(Width::new(100.0001), Err(WidthError::LessOrEqualViolated));
+        assert_eq!(
+            Width::try_new(-0.0001),
+            Err(WidthError::GreaterOrEqualViolated)
+        );
+        assert_eq!(
+            Width::try_new(100.0001),
+            Err(WidthError::LessOrEqualViolated)
+        );
 
-        assert_eq!(Width::new(0.0).unwrap().into_inner(), 0.0);
+        assert_eq!(Width::try_new(0.0).unwrap().into_inner(), 0.0);
 
-        let w: f64 = Width::new(100.0).unwrap().into_inner();
+        let w: f64 = Width::try_new(100.0).unwrap().into_inner();
         assert_eq!(w, 100.0);
     }
 
@@ -306,12 +330,15 @@ mod types {
         pub struct Balance(f64);
 
         assert_eq!(
-            Balance::new(-300.0),
+            Balance::try_new(-300.0),
             Err(BalanceError::GreaterOrEqualViolated)
         );
-        assert_eq!(Balance::new(-4.0), Err(BalanceError::LessOrEqualViolated));
+        assert_eq!(
+            Balance::try_new(-4.0),
+            Err(BalanceError::LessOrEqualViolated)
+        );
 
-        let balance = Balance::new(-100.24).unwrap();
+        let balance = Balance::try_new(-100.24).unwrap();
         assert_eq!(balance.into_inner(), -100.24);
     }
 }
@@ -482,8 +509,8 @@ mod traits {
 
         should_implement_eq::<Size>();
 
-        let size1 = Size::new(35.7).unwrap();
-        let size2 = Size::new(357.0 / 10.0).unwrap();
+        let size1 = Size::try_new(35.7).unwrap();
+        let size2 = Size::try_new(357.0 / 10.0).unwrap();
         assert_eq!(size1, size2);
     }
 
@@ -497,9 +524,9 @@ mod traits {
             #[nutype(validate(finite), derive(PartialEq, Eq, PartialOrd, Ord))]
             pub struct Size(f32);
 
-            let a: Size = Size::new(2.5).unwrap();
-            let b: Size = Size::new(3.3).unwrap();
-            let c: Size = Size::new(3.3).unwrap();
+            let a: Size = Size::try_new(2.5).unwrap();
+            let b: Size = Size::try_new(3.3).unwrap();
+            let c: Size = Size::try_new(3.3).unwrap();
 
             assert_eq!(a.cmp(&b), Ordering::Less);
             assert_eq!(b.cmp(&a), Ordering::Greater);
@@ -511,9 +538,9 @@ mod traits {
             #[nutype(validate(finite), derive(PartialEq, Eq, PartialOrd, Ord))]
             pub struct Size(f64);
 
-            let a: Size = Size::new(2.5).unwrap();
-            let b: Size = Size::new(3.3).unwrap();
-            let c: Size = Size::new(3.3).unwrap();
+            let a: Size = Size::try_new(2.5).unwrap();
+            let b: Size = Size::try_new(3.3).unwrap();
+            let c: Size = Size::try_new(3.3).unwrap();
 
             assert_eq!(a.cmp(&b), Ordering::Less);
             assert_eq!(b.cmp(&a), Ordering::Greater);
@@ -528,7 +555,7 @@ mod traits {
             let initial_raw_sizes = vec![5.5, 2.0, 15.0, 44.5, 3.5];
             let mut sizes: Vec<Size> = initial_raw_sizes
                 .into_iter()
-                .map(|s| Size::new(s).unwrap())
+                .map(|s| Size::try_new(s).unwrap())
                 .collect();
             sizes.sort();
             let sorted_raw_sizes: Vec<f64> = sizes.into_iter().map(Size::into_inner).collect();
@@ -547,9 +574,9 @@ mod traits {
 
                 fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
                     let raw_a: f32 = u.arbitrary()?;
-                    let a = Size::new(raw_a).map_err(|_| Error::IncorrectFormat)?;
+                    let a = Size::try_new(raw_a).map_err(|_| Error::IncorrectFormat)?;
                     let raw_b: f32 = u.arbitrary()?;
-                    let b = Size::new(raw_b).map_err(|_| Error::IncorrectFormat)?;
+                    let b = Size::try_new(raw_b).map_err(|_| Error::IncorrectFormat)?;
                     let _ = a.cmp(&b);
                     let _ = b.cmp(&a);
                     Ok(())
@@ -565,9 +592,9 @@ mod traits {
 
                 fn prop(u: &mut Unstructured<'_>) -> arbitrary::Result<()> {
                     let raw_a: f64 = u.arbitrary()?;
-                    let a = Size::new(raw_a).map_err(|_| Error::IncorrectFormat)?;
+                    let a = Size::try_new(raw_a).map_err(|_| Error::IncorrectFormat)?;
                     let raw_b: f64 = u.arbitrary()?;
-                    let b = Size::new(raw_b).map_err(|_| Error::IncorrectFormat)?;
+                    let b = Size::try_new(raw_b).map_err(|_| Error::IncorrectFormat)?;
                     let _ = a.cmp(&b);
                     let _ = b.cmp(&a);
                     Ok(())

@@ -23,7 +23,7 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
             });
         let type_name = type_name.to_string();
         quote!(
-            Self::new(inner_value).unwrap_or_else(|err| {
+            Self::try_new(inner_value).unwrap_or_else(|err| {
                 // Panic with the maximum details about what went wrong
                 panic!("\nArbitrary generated an invalid value for {}.\nInvalid inner value: {:?}\nValidation error: {:?}\n\n{}", #type_name, inner_value, err, #report_issue_msg);
             })

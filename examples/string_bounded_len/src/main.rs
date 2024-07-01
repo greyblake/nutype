@@ -13,7 +13,7 @@ const MAX_NAME_LEN: usize = 4;
 pub struct Name(String);
 
 fn main() {
-    assert_eq!(Name::new("Bo"), Err(NameError::LenCharMinViolated));
-    assert_eq!(Name::new("Julia"), Err(NameError::LenCharMaxViolated));
-    assert_eq!(Name::new("Jojo").unwrap().as_ref(), "Jojo");
+    assert_eq!(Name::try_new("Bo"), Err(NameError::LenCharMinViolated));
+    assert_eq!(Name::try_new("Julia"), Err(NameError::LenCharMaxViolated));
+    assert_eq!(Name::try_new("Jojo").unwrap().as_ref(), "Jojo");
 }

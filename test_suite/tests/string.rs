@@ -98,11 +98,11 @@ mod validators {
         )]
         pub struct Name(String);
 
-        assert_eq!(Name::new("Anton").unwrap().into_inner(), "Anton");
-        assert_eq!(Name::new("Serhii"), Err(NameError::LenCharMaxViolated));
+        assert_eq!(Name::try_new("Anton").unwrap().into_inner(), "Anton");
+        assert_eq!(Name::try_new("Serhii"), Err(NameError::LenCharMaxViolated));
 
         // Ukrainian, Cyrillic. Every char is 2 bytes.
-        assert_eq!(Name::new("Антон").unwrap().into_inner(), "Антон");
+        assert_eq!(Name::try_new("Антон").unwrap().into_inner(), "Антон");
     }
 
     #[test]
@@ -110,11 +110,11 @@ mod validators {
         #[nutype(validate(len_char_min = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new("Anton"), Err(NameError::LenCharMinViolated));
-        assert_eq!(Name::new("Serhii").unwrap().into_inner(), "Serhii");
+        assert_eq!(Name::try_new("Anton"), Err(NameError::LenCharMinViolated));
+        assert_eq!(Name::try_new("Serhii").unwrap().into_inner(), "Serhii");
 
         // Ukrainian, Cyrillic. Every char is 2 bytes.
-        assert_eq!(Name::new("Антон"), Err(NameError::LenCharMinViolated));
+        assert_eq!(Name::try_new("Антон"), Err(NameError::LenCharMinViolated));
     }
 
     #[test]
@@ -122,9 +122,9 @@ mod validators {
         #[nutype(validate(not_empty), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new(""), Err(NameError::NotEmptyViolated));
-        assert_eq!(Name::new(" ").unwrap().into_inner(), " ");
-        assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
+        assert_eq!(Name::try_new(""), Err(NameError::NotEmptyViolated));
+        assert_eq!(Name::try_new(" ").unwrap().into_inner(), " ");
+        assert_eq!(Name::try_new("Julia").unwrap().into_inner(), "Julia");
     }
 
     #[test]
@@ -132,9 +132,12 @@ mod validators {
         #[nutype(validate(len_char_min = 3, len_char_max = 6), derive(Debug, PartialEq))]
         pub struct Name(String);
 
-        assert_eq!(Name::new("Jo"), Err(NameError::LenCharMinViolated));
-        assert_eq!(Name::new("Friedrich"), Err(NameError::LenCharMaxViolated));
-        assert_eq!(Name::new("Julia").unwrap().into_inner(), "Julia");
+        assert_eq!(Name::try_new("Jo"), Err(NameError::LenCharMinViolated));
+        assert_eq!(
+            Name::try_new("Friedrich"),
+            Err(NameError::LenCharMaxViolated)
+        );
+        assert_eq!(Name::try_new("Julia").unwrap().into_inner(), "Julia");
     }
 
     #[cfg(test)]
@@ -147,11 +150,11 @@ mod validators {
             pub struct Email(String);
 
             assert_eq!(
-                Email::new("foo.bar.example"),
+                Email::try_new("foo.bar.example"),
                 Err(EmailError::PredicateViolated)
             );
             assert_eq!(
-                Email::new("foo@bar.example").unwrap().into_inner(),
+                Email::try_new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
             );
         }
@@ -162,11 +165,11 @@ mod validators {
             pub struct Email(String);
 
             assert_eq!(
-                Email::new("foo.bar.example"),
+                Email::try_new("foo.bar.example"),
                 Err(EmailError::PredicateViolated)
             );
             assert_eq!(
-                Email::new("foo@bar.example").unwrap().into_inner(),
+                Email::try_new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
             );
         }
@@ -181,11 +184,11 @@ mod validators {
             pub struct Email(String);
 
             assert_eq!(
-                Email::new("foo.bar.example"),
+                Email::try_new("foo.bar.example"),
                 Err(EmailError::PredicateViolated)
             );
             assert_eq!(
-                Email::new("foo@bar.example").unwrap().into_inner(),
+                Email::try_new("foo@bar.example").unwrap().into_inner(),
                 "foo@bar.example"
             );
         }
@@ -238,17 +241,20 @@ mod validators {
         #[test]
         fn test_boundaries_defined_as_constants() {
             assert_eq!(
-                Login::new("ab").unwrap_err(),
+                Login::try_new("ab").unwrap_err(),
                 LoginError::LenCharMinViolated,
             );
-            assert_eq!(Login::new("abc").unwrap().into_inner(), "abc".to_string(),);
+            assert_eq!(
+                Login::try_new("abc").unwrap().into_inner(),
+                "abc".to_string(),
+            );
 
             assert_eq!(
-                Login::new("abcdefghijk").unwrap_err(),
+                Login::try_new("abcdefghijk").unwrap_err(),
                 LoginError::LenCharMaxViolated,
             );
             assert_eq!(
-                Login::new("abcdefghij").unwrap().into_inner(),
+                Login::try_new("abcdefghij").unwrap().into_inner(),
                 "abcdefghij".to_string(),
             );
         }
@@ -270,12 +276,12 @@ mod complex {
         )]
         pub struct Name(String);
 
-        assert_eq!(Name::new("    "), Err(NameError::NotEmptyViolated));
+        assert_eq!(Name::try_new("    "), Err(NameError::NotEmptyViolated));
         assert_eq!(
-            Name::new("Willy Brandt"),
+            Name::try_new("Willy Brandt"),
             Err(NameError::LenCharMaxViolated)
         );
-        assert_eq!(Name::new("   Brandt  ").unwrap().into_inner(), "BRANDT");
+        assert_eq!(Name::try_new("   Brandt  ").unwrap().into_inner(), "BRANDT");
     }
 }
 
@@ -607,12 +613,12 @@ mod validation_with_regex {
 
         // PredicateViolated
         assert_eq!(
-            PhoneNumber::new("123456"),
+            PhoneNumber::try_new("123456"),
             Err(PhoneNumberError::RegexViolated)
         );
 
         // Valid
-        let inner = PhoneNumber::new("123-456").unwrap().into_inner();
+        let inner = PhoneNumber::try_new("123-456").unwrap().into_inner();
         assert_eq!(inner, "123-456".to_string());
     }
 
@@ -623,12 +629,12 @@ mod validation_with_regex {
 
         // PredicateViolated
         assert_eq!(
-            PhoneNumber::new("123456"),
+            PhoneNumber::try_new("123456"),
             Err(PhoneNumberError::RegexViolated)
         );
 
         // Valid
-        let inner = PhoneNumber::new("123-456").unwrap().into_inner();
+        let inner = PhoneNumber::try_new("123-456").unwrap().into_inner();
         assert_eq!(inner, "123-456".to_string());
     }
 
@@ -639,12 +645,12 @@ mod validation_with_regex {
 
         // PredicateViolated
         assert_eq!(
-            PhoneNumber::new("123456"),
+            PhoneNumber::try_new("123456"),
             Err(PhoneNumberError::RegexViolated)
         );
 
         // Valid
-        let inner = PhoneNumber::new("123-456").unwrap().into_inner();
+        let inner = PhoneNumber::try_new("123-456").unwrap().into_inner();
         assert_eq!(inner, "123-456".to_string());
     }
 }

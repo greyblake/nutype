@@ -23,7 +23,7 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
         let error_text =
             format!("Arbitrary generated an invalid value for {type_name}.\n\n{report_issue_msg}");
         quote!(
-            Self::new(inner_value).expect(#error_text)
+            Self::try_new(inner_value).expect(#error_text)
         )
     } else {
         quote!(Self::new(inner_value))

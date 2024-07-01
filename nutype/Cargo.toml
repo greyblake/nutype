@@ -17,6 +17,11 @@ categories = ["data-structures", "rust-patterns"]
 [dependencies]
 nutype_macros = { version = "0.4.2", path = "../nutype_macros" }
 
+[dev-dependencies]
+regex = "1.0"
+lazy_static = "1.0"
+once_cell = "1.0"
+
 [features]
 default = ["std"]
 
@@ -26,3 +31,5 @@ regex = ["nutype_macros/regex"]
 schemars08 = ["nutype_macros/schemars08"]
 new_unchecked = ["nutype_macros/new_unchecked"]
 arbitrary = ["nutype_macros/arbitrary"]
+
+

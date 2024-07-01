@@ -96,9 +96,9 @@ fn main() {
         assert_eq!(
             product,
             Product {
-                name: Name::new("FlySniper").unwrap(),
-                image_url: ImageUrl::new("https://example.com/image.jpg").unwrap(),
-                price: Price::new(9.99).unwrap(),
+                name: Name::try_new("FlySniper").unwrap(),
+                image_url: ImageUrl::try_new("https://example.com/image.jpg").unwrap(),
+                price: Price::try_new(9.99).unwrap(),
             }
         )
     }
