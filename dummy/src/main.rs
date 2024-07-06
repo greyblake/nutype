@@ -3,7 +3,7 @@ use nutype::nutype;
 #[nutype(
     sanitize(with = |mut v| { v.sort(); v }),
     validate(predicate = |vec| !vec.is_empty()),
-    derive(Debug, AsRef, PartialEq),
+    derive(Debug, AsRef, PartialEq, Deref),
 )]
 struct SortedNotEmptyVec<T: Ord>(Vec<T>);
 
@@ -22,4 +22,6 @@ fn main() {
         wise_friends.as_ref(),
         &["Epictetus", "Plato", "Seneca", "Socrates", "Zeno"]
     );
+
+    assert_eq!(wise_friends.len(), 5);
 }

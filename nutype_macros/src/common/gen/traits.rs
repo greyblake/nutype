@@ -22,7 +22,7 @@ pub struct GeneratedTraits {
 
 /// Split traits into 2 groups for generation:
 /// * Transparent traits can be simply derived, e.g. `derive(Debug)`.
-/// * Irregular traits requires implementation to be generated.
+/// * Irregular traits requires custom implementation to be generated.
 pub enum GeneratableTrait<TransparentTrait, IrregularTrait> {
     Transparent(TransparentTrait),
     Irregular(IrregularTrait),
@@ -98,15 +98,17 @@ pub fn gen_impl_trait_deref(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
-    quote! {
-        impl #generics ::core::ops::Deref for #type_name #generics {
-            type Target = #inner_type;
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
 
-            #[inline]
-            fn deref(&self) -> &Self::Target {
-                &self.0
-            }
-        }
+    quote! {
+        impl #generics ::core::ops::Deref for #type_name #generics_without_bounds {  // impl<T: Ord> Deref for Collection<T> {
+            type Target = #inner_type;                                               //     type Target = Vec<T>;
+                                                                                     //
+            #[inline]                                                                //     #[inline]
+            fn deref(&self) -> &Self::Target {                                       //     fn deref(&self) -> &Self::Target {
+                &self.0                                                              //         &self.0
+            }                                                                        //     }
+        }                                                                            // }
     }
 }
 
@@ -137,6 +139,9 @@ pub fn gen_impl_trait_borrow(
     generics: &Generics,
     borrowed_type: impl ToTokens,
 ) -> TokenStream {
+    // TODO! Fix this as well!
+    // let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
     quote! {
         impl #generics ::core::borrow::Borrow<#borrowed_type> for #type_name #generics {
             #[inline]

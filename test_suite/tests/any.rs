@@ -856,6 +856,19 @@ mod with_generics {
     }
 
     #[test]
+    fn test_derive_deref_with_generic_boundaries_and_validation_and_sanitization() {
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            validate(predicate = |vec| !vec.is_empty()),
+            derive(Debug, Deref),
+        )]
+        struct Penguins<T: Ord>(Vec<T>);
+
+        let penguins = Penguins::try_new(vec!["Tux", "Chilly Willy"]).unwrap();
+        assert_eq!(penguins.len(), 2);
+    }
+
+    #[test]
     fn test_derive_default_with_generics() {
         #[nutype(
             derive(Debug, Default),
