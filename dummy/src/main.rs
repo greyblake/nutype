@@ -14,14 +14,11 @@ fn main() {
         Err(SortedNotEmptyVecError::PredicateViolated)
     );
 
-    let wise_friends =
-        SortedNotEmptyVec::try_new(vec!["Seneca", "Zeno", "Socrates", "Epictetus", "Plato"])
-            .unwrap();
+    let wise_friends = SortedNotEmptyVec::try_new(vec!["Seneca", "Zeno", "Plato"]).unwrap();
+    assert_eq!(wise_friends.as_ref(), &["Plato", "Seneca", "Zeno"]);
+    assert_eq!(wise_friends.len(), 3);
 
-    assert_eq!(
-        wise_friends.as_ref(),
-        &["Epictetus", "Plato", "Seneca", "Socrates", "Zeno"]
-    );
-
-    assert_eq!(wise_friends.len(), 5);
+    let numbers = SortedNotEmptyVec::try_new(vec![4, 2, 7, 1]).unwrap();
+    assert_eq!(numbers.as_ref(), &[1, 2, 4, 7]);
+    assert_eq!(numbers.len(), 4);
 }
