@@ -81,13 +81,15 @@ pub fn gen_impl_trait_as_ref(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
     quote! {
-        impl #generics ::core::convert::AsRef<#inner_type> for #type_name #generics {
-            #[inline]
-            fn as_ref(&self) -> &#inner_type {
-                &self.0
-            }
-        }
+        impl #generics ::core::convert::AsRef<#inner_type> for #type_name #generics_without_bounds {  // impl<T: Ord> AsRef<Vec<T>> for Collection<T> {
+            #[inline]                                                                                 //     #[inline]
+            fn as_ref(&self) -> &#inner_type {                                                        //     fn as_ref(&self) -> &Vec<T> {
+                &self.0                                                                               //         &self.0
+            }                                                                                         //     }
+        }                                                                                             // }
     }
 }
 
