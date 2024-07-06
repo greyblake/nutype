@@ -1,5 +1,7 @@
 ### v0.x.x - 2024-xx-xx
 
+### v0.4.3 - 2024-07-06
+
 * Support generics
 * [DEPRECATION] Fallible constructor `::new()` is deprecated. Users should use `::try_new()` instead.
 * [FIX] Use absolute path for `::core::result::Result` when generating code for `derive(TryFrom)`.
