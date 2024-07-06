@@ -156,14 +156,15 @@ pub fn gen_impl_trait_from(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
-    // TODO? #generics_without_bounds
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
     quote! {
-        impl #generics ::core::convert::From<#inner_type> for #type_name #generics {
-            #[inline]
-            fn from(raw_value: #inner_type) -> Self {
-                Self::new(raw_value)
-            }
-        }
+        impl #generics ::core::convert::From<#inner_type> for #type_name #generics_without_bounds {  // impl<T: Ord> From<Vec<T>> for Collection<T> {
+            #[inline]                                                                                //     #[inline]
+            fn from(raw_value: #inner_type) -> Self {                                                //     fn from(raw_value: Vec<T>) -> Self {
+                Self::new(raw_value)                                                                 //         Self::new(raw_value)
+            }                                                                                        //     }
+        }                                                                                            // }
     }
 }
 

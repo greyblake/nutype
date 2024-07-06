@@ -701,6 +701,18 @@ mod with_generics {
     }
 
     #[test]
+    fn test_generic_from_with_bounds_and_sanitization() {
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            derive(Debug, From),
+        )]
+        struct Sorted<T: Ord>(Vec<T>);
+
+        let sorted: Sorted<i32> = Sorted::from(vec![3, 1, 2]);
+        assert_eq!(sorted.into_inner(), vec![1, 2, 3]);
+    }
+
+    #[test]
     fn test_generic_from_str_without_validation() {
         // Note: the code generate for FromStr relies on "associated type bounds" feature, which is
         // stabilized only in 1.79.
