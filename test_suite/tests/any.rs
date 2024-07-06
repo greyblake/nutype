@@ -701,7 +701,21 @@ mod with_generics {
     }
 
     #[test]
+    fn test_generic_from_with_bounds_and_sanitization() {
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            derive(Debug, From),
+        )]
+        struct Sorted<T: Ord>(Vec<T>);
+
+        let sorted: Sorted<i32> = Sorted::from(vec![3, 1, 2]);
+        assert_eq!(sorted.into_inner(), vec![1, 2, 3]);
+    }
+
+    #[test]
     fn test_generic_from_str_without_validation() {
+        // Note: the code generate for FromStr relies on "associated type bounds" feature, which is
+        // stabilized only in 1.79.
         #[nutype(derive(Debug, FromStr))]
         struct Parseable<T>(T);
 
@@ -833,6 +847,53 @@ mod with_generics {
         inner_map.insert(5, 25);
         let squares = NonEmptyMap::try_new(inner_map.clone()).unwrap();
         assert_eq!(squares.as_ref(), &inner_map);
+    }
+
+    #[test]
+    fn test_derive_as_ref_with_generic_boundaries_and_validation_and_sanitization() {
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            validate(predicate = |vec| !vec.is_empty()),
+            derive(Debug, AsRef, PartialEq),
+        )]
+        struct Friends<T: Ord>(Vec<T>);
+
+        assert_eq!(
+            Friends::<&str>::try_new(vec![]),
+            Err(FriendsError::PredicateViolated)
+        );
+
+        let wise_friends = Friends::try_new(vec!["Seneca", "Zeno", "Aristotle"]).unwrap();
+        assert_eq!(wise_friends.as_ref(), &["Aristotle", "Seneca", "Zeno"]);
+    }
+
+    #[test]
+    fn test_derive_deref_with_generic_boundaries_and_validation_and_sanitization() {
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            validate(predicate = |vec| !vec.is_empty()),
+            derive(Debug, Deref),
+        )]
+        struct Penguins<T: Ord>(Vec<T>);
+
+        let penguins = Penguins::try_new(vec!["Tux", "Chilly Willy"]).unwrap();
+        assert_eq!(penguins.len(), 2);
+    }
+
+    #[test]
+    fn test_derive_borrow_with_generic_boundaries_and_validation_and_sanitization() {
+        use std::borrow::Borrow;
+
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            validate(predicate = |vec| !vec.is_empty()),
+            derive(Debug, Borrow),
+        )]
+        struct Heroes<T: Ord>(Vec<T>);
+
+        let heroes = Heroes::try_new(vec!["Spiderman", "Batman"]).unwrap();
+        let borrowed_heroes: &Vec<&str> = heroes.borrow();
+        assert_eq!(borrowed_heroes, &vec!["Batman", "Spiderman"]);
     }
 
     #[test]
