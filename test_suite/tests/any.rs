@@ -869,6 +869,22 @@ mod with_generics {
     }
 
     #[test]
+    fn test_derive_borrow_with_generic_boundaries_and_validation_and_sanitization() {
+        use std::borrow::Borrow;
+
+        #[nutype(
+            sanitize(with = |mut v| { v.sort(); v }),
+            validate(predicate = |vec| !vec.is_empty()),
+            derive(Debug, Borrow),
+        )]
+        struct Heroes<T: Ord>(Vec<T>);
+
+        let heroes = Heroes::try_new(vec!["Spiderman", "Batman"]).unwrap();
+        let borrowed_heroes: &Vec<&str> = heroes.borrow();
+        assert_eq!(borrowed_heroes, &vec!["Batman", "Spiderman"]);
+    }
+
+    #[test]
     fn test_derive_default_with_generics() {
         #[nutype(
             derive(Debug, Default),

@@ -139,16 +139,15 @@ pub fn gen_impl_trait_borrow(
     generics: &Generics,
     borrowed_type: impl ToTokens,
 ) -> TokenStream {
-    // TODO! Fix this as well!
-    // let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
 
     quote! {
-        impl #generics ::core::borrow::Borrow<#borrowed_type> for #type_name #generics {
-            #[inline]
-            fn borrow(&self) -> &#borrowed_type {
-                &self.0
-            }
-        }
+        impl #generics ::core::borrow::Borrow<#borrowed_type> for #type_name #generics_without_bounds {  // impl<T: Ord> Borrow<Vec<T>> for Collection<T> {
+            #[inline]                                                                                    //     #[inline]
+            fn borrow(&self) -> &#borrowed_type {                                                        //     fn borrow(&self) -> &Vec<T> {
+                &self.0                                                                                  //         &self.0
+            }                                                                                            //     }
+        }                                                                                                // }
     }
 }
 
@@ -157,6 +156,7 @@ pub fn gen_impl_trait_from(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
+    // TODO? #generics_without_bounds
     quote! {
         impl #generics ::core::convert::From<#inner_type> for #type_name #generics {
             #[inline]
