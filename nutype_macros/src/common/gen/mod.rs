@@ -213,6 +213,7 @@ pub trait GenerateNewtype {
     /// happens in 2 stages:
     /// * &str -> inner type (parsing)
     /// * inner type -> nutype (validation)
+    ///
     /// But for the String based types there is no first stage, so the parse error is the same as
     /// validation error.
     const HAS_DEDICATED_PARSE_ERROR: bool = true;

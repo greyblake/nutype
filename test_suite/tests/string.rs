@@ -601,7 +601,6 @@ mod validation_with_regex {
     use once_cell::sync::Lazy;
     use regex::Regex;
 
-
     static PHONE_REGEX_LAZY_LOCK: LazyLock<Regex> =
         LazyLock::new(|| Regex::new("^[0-9]{3}-[0-9]{3}$").unwrap());
 
