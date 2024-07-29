@@ -129,7 +129,6 @@ name = "dummy"
 version = "0.1.0"
 dependencies = [
  "arbitrary",
- "lazy_static",
  "num",
  "nutype",
  "once_cell",
@@ -520,7 +519,6 @@ dependencies = [
 name = "string_regex_email"
 version = "0.1.0"
 dependencies = [
- "lazy_static",
  "nutype",
  "regex",
 ]
