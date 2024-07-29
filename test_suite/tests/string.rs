@@ -595,9 +595,15 @@ mod derive_schemars_json_schema {
 #[cfg(feature = "regex")]
 mod validation_with_regex {
     use super::*;
+    use std::sync::LazyLock;
+
     use lazy_static::lazy_static;
     use once_cell::sync::Lazy;
     use regex::Regex;
+
+
+    static PHONE_REGEX_LAZY_LOCK: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new("^[0-9]{3}-[0-9]{3}$").unwrap());
 
     lazy_static! {
         static ref PHONE_REGEX_LAZY_STATIC: Regex = Regex::new("^[0-9]{3}-[0-9]{3}$").unwrap();
@@ -609,6 +615,22 @@ mod validation_with_regex {
     #[test]
     fn test_regex_as_string() {
         #[nutype(validate(regex = "^[0-9]{3}-[0-9]{3}$"), derive(Debug, PartialEq))]
+        pub struct PhoneNumber(String);
+
+        // PredicateViolated
+        assert_eq!(
+            PhoneNumber::try_new("123456"),
+            Err(PhoneNumberError::RegexViolated)
+        );
+
+        // Valid
+        let inner = PhoneNumber::try_new("123-456").unwrap().into_inner();
+        assert_eq!(inner, "123-456".to_string());
+    }
+
+    #[test]
+    fn test_regex_with_lazy_lock() {
+        #[nutype(validate(regex = PHONE_REGEX_LAZY_LOCK), derive(Debug, PartialEq))]
         pub struct PhoneNumber(String);
 
         // PredicateViolated
