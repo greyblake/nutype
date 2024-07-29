@@ -129,7 +129,6 @@ name = "dummy"
 version = "0.1.0"
 dependencies = [
  "arbitrary",
- "lazy_static",
  "num",
  "nutype",
  "once_cell",
