@@ -1,12 +1,11 @@
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
+
 use nutype::nutype;
 use regex::Regex;
 
-lazy_static! {
-    // Note: this regex is very simplified.
-    // In reality you'd like to use a more sophisticated regex for email validation.
-    static ref EMAIL_REGEX: Regex = Regex::new("^\\w+@\\w+\\.\\w+$").unwrap();
-}
+// Note: this regex is very simplified.
+// In reality you'd like to use a more sophisticated regex for email validation.
+static EMAIL_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^\\w+@\\w+\\.\\w+$").unwrap());
 
 // Note: technically the local part of email address is case-sensitive, but in practice all the
 // popular email services (e.g. gmail) make it case-insensitive, so applying `lowercase` is OK.

@@ -112,6 +112,17 @@ A regular expression can be defined right in place:
 pub struct PhoneNumber(String);
 ```
 
+or it can be defined with `std::sync::LazyLock`:
+
+```rs
+use regex::Regex;
+
+static PHONE_NUMBER_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[0-9]{3}-[0-9]{3}$").unwrap());
+
+#[nutype(validate(regex = PHONE_NUMBER_REGEX))]
+pub struct PhoneNumber(String);
+```
+
 or it can be defined with `lazy_static`:
 
 ```rs
