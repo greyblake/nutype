@@ -1,5 +1,7 @@
 ### v0.x.x - 2024-xx-xx
 
+* Support [LazyLock](LazyLock) for regex validation.
+
 ### v0.4.3 - 2024-07-06
 
 * Support generics
