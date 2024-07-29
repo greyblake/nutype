@@ -131,7 +131,7 @@ impl Parse for SpannedStringValidator {
                     } else {
                         let msg = concat!(
                             "To validate string types with regex, the feature `regex` of the crate `nutype` must be enabled.\n",
-                            "IMPORTANT: Make sure that your crate EXPLICITLY depends on `regex` and `lazy_static` crates.\n",
+                            "IMPORTANT: Make sure that your crate EXPLICITLY depends on the `regex` crate.\n",
                             "And... don't forget to take care of yourself and your beloved ones. That is even more important.",
                         );
                         Err(syn::Error::new(ident.span(), msg))

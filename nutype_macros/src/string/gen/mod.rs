@@ -125,11 +125,9 @@ impl GenerateNewtype for StringNewtype {
                     match regex_def {
                         RegexDef::StringLiteral(regex_str_lit) => {
                             quote!(
-                                lazy_static::lazy_static! {
-                                    // Make up a sufficiently unique regex name to ensure that it does
-                                    // not clashes with anything import with `use super::*`.
-                                    static ref __NUTYPE_REGEX__: ::regex::Regex = ::regex::Regex::new(#regex_str_lit).expect("Nutype failed to a build a regex");
-                                }
+                                // Make up a sufficiently unique regex name to ensure that it does
+                                // not clashes with anything import with `use super::*`.
+                                static __NUTYPE_REGEX__: ::std::sync::LazyLock<::regex::Regex> = ::std::sync::LazyLock::new(|| ::regex::Regex::new(#regex_str_lit).expect("Nutype failed to a build a regex"));
                                 if !__NUTYPE_REGEX__.is_match(&val) {
                                     return Err(#error_type_name::RegexViolated);
                                 }
