@@ -10,4 +10,3 @@ authors = ["Serhii Potapov <blake131313@gmail.com>"]
 [dependencies]
 nutype = { path = "../../nutype", features = ["regex"] }
 regex = "1.10.2"
-lazy_static = "1.4.0"
