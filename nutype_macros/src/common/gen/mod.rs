@@ -12,10 +12,7 @@ use super::models::{
     ErrorTypeName, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName, TypeName, TypeTrait,
 };
 use crate::common::{
-    gen::{
-        error::gen_error_type_name, new_unchecked::gen_new_unchecked,
-        parse_error::gen_parse_error_name,
-    },
+    gen::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
     models::ModuleName,
 };
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
@@ -226,12 +223,13 @@ pub trait GenerateNewtype {
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
-        type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream;
 
     fn gen_validation_error_type(
         type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream;
 
@@ -239,7 +237,6 @@ pub trait GenerateNewtype {
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
-        maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
@@ -251,12 +248,13 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
         validators: &[Self::Validator],
+        error_type_name: &ErrorTypeName,
     ) -> TokenStream {
         let generics_without_bounds = strip_trait_bounds_on_generics(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
-        let validation_error = Self::gen_validation_error_type(type_name, validators);
-        let error_type_name = gen_error_type_name(type_name);
-        let fn_validate = Self::gen_fn_validate(inner_type, type_name, validators);
+        let validation_error =
+            Self::gen_validation_error_type(type_name, error_type_name, validators);
+        let fn_validate = Self::gen_fn_validate(inner_type, error_type_name, validators);
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
             (
@@ -338,7 +336,15 @@ pub trait GenerateNewtype {
             Guard::WithValidation {
                 sanitizers,
                 validators,
-            } => Self::gen_try_new(type_name, generics, inner_type, sanitizers, validators),
+                error_type_name,
+            } => Self::gen_try_new(
+                type_name,
+                generics,
+                inner_type,
+                sanitizers,
+                validators,
+                error_type_name,
+            ),
         };
         let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type);
         let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
@@ -374,11 +380,6 @@ pub trait GenerateNewtype {
         let implementation =
             Self::gen_implementation(&type_name, &generics, &inner_type, &guard, new_unchecked);
 
-        let maybe_error_type_name: Option<ErrorTypeName> = match guard {
-            Guard::WithoutValidation { .. } => None,
-            Guard::WithValidation { .. } => Some(gen_error_type_name(&type_name)),
-        };
-
         let has_from_str_trait = traits.iter().any(|t| t.is_from_str());
         let maybe_parse_error_type_name = if has_from_str_trait && Self::HAS_DEDICATED_PARSE_ERROR {
             Some(gen_parse_error_name(&type_name))
@@ -395,11 +396,18 @@ pub trait GenerateNewtype {
             &traits,
         );
 
+        let maybe_error_type_name = match &guard {
+            Guard::WithValidation {
+                error_type_name, ..
+            } => Some(error_type_name),
+            Guard::WithoutValidation { .. } => None,
+        };
+
         let reimports = gen_reimports(
             vis,
             &type_name,
             &module_name,
-            maybe_error_type_name.as_ref(),
+            maybe_error_type_name,
             maybe_parse_error_type_name.as_ref(),
         );
 
@@ -410,7 +418,6 @@ pub trait GenerateNewtype {
             &type_name,
             &generics,
             &inner_type,
-            maybe_error_type_name,
             traits,
             maybe_default_value,
             &guard,

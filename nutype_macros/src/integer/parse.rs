@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::common::{
-    models::{Attributes, SpannedDeriveTrait},
+    models::{Attributes, SpannedDeriveTrait, TypeName},
     parse::{
         parse_number_or_expr, parse_sanitizer_kind, parse_typed_custom_function,
         parse_validator_kind, ParseableAttributes,
@@ -21,11 +21,12 @@ use super::{
         IntegerGuard, IntegerRawGuard, IntegerSanitizer, IntegerSanitizerKind, IntegerValidator,
         IntegerValidatorKind, SpannedIntegerSanitizer, SpannedIntegerValidator,
     },
-    validate::validate_number_meta,
+    validate::validate_integer_guard,
 };
 
 pub fn parse_attributes<T>(
     input: TokenStream,
+    type_name: &TypeName,
 ) -> Result<Attributes<IntegerGuard<T>, SpannedDeriveTrait>, syn::Error>
 where
     T: FromStr + PartialOrd + Clone,
@@ -40,12 +41,14 @@ where
         new_unchecked,
         default,
         derive_traits,
+        error_type_name,
     } = attrs;
     let raw_guard = IntegerRawGuard {
         sanitizers,
         validators,
+        error_type_name,
     };
-    let guard = validate_number_meta(raw_guard)?;
+    let guard = validate_integer_guard(raw_guard, type_name)?;
     Ok(Attributes {
         new_unchecked,
         guard,

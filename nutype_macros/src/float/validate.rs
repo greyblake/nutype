@@ -2,8 +2,11 @@ use proc_macro2::Span;
 use std::collections::HashSet;
 
 use crate::common::{
-    models::{DeriveTrait, SpannedDeriveTrait},
-    validate::{validate_duplicates, validate_numeric_bounds, validate_traits_from_xor_try_from},
+    models::{DeriveTrait, SpannedDeriveTrait, TypeName},
+    validate::{
+        validate_duplicates, validate_guard, validate_numeric_bounds,
+        validate_traits_from_xor_try_from,
+    },
 };
 
 use super::models::{
@@ -11,26 +14,19 @@ use super::models::{
     FloatValidatorKind, SpannedFloatSanitizer, SpannedFloatValidator,
 };
 
-pub fn validate_number_meta<T>(raw_meta: FloatRawGuard<T>) -> Result<FloatGuard<T>, syn::Error>
+pub fn validate_float_guard<T>(
+    raw_guard: FloatRawGuard<T>,
+    type_name: &TypeName,
+) -> Result<FloatGuard<T>, syn::Error>
 where
     T: PartialOrd + Clone,
 {
-    let FloatRawGuard {
-        sanitizers,
-        validators,
-    } = raw_meta;
-
-    let validators = validate_validators(validators)?;
-    let sanitizers = validate_sanitizers(sanitizers)?;
-
-    if validators.is_empty() {
-        Ok(FloatGuard::WithoutValidation { sanitizers })
-    } else {
-        Ok(FloatGuard::WithValidation {
-            sanitizers,
-            validators,
-        })
-    }
+    validate_guard(
+        raw_guard,
+        type_name,
+        validate_validators,
+        validate_sanitizers,
+    )
 }
 
 fn validate_validators<T>(

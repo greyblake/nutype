@@ -66,6 +66,7 @@ fn gen_generate_valid_inner_value<T: ToTokens>(
         FloatGuard::WithValidation {
             sanitizers,
             validators,
+            error_type_name: _,
         } => {
             // When there is validation, then we need to generate a valid value.
             gen_generate_valid_inner_value_with_validators(inner_type, sanitizers, validators)

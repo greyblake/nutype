@@ -68,7 +68,7 @@ mod traits {
     #[test]
     fn test_clone() {
         let location = Location::new(Point::new(5, 8));
-        let same_location = location.clone();
+        let same_location = location;
 
         assert_eq!(location.into_inner(), same_location.into_inner(),);
     }
@@ -679,7 +679,7 @@ mod with_generics {
         #[nutype(derive(Debug, From))]
         struct Doener<T>(T);
 
-        let durum = Doener::try_from("Durum").unwrap();
+        let durum = Doener::from("Durum");
         assert_eq!(durum.into_inner(), "Durum");
     }
 
@@ -773,7 +773,7 @@ mod with_generics {
         struct Arbaro<T>(Vec<T>);
 
         fn gen(bytes: &[u8]) -> Vec<bool> {
-            let mut u = arbitrary::Unstructured::new(&bytes);
+            let mut u = arbitrary::Unstructured::new(bytes);
             let arbraro = Arbaro::<bool>::arbitrary(&mut u).unwrap();
             arbraro.into_inner()
         }

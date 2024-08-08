@@ -15,7 +15,7 @@ use crate::{
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
             GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, TypeName},
+        models::TypeName,
     },
     integer::models::{IntegerDeriveTrait, IntegerGuard, IntegerInnerType},
 };
@@ -26,7 +26,6 @@ pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: &IntegerInnerType,
-    maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<IntegerDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
     guard: &IntegerGuard<T>,
@@ -46,7 +45,6 @@ pub fn gen_traits<T: ToTokens>(
         type_name,
         generics,
         inner_type,
-        maybe_error_type_name,
         irregular_traits,
         maybe_default_value,
         guard,
@@ -181,23 +179,23 @@ fn gen_implemented_traits<T: ToTokens>(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: &IntegerInnerType,
-    maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<IntegerIrregularTrait>,
     maybe_default_value: Option<syn::Expr>,
     guard: &IntegerGuard<T>,
 ) -> Result<TokenStream, syn::Error> {
+    let maybe_error_type_name = guard.maybe_error_type_name();
     impl_traits
         .iter()
         .map(|t| match t {
             IntegerIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, generics, inner_type)),
             IntegerIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, inner_type)),
             IntegerIrregularTrait::FromStr => {
-                Ok(gen_impl_trait_from_str(type_name, generics, inner_type, maybe_error_type_name.as_ref()))
+                Ok(gen_impl_trait_from_str(type_name, generics, inner_type, maybe_error_type_name))
             }
             IntegerIrregularTrait::From => Ok(gen_impl_trait_from(type_name, generics, inner_type)),
             IntegerIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, generics, inner_type)),
             IntegerIrregularTrait::TryFrom => {
-                Ok(gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name.as_ref()))
+                Ok(gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name))
             }
             IntegerIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, generics, inner_type)),
             IntegerIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, generics)),
@@ -219,7 +217,7 @@ fn gen_implemented_traits<T: ToTokens>(
                 type_name,
                 generics,
                 inner_type,
-                maybe_error_type_name.as_ref(),
+                maybe_error_type_name,
             )),
             IntegerIrregularTrait::ArbitraryArbitrary => {
                 arbitrary::gen_impl_trait_arbitrary(type_name, inner_type, guard)

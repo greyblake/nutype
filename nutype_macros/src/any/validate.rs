@@ -3,8 +3,8 @@ use std::collections::HashSet;
 use proc_macro2::Span;
 
 use crate::common::{
-    models::{DeriveTrait, SpannedDeriveTrait},
-    validate::{validate_duplicates, validate_traits_from_xor_try_from},
+    models::{DeriveTrait, SpannedDeriveTrait, TypeName},
+    validate::{validate_duplicates, validate_guard, validate_traits_from_xor_try_from},
 };
 
 use super::models::{
@@ -12,25 +12,20 @@ use super::models::{
     SpannedAnyValidator,
 };
 
-pub fn validate_any_guard(raw_guard: AnyRawGuard) -> Result<AnyGuard, syn::Error> {
-    let AnyRawGuard {
-        sanitizers,
-        validators,
-    } = raw_guard;
-
-    let validators = validate_validators(validators)?;
-    let sanitizers = validate_sanitizers(sanitizers)?;
-
-    if validators.is_empty() {
-        Ok(AnyGuard::WithoutValidation { sanitizers })
-    } else {
-        Ok(AnyGuard::WithValidation {
-            sanitizers,
-            validators,
-        })
-    }
+pub fn validate_any_guard(
+    raw_guard: AnyRawGuard,
+    type_name: &TypeName,
+) -> Result<AnyGuard, syn::Error> {
+    validate_guard(
+        raw_guard,
+        type_name,
+        validate_validators,
+        validate_sanitizers,
+    )
 }
 
+// > Quis custodiet ipsos custodes? :D
+// (Who will guard the guards themselves?)
 fn validate_validators(
     validators: Vec<SpannedAnyValidator>,
 ) -> Result<Vec<AnyValidator>, syn::Error> {

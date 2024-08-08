@@ -122,6 +122,10 @@ macro_rules! define_ident_type {
             pub fn new(name: proc_macro2::Ident) -> Self {
                 Self(name)
             }
+
+            pub fn span(&self) -> Span {
+                self.0.span()
+            }
         }
 
         impl core::fmt::Display for $tp_name {
@@ -205,7 +209,19 @@ pub enum Guard<Sanitizer, Validator> {
     WithValidation {
         sanitizers: Vec<Sanitizer>,
         validators: Vec<Validator>,
+        error_type_name: ErrorTypeName,
     },
+}
+
+impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
+    pub fn maybe_error_type_name(&self) -> Option<&ErrorTypeName> {
+        match self {
+            Self::WithoutValidation { .. } => None,
+            Self::WithValidation {
+                error_type_name, ..
+            } => Some(error_type_name),
+        }
+    }
 }
 
 /// Parsed attributes (`sanitize`, `validate`, `new_unchecked`).
@@ -284,6 +300,7 @@ impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
 pub struct RawGuard<Sanitizer, Validator> {
     pub sanitizers: Vec<Sanitizer>,
     pub validators: Vec<Validator>,
+    pub error_type_name: Option<ErrorTypeName>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -362,6 +379,7 @@ pub trait Newtype {
     #[allow(clippy::type_complexity)]
     fn parse_attributes(
         attrs: TokenStream,
+        type_name: &TypeName,
     ) -> Result<Attributes<Guard<Self::Sanitizer, Self::Validator>, SpannedDeriveTrait>, syn::Error>;
 
     fn validate(
@@ -394,7 +412,7 @@ pub trait Newtype {
             new_unchecked,
             default: maybe_default_value,
             derive_traits,
-        } = Self::parse_attributes(attrs)?;
+        } = Self::parse_attributes(attrs, &type_name)?;
         let traits = Self::validate(&guard, derive_traits)?;
         let generated_output = Self::generate(GenerateParams {
             doc_attrs,

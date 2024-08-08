@@ -10,7 +10,7 @@ use quote::ToTokens;
 
 use crate::common::{
     gen::GenerateNewtype,
-    models::{Attributes, GenerateParams, Guard, Newtype, SpannedDeriveTrait},
+    models::{Attributes, GenerateParams, Guard, Newtype, SpannedDeriveTrait, TypeName},
 };
 
 use self::{
@@ -40,8 +40,9 @@ where
 
     fn parse_attributes(
         attrs: TokenStream,
+        type_name: &TypeName,
     ) -> Result<Attributes<IntegerGuard<T>, SpannedDeriveTrait>, syn::Error> {
-        parse::parse_attributes::<T>(attrs)
+        parse::parse_attributes::<T>(attrs, type_name)
     }
 
     fn validate(

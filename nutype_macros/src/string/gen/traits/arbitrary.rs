@@ -111,6 +111,7 @@ fn build_specification(guard: &StringGuard) -> Result<Option<Specification>, syn
         StringGuard::WithValidation {
             sanitizers,
             validators,
+            error_type_name: _,
         } => {
             let relevant_sanitizers = filter_sanitizers(sanitizers)?;
             let relevant_validators = filter_validators(validators)?;

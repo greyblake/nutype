@@ -14,7 +14,7 @@ use crate::{
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
             GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, TypeName},
+        models::TypeName,
     },
     float::models::{FloatDeriveTrait, FloatGuard, FloatInnerType},
 };
@@ -125,7 +125,6 @@ pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: &FloatInnerType,
-    maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     traits: HashSet<FloatDeriveTrait>,
     guard: &FloatGuard<T>,
@@ -145,7 +144,6 @@ pub fn gen_traits<T: ToTokens>(
         type_name,
         generics,
         inner_type,
-        maybe_error_type_name,
         maybe_default_value,
         irregular_traits,
         guard,
@@ -161,23 +159,23 @@ fn gen_implemented_traits<T: ToTokens>(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: &FloatInnerType,
-    maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<FloatIrregularTrait>,
     guard: &FloatGuard<T>,
 ) -> Result<TokenStream, syn::Error> {
+    let maybe_error_type_name = guard.maybe_error_type_name();
     impl_traits
         .iter()
         .map(|t| match t {
             FloatIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, generics, inner_type)),
             FloatIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, inner_type)),
             FloatIrregularTrait::FromStr => {
-                Ok(gen_impl_trait_from_str(type_name, generics, inner_type, maybe_error_type_name.as_ref()))
+                Ok(gen_impl_trait_from_str(type_name, generics, inner_type, maybe_error_type_name))
             }
             FloatIrregularTrait::From => Ok(gen_impl_trait_from(type_name, generics, inner_type)),
             FloatIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, generics, inner_type)),
             FloatIrregularTrait::TryFrom => {
-                Ok(gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name.as_ref()))
+                Ok(gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name))
             }
             FloatIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, generics, inner_type)),
             FloatIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, generics)),
@@ -197,7 +195,7 @@ fn gen_implemented_traits<T: ToTokens>(
                 type_name,
                 generics,
                 inner_type,
-                maybe_error_type_name.as_ref(),
+                maybe_error_type_name,
             )),
             FloatIrregularTrait::Eq => Ok(gen_impl_trait_eq(type_name)),
             FloatIrregularTrait::Ord => Ok(gen_impl_trait_ord(type_name)),

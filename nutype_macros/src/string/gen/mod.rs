@@ -11,8 +11,8 @@ use syn::Generics;
 use crate::{
     common::{
         gen::{
-            error::gen_error_type_name, tests::gen_test_should_have_valid_default_value,
-            traits::GeneratedTraits, GenerateNewtype,
+            tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits,
+            GenerateNewtype,
         },
         models::{ErrorTypeName, Guard, TypeName},
     },
@@ -81,11 +81,9 @@ impl GenerateNewtype for StringNewtype {
 
     fn gen_fn_validate(
         _inner_type: &Self::InnerType,
-        type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        let error_name = gen_error_type_name(type_name);
-
         // Indicates that `chars_count` variable needs to be set, which is used within
         // min_len and max_len validations.
         let mut requires_chars_count = false;
@@ -97,7 +95,7 @@ impl GenerateNewtype for StringNewtype {
                     requires_chars_count = true;
                     quote!(
                         if chars_count > #max_len {
-                            return Err(#error_name::LenCharMaxViolated);
+                            return Err(#error_type_name::LenCharMaxViolated);
                         }
                     )
                 }
@@ -105,21 +103,21 @@ impl GenerateNewtype for StringNewtype {
                     requires_chars_count = true;
                     quote!(
                         if chars_count < #min_len {
-                            return Err(#error_name::LenCharMinViolated);
+                            return Err(#error_type_name::LenCharMinViolated);
                         }
                     )
                 }
                 StringValidator::NotEmpty => {
                     quote!(
                         if val.is_empty() {
-                            return Err(#error_name::NotEmptyViolated);
+                            return Err(#error_type_name::NotEmptyViolated);
                         }
                     )
                 }
                 StringValidator::Predicate(typed_custom_function) => {
                     quote!(
                         if !(#typed_custom_function)(&val) {
-                            return Err(#error_name::PredicateViolated);
+                            return Err(#error_type_name::PredicateViolated);
                         }
                     )
                 }
@@ -133,7 +131,7 @@ impl GenerateNewtype for StringNewtype {
                                     static ref __NUTYPE_REGEX__: ::regex::Regex = ::regex::Regex::new(#regex_str_lit).expect("Nutype failed to a build a regex");
                                 }
                                 if !__NUTYPE_REGEX__.is_match(&val) {
-                                    return Err(#error_name::RegexViolated);
+                                    return Err(#error_type_name::RegexViolated);
                                 }
                             )
 
@@ -141,7 +139,7 @@ impl GenerateNewtype for StringNewtype {
                         RegexDef::Path(regex_path) => {
                             quote!(
                                 if !#regex_path.is_match(&val) {
-                                    return Err(#error_name::RegexViolated);
+                                    return Err(#error_type_name::RegexViolated);
                                 }
                             )
                         }
@@ -159,7 +157,7 @@ impl GenerateNewtype for StringNewtype {
         };
 
         quote!(
-            fn __validate__(val: &str) -> ::core::result::Result<(), #error_name> {
+            fn __validate__(val: &str) -> ::core::result::Result<(), #error_type_name> {
                 #chars_count_if_required
                 #validations
                 Ok(())
@@ -169,28 +167,21 @@ impl GenerateNewtype for StringNewtype {
 
     fn gen_validation_error_type(
         type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        gen_validation_error_type(type_name, validators)
+        gen_validation_error_type(type_name, error_type_name, validators)
     }
 
     fn gen_traits(
         type_name: &TypeName,
         generics: &Generics,
         _inner_type: &Self::InnerType,
-        maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         guard: &StringGuard,
     ) -> Result<GeneratedTraits, syn::Error> {
-        gen_traits(
-            type_name,
-            generics,
-            maybe_error_type_name,
-            traits,
-            maybe_default_value,
-            guard,
-        )
+        gen_traits(type_name, generics, traits, maybe_default_value, guard)
     }
 
     fn gen_tests(
