@@ -122,10 +122,6 @@ macro_rules! define_ident_type {
             pub fn new(name: proc_macro2::Ident) -> Self {
                 Self(name)
             }
-
-            pub fn span(&self) -> Span {
-                self.0.span()
-            }
         }
 
         impl core::fmt::Display for $tp_name {
@@ -149,6 +145,12 @@ define_ident_type!(TypeName);
 // Represents a type for a validation error.
 // For example, if `TypeName` is `Email`, then `ErrorTypeName` would usually be `EmailError`.
 define_ident_type!(ErrorTypeName);
+
+impl ErrorTypeName {
+    pub fn span(&self) -> Span {
+        self.0.span()
+    }
+}
 
 // A type that represents an error name which is returned by `FromStr` traits.
 // For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
