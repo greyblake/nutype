@@ -9,8 +9,7 @@ use syn::{parse_quote, Generics};
 
 use crate::common::{
     gen::{
-        error::gen_error_type_name, tests::gen_test_should_have_valid_default_value,
-        traits::GeneratedTraits, GenerateNewtype,
+        tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits, GenerateNewtype,
     },
     models::{ErrorTypeName, Guard, TypeName, TypedCustomFunction},
 };
@@ -62,11 +61,9 @@ impl GenerateNewtype for AnyNewtype {
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
-        type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        let error_name = gen_error_type_name(type_name);
-
         let validations: TokenStream = validators
             .iter()
             .map(|validator| match validator {
@@ -80,7 +77,7 @@ impl GenerateNewtype for AnyNewtype {
                         .expect("Failed to convert predicate into a typed closure");
                     quote!(
                         if !(#typed_predicate)(val) {
-                            return Err(#error_name::PredicateViolated);
+                            return Err(#error_type_name::PredicateViolated);
                         }
                     )
                 }
@@ -101,7 +98,7 @@ impl GenerateNewtype for AnyNewtype {
             // Since this code is generic which is used for different inner types (not only Cow), we cannot easily fix it to make
             // clippy happy.
             #[allow(clippy::ptr_arg)]
-            fn __validate__<'nutype_a>(val: &'nutype_a #inner_type) -> ::core::result::Result<(), #error_name> {
+            fn __validate__<'nutype_a>(val: &'nutype_a #inner_type) -> ::core::result::Result<(), #error_type_name> {
                 #validations
                 Ok(())
             }
@@ -110,16 +107,16 @@ impl GenerateNewtype for AnyNewtype {
 
     fn gen_validation_error_type(
         type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        gen_validation_error_type(type_name, validators)
+        gen_validation_error_type(type_name, error_type_name, validators)
     }
 
     fn gen_traits(
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
-        maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         guard: &AnyGuard,
@@ -128,7 +125,6 @@ impl GenerateNewtype for AnyNewtype {
             type_name,
             generics,
             inner_type,
-            maybe_error_type_name,
             traits,
             maybe_default_value,
             guard,

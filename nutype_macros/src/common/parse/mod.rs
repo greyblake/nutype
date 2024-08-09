@@ -15,7 +15,9 @@ use syn::{
 
 use crate::common::models::SpannedDeriveTrait;
 
-use super::models::{CustomFunction, NewUnchecked, TypedCustomFunction, ValueOrExpr};
+use super::models::{
+    CustomFunction, ErrorTypeName, NewUnchecked, TypedCustomFunction, ValueOrExpr,
+};
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
     match attribute.path().segments.first() {
@@ -59,11 +61,14 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
     /// Parsed from `new_unchecked` attribute
     pub new_unchecked: NewUnchecked,
 
-    /// Parsed from `new_unchecked` attribute
+    /// Parsed from `default = ` attribute
     pub default: Option<Expr>,
 
     /// Parsed from `derive(...)` attribute
     pub derive_traits: Vec<SpannedDeriveTrait>,
+
+    /// TODO: not implemented yet
+    pub error_type_name: Option<ErrorTypeName>,
 }
 
 // By some reason Default cannot be derived.
@@ -75,6 +80,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             new_unchecked: NewUnchecked::Off,
             default: None,
             derive_traits: vec![],
+            error_type_name: None,
         }
     }
 }

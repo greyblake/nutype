@@ -582,7 +582,7 @@ mod traits {
                     Ok(())
                 }
 
-                arbtest::builder().run(|u| prop(u));
+                arbtest::builder().run(prop);
             }
 
             #[test]
@@ -600,7 +600,7 @@ mod traits {
                     Ok(())
                 }
 
-                arbtest::builder().run(|u| prop(u));
+                arbtest::builder().run(prop);
             }
         }
     }

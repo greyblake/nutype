@@ -15,7 +15,7 @@ use crate::{
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, split_into_generatable_traits,
             GeneratableTrait, GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, TypeName},
+        models::TypeName,
     },
 };
 
@@ -109,7 +109,6 @@ pub fn gen_traits(
     type_name: &TypeName,
     generics: &syn::Generics,
     inner_type: &AnyInnerType,
-    maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<AnyDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
     guard: &AnyGuard,
@@ -129,7 +128,6 @@ pub fn gen_traits(
         type_name,
         generics,
         inner_type,
-        maybe_error_type_name,
         irregular_traits,
         maybe_default_value,
         guard,
@@ -145,11 +143,11 @@ fn gen_implemented_traits(
     type_name: &TypeName,
     generics: &syn::Generics,
     inner_type: &AnyInnerType,
-    maybe_error_type_name: Option<ErrorTypeName>,
     impl_traits: Vec<AnyIrregularTrait>,
     maybe_default_value: Option<syn::Expr>,
     guard: &AnyGuard,
 ) -> Result<TokenStream, syn::Error> {
+    let maybe_error_type_name = guard.maybe_error_type_name();
     impl_traits
         .iter()
         .map(|t| match t {
@@ -160,10 +158,10 @@ fn gen_implemented_traits(
             AnyIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, inner_type)),
             AnyIrregularTrait::Borrow => Ok(gen_impl_trait_borrow(type_name, generics, inner_type)),
             AnyIrregularTrait::FromStr => Ok(
-                gen_impl_trait_from_str(type_name, generics, inner_type, maybe_error_type_name.as_ref())
+                gen_impl_trait_from_str(type_name, generics, inner_type, maybe_error_type_name)
             ),
             AnyIrregularTrait::TryFrom => Ok(
-                gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name.as_ref())
+                gen_impl_trait_try_from(type_name, generics, inner_type, maybe_error_type_name)
             ),
             AnyIrregularTrait::Default => match maybe_default_value {
                 Some(ref default_value) => {
@@ -180,7 +178,7 @@ fn gen_implemented_traits(
                 gen_impl_trait_serde_serialize(type_name, generics)
             ),
             AnyIrregularTrait::SerdeDeserialize => Ok(
-                gen_impl_trait_serde_deserialize(type_name, generics, inner_type, maybe_error_type_name.as_ref())
+                gen_impl_trait_serde_deserialize(type_name, generics, inner_type, maybe_error_type_name)
             ),
             AnyIrregularTrait::ArbitraryArbitrary => arbitrary::gen_impl_trait_arbitrary(type_name, generics, inner_type, guard),
         })

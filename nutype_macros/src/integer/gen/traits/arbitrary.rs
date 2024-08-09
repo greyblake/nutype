@@ -67,6 +67,7 @@ fn guard_to_boundary<T: ToTokens>(
         IntegerGuard::WithValidation {
             sanitizers: _,
             validators,
+            error_type_name: _,
         } => {
             // Apply the validators to the boundaries.
             // Since the validators were already validated, it's guaranteed that they're not

@@ -139,7 +139,6 @@ impl ToTokens for StringTransparentTrait {
 pub fn gen_traits(
     type_name: &TypeName,
     generics: &Generics,
-    maybe_error_type_name: Option<ErrorTypeName>,
     traits: HashSet<StringDeriveTrait>,
     maybe_default_value: Option<syn::Expr>,
     guard: &StringGuard,
@@ -158,7 +157,6 @@ pub fn gen_traits(
     let implement_traits = gen_implemented_traits(
         type_name,
         generics,
-        maybe_error_type_name,
         maybe_default_value,
         irregular_traits,
         guard,
@@ -173,12 +171,12 @@ pub fn gen_traits(
 fn gen_implemented_traits(
     type_name: &TypeName,
     generics: &Generics,
-    maybe_error_type_name: Option<ErrorTypeName>,
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<StringIrregularTrait>,
     guard: &StringGuard,
 ) -> Result<TokenStream, syn::Error> {
     let inner_type = StringInnerType;
+    let maybe_error_type_name = guard.maybe_error_type_name();
 
     impl_traits
         .iter()
@@ -186,12 +184,12 @@ fn gen_implemented_traits(
             StringIrregularTrait::AsRef => Ok(gen_impl_trait_as_ref(type_name, generics, quote!(str))),
             StringIrregularTrait::Deref => Ok(gen_impl_trait_deref(type_name, generics, quote!(String))),
             StringIrregularTrait::FromStr => {
-                Ok(gen_impl_from_str(type_name, maybe_error_type_name.as_ref()))
+                Ok(gen_impl_from_str(type_name, maybe_error_type_name))
             }
             StringIrregularTrait::From => Ok(gen_impl_from_str_and_string(type_name)),
             StringIrregularTrait::Into => Ok(gen_impl_trait_into(type_name, &Generics::default(), inner_type)),
             StringIrregularTrait::TryFrom => {
-                Ok(gen_impl_try_from(type_name, maybe_error_type_name.as_ref()))
+                Ok(gen_impl_try_from(type_name, maybe_error_type_name))
             }
             StringIrregularTrait::Borrow => Ok(gen_impl_borrow_str_and_string(type_name)),
             StringIrregularTrait::Display => Ok(gen_impl_trait_display(type_name, &Generics::default())),
@@ -216,7 +214,7 @@ fn gen_implemented_traits(
                 type_name,
                 generics,
                 inner_type,
-                maybe_error_type_name.as_ref(),
+                maybe_error_type_name,
             )),
             StringIrregularTrait::ArbitraryArbitrary => {
                 arbitrary::gen_impl_trait_arbitrary(type_name, guard)

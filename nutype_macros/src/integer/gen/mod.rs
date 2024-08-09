@@ -17,7 +17,6 @@ use super::{
 };
 use crate::common::{
     gen::{
-        error::gen_error_type_name,
         tests::{
             gen_test_should_have_consistent_lower_and_upper_boundaries,
             gen_test_should_have_valid_default_value,
@@ -65,46 +64,44 @@ where
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
-        type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        let error_name = gen_error_type_name(type_name);
-
         let validations: TokenStream = validators
             .iter()
             .map(|validator| match validator {
                 IntegerValidator::Less(exclusive_upper_bound) => {
                     quote!(
                         if val >= #exclusive_upper_bound {
-                            return Err(#error_name::LessViolated);
+                            return Err(#error_type_name::LessViolated);
                         }
                     )
                 }
                 IntegerValidator::LessOrEqual(max) => {
                     quote!(
                         if val > #max {
-                            return Err(#error_name::LessOrEqualViolated);
+                            return Err(#error_type_name::LessOrEqualViolated);
                         }
                     )
                 }
                 IntegerValidator::Greater(exclusive_lower_bound) => {
                     quote!(
                         if val <= #exclusive_lower_bound {
-                            return Err(#error_name::GreaterViolated);
+                            return Err(#error_type_name::GreaterViolated);
                         }
                     )
                 }
                 IntegerValidator::GreaterOrEqual(min) => {
                     quote!(
                         if val < #min {
-                            return Err(#error_name::GreaterOrEqualViolated);
+                            return Err(#error_type_name::GreaterOrEqualViolated);
                         }
                     )
                 }
                 IntegerValidator::Predicate(custom_is_valid_fn) => {
                     quote!(
                         if !(#custom_is_valid_fn)(&val) {
-                            return Err(#error_name::PredicateViolated);
+                            return Err(#error_type_name::PredicateViolated);
                         }
                     )
                 }
@@ -112,7 +109,7 @@ where
             .collect();
 
         quote!(
-            fn __validate__(val: &#inner_type) -> ::core::result::Result<(), #error_name> {
+            fn __validate__(val: &#inner_type) -> ::core::result::Result<(), #error_type_name> {
                 let val = *val;
                 #validations
                 Ok(())
@@ -122,16 +119,16 @@ where
 
     fn gen_validation_error_type(
         type_name: &TypeName,
+        error_type_name: &ErrorTypeName,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        gen_validation_error_type(type_name, validators)
+        gen_validation_error_type(type_name, error_type_name, validators)
     }
 
     fn gen_traits(
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
-        maybe_error_type_name: Option<ErrorTypeName>,
         traits: HashSet<Self::TypedTrait>,
         maybe_default_value: Option<syn::Expr>,
         guard: &IntegerGuard<T>,
@@ -140,7 +137,6 @@ where
             type_name,
             generics,
             inner_type,
-            maybe_error_type_name,
             traits,
             maybe_default_value,
             guard,

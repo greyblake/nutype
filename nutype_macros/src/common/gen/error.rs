@@ -4,6 +4,8 @@ use quote::{format_ident, quote};
 
 use crate::common::models::{ErrorTypeName, TypeName};
 
+/// Generate a default error type name if the error name is not specified explicitly by
+/// the user in the attributes.
 pub fn gen_error_type_name(type_name: &TypeName) -> ErrorTypeName {
     let ident = format_ident!("{type_name}Error");
     ErrorTypeName::new(ident)

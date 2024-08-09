@@ -8,6 +8,7 @@ use std::collections::HashSet;
 
 use self::models::{AnyDeriveTrait, AnyGuard, AnyInnerType, AnySanitizer, AnyValidator};
 use crate::common::gen::GenerateNewtype;
+use crate::common::models::TypeName;
 use crate::{
     any::validate::validate_any_derive_traits,
     common::models::{Attributes, GenerateParams, Newtype, SpannedDeriveTrait},
@@ -23,8 +24,9 @@ impl Newtype for AnyNewtype {
 
     fn parse_attributes(
         attrs: TokenStream,
+        type_name: &TypeName,
     ) -> Result<Attributes<AnyGuard, SpannedDeriveTrait>, syn::Error> {
-        parse::parse_attributes(attrs)
+        parse::parse_attributes(attrs, type_name)
     }
 
     fn validate(

@@ -1,7 +1,45 @@
 use kinded::Kinded;
 use proc_macro2::Span;
 
-use super::models::{DeriveTrait, NumericBoundValidator, SpannedDeriveTrait, SpannedItem};
+use super::{
+    models::{
+        DeriveTrait, Guard, NumericBoundValidator, RawGuard, SpannedDeriveTrait, SpannedItem,
+        TypeName,
+    },
+    r#gen::error::gen_error_type_name,
+};
+
+/// Some kind of template method to validate a guard of all types.
+pub fn validate_guard<RawSanitizer, RawValidator, Sanitizer, Validator>(
+    raw_guard: RawGuard<RawSanitizer, RawValidator>,
+    type_name: &TypeName,
+    validate_validators: impl FnOnce(Vec<RawValidator>) -> Result<Vec<Validator>, syn::Error>,
+    validate_sanitizers: impl FnOnce(Vec<RawSanitizer>) -> Result<Vec<Sanitizer>, syn::Error>,
+) -> Result<Guard<Sanitizer, Validator>, syn::Error> {
+    let RawGuard {
+        sanitizers: raw_sanitizers,
+        validators: raw_validators,
+        error_type_name,
+    } = raw_guard;
+
+    let validators = validate_validators(raw_validators)?;
+    let sanitizers = validate_sanitizers(raw_sanitizers)?;
+
+    if validators.is_empty() {
+        if let Some(error_type_name) = error_type_name {
+            let msg = "error_type_name cannot be set when there is no validation";
+            return Err(syn::Error::new(error_type_name.span(), msg));
+        }
+        Ok(Guard::WithoutValidation { sanitizers })
+    } else {
+        let error_type_name = error_type_name.unwrap_or_else(|| gen_error_type_name(type_name));
+        Ok(Guard::WithValidation {
+            sanitizers,
+            validators,
+            error_type_name,
+        })
+    }
+}
 
 pub fn validate_duplicates<T>(
     items: &[SpannedItem<T>],

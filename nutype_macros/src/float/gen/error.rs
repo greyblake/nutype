@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::common::{
-    gen::error::{gen_error_type_name, gen_impl_error_trait},
+    gen::error::gen_impl_error_trait,
     models::{ErrorTypeName, TypeName},
 };
 
@@ -10,12 +10,12 @@ use super::super::models::FloatValidator;
 
 pub fn gen_validation_error_type<T: ToTokens>(
     type_name: &TypeName,
+    error_type_name: &ErrorTypeName,
     validators: &[FloatValidator<T>],
 ) -> TokenStream {
-    let error_type_name = gen_error_type_name(type_name);
-    let definition = gen_definition(&error_type_name, validators);
-    let impl_display_trait = gen_impl_display_trait(type_name, &error_type_name, validators);
-    let impl_error_trait = gen_impl_error_trait(&error_type_name);
+    let definition = gen_definition(error_type_name, validators);
+    let impl_display_trait = gen_impl_display_trait(type_name, error_type_name, validators);
+    let impl_error_trait = gen_impl_error_trait(error_type_name);
 
     quote! {
         #[derive(Debug, Clone, PartialEq, Eq)]

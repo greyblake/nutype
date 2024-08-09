@@ -1,5 +1,5 @@
 use crate::common::{
-    models::{Attributes, CustomFunction, SpannedDeriveTrait},
+    models::{Attributes, CustomFunction, SpannedDeriveTrait, TypeName},
     parse::{parse_sanitizer_kind, parse_validator_kind, ParseableAttributes},
 };
 use proc_macro2::TokenStream;
@@ -18,6 +18,7 @@ use super::{
 
 pub fn parse_attributes(
     input: TokenStream,
+    type_name: &TypeName,
 ) -> Result<Attributes<AnyGuard, SpannedDeriveTrait>, syn::Error> {
     let attrs: ParseableAttributes<SpannedAnySanitizer, SpannedAnyValidator> = syn::parse2(input)?;
 
@@ -27,12 +28,14 @@ pub fn parse_attributes(
         new_unchecked,
         default,
         derive_traits,
+        error_type_name,
     } = attrs;
     let raw_guard = AnyRawGuard {
         sanitizers,
         validators,
+        error_type_name,
     };
-    let guard = validate_any_guard(raw_guard)?;
+    let guard = validate_any_guard(raw_guard, type_name)?;
     Ok(Attributes {
         new_unchecked,
         guard,

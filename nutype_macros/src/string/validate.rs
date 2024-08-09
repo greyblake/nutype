@@ -5,8 +5,8 @@ use proc_macro2::Span;
 
 use crate::{
     common::{
-        models::{DeriveTrait, SpannedDeriveTrait, ValueOrExpr},
-        validate::{validate_duplicates, validate_traits_from_xor_try_from},
+        models::{DeriveTrait, SpannedDeriveTrait, TypeName, ValueOrExpr},
+        validate::{validate_duplicates, validate_guard, validate_traits_from_xor_try_from},
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
 };
@@ -15,23 +15,16 @@ use super::models::{
     SpannedStringSanitizer, SpannedStringValidator, StringDeriveTrait, StringSanitizerKind,
 };
 
-pub fn validate_string_meta(raw_meta: StringRawGuard) -> Result<StringGuard, syn::Error> {
-    let StringRawGuard {
-        sanitizers,
-        validators,
-    } = raw_meta;
-
-    let validators = validate_validators(validators)?;
-    let sanitizers = validate_sanitizers(sanitizers)?;
-
-    if validators.is_empty() {
-        Ok(StringGuard::WithoutValidation { sanitizers })
-    } else {
-        Ok(StringGuard::WithValidation {
-            sanitizers,
-            validators,
-        })
-    }
+pub fn validate_string_guard(
+    raw_guard: StringRawGuard,
+    type_name: &TypeName,
+) -> Result<StringGuard, syn::Error> {
+    validate_guard(
+        raw_guard,
+        type_name,
+        validate_validators,
+        validate_sanitizers,
+    )
 }
 
 fn validate_validators(
