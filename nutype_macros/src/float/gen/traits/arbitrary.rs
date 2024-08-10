@@ -2,7 +2,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::models::TypeName,
+    common::models::{TypeName, Validation},
     float::models::{
         FloatGuard, FloatInnerType, FloatSanitizer, FloatSanitizerKind, FloatValidator,
         FloatValidatorKind,
@@ -65,11 +65,16 @@ fn gen_generate_valid_inner_value<T: ToTokens>(
         }
         FloatGuard::WithValidation {
             sanitizers,
-            validators,
-            error_type_name: _,
+            validation,
         } => {
-            // When there is validation, then we need to generate a valid value.
-            gen_generate_valid_inner_value_with_validators(inner_type, sanitizers, validators)
+            match validation {
+                Validation::Standard { validators, .. } => {
+                    // When there is validation, then we need to generate a valid value.
+                    gen_generate_valid_inner_value_with_validators(
+                        inner_type, sanitizers, validators,
+                    )
+                }
+            }
         }
     }
 }

@@ -2,7 +2,7 @@ use proc_macro2::Span;
 use std::collections::HashSet;
 
 use crate::common::{
-    models::{DeriveTrait, SpannedDeriveTrait, TypeName},
+    models::{DeriveTrait, SpannedDeriveTrait, TypeName, Validation},
     validate::{
         validate_duplicates, validate_guard, validate_numeric_bounds,
         validate_traits_from_xor_try_from,
@@ -64,9 +64,11 @@ where
 fn has_validation_against_nan<T>(guard: &FloatGuard<T>) -> bool {
     match guard {
         FloatGuard::WithoutValidation { .. } => false,
-        FloatGuard::WithValidation { ref validators, .. } => validators
-            .iter()
-            .any(|v| v.kind() == FloatValidatorKind::Finite),
+        FloatGuard::WithValidation { validation, .. } => match validation {
+            Validation::Standard { validators, .. } => validators
+                .iter()
+                .any(|v| v.kind() == FloatValidatorKind::Finite),
+        },
     }
 }
 

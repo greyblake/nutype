@@ -33,6 +33,8 @@ pub enum StringValidator {
     Predicate(TypedCustomFunction),
     #[cfg_attr(not(feature = "regex"), allow(dead_code))]
     Regex(RegexDef),
+    // With(TypedCustomFunction),
+    // Error(ErrorTypeName),
 }
 
 #[cfg_attr(not(feature = "regex"), allow(dead_code))]
