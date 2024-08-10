@@ -26,23 +26,6 @@ enum NameError {
     derive(Debug, AsRef, PartialEq, Deref),
 )]
 struct Name(String);
-
-// Variant 2: `custom` and `custom_error`
-#[nutype(
-    sanitize(trim),
-    validate(custom = validate_name, custom_error = NameError),
-    derive(Debug, AsRef, PartialEq, Deref),
-)]
-struct Name(String);
-
-// Variant 3:
-#[nutype(
-    sanitize(trim),
-    validate(with = validate_name),
-    derive(Debug, AsRef, PartialEq, Deref),
-    error = NameError,
-)]
-struct Name(String);
 */
 
 fn main() {}

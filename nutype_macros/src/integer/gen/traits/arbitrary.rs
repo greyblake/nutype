@@ -2,7 +2,7 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 
 use crate::{
-    common::models::TypeName,
+    common::models::{TypeName, Validation},
     integer::models::{IntegerGuard, IntegerInnerType, IntegerValidator},
     utils::issue_reporter::{build_github_link_with_issue, Issue},
 };
@@ -66,31 +66,37 @@ fn guard_to_boundary<T: ToTokens>(
         }
         IntegerGuard::WithValidation {
             sanitizers: _,
-            validators,
-            error_type_name: _,
+            validation,
         } => {
-            // Apply the validators to the boundaries.
-            // Since the validators were already validated, it's guaranteed that they're not
-            // contradicting each other.
-            for validator in validators {
-                match validator {
-                    IntegerValidator::Greater(gt) => {
-                        boundary.min = quote!(#gt + 1);
-                    }
-                    IntegerValidator::GreaterOrEqual(gte) => {
-                        boundary.min = quote!(#gte);
-                    }
-                    IntegerValidator::Less(lt) => {
-                        boundary.max = quote!(#lt - 1);
-                    }
-                    IntegerValidator::LessOrEqual(lte) => {
-                        boundary.max = quote!(#lte);
-                    }
-                    IntegerValidator::Predicate(_) => {
-                        return Err(syn::Error::new(
-                            proc_macro2::Span::call_site(),
-                            "Cannot derive trait `Arbitrary` for a type with `predicate` validator",
-                        ));
+            match validation {
+                Validation::Standard {
+                    validators,
+                    error_type_name: _,
+                } => {
+                    // Apply the validators to the boundaries.
+                    // Since the validators were already validated, it's guaranteed that they're not
+                    // contradicting each other.
+                    for validator in validators {
+                        match validator {
+                            IntegerValidator::Greater(gt) => {
+                                boundary.min = quote!(#gt + 1);
+                            }
+                            IntegerValidator::GreaterOrEqual(gte) => {
+                                boundary.min = quote!(#gte);
+                            }
+                            IntegerValidator::Less(lt) => {
+                                boundary.max = quote!(#lt - 1);
+                            }
+                            IntegerValidator::LessOrEqual(lte) => {
+                                boundary.max = quote!(#lte);
+                            }
+                            IntegerValidator::Predicate(_) => {
+                                return Err(syn::Error::new(
+                                    proc_macro2::Span::call_site(),
+                                    "Cannot derive trait `Arbitrary` for a type with `predicate` validator",
+                                ));
+                            }
+                        }
                     }
                 }
             }

@@ -4,7 +4,7 @@ use proc_macro2::Span;
 use super::{
     models::{
         DeriveTrait, Guard, NumericBoundValidator, RawGuard, SpannedDeriveTrait, SpannedItem,
-        TypeName,
+        TypeName, Validation,
     },
     r#gen::error::gen_error_type_name,
 };
@@ -35,8 +35,10 @@ pub fn validate_guard<RawSanitizer, RawValidator, Sanitizer, Validator>(
         let error_type_name = error_type_name.unwrap_or_else(|| gen_error_type_name(type_name));
         Ok(Guard::WithValidation {
             sanitizers,
-            validators,
-            error_type_name,
+            validation: Validation::Standard {
+                validators,
+                error_type_name,
+            },
         })
     }
 }

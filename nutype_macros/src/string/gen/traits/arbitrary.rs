@@ -3,7 +3,7 @@ use proc_macro2::{Span, TokenStream};
 use quote::quote;
 
 use crate::{
-    common::models::{TypeName, ValueOrExpr},
+    common::models::{TypeName, Validation, ValueOrExpr},
     string::models::{StringGuard, StringSanitizer, StringValidator},
     utils::issue_reporter::{build_github_link_with_issue, Issue},
 };
@@ -110,9 +110,10 @@ fn build_specification(guard: &StringGuard) -> Result<Option<Specification>, syn
         StringGuard::WithoutValidation { .. } => Ok(None),
         StringGuard::WithValidation {
             sanitizers,
-            validators,
-            error_type_name: _,
+            validation,
         } => {
+            let validators = get_validators(validation);
+
             let relevant_sanitizers = filter_sanitizers(sanitizers)?;
             let relevant_validators = filter_validators(validators)?;
 
@@ -147,6 +148,12 @@ fn build_specification(guard: &StringGuard) -> Result<Option<Specification>, syn
             };
             Ok(Some(spec))
         }
+    }
+}
+
+fn get_validators(validation: &Validation<StringValidator>) -> &[StringValidator] {
+    match validation {
+        Validation::Standard { validators, .. } => validators,
     }
 }
 

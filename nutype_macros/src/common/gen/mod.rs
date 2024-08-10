@@ -13,7 +13,7 @@ use super::models::{
 };
 use crate::common::{
     gen::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
-    models::ModuleName,
+    models::{ModuleName, Validation},
 };
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
 use quote::{format_ident, quote, ToTokens};
@@ -335,16 +335,20 @@ pub trait GenerateNewtype {
             }
             Guard::WithValidation {
                 sanitizers,
-                validators,
-                error_type_name,
-            } => Self::gen_try_new(
-                type_name,
-                generics,
-                inner_type,
-                sanitizers,
-                validators,
-                error_type_name,
-            ),
+                validation,
+            } => match validation {
+                Validation::Standard {
+                    validators,
+                    error_type_name,
+                } => Self::gen_try_new(
+                    type_name,
+                    generics,
+                    inner_type,
+                    sanitizers,
+                    validators,
+                    error_type_name,
+                ),
+            },
         };
         let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type);
         let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
@@ -396,12 +400,7 @@ pub trait GenerateNewtype {
             &traits,
         );
 
-        let maybe_error_type_name = match &guard {
-            Guard::WithValidation {
-                error_type_name, ..
-            } => Some(error_type_name),
-            Guard::WithoutValidation { .. } => None,
-        };
+        let maybe_error_type_name = guard.maybe_error_type_name();
 
         let reimports = gen_reimports(
             vis,
