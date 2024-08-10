@@ -216,26 +216,34 @@ pub enum Guard<Sanitizer, Validator> {
 
 #[derive(Debug)]
 pub enum Validation<Validator> {
-    // TODO:
-    // Custom {
-    //     with: TypedCustomFunction,
-    //     error_type_name: ErrorTypeName,
-    // },
-    Standard {
+    Custom {
+        with: TypedCustomFunction,
         error_type_name: ErrorTypeName,
-        validators: Vec<Validator>,
     },
+    Standard {
+        validators: Vec<Validator>,
+        error_type_name: ErrorTypeName,
+    },
+}
+
+impl<V> Validation<V> {
+    pub fn error_type_name(&self) -> &ErrorTypeName {
+        match self {
+            Self::Custom {
+                error_type_name, ..
+            } => error_type_name,
+            Self::Standard {
+                error_type_name, ..
+            } => error_type_name,
+        }
+    }
 }
 
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
     pub fn maybe_error_type_name(&self) -> Option<&ErrorTypeName> {
         match self {
             Self::WithoutValidation { .. } => None,
-            Self::WithValidation { validation, .. } => match validation {
-                Validation::Standard {
-                    error_type_name, ..
-                } => Some(error_type_name),
-            },
+            Self::WithValidation { validation, .. } => Some(validation.error_type_name()),
         }
     }
 }
@@ -303,10 +311,11 @@ impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
         }
     }
 
-    pub fn validators(&self) -> Option<&Vec<Validator>> {
+    pub fn standard_validators(&self) -> Option<&Vec<Validator>> {
         match self {
             Self::WithValidation { validation, .. } => match validation {
                 Validation::Standard { validators, .. } => Some(validators),
+                Validation::Custom { .. } => None,
             },
             Self::WithoutValidation { .. } => None,
         }

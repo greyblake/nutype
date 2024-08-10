@@ -69,6 +69,12 @@ fn guard_to_boundary<T: ToTokens>(
             validation,
         } => {
             match validation {
+                Validation::Custom { .. } => {
+                    return Err(syn::Error::new(
+                        proc_macro2::Span::call_site(),
+                        "Cannot derive trait `Arbitrary` for a type with custom `with` validator.",
+                    ));
+                }
                 Validation::Standard {
                     validators,
                     error_type_name: _,

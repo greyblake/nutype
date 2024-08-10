@@ -74,6 +74,11 @@ fn gen_generate_valid_inner_value<T: ToTokens>(
                         inner_type, sanitizers, validators,
                     )
                 }
+                Validation::Custom { .. } => {
+                    let span = Span::call_site();
+                    let msg = "It's not possible to derive `Arbitrary` trait for a type with custom validation.\nYou have to implement `Arbitrary` trait on you own.";
+                    Err(syn::Error::new(span, msg))
+                }
             }
         }
     }

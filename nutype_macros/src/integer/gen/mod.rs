@@ -151,7 +151,7 @@ where
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         _traits: &HashSet<Self::TypedTrait>,
     ) -> TokenStream {
-        let test_lower_vs_upper = guard.validators().and_then(|validators| {
+        let test_lower_vs_upper = guard.standard_validators().and_then(|validators| {
             gen_test_should_have_consistent_lower_and_upper_boundaries(type_name, validators)
         });
 
