@@ -1,6 +1,7 @@
 ### v0.x.x - 2024-xx-xx
 
-* Support [LazyLock](LazyLock) for regex validation.
+* [BREAKING] Replace lazy_static with [`std::sync::LazyLock`](https://doc.rust-lang.org/stable/std/sync/struct.LazyLock.html) for regex validation (requires Rust 1.80). This change is potentially is a breaking change, because the code that uses regex may stop compiling on the older versions of Rust, since it generates that relies on `LazyLock`.
+
 
 ### v0.4.3 - 2024-07-06
 
