@@ -9,11 +9,12 @@ use std::{collections::HashSet, hash::Hash};
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    ErrorTypeName, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName, TypeName, TypeTrait,
+    CustomFunction, ErrorTypeName, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName,
+    TypeName, TypeTrait,
 };
 use crate::common::{
     gen::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
-    models::{ModuleName, TypedCustomFunction, Validation},
+    models::{ModuleName, Validation},
 };
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
 use quote::{format_ident, quote, ToTokens};
@@ -409,7 +410,16 @@ pub trait GenerateNewtype {
             &traits,
         );
 
-        let maybe_error_type_name = guard.maybe_error_type_name();
+        let maybe_error_type_name = match &guard {
+            Guard::WithoutValidation { .. } => None,
+            Guard::WithValidation { validation, .. } => match validation {
+                // We won't need to reimport error if it's a custom error provided by the user.
+                Validation::Custom { .. } => None,
+                Validation::Standard {
+                    error_type_name, ..
+                } => Some(error_type_name),
+            },
+        };
 
         let reimports = gen_reimports(
             vis,
@@ -461,10 +471,13 @@ pub trait GenerateNewtype {
 
 fn gen_fn_validate_custom<InnerType: ToTokens>(
     inner_type: &InnerType,
-    with: &TypedCustomFunction,
+    with: &CustomFunction,
     error_type_name: &ErrorTypeName,
 ) -> TokenStream {
     quote! {
+        // For some types like `String` clippy suggests using `&str` instead of `&String` here,
+        // but it does not really matter in this context.
+        #[allow(clippy::ptr_arg)]
         fn __validate__(value: &#inner_type) -> ::core::result::Result<(), #error_type_name> {
             #with(value)
         }

@@ -1,9 +1,14 @@
 pub mod derive_trait;
 pub mod meta;
 
-use std::{any::type_name, fmt::Debug, str::FromStr};
+use std::{
+    any::type_name,
+    fmt::{Debug, Display},
+    str::FromStr,
+};
 
 use cfg_if::cfg_if;
+use kinded::{Kind, Kinded};
 use proc_macro2::{Ident, Span};
 use syn::{
     parenthesized,
@@ -56,7 +61,7 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
     pub sanitizers: Vec<Sanitizer>,
 
     /// Parsed from `validate(...)` attribute
-    pub validators: Vec<Validator>,
+    pub validation: Option<RawValidation<Validator>>,
 
     /// Parsed from `new_unchecked` attribute
     pub new_unchecked: NewUnchecked,
@@ -66,9 +71,137 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
 
     /// Parsed from `derive(...)` attribute
     pub derive_traits: Vec<SpannedDeriveTrait>,
+}
 
-    /// TODO: not implemented yet
-    pub error_type_name: Option<ErrorTypeName>,
+enum ValidateAttr<Validator: Parse + Kinded> {
+    Standard(Validator),
+    Extra(ExtraValidateAttr),
+}
+
+#[derive(Debug, Kinded)]
+#[kinded(display = "snake_case")]
+enum ExtraValidateAttr {
+    Error(ErrorTypeName),
+    With(CustomFunction),
+}
+
+impl Parse for ExtraValidateAttr {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let (kind, _ident) = parse_validator_kind(input)?;
+        match kind {
+            ExtraValidateAttrKind::Error => {
+                let _eq: Token![=] = input.parse()?;
+                let error: ErrorTypeName = input.parse()?;
+                Ok(ExtraValidateAttr::Error(error))
+            }
+            ExtraValidateAttrKind::With => {
+                let _eq: Token![=] = input.parse()?;
+                let custom_function: CustomFunction = input.parse()?;
+                Ok(ExtraValidateAttr::With(custom_function))
+            }
+        }
+    }
+}
+
+impl<Validator> Parse for ValidateAttr<Validator>
+where
+    Validator: Parse + Kinded,
+    <Validator as Kinded>::Kind: Kind + Display + 'static,
+{
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        // NOTE: ParseStream has interior mutability, so we want to try to parse validator,
+        // but we don't want to advance the input if it fails.
+        if input.fork().parse::<Validator>().is_ok() {
+            let validator: Validator = input.parse()?;
+            Ok(ValidateAttr::Standard(validator))
+        } else if input.fork().parse::<ExtraValidateAttr>().is_ok() {
+            let extra_attr: ExtraValidateAttr = input.parse()?;
+            Ok(ValidateAttr::Extra(extra_attr))
+        } else {
+            let possible_values: String = <Validator as Kinded>::Kind::all()
+                .iter()
+                .map(|k| format!("`{k}`"))
+                .filter(|s| s != "`phantom`") // filter out _Phantom variant
+                .chain(["`with`", "`error`"].iter().map(|s| s.to_string()))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let ident: Ident = input.parse()?;
+            let msg = format!("Unknown validation attribute: `{ident}`.\nPossible attributes are {possible_values}.");
+            Err(syn::Error::new(ident.span(), msg))
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum RawValidation<Validator> {
+    Custom {
+        with: CustomFunction,
+        error: ErrorTypeName,
+    },
+    Standard {
+        validators: Vec<Validator>,
+    },
+}
+
+impl<Validator> Parse for RawValidation<Validator>
+where
+    Validator: Parse + Kinded,
+    <Validator as Kinded>::Kind: Kind + Display + 'static,
+{
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let items = input.parse_terminated(ValidateAttr::<Validator>::parse, Token![,])?;
+        let attrs: Vec<ValidateAttr<Validator>> = items.into_iter().collect();
+
+        let mut validators: Vec<Validator> = Vec::new();
+        let mut maybe_with: Option<CustomFunction> = None;
+        let mut maybe_error: Option<ErrorTypeName> = None;
+
+        for attr in attrs {
+            match attr {
+                ValidateAttr::Standard(validator) => {
+                    validators.push(validator);
+                }
+                ValidateAttr::Extra(extra_attr) => match extra_attr {
+                    ExtraValidateAttr::Error(error) => {
+                        if maybe_error.is_some() {
+                            let msg = "Duplicate `error` attribute";
+                            return Err(syn::Error::new(error.span(), msg));
+                        }
+                        maybe_error = Some(error);
+                    }
+                    ExtraValidateAttr::With(with) => {
+                        if maybe_with.is_some() {
+                            let msg = "Duplicate `with` attribute";
+                            return Err(syn::Error::new(with.span(), msg));
+                        }
+                        maybe_with = Some(with);
+                    }
+                },
+            }
+        }
+
+        match (validators.len(), maybe_with, maybe_error) {
+            (0, Some(with), Some(error)) => Ok(RawValidation::Custom { with, error }),
+            (0, Some(_), None) => {
+                let msg = "`with` attribute must be used with `error` attribute";
+                Err(syn::Error::new(input.span(), msg))
+            }
+            (0, None, Some(_)) => {
+                let msg = "`error` attribute must be used with `with` attribute";
+                Err(syn::Error::new(input.span(), msg))
+            }
+            (0, None, None) => {
+                let msg = "At least one validator must be specified";
+                Err(syn::Error::new(input.span(), msg))
+            }
+            (_, None, None) => Ok(RawValidation::Standard { validators }),
+            (_, _, _) => {
+                let msg =
+                    "`with` and `error` attributes cannot be used mixed with other validators";
+                Err(syn::Error::new(input.span(), msg))
+            }
+        }
+    }
 }
 
 // By some reason Default cannot be derived.
@@ -76,16 +209,20 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
     fn default() -> Self {
         Self {
             sanitizers: vec![],
-            validators: vec![],
+            validation: None,
             new_unchecked: NewUnchecked::Off,
             default: None,
             derive_traits: vec![],
-            error_type_name: None,
         }
     }
 }
 
-impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer, Validator> {
+impl<Sanitizer, Validator> Parse for ParseableAttributes<Sanitizer, Validator>
+where
+    Sanitizer: Parse,
+    Validator: Parse + Kinded,
+    <Validator as Kinded>::Kind: Kind + Display + 'static,
+{
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut attrs = ParseableAttributes::default();
 
@@ -109,8 +246,8 @@ impl<Sanitizer: Parse, Validator: Parse> Parse for ParseableAttributes<Sanitizer
                 if input.peek(Paren) {
                     let content;
                     parenthesized!(content in input);
-                    let items = content.parse_terminated(Validator::parse, Token![,])?;
-                    attrs.validators = items.into_iter().collect();
+                    let validation: RawValidation<Validator> = content.parse()?;
+                    attrs.validation = Some(validation);
                 } else {
                     let msg = concat!(
                         "`validate` must be used with parenthesis.\n",
@@ -244,7 +381,7 @@ where
     parse_kind("validator", input)
 }
 
-/// Parse ident from ParStream and tries to parse it further into Kind of sanitizier or validator.
+/// Parse ident from ParseStream and tries to parse it further into Kind of sanitizer or validator.
 /// Build a helpful error on failure.
 fn parse_kind<K>(attr_type: &str, input: ParseStream) -> syn::Result<(K, Ident)>
 where

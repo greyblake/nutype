@@ -33,16 +33,14 @@ pub fn parse_attributes(
 
     let ParseableAttributes {
         sanitizers,
-        validators,
+        validation,
         new_unchecked,
         default,
         derive_traits,
-        error_type_name,
     } = attrs;
     let raw_guard = StringRawGuard {
         sanitizers,
-        validators,
-        error_type_name,
+        validation,
     };
     let guard = validate_string_guard(raw_guard, type_name)?;
     Ok(Attributes {

@@ -16,6 +16,7 @@ use crate::{
 };
 
 use super::gen::type_custom_closure;
+use super::parse::RawValidation;
 
 /// A spanned item. An item can be anything that cares a domain value.
 /// Keeping a span allows to throw good precise error messages at the validation stage.
@@ -152,6 +153,13 @@ impl ErrorTypeName {
     }
 }
 
+impl Parse for ErrorTypeName {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident = input.parse::<proc_macro2::Ident>()?;
+        Ok(Self::new(ident))
+    }
+}
+
 // A type that represents an error name which is returned by `FromStr` traits.
 // For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
 define_ident_type!(ParseErrorTypeName);
@@ -217,7 +225,7 @@ pub enum Guard<Sanitizer, Validator> {
 #[derive(Debug)]
 pub enum Validation<Validator> {
     Custom {
-        with: TypedCustomFunction,
+        with: CustomFunction,
         error_type_name: ErrorTypeName,
     },
     Standard {
@@ -326,8 +334,7 @@ impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
 #[derive(Debug)]
 pub struct RawGuard<Sanitizer, Validator> {
     pub sanitizers: Vec<Sanitizer>,
-    pub validators: Vec<Validator>,
-    pub error_type_name: Option<ErrorTypeName>,
+    pub validation: Option<RawValidation<Validator>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
