@@ -1,0 +1,5 @@
+error: `with` and `error` attributes cannot be used mixed with other validators.
+ --> tests/ui/common/custom_validation_mixed.rs:4:80
+  |
+4 |     validate(with = validate_num, error = NumError, predicate = |val| *val > 0 )
+  |                                                                                ^

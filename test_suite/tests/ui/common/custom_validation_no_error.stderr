@@ -1,0 +1,6 @@
+error: The `with` attribute requires an accompanying `error` attribute.
+       Please provide the error type that the `with` validation function returns.
+ --> tests/ui/common/custom_validation_no_error.rs:4:34
+  |
+4 |     validate(with = validate_num,)
+  |                                  ^

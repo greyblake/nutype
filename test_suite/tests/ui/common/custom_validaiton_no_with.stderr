@@ -1,0 +1,6 @@
+error: The `error` attribute requires an accompanying `with` attribute.
+       Please provide the validation function that returns Result<(), NumError>.
+ --> tests/ui/common/custom_validaiton_no_with.rs:4:30
+  |
+4 |     validate(error = NumError)
+  |                              ^

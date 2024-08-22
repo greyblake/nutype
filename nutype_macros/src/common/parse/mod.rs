@@ -183,11 +183,11 @@ where
         match (validators.len(), maybe_with, maybe_error) {
             (0, Some(with), Some(error)) => Ok(RawValidation::Custom { with, error }),
             (0, Some(_), None) => {
-                let msg = "`with` attribute must be used with `error` attribute";
+                let msg = "The `with` attribute requires an accompanying `error` attribute.\nPlease provide the error type that the `with` validation function returns.";
                 Err(syn::Error::new(input.span(), msg))
             }
-            (0, None, Some(_)) => {
-                let msg = "`error` attribute must be used with `with` attribute";
+            (0, None, Some(error_type)) => {
+                let msg = format!("The `error` attribute requires an accompanying `with` attribute.\nPlease provide the validation function that returns Result<(), {error_type}>.");
                 Err(syn::Error::new(input.span(), msg))
             }
             (0, None, None) => {
@@ -197,7 +197,7 @@ where
             (_, None, None) => Ok(RawValidation::Standard { validators }),
             (_, _, _) => {
                 let msg =
-                    "`with` and `error` attributes cannot be used mixed with other validators";
+                    "`with` and `error` attributes cannot be used mixed with other validators.";
                 Err(syn::Error::new(input.span(), msg))
             }
         }
