@@ -1,0 +1,8 @@
+[package]
+name = "custom_error"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+nutype = { path = "../../nutype" }
+thiserror = "1.0.63"

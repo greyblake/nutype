@@ -924,3 +924,46 @@ mod with_generics {
         assert_eq!(collection.into_inner(), vec![0]);
     }
 }
+
+mod custom_error {
+    use super::*;
+    use thiserror::Error;
+
+    #[nutype(
+        validate(with = validate_decent_collection, error = DecentCollectionError),
+        derive(Debug, PartialEq),
+    )]
+    struct DecentCollection<T>(Vec<T>);
+
+    fn validate_decent_collection<T>(collection: &[T]) -> Result<(), DecentCollectionError> {
+        if collection.len() < 3 {
+            Err(DecentCollectionError::TooShort)
+        } else if collection.len() > 10 {
+            Err(DecentCollectionError::TooLong)
+        } else {
+            Ok(())
+        }
+    }
+
+    #[derive(Error, Debug, PartialEq)]
+    enum DecentCollectionError {
+        #[error("Collection is too short.")]
+        TooShort,
+
+        #[error("Collection is too long.")]
+        TooLong,
+    }
+
+    #[test]
+    fn test_custom_error() {
+        assert_eq!(
+            Name::try_new("JohnJohnJohnJohnJohn"),
+            Err(NameError::TooLong)
+        );
+
+        assert_eq!(Name::try_new("Jo"), Err(NameError::TooShort));
+
+        let name = Name::try_new("John").unwrap();
+        assert_eq!(name.as_ref(), "John");
+    }
+}

@@ -20,6 +20,7 @@ arbtest = "0.2.0"
 ron = "0.8.1"
 rmp-serde = "1.1.2"
 num = "0.4.3"
+thiserror = "1.0.63"
 
 [features]
 serde = ["nutype/serde", "dep:serde", "dep:serde_json"]
