@@ -931,7 +931,7 @@ mod custom_error {
 
     #[nutype(
         validate(with = validate_decent_collection, error = DecentCollectionError),
-        derive(Debug, PartialEq),
+        derive(Debug, PartialEq, AsRef),
     )]
     struct DecentCollection<T>(Vec<T>);
 
@@ -957,13 +957,16 @@ mod custom_error {
     #[test]
     fn test_custom_error() {
         assert_eq!(
-            Name::try_new("JohnJohnJohnJohnJohn"),
-            Err(NameError::TooLong)
+            DecentCollection::try_new(vec![1, 2]),
+            Err(DecentCollectionError::TooShort)
         );
 
-        assert_eq!(Name::try_new("Jo"), Err(NameError::TooShort));
+        assert_eq!(
+            DecentCollection::try_new(vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]),
+            Err(DecentCollectionError::TooLong)
+        );
 
-        let name = Name::try_new("John").unwrap();
-        assert_eq!(name.as_ref(), "John");
+        let collection = DecentCollection::try_new(vec![1, 2, 3]).unwrap();
+        assert_eq!(collection.as_ref(), &[1, 2, 3]);
     }
 }
