@@ -58,7 +58,7 @@
 //!
 //! Here are some other examples of what you can do with `nutype`.
 //!
-//! You can skip `sanitize` and use a custom validator `with`:
+//! You can skip `sanitize` and use a custom validator `predicate`:
 //!
 //! ```
 //! use nutype::nutype;
@@ -109,6 +109,7 @@
 //! | `not_empty`    | Rejects an empty string                                                         | `NotEmptyViolated`   | `not_empty`                                  |
 //! | `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexViolated`      | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
 //! | `predicate`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `PredicateViolated`  | `predicate = \|s: &str\| s.contains('@')`    |
+//! | `with`         | Custom validator with a custom error                                            | N/A                  | (see example below)                          |
 //!
 //! #### Regex validation
 //!
@@ -205,13 +206,14 @@
 //!
 //! ### Integer validators
 //!
-//! | Validator           | Description           | Error variant             | Example                              |
-//! | ------------------- | --------------------- | ------------------------- | ------------------------------------ |
-//! | `less`              | Exclusive upper bound | `LessViolated`            | `less = 100`                         |
-//! | `less_or_equal`     | Inclusive upper bound | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
-//! | `greater`           | Exclusive lower bound | `GreaterViolated`         | `greater = 17`                       |
-//! | `greater_or_equal`  | Inclusive lower bound | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
-//! | `predicate`         | Custom predicate      | `PredicateViolated`       | `predicate = \|num\| num % 2 == 0`   |
+//! | Validator           | Description                           | Error variant             | Example                              |
+//! | ------------------- | ------------------------------------- | ------------------------- | ------------------------------------ |
+//! | `less`              | Exclusive upper bound                 | `LessViolated`            | `less = 100`                         |
+//! | `less_or_equal`     | Inclusive upper bound                 | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
+//! | `greater`           | Exclusive lower bound                 | `GreaterViolated`         | `greater = 17`                       |
+//! | `greater_or_equal`  | Inclusive lower bound                 | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
+//! | `predicate`         | Custom predicate                      | `PredicateViolated`       | `predicate = \|num\| num % 2 == 0`   |
+//! | `with`              | Custom validator with a custom error  | N/A                       | (see example below)                  |
 //!
 //! ### Integer derivable traits
 //!
@@ -232,14 +234,15 @@
 //!
 //! ### Float validators
 //!
-//! | Validator          | Description                      | Error variant            | Example                             |
-//! | ------------------ | -------------------------------- | ---------------------    | ----------------------------------- |
-//! | `less`             | Exclusive upper bound            | `LessViolated`           | `less = 100.0`                      |
-//! | `less_or_equal`    | Inclusive upper bound            | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
-//! | `greater`          | Exclusive lower bound            | `GreaterViolated`        | `greater = 0.0`                     |
-//! | `greater_or_equal` | Inclusive lower bound            | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
-//! | `finite`           | Check against NaN and infinity   | `FiniteViolated`         | `finite`                            |
-//! | `predicate`        | Custom predicate                 | `PredicateViolated`      | `predicate = \|val\| val != 50.0`   |
+//! | Validator          | Description                          | Error variant            | Example                             |
+//! | ------------------ | ------------------------------------ | ---------------------    | ----------------------------------- |
+//! | `less`             | Exclusive upper bound                | `LessViolated`           | `less = 100.0`                      |
+//! | `less_or_equal`    | Inclusive upper bound                | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
+//! | `greater`          | Exclusive lower bound                | `GreaterViolated`        | `greater = 0.0`                     |
+//! | `greater_or_equal` | Inclusive lower bound                | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
+//! | `finite`           | Check against NaN and infinity       | `FiniteViolated`         | `finite`                            |
+//! | `predicate`        | Custom predicate                     | `PredicateViolated`      | `predicate = \|val\| val != 50.0`   |
+//! | `with`             | Custom validator with a custom error | N/A                      | (see example below)                 |
 //!
 //! ### Float derivable traits
 //!
@@ -263,7 +266,7 @@
 //! ## Other inner types and generics
 //!
 //! For any other type it is possible to define custom sanitizers with `with` and custom
-//! validations with `predicate`:
+//! validations with `predicate` or `with`:
 //!
 //! ```
 //! use nutype::nutype;
@@ -333,7 +336,7 @@
 //! assert_eq!(city.into_inner(), "Old York");
 //! ```
 //!
-//! ## Custom validators
+//! ## Custom validation with predicate
 //!
 //! In similar fashion it's possible to define custom validators, but a validation function receives a reference and returns `bool`.
 //! Think of it as a predicate.
@@ -351,6 +354,47 @@
 //!
 //! fn main() { }
 //! ```
+//!
+//! ## Custom validation with a custom error type
+//!
+//! If you want to use your own error type and you are ready to write validation logic by yourself,
+//! you can use a combination `with` and  `error` attributes:
+//!
+//! ```
+//! # mod wrapper_module {
+//! use nutype::nutype;
+//!
+//! // Custom error type.
+//! // It's highly recommended that your error type implements `std::error::Error`, but we skip it
+//! // here.
+//! #[derive(Debug, PartialEq)]
+//! enum NameError {
+//!     TooShort,
+//!     TooLong,
+//! }
+//!
+//! // Custom validation function.
+//! // Note that return type is `Result<(), NameError>`.
+//! fn validate_name(name: &str) -> Result<(), NameError> {
+//!     if name.len() < 3 {
+//!         Err(NameError::TooShort)
+//!     } else if name.len() > 10 {
+//!         Err(NameError::TooLong)
+//!     } else {
+//!         Ok(())
+//!     }
+//! }
+//!
+//! #[nutype(
+//!     validate(with = validate_name, error = NameError),
+//!     derive(Debug, PartialEq),
+//! )]
+//! struct Name(String);
+//!
+//! # }
+//! ```
+//! Note that it's important that type provided with `error` attribute matches the error variant in
+//! the type returned by the validation function.
 //!
 //! ## Recipes
 //!
