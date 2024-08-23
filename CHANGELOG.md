@@ -1,7 +1,8 @@
-### v0.x.x - 2024-xx-xx
+### v0.5.0 - 2024-xx-xx
 
-* [BREAKING] Replace lazy_static with [`std::sync::LazyLock`](https://doc.rust-lang.org/stable/std/sync/struct.LazyLock.html) for regex validation (requires Rust 1.80). This change is potentially is a breaking change, because the code that uses regex may stop compiling on the older versions of Rust, since it generates that relies on `LazyLock`.
-
+* [FEATURE] Added support for custom error types and validation functions using the `error` and `with` attributes.
+* [BREAKING] Replace lazy_static with [`std::sync::LazyLock`](https://doc.rust-lang.org/stable/std/sync/struct.LazyLock.html) for regex validation (requires Rust 1.80 or higher). This change is potentially is a breaking change, since the code that uses regex may stop compiling on the older versions of Rust, because it generates code that uses `std::sync::LazyLock` now. You can still explicitly use `lazy_static` to work around, if you cannot update to the newer versions of Rust.
+* [BREAKING] Fallible `::new()` constructor is fully replaced with `::try_new()`.
 
 ### v0.4.3 - 2024-07-06
 
