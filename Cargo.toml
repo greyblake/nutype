@@ -19,5 +19,7 @@ members = [
     "examples/serde_complex",
     "examples/string_bounded_len",
     "examples/string_regex_email",
-    "examples/string_arbitrary", "examples/any_generics", "examples/custom_error",
+    "examples/string_arbitrary",
+    "examples/any_generics",
+    "examples/custom_error",
 ]
