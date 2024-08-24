@@ -16,6 +16,7 @@ use crate::{
 };
 
 use super::gen::type_custom_closure;
+use super::parse::RawValidation;
 
 /// A spanned item. An item can be anything that cares a domain value.
 /// Keeping a span allows to throw good precise error messages at the validation stage.
@@ -152,6 +153,13 @@ impl ErrorTypeName {
     }
 }
 
+impl Parse for ErrorTypeName {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let ident = input.parse::<proc_macro2::Ident>()?;
+        Ok(Self::new(ident))
+    }
+}
+
 // A type that represents an error name which is returned by `FromStr` traits.
 // For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
 define_ident_type!(ParseErrorTypeName);
@@ -216,26 +224,41 @@ pub enum Guard<Sanitizer, Validator> {
 
 #[derive(Debug)]
 pub enum Validation<Validator> {
-    // TODO:
-    // Custom {
-    //     with: TypedCustomFunction,
-    //     error_type_name: ErrorTypeName,
-    // },
-    Standard {
+    Custom {
+        /// Custom validation function that should return `Result<(), ErrorType>`
+        with: CustomFunction,
+
+        /// Name of the error type. Since the type is defined by user, the macro must not generate
+        /// it.
         error_type_name: ErrorTypeName,
-        validators: Vec<Validator>,
     },
+    Standard {
+        /// List of the standard validators
+        validators: Vec<Validator>,
+
+        /// Name of the error type. The #[nutype] macro must generate definition of this type.
+        error_type_name: ErrorTypeName,
+    },
+}
+
+impl<V> Validation<V> {
+    pub fn error_type_name(&self) -> &ErrorTypeName {
+        match self {
+            Self::Custom {
+                error_type_name, ..
+            } => error_type_name,
+            Self::Standard {
+                error_type_name, ..
+            } => error_type_name,
+        }
+    }
 }
 
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
     pub fn maybe_error_type_name(&self) -> Option<&ErrorTypeName> {
         match self {
             Self::WithoutValidation { .. } => None,
-            Self::WithValidation { validation, .. } => match validation {
-                Validation::Standard {
-                    error_type_name, ..
-                } => Some(error_type_name),
-            },
+            Self::WithValidation { validation, .. } => Some(validation.error_type_name()),
         }
     }
 }
@@ -303,10 +326,11 @@ impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
         }
     }
 
-    pub fn validators(&self) -> Option<&Vec<Validator>> {
+    pub fn standard_validators(&self) -> Option<&Vec<Validator>> {
         match self {
             Self::WithValidation { validation, .. } => match validation {
                 Validation::Standard { validators, .. } => Some(validators),
+                Validation::Custom { .. } => None,
             },
             Self::WithoutValidation { .. } => None,
         }
@@ -317,8 +341,7 @@ impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
 #[derive(Debug)]
 pub struct RawGuard<Sanitizer, Validator> {
     pub sanitizers: Vec<Sanitizer>,
-    pub validators: Vec<Validator>,
-    pub error_type_name: Option<ErrorTypeName>,
+    pub validation: Option<RawValidation<Validator>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

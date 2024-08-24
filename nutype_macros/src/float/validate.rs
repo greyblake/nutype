@@ -65,6 +65,7 @@ fn has_validation_against_nan<T>(guard: &FloatGuard<T>) -> bool {
     match guard {
         FloatGuard::WithoutValidation { .. } => false,
         FloatGuard::WithValidation { validation, .. } => match validation {
+            Validation::Custom { .. } => false,
             Validation::Standard { validators, .. } => validators
                 .iter()
                 .any(|v| v.kind() == FloatValidatorKind::Finite),

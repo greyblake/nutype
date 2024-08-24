@@ -20,7 +20,7 @@ Nutype is a proc macro that allows adding extra constraints like _sanitization_ 
 
 * [Quick start](#quick-start)
 * [Inner types](#inner-types) ([String](#string) | [Integer](#integer) | [Float](#float) | [Other](#other-inner-types-and-generics))
-* [Custom](#custom-sanitizers) ([sanitizers](#custom-sanitizers) | [validators](#custom-validators))
+* [Custom](#custom-sanitizers) ([sanitizers](#custom-sanitizers) | [validators](#custom-validators) | [errors](#custom-validation-with-a-custom-error-type))
 * [Recipes](#recipes)
 * [Breaking constraints with new_unchecked](#breaking-constraints-with-new_unchecked)
 * [Feature Flags](#feature-flags)
@@ -84,7 +84,7 @@ At the moment the string inner type supports only `String` (owned) type.
 | `trim`      | Removes leading and trailing whitespaces                                            | `trim`                                          |
 | `lowercase` | Converts the string to lowercase                                                    | `lowercase`                                     |
 | `uppercase` | Converts the string to uppercase                                                    | `uppercase`                                     |
-| `with`      | Custom sanitizer. A function or closure that receives `String` and returns `String` | `with = \|mut s: String\| { s.truncate(5); s }` |
+| `with`      | Custom sanitizer. A function or closure that receives `String` and returns `String` | `with = \|mut s: String\| ( s.truncate(5); s )` |
 
 ### String validators
 
@@ -95,6 +95,7 @@ At the moment the string inner type supports only `String` (owned) type.
 | `not_empty`    | Rejects an empty string                                                         | `NotEmptyViolated`   | `not_empty`                                  |
 | `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexViolated`      | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
 | `predicate`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `PredicateViolated`  | `predicate = \|s: &str\| s.contains('@')`    |
+| `with`         | Custom validator with a custom error                                            | N/A                  | (see example below)                          |
 
 
 #### Regex validation
@@ -170,13 +171,14 @@ The integer inner types are: `u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32
 
 ### Integer validators
 
-| Validator           | Description           | Error variant             | Example                              |
-| ------------------- | --------------------- | ------------------------- | ------------------------------------ |
-| `less`              | Exclusive upper bound | `LessViolated`            | `less = 100`                         |
-| `less_or_equal`     | Inclusive upper bound | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
-| `greater`           | Exclusive lower bound | `GreaterViolated`         | `greater = 17`                       |
-| `greater_or_equal`  | Inclusive lower bound | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
-| `predicate`         | Custom predicate      | `PredicateViolated`       | `predicate = \|num\| num % 2 == 0`   |
+| Validator           | Description                           | Error variant             | Example                              |
+| ------------------- | ------------------------------------- | ------------------------- | ------------------------------------ |
+| `less`              | Exclusive upper bound                 | `LessViolated`            | `less = 100`                         |
+| `less_or_equal`     | Inclusive upper bound                 | `LessOrEqualViolated`     | `less_or_equal = 99`                 |
+| `greater`           | Exclusive lower bound                 | `GreaterViolated`         | `greater = 17`                       |
+| `greater_or_equal`  | Inclusive lower bound                 | `GreaterOrEqualViolated`  | `greater_or_equal = 18`              |
+| `predicate`         | Custom predicate                      | `PredicateViolated`       | `predicate = \|num\| num % 2 == 0`   |
+| `with`              | Custom validator with a custom error  | N/A                       | (see example below)                  |
 
 ### Integer derivable traits
 
@@ -197,14 +199,15 @@ The float inner types are: `f32`, `f64`.
 
 ### Float validators
 
-| Validator          | Description                      | Error variant            | Example                             |
-| ------------------ | -------------------------------- | ---------------------    | ----------------------------------- |
-| `less`             | Exclusive upper bound            | `LessViolated`           | `less = 100.0`                      |
-| `less_or_equal`    | Inclusive upper bound            | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
-| `greater`          | Exclusive lower bound            | `GreaterViolated`        | `greater = 0.0`                     |
-| `greater_or_equal` | Inclusive lower bound            | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
-| `finite`           | Check against NaN and infinity   | `FiniteViolated`         | `finite`                            |
-| `predicate`        | Custom predicate                 | `PredicateViolated`      | `predicate = \|val\| val != 50.0`   |
+| Validator          | Description                          | Error variant            | Example                             |
+| ------------------ | ------------------------------------ | ------------------------ | ----------------------------------- |
+| `less`             | Exclusive upper bound                | `LessViolated`           | `less = 100.0`                      |
+| `less_or_equal`    | Inclusive upper bound                | `LessOrEqualViolated`    | `less_or_equal = 100.0`             |
+| `greater`          | Exclusive lower bound                | `GreaterViolated`        | `greater = 0.0`                     |
+| `greater_or_equal` | Inclusive lower bound                | `GreaterOrEqualViolated` | `greater_or_equal = 0.0`            |
+| `finite`           | Check against NaN and infinity       | `FiniteViolated`         | `finite`                            |
+| `predicate`        | Custom predicate                     | `PredicateViolated`      | `predicate = \|val\| val != 50.0`   |
+| `with`             | Custom validator with a custom error | N/A                      | (see example below)                 |
 
 ### Float derivable traits
 
@@ -304,6 +307,43 @@ fn is_valid_name(name: &str) -> bool {
     name.chars().next().map(char::is_uppercase).unwrap_or(false)
 }
 ```
+
+## Custom validation with a custom error type
+
+To define your own error type and implement custom validation logic, you can combine the `with` and `error` attributes:
+
+```rust
+// Define a custom error type for validation failures.
+// Although it's best practice to implement `std::error::Error` for custom error types,
+// we are omitting that for simplicity here.
+#[derive(Debug, PartialEq)]
+enum NameError {
+    TooShort,
+    TooLong,
+}
+
+// Define a custom validation function for `Name`.
+// The function returns `Result<(), NameError>`, where `Ok(())` indicates a valid name,
+// and `Err(NameError)` represents a specific validation failure.
+fn validate_name(name: &str) -> Result<(), NameError> {
+    if name.len() < 3 {
+        Err(NameError::TooShort)
+    } else if name.len() > 10 {
+        Err(NameError::TooLong)
+    } else {
+        Ok(())
+    }
+}
+
+// Define a newtype `Name` with custom validation logic and custom error.
+#[nutype(
+    validate(with = validate_name, error = NameError),
+    derive(Debug, PartialEq),
+)]
+struct Name(String);
+```
+
+It's important to ensure that the type specified in the `error` attribute matches the error type returned by the validation function.
 
 ## Recipes
 

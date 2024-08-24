@@ -190,7 +190,7 @@ impl GenerateNewtype for StringNewtype {
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         _traits: &HashSet<Self::TypedTrait>,
     ) -> TokenStream {
-        let test_len_char_min_vs_max = guard.validators().and_then(|validators| {
+        let test_len_char_min_vs_max = guard.standard_validators().and_then(|validators| {
             tests::gen_test_should_have_consistent_len_char_boundaries(type_name, validators)
         });
 

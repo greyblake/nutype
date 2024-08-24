@@ -757,3 +757,49 @@ mod derive_schemars_json_schema {
         let _schema = schema_for!(ProductWeight);
     }
 }
+
+mod custom_error {
+    use super::*;
+    use thiserror::Error;
+
+    #[nutype(
+        validate(with = validate_oh_my_float, error = OhMyFloatError),
+        derive(Debug, FromStr),
+    )]
+    struct OhMyFloat(f64);
+
+    #[derive(Error, Debug, PartialEq)]
+    enum OhMyFloatError {
+        #[error("Oh no! The value is too big!.")]
+        TooBig,
+
+        #[error("Oh no! The value is too small!.")]
+        TooSmall,
+    }
+
+    fn validate_oh_my_float(value: &f64) -> Result<(), OhMyFloatError> {
+        if *value > 100.0 {
+            Err(OhMyFloatError::TooBig)
+        } else if *value < 0.0 {
+            Err(OhMyFloatError::TooSmall)
+        } else {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn test_custom_error() {
+        {
+            let err = OhMyFloat::try_new(101.0).unwrap_err();
+            assert_eq!(err, OhMyFloatError::TooBig);
+        }
+
+        {
+            let err = OhMyFloat::try_new(-1.0).unwrap_err();
+            assert_eq!(err, OhMyFloatError::TooSmall);
+        }
+
+        let oh_my_float = OhMyFloat::try_new(99.0).unwrap();
+        assert_eq!(oh_my_float.into_inner(), 99.0);
+    }
+}

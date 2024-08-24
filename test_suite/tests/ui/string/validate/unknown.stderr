@@ -1,5 +1,5 @@
-error: Unknown validator `unique`.
-       Possible values are `len_char_min`, `len_char_max`, `not_empty`, `predicate`, `regex`.
+error: Unknown validation attribute: `unique`.
+       Possible attributes are `len_char_min`, `len_char_max`, `not_empty`, `predicate`, `regex`, `with`, `error`.
  --> tests/ui/string/validate/unknown.rs:3:19
   |
 3 | #[nutype(validate(unique))]

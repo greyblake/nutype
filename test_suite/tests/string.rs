@@ -675,3 +675,46 @@ mod validation_with_regex {
         assert_eq!(inner, "123-456".to_string());
     }
 }
+
+mod custom_error {
+    use super::*;
+    use thiserror::Error;
+
+    #[nutype(
+        validate(with = validate_name, error = NameError),
+        derive(Debug, AsRef, PartialEq),
+    )]
+    struct Name(String);
+
+    fn validate_name(name: &str) -> Result<(), NameError> {
+        if name.len() < 3 {
+            Err(NameError::TooShort)
+        } else if name.len() > 10 {
+            Err(NameError::TooLong)
+        } else {
+            Ok(())
+        }
+    }
+
+    #[derive(Error, Debug, PartialEq)]
+    enum NameError {
+        #[error("Name is too short.")]
+        TooShort,
+
+        #[error("Name is too long.")]
+        TooLong,
+    }
+
+    #[test]
+    fn test_custom_error() {
+        assert_eq!(
+            Name::try_new("JohnJohnJohnJohnJohn"),
+            Err(NameError::TooLong)
+        );
+
+        assert_eq!(Name::try_new("Jo"), Err(NameError::TooShort));
+
+        let name = Name::try_new("John").unwrap();
+        assert_eq!(name.as_ref(), "John");
+    }
+}

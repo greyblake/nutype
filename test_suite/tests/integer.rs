@@ -832,3 +832,51 @@ mod derive_schemars_json_schema {
         let _schema = schema_for!(CustomerId);
     }
 }
+
+mod custom_error {
+    use super::*;
+    use thiserror::Error;
+
+    #[nutype(
+        validate(with = validate_positively_odd, error = PositivelyOddError),
+        derive(Debug, FromStr),
+    )]
+    struct PositivelyOdd(i32);
+
+    #[derive(Error, Debug, PartialEq)]
+    enum PositivelyOddError {
+        #[error("The value is negative.")]
+        Negative,
+
+        #[error("The value is even.")]
+        Even,
+    }
+
+    fn validate_positively_odd(value: &i32) -> Result<(), PositivelyOddError> {
+        if *value < 0 {
+            return Err(PositivelyOddError::Negative);
+        }
+
+        if *value % 2 == 0 {
+            return Err(PositivelyOddError::Even);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_custom_error() {
+        {
+            let err = PositivelyOdd::try_new(-1).unwrap_err();
+            assert_eq!(err, PositivelyOddError::Negative);
+        }
+
+        {
+            let err = PositivelyOdd::try_new(2).unwrap_err();
+            assert_eq!(err, PositivelyOddError::Even);
+        }
+
+        let podd: PositivelyOdd = PositivelyOdd::try_new(3).unwrap();
+        assert_eq!(podd.into_inner(), 3);
+    }
+}

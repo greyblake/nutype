@@ -6,6 +6,7 @@ use super::{
         DeriveTrait, Guard, NumericBoundValidator, RawGuard, SpannedDeriveTrait, SpannedItem,
         TypeName, Validation,
     },
+    parse::RawValidation,
     r#gen::error::gen_error_type_name,
 };
 
@@ -18,29 +19,36 @@ pub fn validate_guard<RawSanitizer, RawValidator, Sanitizer, Validator>(
 ) -> Result<Guard<Sanitizer, Validator>, syn::Error> {
     let RawGuard {
         sanitizers: raw_sanitizers,
-        validators: raw_validators,
-        error_type_name,
+        validation: maybe_raw_validation,
     } = raw_guard;
 
-    let validators = validate_validators(raw_validators)?;
     let sanitizers = validate_sanitizers(raw_sanitizers)?;
 
-    if validators.is_empty() {
-        if let Some(error_type_name) = error_type_name {
-            let msg = "error_type_name cannot be set when there is no validation";
-            return Err(syn::Error::new(error_type_name.span(), msg));
-        }
-        Ok(Guard::WithoutValidation { sanitizers })
-    } else {
-        let error_type_name = error_type_name.unwrap_or_else(|| gen_error_type_name(type_name));
-        Ok(Guard::WithValidation {
-            sanitizers,
-            validation: Validation::Standard {
+    let Some(raw_validation) = maybe_raw_validation else {
+        return Ok(Guard::WithoutValidation { sanitizers });
+    };
+
+    let validation = match raw_validation {
+        RawValidation::Standard { validators } => {
+            let error_type_name = gen_error_type_name(type_name);
+            let validators = validate_validators(validators)?;
+            Validation::Standard {
                 validators,
                 error_type_name,
-            },
-        })
-    }
+            }
+        }
+        RawValidation::Custom { with, error } => {
+            let error_type_name = error;
+            Validation::Custom {
+                with,
+                error_type_name,
+            }
+        }
+    };
+    Ok(Guard::WithValidation {
+        sanitizers,
+        validation,
+    })
 }
 
 pub fn validate_duplicates<T>(

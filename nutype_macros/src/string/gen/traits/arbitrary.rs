@@ -112,10 +112,9 @@ fn build_specification(guard: &StringGuard) -> Result<Option<Specification>, syn
             sanitizers,
             validation,
         } => {
-            let validators = get_validators(validation);
-
-            let relevant_sanitizers = filter_sanitizers(sanitizers)?;
+            let validators = get_validators(validation)?;
             let relevant_validators = filter_validators(validators)?;
+            let relevant_sanitizers = filter_sanitizers(sanitizers)?;
 
             let has_trim = relevant_sanitizers
                 .iter()
@@ -151,9 +150,15 @@ fn build_specification(guard: &StringGuard) -> Result<Option<Specification>, syn
     }
 }
 
-fn get_validators(validation: &Validation<StringValidator>) -> &[StringValidator] {
+fn get_validators(
+    validation: &Validation<StringValidator>,
+) -> Result<&[StringValidator], syn::Error> {
     match validation {
-        Validation::Standard { validators, .. } => validators,
+        Validation::Standard { validators, .. } => Ok(validators),
+        Validation::Custom { .. } => {
+            let msg = "It's not possible to derive `Arbitrary` trait for a type with custom validation.\nYou have to implement `Arbitrary` trait on you own.";
+            Err(syn::Error::new(Span::call_site(), msg))
+        }
     }
 }
 
