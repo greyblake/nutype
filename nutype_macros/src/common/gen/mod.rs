@@ -410,7 +410,7 @@ pub trait GenerateNewtype {
             &traits,
         );
 
-        let maybe_error_type_name = match &guard {
+        let maybe_reimported_error_type_name = match &guard {
             Guard::WithoutValidation { .. } => None,
             Guard::WithValidation { validation, .. } => match validation {
                 // We won't need to reimport error if it's a custom error provided by the user.
@@ -425,7 +425,7 @@ pub trait GenerateNewtype {
             vis,
             &type_name,
             &module_name,
-            maybe_error_type_name,
+            maybe_reimported_error_type_name,
             maybe_parse_error_type_name.as_ref(),
         );
 

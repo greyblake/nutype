@@ -225,11 +225,18 @@ pub enum Guard<Sanitizer, Validator> {
 #[derive(Debug)]
 pub enum Validation<Validator> {
     Custom {
+        /// Custom validation function that should return `Result<(), ErrorType>`
         with: CustomFunction,
+
+        /// Name of the error type. Since the type is defined by user, the macro must not generate
+        /// it.
         error_type_name: ErrorTypeName,
     },
     Standard {
+        /// List of the standard validators
         validators: Vec<Validator>,
+
+        /// Name of the error type. The #[nutype] macro must generate definition of this type.
         error_type_name: ErrorTypeName,
     },
 }
