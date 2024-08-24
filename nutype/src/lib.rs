@@ -357,24 +357,24 @@
 //!
 //! ## Custom validation with a custom error type
 //!
-//! If you want to use your own error type and you are ready to write validation logic by yourself,
-//! you can use a combination `with` and  `error` attributes:
+//! To define your own error type and implement custom validation logic, you can combine the `with` and `error` attributes:
 //!
 //! ```
 //! # mod wrapper_module {
 //! use nutype::nutype;
 //!
-//! // Custom error type.
-//! // It's highly recommended that your error type implements `std::error::Error`, but we skip it
-//! // here.
+//! // Define a custom error type for validation failures.
+//! // Although it's best practice to implement `std::error::Error` for custom error types,
+//! // we are omitting that for simplicity here.
 //! #[derive(Debug, PartialEq)]
 //! enum NameError {
 //!     TooShort,
 //!     TooLong,
 //! }
 //!
-//! // Custom validation function.
-//! // Note that return type is `Result<(), NameError>`.
+//! // Define a custom validation function for `Name`.
+//! // The function returns `Result<(), NameError>`, where `Ok(())` indicates a valid name,
+//! // and `Err(NameError)` represents a specific validation failure.
 //! fn validate_name(name: &str) -> Result<(), NameError> {
 //!     if name.len() < 3 {
 //!         Err(NameError::TooShort)
@@ -385,16 +385,16 @@
 //!     }
 //! }
 //!
+//! // Define a newtype `Name` with custom validation logic and custom error.
 //! #[nutype(
 //!     validate(with = validate_name, error = NameError),
 //!     derive(Debug, PartialEq),
 //! )]
 //! struct Name(String);
-//!
 //! # }
 //! ```
-//! Note that it's important that type provided with `error` attribute matches the error variant in
-//! the type returned by the validation function.
+//!
+//! It's important to ensure that the type specified in the `error` attribute matches the error type returned by the validation function.
 //!
 //! ## Recipes
 //!
