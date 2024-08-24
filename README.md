@@ -313,8 +313,6 @@ fn is_valid_name(name: &str) -> bool {
 To define your own error type and implement custom validation logic, you can combine the `with` and `error` attributes:
 
 ```rust
-use nutype::nutype;
-
 // Define a custom error type for validation failures.
 // Although it's best practice to implement `std::error::Error` for custom error types,
 // we are omitting that for simplicity here.
