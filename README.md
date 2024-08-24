@@ -20,7 +20,7 @@ Nutype is a proc macro that allows adding extra constraints like _sanitization_ 
 
 * [Quick start](#quick-start)
 * [Inner types](#inner-types) ([String](#string) | [Integer](#integer) | [Float](#float) | [Other](#other-inner-types-and-generics))
-* [Custom](#custom-sanitizers) ([sanitizers](#custom-sanitizers) | [validators](#custom-validators) | (errors)[#custom-validation-with-a-custom-error-type])
+* [Custom](#custom-sanitizers) ([sanitizers](#custom-sanitizers) | [validators](#custom-validators) | [errors](#custom-validation-with-a-custom-error-type))
 * [Recipes](#recipes)
 * [Breaking constraints with new_unchecked](#breaking-constraints-with-new_unchecked)
 * [Feature Flags](#feature-flags)
@@ -84,7 +84,7 @@ At the moment the string inner type supports only `String` (owned) type.
 | `trim`      | Removes leading and trailing whitespaces                                            | `trim`                                          |
 | `lowercase` | Converts the string to lowercase                                                    | `lowercase`                                     |
 | `uppercase` | Converts the string to uppercase                                                    | `uppercase`                                     |
-| `with`      | Custom sanitizer. A function or closure that receives `String` and returns `String` | `with = \|mut s: String\| { s.truncate(5); s }` |
+| `with`      | Custom sanitizer. A function or closure that receives `String` and returns `String` | `with = \|mut s: String\| ( s.truncate(5); s )` |
 
 ### String validators
 
