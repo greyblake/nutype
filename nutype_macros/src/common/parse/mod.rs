@@ -78,6 +78,8 @@ enum ValidateAttr<Validator: Parse + Kinded> {
     Extra(ExtraValidateAttr),
 }
 
+/// Non standard (custom) validation attributes.
+/// Responsible for parsing `error` and `with` attributes.
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 enum ExtraValidateAttr {
@@ -108,6 +110,7 @@ where
     Validator: Parse + Kinded,
     <Validator as Kinded>::Kind: Kind + Display + 'static,
 {
+    /// Try to parse either standard validation attributes or combination of `error` and `with` attributes.
     fn parse(input: ParseStream) -> syn::Result<Self> {
         // NOTE: ParseStream has interior mutability, so we want to try to parse validator,
         // but we don't want to advance the input if it fails.
