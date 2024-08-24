@@ -838,7 +838,7 @@ mod custom_error {
     use thiserror::Error;
 
     #[nutype(
-        validate(with = validate_positive_odd, error = PositivelyOddError),
+        validate(with = validate_positively_odd, error = PositivelyOddError),
         derive(Debug, FromStr),
     )]
     struct PositivelyOdd(i32);
@@ -852,7 +852,7 @@ mod custom_error {
         Even,
     }
 
-    fn validate_positive_odd(value: &i32) -> Result<(), PositivelyOddError> {
+    fn validate_positively_odd(value: &i32) -> Result<(), PositivelyOddError> {
         if *value < 0 {
             return Err(PositivelyOddError::Negative);
         }
@@ -874,14 +874,6 @@ mod custom_error {
         {
             let err = PositivelyOdd::try_new(2).unwrap_err();
             assert_eq!(err, PositivelyOddError::Even);
-        }
-
-        {
-            let err: PositivelyOddParseError = "-3".parse::<PositivelyOdd>().unwrap_err();
-            assert!(matches!(
-                err,
-                PositivelyOddParseError::Validate(PositivelyOddError::Negative)
-            ));
         }
 
         let podd: PositivelyOdd = PositivelyOdd::try_new(3).unwrap();

@@ -2,7 +2,7 @@ use nutype::nutype;
 use thiserror::Error;
 
 #[nutype(
-    validate(with = validate_positive_odd, error = PositivelyOddError),
+    validate(with = validate_positively_odd, error = PositivelyOddError),
     derive(Debug, FromStr),
 )]
 struct PositivelyOdd(i32);
@@ -16,7 +16,7 @@ enum PositivelyOddError {
     Even,
 }
 
-fn validate_positive_odd(value: &i32) -> Result<(), PositivelyOddError> {
+fn validate_positively_odd(value: &i32) -> Result<(), PositivelyOddError> {
     if *value < 0 {
         return Err(PositivelyOddError::Negative);
     }
