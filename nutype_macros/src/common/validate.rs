@@ -22,34 +22,33 @@ pub fn validate_guard<RawSanitizer, RawValidator, Sanitizer, Validator>(
         validation: maybe_raw_validation,
     } = raw_guard;
 
-    //let validators = validate_validators(raw_validators)?;
     let sanitizers = validate_sanitizers(raw_sanitizers)?;
 
-    if let Some(raw_validation) = maybe_raw_validation {
-        let validation = match raw_validation {
-            RawValidation::Standard { validators } => {
-                let error_type_name = gen_error_type_name(type_name);
-                let validators = validate_validators(validators)?;
-                Validation::Standard {
-                    validators,
-                    error_type_name,
-                }
+    let Some(raw_validation) = maybe_raw_validation else {
+        return Ok(Guard::WithoutValidation { sanitizers });
+    };
+
+    let validation = match raw_validation {
+        RawValidation::Standard { validators } => {
+            let error_type_name = gen_error_type_name(type_name);
+            let validators = validate_validators(validators)?;
+            Validation::Standard {
+                validators,
+                error_type_name,
             }
-            RawValidation::Custom { with, error } => {
-                let error_type_name = error;
-                Validation::Custom {
-                    with,
-                    error_type_name,
-                }
+        }
+        RawValidation::Custom { with, error } => {
+            let error_type_name = error;
+            Validation::Custom {
+                with,
+                error_type_name,
             }
-        };
-        Ok(Guard::WithValidation {
-            sanitizers,
-            validation,
-        })
-    } else {
-        Ok(Guard::WithoutValidation { sanitizers })
-    }
+        }
+    };
+    Ok(Guard::WithValidation {
+        sanitizers,
+        validation,
+    })
 }
 
 pub fn validate_duplicates<T>(
