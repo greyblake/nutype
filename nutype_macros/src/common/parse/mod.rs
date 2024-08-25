@@ -121,6 +121,15 @@ where
             let extra_attr: ExtraValidateAttr = input.parse()?;
             Ok(ValidateAttr::Extra(extra_attr))
         } else {
+            // HACK: we want to prapagate the original error in case if it was `regex` attribute.
+            // Most likely it was not parsed, because `regex` feature was not enabled.
+            if let Ok(ident) = input.fork().parse::<Ident>() {
+                if ident == "regex" {
+                    // Parse again and return the original error
+                    input.fork().parse::<Validator>()?;
+                }
+            }
+
             let possible_values: String = <Validator as Kinded>::Kind::all()
                 .iter()
                 .map(|k| format!("`{k}`"))
