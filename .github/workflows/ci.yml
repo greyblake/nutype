@@ -60,6 +60,28 @@ jobs:
           command: test
           args: --all-features
 
+  doctests:
+    name: Doctests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Run doctests for nutype
+        run: |
+          cd nutype
+          cargo test --doc
+
+      - name: Run doctests for nutype_macros
+        run: |
+          cd nutype_macros
+          cargo test --doc
+
   rustfmt:
     name: Rustfmt
     runs-on: ubuntu-latest
@@ -134,4 +156,3 @@ jobs:
 
       - name: typos-action
         uses: crate-ci/typos@v1.17.0
-
