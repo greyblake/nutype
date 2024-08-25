@@ -18,8 +18,8 @@ test-ui:
 	cargo test --features ui
 
 test-doc:
-  cd nutype && cargo test --doc
-  cd nutype_macros && cargo test --doc
+  cd nutype && cargo test --doc --all-features
+  cd nutype_macros && cargo test --doc --all-features
 
 fmt:
   cargo fmt

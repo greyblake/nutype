@@ -75,12 +75,12 @@ jobs:
       - name: Run doctests for nutype
         run: |
           cd nutype
-          cargo test --doc
+          cargo test --doc --all-features
 
       - name: Run doctests for nutype_macros
         run: |
           cd nutype_macros
-          cargo test --doc
+          cargo test --doc --all-features
 
   rustfmt:
     name: Rustfmt
