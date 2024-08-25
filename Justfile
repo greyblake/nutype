@@ -1,7 +1,11 @@
 all: fmt test-all clippy examples typos
 
-test-all:
+test-all: test test-features test-ui test-doc
+
+test:
 	cargo test
+
+test-features:
 	cargo test --features serde
 	cargo test --features regex
 	cargo test --features new_unchecked
@@ -9,11 +13,13 @@ test-all:
 	cargo test --features arbitrary
 	cargo test --all-features
 
-test:
-	cargo test
 
 test-ui:
 	cargo test --features ui
+
+test-doc:
+  cd nutype && cargo test --doc
+  cd nutype_macros && cargo test --doc
 
 fmt:
   cargo fmt
