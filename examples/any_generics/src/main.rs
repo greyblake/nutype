@@ -1,5 +1,6 @@
 use nutype::nutype;
-use std::borrow::Cow;
+extern crate alloc;
+use alloc::borrow::Cow;
 use core::cmp::Ord;
 
 /// A wrapper around a vector that is guaranteed to be sorted.

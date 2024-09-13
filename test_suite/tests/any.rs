@@ -1,5 +1,6 @@
 use nutype::nutype;
-use std::borrow::Cow;
+extern crate alloc;
+use alloc::borrow::Cow;
 use core::cmp::{Ordering, PartialEq, PartialOrd};
 use std::collections::{HashMap, HashSet};
 use core::fmt::Debug;
