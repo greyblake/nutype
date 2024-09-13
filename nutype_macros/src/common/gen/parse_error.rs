@@ -68,12 +68,24 @@ pub fn gen_def_parse_error(
     };
 
     cfg_if! {
-        if #[cfg(feature = "std")] {
+        if #[cfg(ERROR_IN_CORE)] {
             let generics_with_fromstr_and_debug_bounds = add_bound_to_all_type_params(
                 &generics_with_fromstr_bound,
                 syn::parse_quote!(::core::fmt::Debug),
             );
-            let impl_std_error = quote! {
+            let impl_error = quote! {
+                impl #generics_with_fromstr_and_debug_bounds ::core::error::Error for #parse_error_type_name #generics_without_bounds {
+                    fn source(&self) -> Option<&(dyn ::core::error::Error + 'static)> {
+                        None
+                    }
+                }
+            };
+        } else if #[cfg(feature = "std")] {
+            let generics_with_fromstr_and_debug_bounds = add_bound_to_all_type_params(
+                &generics_with_fromstr_bound,
+                syn::parse_quote!(::core::fmt::Debug),
+            );
+            let impl_error = quote! {
                 impl #generics_with_fromstr_and_debug_bounds ::std::error::Error for #parse_error_type_name #generics_without_bounds {
                     fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
                         None
@@ -81,14 +93,13 @@ pub fn gen_def_parse_error(
                 }
             };
         } else {
-            // NOTE: There is no `::core::error::Error` yet in stable Rust.
-            // So for `no_std` we just don't implement `Error` trait.
-            let impl_std_error = quote! {};
+            // NOTE: `::core::error::Error` is stable only for rust >= 1.81.0.
+            let impl_error = quote! {};
         }
     };
 
     quote! {
         #definition
-        #impl_std_error
+        #impl_error
     }
 }
