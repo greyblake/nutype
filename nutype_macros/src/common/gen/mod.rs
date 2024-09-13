@@ -4,7 +4,8 @@ pub mod parse_error;
 pub mod tests;
 pub mod traits;
 
-use std::{collections::HashSet, hash::Hash};
+use core::hash::Hash;
+use std::collections::HashSet;
 
 use self::traits::GeneratedTraits;
 

@@ -1,9 +1,9 @@
 use nutype::nutype;
 use std::borrow::Cow;
-use std::cmp::{Ordering, PartialEq, PartialOrd};
+use core::cmp::{Ordering, PartialEq, PartialOrd};
 use std::collections::{HashMap, HashSet};
-use std::fmt::Debug;
-use std::hash::Hash;
+use core::fmt::Debug;
+use core::hash::Hash;
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype
@@ -27,13 +27,13 @@ impl Point {
     }
 }
 
-impl std::fmt::Display for Point {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl core::fmt::Display for Point {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{},{}", self.x, self.y)
     }
 }
 
-impl std::str::FromStr for Point {
+impl core::str::FromStr for Point {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -96,7 +96,7 @@ mod traits {
 
     #[test]
     fn test_partial_ord() {
-        use std::cmp::Ordering;
+        use core::cmp::Ordering;
 
         let loc1 = Location::new(Point::new(1, 1));
         let loc2 = Location::new(Point::new(1, 2));
@@ -108,7 +108,7 @@ mod traits {
 
     #[test]
     fn test_ord() {
-        use std::cmp::Ordering;
+        use core::cmp::Ordering;
 
         let loc1 = Location::new(Point::new(1, 1));
         let loc2 = Location::new(Point::new(1, 2));
@@ -163,7 +163,7 @@ mod traits {
 
     #[test]
     fn test_borrow() {
-        use std::borrow::Borrow;
+        use core::borrow::Borrow;
 
         let location = Location::from(Point::new(3, 4));
         let point: &Point = location.borrow();
@@ -592,8 +592,8 @@ mod with_generics {
         }
 
         {
-            let nan1 = WrapperPartialOrd::new(std::f64::NAN);
-            let nan2 = WrapperPartialOrd::new(std::f64::NAN);
+            let nan1 = WrapperPartialOrd::new(f64::NAN);
+            let nan2 = WrapperPartialOrd::new(f64::NAN);
             assert_eq!(nan1.partial_cmp(&nan2), None);
         }
     }
@@ -882,7 +882,7 @@ mod with_generics {
 
     #[test]
     fn test_derive_borrow_with_generic_boundaries_and_validation_and_sanitization() {
-        use std::borrow::Borrow;
+        use core::borrow::Borrow;
 
         #[nutype(
             sanitize(with = |mut v| { v.sort(); v }),

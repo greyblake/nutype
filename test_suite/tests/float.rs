@@ -433,7 +433,7 @@ mod traits {
 
     #[test]
     fn test_trait_borrow() {
-        use std::borrow::Borrow;
+        use core::borrow::Borrow;
 
         #[nutype(derive(Borrow))]
         pub struct Age(f64);
@@ -517,7 +517,7 @@ mod traits {
     #[cfg(test)]
     mod tests {
         use super::*;
-        use std::cmp::Ordering;
+        use core::cmp::Ordering;
 
         #[test]
         fn test_trait_ord_f32() {

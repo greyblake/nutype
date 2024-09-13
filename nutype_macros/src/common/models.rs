@@ -1,6 +1,6 @@
 use kinded::Kinded;
-use std::ops::Add;
-use std::{collections::HashSet, fmt::Debug};
+use core::{fmt::Debug, ops::Add};
+use std::collections::HashSet;
 use syn::Generics;
 
 use proc_macro2::{Span, TokenStream};

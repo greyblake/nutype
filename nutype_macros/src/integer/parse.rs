@@ -1,4 +1,4 @@
-use std::{
+use core::{
     fmt::{Debug, Display},
     str::FromStr,
 };
