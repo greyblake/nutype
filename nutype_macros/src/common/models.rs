@@ -1,3 +1,5 @@
+mod error_type_path;
+
 use kinded::Kinded;
 use std::ops::Add;
 use std::{collections::HashSet, fmt::Debug};
@@ -17,6 +19,8 @@ use crate::{
 
 use super::gen::type_custom_closure;
 use super::parse::RawValidation;
+
+pub use error_type_path::ErrorTypePath;
 
 /// A spanned item. An item can be anything that cares a domain value.
 /// Keeping a span allows to throw good precise error messages at the validation stage.
@@ -142,41 +146,6 @@ macro_rules! define_ident_type {
 // A type that represents a newtype name.
 // For example: `Username`, `Email`, etc.
 define_ident_type!(TypeName);
-
-#[derive(Debug, Clone)]
-pub struct ErrorTypePath(syn::Path);
-
-impl ErrorTypePath {
-    pub fn new(name: impl Into<syn::Path>) -> Self {
-        Self(name.into())
-    }
-
-    pub fn span(&self) -> Span {
-        use syn::spanned::Spanned;
-
-        self.0.span()
-    }
-}
-
-impl Parse for ErrorTypePath {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let path = input.parse::<syn::Path>()?;
-        Ok(Self::new(path))
-    }
-}
-
-impl core::fmt::Display for ErrorTypePath {
-    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        let token_stream: TokenStream = self.0.clone().to_token_stream();
-        write!(f, "{}", token_stream)
-    }
-}
-
-impl ::quote::ToTokens for ErrorTypePath {
-    fn to_tokens(&self, token_stream: &mut TokenStream) {
-        self.0.to_tokens(token_stream)
-    }
-}
 
 // A type that represents an error name which is returned by `FromStr` traits.
 // For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
