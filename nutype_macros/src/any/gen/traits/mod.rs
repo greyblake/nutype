@@ -147,7 +147,7 @@ fn gen_implemented_traits(
     maybe_default_value: Option<syn::Expr>,
     guard: &AnyGuard,
 ) -> Result<TokenStream, syn::Error> {
-    let maybe_error_type_name = guard.maybe_error_type_name();
+    let maybe_error_type_name = guard.maybe_error_type_path();
     impl_traits
         .iter()
         .map(|t| match t {

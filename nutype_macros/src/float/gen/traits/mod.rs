@@ -163,7 +163,7 @@ fn gen_implemented_traits<T: ToTokens>(
     impl_traits: Vec<FloatIrregularTrait>,
     guard: &FloatGuard<T>,
 ) -> Result<TokenStream, syn::Error> {
-    let maybe_error_type_name = guard.maybe_error_type_name();
+    let maybe_error_type_name = guard.maybe_error_type_path();
     impl_traits
         .iter()
         .map(|t| match t {

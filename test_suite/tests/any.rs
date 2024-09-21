@@ -935,7 +935,9 @@ mod custom_error {
     )]
     struct DecentCollection<T>(Vec<T>);
 
-    fn validate_decent_collection<T>(collection: &[T]) -> Result<(), namespaced_error::DecentCollectionError> {
+    fn validate_decent_collection<T>(
+        collection: &[T],
+    ) -> Result<(), namespaced_error::DecentCollectionError> {
         use namespaced_error::DecentCollectionError;
 
         if collection.len() < 3 {

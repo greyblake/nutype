@@ -5,7 +5,7 @@ use syn::Generics;
 
 use crate::common::{
     gen::{add_bound_to_all_type_params, strip_trait_bounds_on_generics},
-    models::{ErrorTypeName, InnerType, ParseErrorTypeName, TypeName},
+    models::{ErrorTypePath, InnerType, ParseErrorTypeName, TypeName},
 };
 
 /// Generate a name for the error which is used for FromStr trait implementation.
@@ -20,7 +20,7 @@ pub fn gen_def_parse_error(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: impl Into<InnerType>,
-    maybe_error_type_name: Option<&ErrorTypeName>,
+    maybe_error_type_name: Option<&ErrorTypePath>,
     parse_error_type_name: &ParseErrorTypeName,
 ) -> TokenStream {
     let inner_type: InnerType = inner_type.into();

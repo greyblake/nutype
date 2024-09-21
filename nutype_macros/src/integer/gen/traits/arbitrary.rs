@@ -77,7 +77,7 @@ fn guard_to_boundary<T: ToTokens>(
                 }
                 Validation::Standard {
                     validators,
-                    error_type_name: _,
+                    error_type_path: _,
                 } => {
                     // Apply the validators to the boundaries.
                     // Since the validators were already validated, it's guaranteed that they're not

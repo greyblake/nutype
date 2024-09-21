@@ -2,23 +2,23 @@ use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use crate::common::models::{ErrorTypeName, TypeName};
+use crate::common::models::{ErrorTypePath, TypeName};
 
 /// Generate a default error type name if the error name is not specified explicitly by
 /// the user in the attributes.
-pub fn gen_error_type_name(type_name: &TypeName) -> ErrorTypeName {
+pub fn gen_error_type_name(type_name: &TypeName) -> ErrorTypePath {
     let ident = format_ident!("{type_name}Error");
-    ErrorTypeName::new(ident)
+    ErrorTypePath::new(ident)
 }
 
 // NOTE: There is no `::core::error::Error` yet in stable Rust.
 // So for `no_std` we just don't implement `Error` trait.
 #[allow(unused_variables)]
-pub fn gen_impl_error_trait(error_type_name: &ErrorTypeName) -> TokenStream {
+pub fn gen_impl_error_trait(error_type_path: &ErrorTypePath) -> TokenStream {
     cfg_if! {
         if #[cfg(feature = "std")] {
             quote! {
-                impl ::std::error::Error for #error_type_name {
+                impl ::std::error::Error for #error_type_path {
                     fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
                         None
                     }
