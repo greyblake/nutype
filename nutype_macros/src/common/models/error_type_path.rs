@@ -1,6 +1,9 @@
 use proc_macro2::{Span, TokenStream};
-use syn::{spanned::Spanned, parse::{Parse, ParseStream}};
 use quote::ToTokens;
+use syn::{
+    parse::{Parse, ParseStream},
+    spanned::Spanned,
+};
 
 // Represents a path to an error type.
 // Could be a single Ident (e.g. `NameError`, but could also be a path (e.g. `std::io::Error`).

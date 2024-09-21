@@ -1,3 +1,7 @@
+### v0.x.x - 202x-xx-xx
+
+* **[FIX]** Enable to specify custom error as a path (see [#186](https://github.com/greyblake/nutype/issues/186), [#187](https://github.com/greyblake/nutype/pull/187))
+
 ### v0.5.0 - 2024-xx-xx
 
 - **[FEATURE]** Added support for custom error types and validation functions via the `error` and `with` attributes.
