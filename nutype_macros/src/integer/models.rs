@@ -13,7 +13,7 @@ use crate::common::models::{
 #[kinded(display = "snake_case")]
 pub enum IntegerSanitizer<T> {
     With(TypedCustomFunction),
-    _Phantom(std::marker::PhantomData<T>),
+    _Phantom(core::marker::PhantomData<T>),
 }
 
 pub type SpannedIntegerSanitizer<T> = SpannedItem<IntegerSanitizer<T>>;

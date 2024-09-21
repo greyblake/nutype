@@ -1,7 +1,7 @@
 pub mod derive_trait;
 pub mod meta;
 
-use std::{
+use core::{
     any::type_name,
     fmt::{Debug, Display},
     str::FromStr,
@@ -364,7 +364,7 @@ where
 pub fn parse_typed_custom_function<T>(
     input: ParseStream,
 ) -> syn::Result<(TypedCustomFunction, Span)> {
-    let tp_str = std::any::type_name::<T>();
+    let tp_str = core::any::type_name::<T>();
     parse_typed_custom_function_raw(input, tp_str)
 }
 
@@ -381,14 +381,14 @@ pub fn parse_typed_custom_function_raw(
 
 pub fn parse_sanitizer_kind<K>(input: ParseStream) -> syn::Result<(K, Ident)>
 where
-    K: std::str::FromStr + kinded::Kind + std::fmt::Display + 'static,
+    K: core::str::FromStr + kinded::Kind + core::fmt::Display + 'static,
 {
     parse_kind("sanitizer", input)
 }
 
 pub fn parse_validator_kind<K>(input: ParseStream) -> syn::Result<(K, Ident)>
 where
-    K: std::str::FromStr + kinded::Kind + std::fmt::Display + 'static,
+    K: core::str::FromStr + kinded::Kind + core::fmt::Display + 'static,
 {
     parse_kind("validator", input)
 }
@@ -397,7 +397,7 @@ where
 /// Build a helpful error on failure.
 fn parse_kind<K>(attr_type: &str, input: ParseStream) -> syn::Result<(K, Ident)>
 where
-    K: std::str::FromStr + kinded::Kind + std::fmt::Display + 'static,
+    K: core::str::FromStr + kinded::Kind + core::fmt::Display + 'static,
 {
     let ident: Ident = input.parse()?;
     let attr_name = ident.to_string();
