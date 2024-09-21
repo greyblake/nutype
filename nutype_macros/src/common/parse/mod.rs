@@ -21,7 +21,7 @@ use syn::{
 use crate::common::models::SpannedDeriveTrait;
 
 use super::models::{
-    CustomFunction, ErrorTypeName, NewUnchecked, TypedCustomFunction, ValueOrExpr,
+    CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
 };
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
@@ -83,7 +83,7 @@ enum ValidateAttr<Validator: Parse + Kinded> {
 #[derive(Debug, Kinded)]
 #[kinded(display = "snake_case")]
 enum ExtraValidateAttr {
-    Error(ErrorTypeName),
+    Error(ErrorTypePath),
     With(CustomFunction),
 }
 
@@ -93,7 +93,7 @@ impl Parse for ExtraValidateAttr {
         match kind {
             ExtraValidateAttrKind::Error => {
                 let _eq: Token![=] = input.parse()?;
-                let error: ErrorTypeName = input.parse()?;
+                let error: ErrorTypePath = input.parse()?;
                 Ok(ExtraValidateAttr::Error(error))
             }
             ExtraValidateAttrKind::With => {
@@ -148,7 +148,7 @@ where
 pub enum RawValidation<Validator> {
     Custom {
         with: CustomFunction,
-        error: ErrorTypeName,
+        error: ErrorTypePath,
     },
     Standard {
         validators: Vec<Validator>,
@@ -166,7 +166,7 @@ where
 
         let mut validators: Vec<Validator> = Vec::new();
         let mut maybe_with: Option<CustomFunction> = None;
-        let mut maybe_error: Option<ErrorTypeName> = None;
+        let mut maybe_error: Option<ErrorTypePath> = None;
 
         for attr in attrs {
             match attr {

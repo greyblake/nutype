@@ -22,7 +22,7 @@ use crate::{
             traits::GeneratedTraits,
             GenerateNewtype,
         },
-        models::{ErrorTypeName, Guard, TypeName},
+        models::{ErrorTypePath, Guard, TypeName},
     },
     float::models::FloatInnerType,
 };
@@ -65,7 +65,7 @@ where
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream {
         let validations: TokenStream = validators
@@ -74,42 +74,42 @@ where
                 FloatValidator::Less(exclusive_upper_bound) => {
                     quote!(
                         if val >= #exclusive_upper_bound {
-                            return Err(#error_type_name::LessViolated);
+                            return Err(#error_type_path::LessViolated);
                         }
                     )
                 }
                 FloatValidator::LessOrEqual(max) => {
                     quote!(
                         if val > #max {
-                            return Err(#error_type_name::LessOrEqualViolated);
+                            return Err(#error_type_path::LessOrEqualViolated);
                         }
                     )
                 }
                 FloatValidator::Greater(exclusive_lower_bound) => {
                     quote!(
                         if val <= #exclusive_lower_bound {
-                            return Err(#error_type_name::GreaterViolated);
+                            return Err(#error_type_path::GreaterViolated);
                         }
                     )
                 }
                 FloatValidator::GreaterOrEqual(min) => {
                     quote!(
                         if val < #min {
-                            return Err(#error_type_name::GreaterOrEqualViolated);
+                            return Err(#error_type_path::GreaterOrEqualViolated);
                         }
                     )
                 }
                 FloatValidator::Predicate(custom_is_valid_fn) => {
                     quote!(
                         if !(#custom_is_valid_fn)(&val) {
-                            return Err(#error_type_name::PredicateViolated);
+                            return Err(#error_type_path::PredicateViolated);
                         }
                     )
                 }
                 FloatValidator::Finite => {
                     quote!(
                         if !val.is_finite() {
-                            return Err(#error_type_name::FiniteViolated);
+                            return Err(#error_type_path::FiniteViolated);
                         }
                     )
                 }
@@ -117,7 +117,7 @@ where
             .collect();
 
         quote!(
-            fn __validate__(val: &#inner_type) -> core::result::Result<(), #error_type_name> {
+            fn __validate__(val: &#inner_type) -> core::result::Result<(), #error_type_path> {
                 let val = *val;
                 #validations
                 Ok(())
@@ -127,10 +127,10 @@ where
 
     fn gen_validation_error_type(
         type_name: &TypeName,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        gen_validation_error_type(type_name, error_type_name, validators)
+        gen_validation_error_type(type_name, error_type_path, validators)
     }
 
     fn gen_traits(

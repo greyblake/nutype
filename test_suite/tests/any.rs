@@ -930,12 +930,16 @@ mod custom_error {
     use thiserror::Error;
 
     #[nutype(
-        validate(with = validate_decent_collection, error = DecentCollectionError),
+        validate(with = validate_decent_collection, error = namespaced_error::DecentCollectionError),
         derive(Debug, PartialEq, AsRef),
     )]
     struct DecentCollection<T>(Vec<T>);
 
-    fn validate_decent_collection<T>(collection: &[T]) -> Result<(), DecentCollectionError> {
+    fn validate_decent_collection<T>(
+        collection: &[T],
+    ) -> Result<(), namespaced_error::DecentCollectionError> {
+        use namespaced_error::DecentCollectionError;
+
         if collection.len() < 3 {
             Err(DecentCollectionError::TooShort)
         } else if collection.len() > 10 {
@@ -945,17 +949,25 @@ mod custom_error {
         }
     }
 
-    #[derive(Error, Debug, PartialEq)]
-    enum DecentCollectionError {
-        #[error("Collection is too short.")]
-        TooShort,
+    // NOTE: The error is within the module is on purpose to ensure that `error = namespaced_error::DecentCollectionError`
+    // works as expected.
+    mod namespaced_error {
+        use super::*;
 
-        #[error("Collection is too long.")]
-        TooLong,
+        #[derive(Error, Debug, PartialEq)]
+        pub enum DecentCollectionError {
+            #[error("Collection is too short.")]
+            TooShort,
+
+            #[error("Collection is too long.")]
+            TooLong,
+        }
     }
 
     #[test]
     fn test_custom_error() {
+        use namespaced_error::DecentCollectionError;
+
         assert_eq!(
             DecentCollection::try_new(vec![1, 2]),
             Err(DecentCollectionError::TooShort)

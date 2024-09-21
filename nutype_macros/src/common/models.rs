@@ -1,3 +1,5 @@
+mod error_type_path;
+
 use kinded::Kinded;
 use std::ops::Add;
 use std::{collections::HashSet, fmt::Debug};
@@ -17,6 +19,8 @@ use crate::{
 
 use super::gen::type_custom_closure;
 use super::parse::RawValidation;
+
+pub use error_type_path::ErrorTypePath;
 
 /// A spanned item. An item can be anything that cares a domain value.
 /// Keeping a span allows to throw good precise error messages at the validation stage.
@@ -143,23 +147,6 @@ macro_rules! define_ident_type {
 // For example: `Username`, `Email`, etc.
 define_ident_type!(TypeName);
 
-// Represents a type for a validation error.
-// For example, if `TypeName` is `Email`, then `ErrorTypeName` would usually be `EmailError`.
-define_ident_type!(ErrorTypeName);
-
-impl ErrorTypeName {
-    pub fn span(&self) -> Span {
-        self.0.span()
-    }
-}
-
-impl Parse for ErrorTypeName {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let ident = input.parse::<proc_macro2::Ident>()?;
-        Ok(Self::new(ident))
-    }
-}
-
 // A type that represents an error name which is returned by `FromStr` traits.
 // For example, if `TypeName` is `Amount`, then this would be `AmountParseError`.
 define_ident_type!(ParseErrorTypeName);
@@ -230,35 +217,35 @@ pub enum Validation<Validator> {
 
         /// Name of the error type. Since the type is defined by user, the macro must not generate
         /// it.
-        error_type_name: ErrorTypeName,
+        error_type_path: ErrorTypePath,
     },
     Standard {
         /// List of the standard validators
         validators: Vec<Validator>,
 
         /// Name of the error type. The #[nutype] macro must generate definition of this type.
-        error_type_name: ErrorTypeName,
+        error_type_path: ErrorTypePath,
     },
 }
 
 impl<V> Validation<V> {
-    pub fn error_type_name(&self) -> &ErrorTypeName {
+    pub fn error_type_path(&self) -> &ErrorTypePath {
         match self {
             Self::Custom {
-                error_type_name, ..
-            } => error_type_name,
+                error_type_path, ..
+            } => error_type_path,
             Self::Standard {
-                error_type_name, ..
-            } => error_type_name,
+                error_type_path, ..
+            } => error_type_path,
         }
     }
 }
 
 impl<Sanitizer, Validator> Guard<Sanitizer, Validator> {
-    pub fn maybe_error_type_name(&self) -> Option<&ErrorTypeName> {
+    pub fn maybe_error_type_path(&self) -> Option<&ErrorTypePath> {
         match self {
             Self::WithoutValidation { .. } => None,
-            Self::WithValidation { validation, .. } => Some(validation.error_type_name()),
+            Self::WithValidation { validation, .. } => Some(validation.error_type_path()),
         }
     }
 }

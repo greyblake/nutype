@@ -9,7 +9,7 @@ use std::{collections::HashSet, hash::Hash};
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    CustomFunction, ErrorTypeName, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName,
+    CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName,
     TypeName, TypeTrait,
 };
 use crate::common::{
@@ -99,27 +99,27 @@ pub fn gen_reimports(
     vis: Visibility,
     type_name: &TypeName,
     module_name: &ModuleName,
-    maybe_error_type_name: Option<&ErrorTypeName>,
+    maybe_error_type_path: Option<&ErrorTypePath>,
     maybe_parse_error_type_name: Option<&ParseErrorTypeName>,
 ) -> TokenStream {
     let reimport_main_type = quote! {
         #vis use #module_name::#type_name;
     };
 
-    let reimport_error_type_if_needed = match maybe_error_type_name {
+    let reimport_error_type_if_needed = match maybe_error_type_path {
         None => quote!(),
-        Some(ref error_type_name) => {
+        Some(ref error_type_path) => {
             quote! (
-                #vis use #module_name::#error_type_name;
+                #vis use #module_name::#error_type_path;
             )
         }
     };
 
     let reimport_parse_error_type_if_needed = match maybe_parse_error_type_name {
         None => quote!(),
-        Some(ref parse_error_type_name) => {
+        Some(ref parse_error_type_path) => {
             quote! (
-                #vis use #module_name::#parse_error_type_name;
+                #vis use #module_name::#parse_error_type_path;
             )
         }
     };
@@ -224,13 +224,13 @@ pub trait GenerateNewtype {
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream;
 
     fn gen_validation_error_type(
         type_name: &TypeName,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream;
 
@@ -256,10 +256,10 @@ pub trait GenerateNewtype {
         let maybe_generated_validation_error = match validation {
             Validation::Standard {
                 validators,
-                error_type_name,
+                error_type_path,
             } => {
                 let validation_error =
-                    Self::gen_validation_error_type(type_name, error_type_name, validators);
+                    Self::gen_validation_error_type(type_name, error_type_path, validators);
                 Some(validation_error)
             }
             Validation::Custom { .. } => None,
@@ -268,12 +268,12 @@ pub trait GenerateNewtype {
         let fn_validate = match validation {
             Validation::Standard {
                 validators,
-                error_type_name,
-            } => Self::gen_fn_validate(inner_type, error_type_name, validators),
+                error_type_path,
+            } => Self::gen_fn_validate(inner_type, error_type_path, validators),
             Validation::Custom {
                 with,
-                error_type_name,
-            } => gen_fn_validate_custom(inner_type, with, error_type_name),
+                error_type_path,
+            } => gen_fn_validate_custom(inner_type, with, error_type_path),
         };
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
@@ -285,13 +285,13 @@ pub trait GenerateNewtype {
             (quote!(#inner_type), quote!())
         };
 
-        let error_type_name = validation.error_type_name();
+        let error_type_path = validation.error_type_path();
 
         quote!(
             #maybe_generated_validation_error
 
             impl #generics #type_name #generics_without_bounds {
-                pub fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
+                pub fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
                     #convert_raw_value_if_necessary
 
                     let sanitized_value: #inner_type = Self::__sanitize__(raw_value);
@@ -306,7 +306,7 @@ pub trait GenerateNewtype {
 
                 // TODO: Remove in 0.5.0
                 #[deprecated(since="0.4.3", note="\nUse `try_new` instead.")]
-                pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_name> {
+                pub fn new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
                     Self::try_new(raw_value)
                 }
             }
@@ -395,7 +395,7 @@ pub trait GenerateNewtype {
             Self::gen_implementation(&type_name, &generics, &inner_type, &guard, new_unchecked);
 
         let has_from_str_trait = traits.iter().any(|t| t.is_from_str());
-        let maybe_parse_error_type_name = if has_from_str_trait && Self::HAS_DEDICATED_PARSE_ERROR {
+        let maybe_parse_error_type_path = if has_from_str_trait && Self::HAS_DEDICATED_PARSE_ERROR {
             Some(gen_parse_error_name(&type_name))
         } else {
             None
@@ -410,14 +410,14 @@ pub trait GenerateNewtype {
             &traits,
         );
 
-        let maybe_reimported_error_type_name = match &guard {
+        let maybe_reimported_error_type_path = match &guard {
             Guard::WithoutValidation { .. } => None,
             Guard::WithValidation { validation, .. } => match validation {
                 // We won't need to reimport error if it's a custom error provided by the user.
                 Validation::Custom { .. } => None,
                 Validation::Standard {
-                    error_type_name, ..
-                } => Some(error_type_name),
+                    error_type_path, ..
+                } => Some(error_type_path),
             },
         };
 
@@ -425,8 +425,8 @@ pub trait GenerateNewtype {
             vis,
             &type_name,
             &module_name,
-            maybe_reimported_error_type_name,
-            maybe_parse_error_type_name.as_ref(),
+            maybe_reimported_error_type_path,
+            maybe_parse_error_type_path.as_ref(),
         );
 
         let GeneratedTraits {
@@ -472,13 +472,13 @@ pub trait GenerateNewtype {
 fn gen_fn_validate_custom<InnerType: ToTokens>(
     inner_type: &InnerType,
     with: &CustomFunction,
-    error_type_name: &ErrorTypeName,
+    error_type_path: &ErrorTypePath,
 ) -> TokenStream {
     quote! {
         // For some types like `String` clippy suggests using `&str` instead of `&String` here,
         // but it does not really matter in this context.
         #[allow(clippy::ptr_arg)]
-        fn __validate__(value: &#inner_type) -> ::core::result::Result<(), #error_type_name> {
+        fn __validate__(value: &#inner_type) -> ::core::result::Result<(), #error_type_path> {
             #with(value)
         }
     }

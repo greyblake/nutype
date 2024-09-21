@@ -15,7 +15,7 @@ use crate::{
             gen_impl_trait_try_from, split_into_generatable_traits, GeneratableTrait,
             GeneratableTraits, GeneratedTraits,
         },
-        models::{ErrorTypeName, TypeName},
+        models::{ErrorTypePath, TypeName},
     },
     string::models::{StringDeriveTrait, StringGuard, StringInnerType},
 };
@@ -176,7 +176,7 @@ fn gen_implemented_traits(
     guard: &StringGuard,
 ) -> Result<TokenStream, syn::Error> {
     let inner_type = StringInnerType;
-    let maybe_error_type_name = guard.maybe_error_type_name();
+    let maybe_error_type_name = guard.maybe_error_type_path();
 
     impl_traits
         .iter()
@@ -225,7 +225,7 @@ fn gen_implemented_traits(
 
 fn gen_impl_from_str(
     type_name: &TypeName,
-    maybe_error_type_name: Option<&ErrorTypeName>,
+    maybe_error_type_name: Option<&ErrorTypePath>,
 ) -> TokenStream {
     if let Some(error_type_name) = maybe_error_type_name {
         quote! {
@@ -265,7 +265,7 @@ fn gen_impl_from_str_and_string(type_name: &TypeName) -> TokenStream {
 
 fn gen_impl_try_from(
     type_name: &TypeName,
-    maybe_error_type_name: Option<&ErrorTypeName>,
+    maybe_error_type_name: Option<&ErrorTypePath>,
 ) -> TokenStream {
     let generics = Generics::default();
     let impl_try_from_string =

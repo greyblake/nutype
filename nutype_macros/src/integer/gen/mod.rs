@@ -24,7 +24,7 @@ use crate::common::{
         traits::GeneratedTraits,
         GenerateNewtype,
     },
-    models::{ErrorTypeName, Guard, TypeName},
+    models::{ErrorTypePath, Guard, TypeName},
 };
 
 impl<T> GenerateNewtype for IntegerNewtype<T>
@@ -64,7 +64,7 @@ where
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream {
         let validations: TokenStream = validators
@@ -73,35 +73,35 @@ where
                 IntegerValidator::Less(exclusive_upper_bound) => {
                     quote!(
                         if val >= #exclusive_upper_bound {
-                            return Err(#error_type_name::LessViolated);
+                            return Err(#error_type_path::LessViolated);
                         }
                     )
                 }
                 IntegerValidator::LessOrEqual(max) => {
                     quote!(
                         if val > #max {
-                            return Err(#error_type_name::LessOrEqualViolated);
+                            return Err(#error_type_path::LessOrEqualViolated);
                         }
                     )
                 }
                 IntegerValidator::Greater(exclusive_lower_bound) => {
                     quote!(
                         if val <= #exclusive_lower_bound {
-                            return Err(#error_type_name::GreaterViolated);
+                            return Err(#error_type_path::GreaterViolated);
                         }
                     )
                 }
                 IntegerValidator::GreaterOrEqual(min) => {
                     quote!(
                         if val < #min {
-                            return Err(#error_type_name::GreaterOrEqualViolated);
+                            return Err(#error_type_path::GreaterOrEqualViolated);
                         }
                     )
                 }
                 IntegerValidator::Predicate(custom_is_valid_fn) => {
                     quote!(
                         if !(#custom_is_valid_fn)(&val) {
-                            return Err(#error_type_name::PredicateViolated);
+                            return Err(#error_type_path::PredicateViolated);
                         }
                     )
                 }
@@ -109,7 +109,7 @@ where
             .collect();
 
         quote!(
-            fn __validate__(val: &#inner_type) -> ::core::result::Result<(), #error_type_name> {
+            fn __validate__(val: &#inner_type) -> ::core::result::Result<(), #error_type_path> {
                 let val = *val;
                 #validations
                 Ok(())
@@ -119,10 +119,10 @@ where
 
     fn gen_validation_error_type(
         type_name: &TypeName,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        gen_validation_error_type(type_name, error_type_name, validators)
+        gen_validation_error_type(type_name, error_type_path, validators)
     }
 
     fn gen_traits(

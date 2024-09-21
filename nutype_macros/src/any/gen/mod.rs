@@ -11,7 +11,7 @@ use crate::common::{
     gen::{
         tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits, GenerateNewtype,
     },
-    models::{ErrorTypeName, Guard, TypeName, TypedCustomFunction},
+    models::{ErrorTypePath, Guard, TypeName, TypedCustomFunction},
 };
 
 use self::error::gen_validation_error_type;
@@ -61,7 +61,7 @@ impl GenerateNewtype for AnyNewtype {
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream {
         let validations: TokenStream = validators
@@ -77,7 +77,7 @@ impl GenerateNewtype for AnyNewtype {
                         .expect("Failed to convert predicate into a typed closure");
                     quote!(
                         if !(#typed_predicate)(val) {
-                            return Err(#error_type_name::PredicateViolated);
+                            return Err(#error_type_path::PredicateViolated);
                         }
                     )
                 }
@@ -98,7 +98,7 @@ impl GenerateNewtype for AnyNewtype {
             // Since this code is generic which is used for different inner types (not only Cow), we cannot easily fix it to make
             // clippy happy.
             #[allow(clippy::ptr_arg)]
-            fn __validate__<'nutype_a>(val: &'nutype_a #inner_type) -> ::core::result::Result<(), #error_type_name> {
+            fn __validate__<'nutype_a>(val: &'nutype_a #inner_type) -> ::core::result::Result<(), #error_type_path> {
                 #validations
                 Ok(())
             }
@@ -107,10 +107,10 @@ impl GenerateNewtype for AnyNewtype {
 
     fn gen_validation_error_type(
         type_name: &TypeName,
-        error_type_name: &ErrorTypeName,
+        error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        gen_validation_error_type(type_name, error_type_name, validators)
+        gen_validation_error_type(type_name, error_type_path, validators)
     }
 
     fn gen_traits(

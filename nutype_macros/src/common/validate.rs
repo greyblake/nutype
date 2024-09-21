@@ -30,18 +30,18 @@ pub fn validate_guard<RawSanitizer, RawValidator, Sanitizer, Validator>(
 
     let validation = match raw_validation {
         RawValidation::Standard { validators } => {
-            let error_type_name = gen_error_type_name(type_name);
+            let error_type_path = gen_error_type_name(type_name);
             let validators = validate_validators(validators)?;
             Validation::Standard {
                 validators,
-                error_type_name,
+                error_type_path,
             }
         }
         RawValidation::Custom { with, error } => {
-            let error_type_name = error;
+            let error_type_path = error;
             Validation::Custom {
                 with,
-                error_type_name,
+                error_type_path,
             }
         }
     };

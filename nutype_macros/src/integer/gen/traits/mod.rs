@@ -183,7 +183,7 @@ fn gen_implemented_traits<T: ToTokens>(
     maybe_default_value: Option<syn::Expr>,
     guard: &IntegerGuard<T>,
 ) -> Result<TokenStream, syn::Error> {
-    let maybe_error_type_name = guard.maybe_error_type_name();
+    let maybe_error_type_name = guard.maybe_error_type_path();
     impl_traits
         .iter()
         .map(|t| match t {

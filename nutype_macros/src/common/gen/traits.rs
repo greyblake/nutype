@@ -6,7 +6,7 @@ use syn::Generics;
 
 use crate::common::{
     gen::{add_bound_to_all_type_params, strip_trait_bounds_on_generics},
-    models::{ErrorTypeName, InnerType, TypeName},
+    models::{ErrorTypePath, InnerType, TypeName},
 };
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
@@ -172,7 +172,7 @@ pub fn gen_impl_trait_try_from(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: impl ToTokens,
-    maybe_error_type_name: Option<&ErrorTypeName>,
+    maybe_error_type_name: Option<&ErrorTypePath>,
 ) -> TokenStream {
     let generics_without_bounds = strip_trait_bounds_on_generics(generics);
 
@@ -213,7 +213,7 @@ pub fn gen_impl_trait_from_str(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: impl Into<InnerType>,
-    maybe_error_type_name: Option<&ErrorTypeName>,
+    maybe_error_type_name: Option<&ErrorTypePath>,
 ) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
     let parse_error_type_name = gen_parse_error_name(type_name);
@@ -286,7 +286,7 @@ pub fn gen_impl_trait_serde_deserialize(
     type_name: &TypeName,
     type_generics: &Generics,
     inner_type: impl Into<InnerType>,
-    maybe_error_type_name: Option<&ErrorTypeName>,
+    maybe_error_type_name: Option<&ErrorTypePath>,
 ) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
     let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
