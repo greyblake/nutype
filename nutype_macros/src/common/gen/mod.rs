@@ -453,7 +453,11 @@ pub trait GenerateNewtype {
                 #implementation
                 #implement_traits
 
-                #tests
+                #[cfg(test)]
+                mod tests {
+                    use super::*;
+                    #tests
+                }
             }
             #reimports
         ))
