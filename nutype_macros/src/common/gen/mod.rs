@@ -443,6 +443,7 @@ pub trait GenerateNewtype {
 
         Ok(quote!(
             #[doc(hidden)]
+            #[allow(non_snake_case, reason = "we keep original structure name which is probably CamelCase")]
             mod #module_name {
                 use super::*;
 
