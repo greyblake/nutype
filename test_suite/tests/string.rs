@@ -213,7 +213,7 @@ mod validators {
 
     #[test]
     fn test_error() {
-        fn ensure_type_implements_error<T: std::error::Error>() {}
+        fn ensure_type_implements_error<T: core::error::Error>() {}
 
         #[nutype(validate(not_empty), derive(Debug, PartialEq))]
         pub struct Email(String);
@@ -391,7 +391,7 @@ mod derives {
 
     #[test]
     fn test_trait_borrow_str() {
-        use std::borrow::Borrow;
+        use core::borrow::Borrow;
 
         #[nutype(derive(Borrow))]
         pub struct Name(String);
@@ -403,7 +403,7 @@ mod derives {
 
     #[test]
     fn test_trait_borrow_string() {
-        use std::borrow::Borrow;
+        use core::borrow::Borrow;
 
         #[nutype(derive(Borrow))]
         pub struct Name(String);
