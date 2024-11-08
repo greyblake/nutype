@@ -2,9 +2,9 @@ use nutype::nutype;
 extern crate alloc;
 use alloc::borrow::Cow;
 use core::cmp::{Ordering, PartialEq, PartialOrd};
-use std::collections::{HashMap, HashSet};
 use core::fmt::Debug;
 use core::hash::Hash;
+use std::collections::{HashMap, HashSet};
 use test_suite::test_helpers::traits::*;
 
 // Inner custom type, which is unknown to nutype

@@ -1,7 +1,7 @@
 mod error_type_path;
 
-use kinded::Kinded;
 use core::{fmt::Debug, ops::Add};
+use kinded::Kinded;
 use std::collections::HashSet;
 use syn::Generics;
 

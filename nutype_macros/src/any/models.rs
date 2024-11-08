@@ -1,7 +1,7 @@
+use core::fmt::Debug;
 use kinded::Kinded;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use core::fmt::Debug;
 use syn::Field;
 
 use crate::common::models::{CustomFunction, Guard, RawGuard, SpannedItem, TypeTrait};
