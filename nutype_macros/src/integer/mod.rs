@@ -1,9 +1,9 @@
-use std::{
-    collections::HashSet,
+use core::{
     fmt::{Debug, Display},
     marker::PhantomData,
     str::FromStr,
 };
+use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::ToTokens;

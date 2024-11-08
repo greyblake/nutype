@@ -608,7 +608,7 @@ mod traits {
 
     #[test]
     fn test_trait_borrow() {
-        use std::borrow::Borrow;
+        use core::borrow::Borrow;
 
         #[nutype(derive(Borrow))]
         pub struct Age(u8);

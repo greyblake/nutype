@@ -324,8 +324,8 @@ pub fn gen_impl_trait_serde_deserialize(
         impl #all_generics_with_deserialize_bound ::serde::Deserialize<'de> for #type_name #type_generics_without_bounds {
             fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> ::core::result::Result<Self, D::Error> {
                 struct __Visitor #all_generics {
-                    marker: ::std::marker::PhantomData<#type_name #type_generics_without_bounds>,
-                    lifetime: ::std::marker::PhantomData<&'de ()>,
+                    marker: ::core::marker::PhantomData<#type_name #type_generics_without_bounds>,
+                    lifetime: ::core::marker::PhantomData<&'de ()>,
                 }
 
                 impl #all_generics_with_deserialize_bound ::serde::de::Visitor<'de> for __Visitor #all_generics_without_bounds {

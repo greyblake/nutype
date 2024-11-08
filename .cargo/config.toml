@@ -1,0 +1,5 @@
+[build]
+rustflags = [
+    "-Dclippy::std_instead_of_core",
+    "-Dclippy::std_instead_of_alloc",
+]
