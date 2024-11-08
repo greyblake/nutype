@@ -15,18 +15,18 @@ pub fn gen_error_type_name(type_name: &TypeName) -> ErrorTypePath {
 #[allow(unused_variables)]
 pub fn gen_impl_error_trait(error_type_path: &ErrorTypePath) -> TokenStream {
     cfg_if! {
-        if #[cfg(ERROR_IN_CORE)] {
-            quote! {
-                impl ::core::error::Error for #error_type_name {
-                    fn source(&self) -> Option<&(dyn ::core::error::Error + 'static)> {
-                        None
-                    }
+        if #[cfg(any(ERROR_IN_CORE, feature = "std"))] {
+            cfg_if! {
+                if #[cfg(ERROR_IN_CORE)] {
+                    let error = quote! { ::core::error::Error };
+                } else {
+                    let error = quote! { ::std::error::Error };
                 }
-            }
-        } else if #[cfg(feature = "std")] {
+            };
+
             quote! {
-                impl ::std::error::Error for #error_type_path {
-                    fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
+                impl #error for #error_type_path {
+                    fn source(&self) -> Option<&(dyn #error + 'static)> {
                         None
                     }
                 }

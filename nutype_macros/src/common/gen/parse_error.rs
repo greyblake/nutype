@@ -68,26 +68,21 @@ pub fn gen_def_parse_error(
     };
 
     cfg_if! {
-        if #[cfg(ERROR_IN_CORE)] {
-            let generics_with_fromstr_and_debug_bounds = add_bound_to_all_type_params(
-                &generics_with_fromstr_bound,
-                syn::parse_quote!(::core::fmt::Debug),
-            );
-            let impl_error = quote! {
-                impl #generics_with_fromstr_and_debug_bounds ::core::error::Error for #parse_error_type_name #generics_without_bounds {
-                    fn source(&self) -> Option<&(dyn ::core::error::Error + 'static)> {
-                        None
-                    }
+        if #[cfg(any(ERROR_IN_CORE, feature = "std"))] {
+            cfg_if! {
+                if #[cfg(ERROR_IN_CORE)] {
+                    let error = quote! { ::core::error::Error };
+                } else {
+                    let error = quote! { ::std::error::Error };
                 }
             };
-        } else if #[cfg(feature = "std")] {
             let generics_with_fromstr_and_debug_bounds = add_bound_to_all_type_params(
                 &generics_with_fromstr_bound,
                 syn::parse_quote!(::core::fmt::Debug),
             );
             let impl_error = quote! {
-                impl #generics_with_fromstr_and_debug_bounds ::std::error::Error for #parse_error_type_name #generics_without_bounds {
-                    fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
+                impl #generics_with_fromstr_and_debug_bounds #error for #parse_error_type_name #generics_without_bounds {
+                    fn source(&self) -> Option<&(dyn #error + 'static)> {
                         None
                     }
                 }
