@@ -1,8 +1,11 @@
-### v0.x.x - 202x-xx-xx
+### v0.5.1 - 2024-xx-xx
 
+* **[FEATURE]** In `no_std` generate implementation of `::core::error::Error` if Rust version is 1.81 or higher.
 * **[FIX]** Enable to specify custom error as a path (see [#186](https://github.com/greyblake/nutype/issues/186), [#187](https://github.com/greyblake/nutype/pull/187))
+* **[FIX]** Make `Deserialize` derive compile when combination of `no_std` and `serde` features are used ([#182](https://github.com/greyblake/nutype/issues/182))
+* **[FIX]** Fix lint warnings about inner generated module
 
-### v0.5.0 - 2024-xx-xx
+### v0.5.0 - 2024-09-02
 
 - **[FEATURE]** Added support for custom error types and validation functions via the `error` and `with` attributes.
 - **[BREAKING]** Replaced `lazy_static` with [`std::sync::LazyLock`](https://doc.rust-lang.org/stable/std/sync/struct.LazyLock.html) for regex validation. This requires Rust 1.80 or higher and may cause compilation issues on older Rust versions due to the use of `std::sync::LazyLock`. If upgrading Rust isn't an option, you can still use `lazy_static` explicitly as a workaround.
