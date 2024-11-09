@@ -26,6 +26,12 @@ cfg-if = "1.0"
 kinded = "0.3.0"
 urlencoding = "2.0"
 
+[build-dependencies]
+rustc_version = "0.4.1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(ERROR_IN_CORE)'] }
+
 [lib]
 proc-macro = true
 

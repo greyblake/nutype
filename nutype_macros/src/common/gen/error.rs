@@ -11,15 +11,22 @@ pub fn gen_error_type_name(type_name: &TypeName) -> ErrorTypePath {
     ErrorTypePath::new(ident)
 }
 
-// NOTE: There is no `::core::error::Error` yet in stable Rust.
-// So for `no_std` we just don't implement `Error` trait.
+// NOTE: `::core::error::Error` is stable only for rust >= 1.81.0.
 #[allow(unused_variables)]
 pub fn gen_impl_error_trait(error_type_path: &ErrorTypePath) -> TokenStream {
     cfg_if! {
-        if #[cfg(feature = "std")] {
+        if #[cfg(any(ERROR_IN_CORE, feature = "std"))] {
+            cfg_if! {
+                if #[cfg(ERROR_IN_CORE)] {
+                    let error = quote! { ::core::error::Error };
+                } else {
+                    let error = quote! { ::std::error::Error };
+                }
+            };
+
             quote! {
-                impl ::std::error::Error for #error_type_path {
-                    fn source(&self) -> Option<&(dyn ::std::error::Error + 'static)> {
+                impl #error for #error_type_path {
+                    fn source(&self) -> Option<&(dyn #error + 'static)> {
                         None
                     }
                 }
