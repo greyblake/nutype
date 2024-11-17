@@ -9,9 +9,11 @@ use syn::{parse_quote, Generics};
 
 use crate::common::{
     gen::{
-        tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits, GenerateNewtype,
+        tests::{gen_associated_consts_should_be_valid, gen_test_should_have_valid_default_value},
+        traits::GeneratedTraits,
+        GenerateNewtype,
     },
-    models::{ErrorTypePath, Guard, TypeName, TypedCustomFunction},
+    models::{ConstAssign, ErrorTypePath, Guard, TypeName, TypedCustomFunction},
 };
 
 use self::error::gen_validation_error_type;
@@ -138,6 +140,7 @@ impl GenerateNewtype for AnyNewtype {
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         _traits: &HashSet<Self::TypedTrait>,
+        associated_consts: &[ConstAssign],
     ) -> TokenStream {
         let test_valid_default_value = gen_test_should_have_valid_default_value(
             type_name,
@@ -145,9 +148,12 @@ impl GenerateNewtype for AnyNewtype {
             maybe_default_value,
             guard.has_validation(),
         );
+        let test_associated_consts =
+            gen_associated_consts_should_be_valid(type_name, associated_consts);
 
         quote! {
             #test_valid_default_value
+            #test_associated_consts
         }
     }
 }

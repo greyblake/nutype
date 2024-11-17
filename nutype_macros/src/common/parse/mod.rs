@@ -21,7 +21,7 @@ use syn::{
 use crate::common::models::SpannedDeriveTrait;
 
 use super::models::{
-    CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
+    ConstAssign, CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
 };
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
@@ -71,6 +71,9 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
 
     /// Parsed from `derive(...)` attribute
     pub derive_traits: Vec<SpannedDeriveTrait>,
+
+    /// Parsed from `consts(...)` attribute
+    pub associated_consts: Box<[ConstAssign]>,
 }
 
 enum ValidateAttr<Validator: Parse + Kinded> {
@@ -225,6 +228,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             new_unchecked: NewUnchecked::Off,
             default: None,
             derive_traits: vec![],
+            associated_consts: Box::new([]),
         }
     }
 }
@@ -298,6 +302,20 @@ where
                         );
                         return Err(syn::Error::new(ident.span(), msg));
                     }
+                }
+            } else if ident == "consts" {
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let items = content.parse_terminated(ConstAssign::parse, Token![,])?;
+                    attrs.associated_consts = items.into_iter().collect();
+                } else {
+                    let msg = concat!(
+                        "`consts` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    consts(MIN = 0.0, MAX = 12.0, DEFAULT = 4.0)\n\n"
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
                 }
             } else {
                 let msg = format!("Unknown attribute `{ident}`");

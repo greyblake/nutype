@@ -1,3 +1,4 @@
+pub mod associated_consts;
 pub mod error;
 pub mod new_unchecked;
 pub mod parse_error;
@@ -10,11 +11,14 @@ use std::collections::HashSet;
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName,
-    TypeName, TypeTrait,
+    ConstAssign, CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked,
+    ParseErrorTypeName, TypeName, TypeTrait,
 };
 use crate::common::{
-    gen::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
+    gen::{
+        associated_consts::gen_associated_consts, new_unchecked::gen_new_unchecked,
+        parse_error::gen_parse_error_name,
+    },
     models::{ModuleName, Validation},
 };
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
@@ -351,6 +355,7 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         new_unchecked: NewUnchecked,
+        associated_consts: &[ConstAssign],
     ) -> TokenStream {
         let impl_new = match guard {
             Guard::WithoutValidation { sanitizers } => {
@@ -363,11 +368,13 @@ pub trait GenerateNewtype {
         };
         let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type);
         let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
+        let impl_associated_consts = gen_associated_consts(type_name, generics, associated_consts);
 
         quote! {
             #impl_new
             #impl_into_inner
             #impl_new_unchecked
+            #impl_associated_consts
         }
     }
 
@@ -389,11 +396,18 @@ pub trait GenerateNewtype {
             maybe_default_value,
             inner_type,
             generics,
+            associated_consts,
         } = params;
 
         let module_name = gen_module_name_for_type(&type_name);
-        let implementation =
-            Self::gen_implementation(&type_name, &generics, &inner_type, &guard, new_unchecked);
+        let implementation = Self::gen_implementation(
+            &type_name,
+            &generics,
+            &inner_type,
+            &guard,
+            new_unchecked,
+            &associated_consts,
+        );
 
         let has_from_str_trait = traits.iter().any(|t| t.is_from_str());
         let maybe_parse_error_type_path = if has_from_str_trait && Self::HAS_DEDICATED_PARSE_ERROR {
@@ -409,6 +423,7 @@ pub trait GenerateNewtype {
             &maybe_default_value,
             &guard,
             &traits,
+            &associated_consts,
         );
 
         let maybe_reimported_error_type_path = match &guard {
@@ -472,6 +487,7 @@ pub trait GenerateNewtype {
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         traits: &HashSet<Self::TypedTrait>,
+        associated_consts: &[ConstAssign],
     ) -> TokenStream;
 }
 

@@ -3,9 +3,9 @@ mod error_type_path;
 use core::{fmt::Debug, ops::Add};
 use kinded::Kinded;
 use std::collections::HashSet;
-use syn::Generics;
+use syn::{Expr, ExprAssign, ExprPath, Generics};
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
 use syn::{
     parse::{Parse, ParseStream},
@@ -154,6 +154,150 @@ define_ident_type!(ParseErrorTypeName);
 // Module name, where the type is placed.
 define_ident_type!(ModuleName);
 
+trait ExprExt {
+    fn attrs(&self) -> Option<&Vec<Attribute>>;
+}
+impl ExprExt for Expr {
+    fn attrs(&self) -> Option<&Vec<Attribute>> {
+        use syn::{
+            ExprArray, ExprAssign, ExprAsync, ExprAwait, ExprBinary, ExprBlock, ExprBreak,
+            ExprCall, ExprCast, ExprConst, ExprContinue, ExprField, ExprForLoop, ExprGroup, ExprIf,
+            ExprIndex, ExprInfer, ExprLet, ExprLit, ExprLoop, ExprMacro, ExprMatch, ExprMethodCall,
+            ExprParen, ExprPath, ExprRange, ExprReference, ExprRepeat, ExprReturn, ExprStruct,
+            ExprTry, ExprTryBlock, ExprTuple, ExprUnary, ExprUnsafe, ExprWhile, ExprYield,
+        };
+        match self {
+            Expr::Array(ExprArray { attrs, .. })
+            | Expr::Assign(ExprAssign { attrs, .. })
+            | Expr::Async(ExprAsync { attrs, .. })
+            | Expr::Await(ExprAwait { attrs, .. })
+            | Expr::Binary(ExprBinary { attrs, .. })
+            | Expr::Block(ExprBlock { attrs, .. })
+            | Expr::Break(ExprBreak { attrs, .. })
+            | Expr::Call(ExprCall { attrs, .. })
+            | Expr::Cast(ExprCast { attrs, .. })
+            | Expr::Closure(ExprClosure { attrs, .. })
+            | Expr::Const(ExprConst { attrs, .. })
+            | Expr::Continue(ExprContinue { attrs, .. })
+            | Expr::Field(ExprField { attrs, .. })
+            | Expr::ForLoop(ExprForLoop { attrs, .. })
+            | Expr::Group(ExprGroup { attrs, .. })
+            | Expr::If(ExprIf { attrs, .. })
+            | Expr::Index(ExprIndex { attrs, .. })
+            | Expr::Infer(ExprInfer { attrs, .. })
+            | Expr::Let(ExprLet { attrs, .. })
+            | Expr::Lit(ExprLit { attrs, .. })
+            | Expr::Loop(ExprLoop { attrs, .. })
+            | Expr::Macro(ExprMacro { attrs, .. })
+            | Expr::Match(ExprMatch { attrs, .. })
+            | Expr::MethodCall(ExprMethodCall { attrs, .. })
+            | Expr::Paren(ExprParen { attrs, .. })
+            | Expr::Path(ExprPath { attrs, .. })
+            | Expr::Range(ExprRange { attrs, .. })
+            | Expr::Reference(ExprReference { attrs, .. })
+            | Expr::Repeat(ExprRepeat { attrs, .. })
+            | Expr::Return(ExprReturn { attrs, .. })
+            | Expr::Struct(ExprStruct { attrs, .. })
+            | Expr::Try(ExprTry { attrs, .. })
+            | Expr::TryBlock(ExprTryBlock { attrs, .. })
+            | Expr::Tuple(ExprTuple { attrs, .. })
+            | Expr::Unary(ExprUnary { attrs, .. })
+            | Expr::Unsafe(ExprUnsafe { attrs, .. })
+            | Expr::While(ExprWhile { attrs, .. })
+            | Expr::Yield(ExprYield { attrs, .. }) => Some(attrs),
+            Expr::Verbatim(_) => None,
+            _ => unimplemented!("New variant got implemented."),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ConstAssign {
+    pub const_name: Ident,
+    pub const_value: TokenStream,
+}
+
+impl Parse for ConstAssign {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let Expr::Assign(ExprAssign {
+            left: left_expr,
+            right: right_expr,
+            ..
+        }) = input.parse()?
+        else {
+            return Err(syn::Error::new(
+                proc_macro2::Span::call_site(),
+                "Associated consts should be declared by assigning a name to a value.",
+            ));
+        };
+
+        // const_name must be a path of length 1, without any generic parameters
+        let const_name =
+            match *left_expr {
+                Expr::Path(ExprPath {
+                    path:
+                        Path {
+                            segments,
+                            leading_colon: None,
+                        },
+                    qself: None,
+                    ..
+                }) if segments.len() == 1 => segments
+                    .first()
+                    .map(|seg| seg.ident.clone())
+                    .ok_or_else(|| {
+                        syn::Error::new(
+                            proc_macro2::Span::call_site(),
+                            "Unexpected error: missing segment in constant name.",
+                        )
+                    })?,
+                _ => {
+                    return Err(syn::Error::new(
+                        proc_macro2::Span::call_site(),
+                        "Invalid kind of name, expected a bare identifier.",
+                    ));
+                }
+            };
+
+        let const_value = match *right_expr {
+            expr @ (Expr::Array(_)
+            | Expr::Binary(_)
+            | Expr::Block(_)
+            | Expr::Call(_)
+            | Expr::Cast(_)
+            | Expr::Closure(_)
+            | Expr::Const(_)
+            | Expr::Index(_)
+            | Expr::Lit(_)
+            | Expr::Macro(_)
+            | Expr::Match(_)
+            | Expr::MethodCall(_)
+            | Expr::Paren(_)
+            | Expr::Path(_)
+            | Expr::Range(_)
+            | Expr::Repeat(_)
+            | Expr::Tuple(_)
+            | Expr::Unsafe(_)
+            | Expr::Unary(_))
+                if expr.attrs().map_or(false, |attrs| attrs.is_empty()) =>
+            {
+                quote! { #expr }
+            }
+            _ => {
+                return Err(syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    format!("Invalid kind of value. {right_expr:?}"),
+                ));
+            }
+        };
+
+        Ok(Self {
+            const_name,
+            const_value,
+        })
+    }
+}
+
 #[derive(Debug)]
 pub struct Meta {
     pub type_name: TypeName,
@@ -263,6 +407,8 @@ pub struct Attributes<G, DT> {
     pub default: Option<syn::Expr>,
 
     pub derive_traits: Vec<DT>,
+
+    pub associated_consts: Box<[ConstAssign]>,
 }
 
 /// Represents a value known at compile time or an expression.
@@ -396,6 +542,7 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub guard: Guard,
     pub new_unchecked: NewUnchecked,
     pub maybe_default_value: Option<syn::Expr>,
+    pub associated_consts: Box<[ConstAssign]>,
 }
 
 pub trait Newtype {
@@ -440,6 +587,7 @@ pub trait Newtype {
             new_unchecked,
             default: maybe_default_value,
             derive_traits,
+            associated_consts,
         } = Self::parse_attributes(attrs, &type_name)?;
         let traits = Self::validate(&guard, derive_traits)?;
         let generated_output = Self::generate(GenerateParams {
@@ -452,6 +600,7 @@ pub trait Newtype {
             new_unchecked,
             maybe_default_value,
             inner_type,
+            associated_consts,
         })?;
         Ok(generated_output)
     }

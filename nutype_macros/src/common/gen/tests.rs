@@ -1,8 +1,8 @@
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{format_ident, quote, ToTokens};
 use syn::Generics;
 
-use crate::common::models::{NumericBound, TypeName};
+use crate::common::models::{ConstAssign, NumericBound, TypeName};
 
 pub fn gen_test_should_have_consistent_lower_and_upper_boundaries<Validator>(
     type_name: &TypeName,
@@ -72,4 +72,37 @@ Note: the test is generated automatically by #[nutype] macro
             #type_name::try_new(default_inner_value).expect(#msg);
         }
     ))
+}
+
+pub fn gen_associated_consts_should_be_valid(
+    type_name: &TypeName,
+    associated_consts: &[ConstAssign],
+) -> TokenStream {
+    // quote! {}
+    let tests_consts = associated_consts.iter().map(
+        |ConstAssign {
+             const_name,
+             const_value,
+             ..
+         }| {
+            let err_msg = format!(
+                "
+Type `{type_name}` has invalid associated const `{const_name}` of value `{const_value}`.
+Note: the test is generated automatically by #[nutype] macro
+"
+            );
+
+            let test_name = format_ident!("associated_const_{const_name}_should_have_valid_value");
+            quote! {
+                #[test]
+                fn  #test_name () {
+                    let inner_value = #type_name::#const_name.into_inner();
+
+                    #type_name::try_new(inner_value).expect(#err_msg);
+                }
+            }
+        },
+    );
+
+    quote! { #(#tests_consts)* }
 }

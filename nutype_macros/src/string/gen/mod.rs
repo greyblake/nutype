@@ -11,10 +11,13 @@ use syn::Generics;
 use crate::{
     common::{
         gen::{
-            tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits,
+            tests::{
+                gen_associated_consts_should_be_valid, gen_test_should_have_valid_default_value,
+            },
+            traits::GeneratedTraits,
             GenerateNewtype,
         },
-        models::{ErrorTypePath, Guard, TypeName},
+        models::{ConstAssign, ErrorTypePath, Guard, TypeName},
     },
     string::models::{RegexDef, StringInnerType, StringSanitizer, StringValidator},
 };
@@ -189,6 +192,7 @@ impl GenerateNewtype for StringNewtype {
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         _traits: &HashSet<Self::TypedTrait>,
+        associated_consts: &[ConstAssign],
     ) -> TokenStream {
         let test_len_char_min_vs_max = guard.standard_validators().and_then(|validators| {
             tests::gen_test_should_have_consistent_len_char_boundaries(type_name, validators)
@@ -201,9 +205,13 @@ impl GenerateNewtype for StringNewtype {
             guard.has_validation(),
         );
 
+        let test_associated_consts =
+            gen_associated_consts_should_be_valid(type_name, associated_consts);
+
         quote! {
             #test_len_char_min_vs_max
             #test_valid_default_value
+            #test_associated_consts
         }
     }
 }

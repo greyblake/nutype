@@ -18,13 +18,14 @@ use super::{
 use crate::common::{
     gen::{
         tests::{
+            gen_associated_consts_should_be_valid,
             gen_test_should_have_consistent_lower_and_upper_boundaries,
             gen_test_should_have_valid_default_value,
         },
         traits::GeneratedTraits,
         GenerateNewtype,
     },
-    models::{ErrorTypePath, Guard, TypeName},
+    models::{ConstAssign, ErrorTypePath, Guard, TypeName},
 };
 
 impl<T> GenerateNewtype for IntegerNewtype<T>
@@ -150,6 +151,7 @@ where
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         _traits: &HashSet<Self::TypedTrait>,
+        associated_consts: &[ConstAssign],
     ) -> TokenStream {
         let test_lower_vs_upper = guard.standard_validators().and_then(|validators| {
             gen_test_should_have_consistent_lower_and_upper_boundaries(type_name, validators)
@@ -162,9 +164,13 @@ where
             guard.has_validation(),
         );
 
+        let test_associated_consts =
+            gen_associated_consts_should_be_valid(type_name, associated_consts);
+
         quote! {
             #test_lower_vs_upper
             #test_valid_default_value
+            #test_associated_consts
         }
     }
 }

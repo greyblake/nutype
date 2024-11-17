@@ -28,6 +28,7 @@ pub fn parse_attributes(
         new_unchecked,
         default,
         derive_traits,
+        associated_consts,
     } = attrs;
     let raw_guard = AnyRawGuard {
         sanitizers,
@@ -39,6 +40,7 @@ pub fn parse_attributes(
         guard,
         default,
         derive_traits,
+        associated_consts,
     })
 }
 
