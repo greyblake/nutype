@@ -276,7 +276,7 @@ pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics)
             where
                 S: ::serde::Serializer
             {
-                serializer.serialize_newtype_struct(#type_name_str, &self.0)
+                ::serde::ser::Serializer::serialize_newtype_struct(serializer, #type_name_str, &self.0)
             }
         }
     }
