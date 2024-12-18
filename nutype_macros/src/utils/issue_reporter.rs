@@ -1,5 +1,5 @@
-/// Tools that facilitates reporting issues on Github.
-/// With some refactoring it can be extracted into its own crate.
+//! Tools that facilitates reporting issues on Github.
+//! With some refactoring it can be extracted into its own crate.
 
 pub fn build_github_link_with_issue(issue: &Issue) -> String {
     let builder = GithubIssueBuilder::new("greyblake/nutype");
