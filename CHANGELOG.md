@@ -1,9 +1,10 @@
-### v0.5.1 - 2024-xx-xx
+### v0.5.1 - 2024-12-20
 
 * **[FEATURE]** In `no_std` generate implementation of `::core::error::Error` if Rust version is 1.81 or higher.
 * **[FIX]** Enable to specify custom error as a path (see [#186](https://github.com/greyblake/nutype/issues/186), [#187](https://github.com/greyblake/nutype/pull/187))
 * **[FIX]** Make `Deserialize` derive compile when combination of `no_std` and `serde` features are used ([#182](https://github.com/greyblake/nutype/issues/182))
 * **[FIX]** Fix lint warnings about inner generated module
+* **[FIX]** Fix a conflict when used with `borsch` crate ([#195](https://github.com/greyblake/nutype/pull/195))
 
 ### v0.5.0 - 2024-09-02
 
