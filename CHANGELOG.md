@@ -1,3 +1,7 @@
+### v0.x.x - 2025-xx-xx
+
+* Placeholder
+
 ### v0.5.1 - 2024-12-20
 
 * **[FEATURE]** In `no_std` generate implementation of `::core::error::Error` if Rust version is 1.81 or higher.
