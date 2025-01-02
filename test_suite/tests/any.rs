@@ -983,3 +983,65 @@ mod custom_error {
         assert_eq!(collection.as_ref(), &[1, 2, 3]);
     }
 }
+
+mod constants {
+    use super::*;
+
+    const fn clamp100_x(mut p: Point) -> Point {
+        if p.x > 100 {
+            p.x = 100;
+        } else if p.x < -100 {
+            p.x = -100;
+        }
+        p
+    }
+
+    const fn x_is_greather_than_y(p: &Point) -> bool {
+        p.x > p.y
+    }
+
+    #[test]
+    fn test_any_const_fn() {
+        #[nutype(const_fn, derive(AsRef))]
+        struct ConstPoint(Point);
+
+        const ZERO: ConstPoint = ConstPoint::new(Point { x: 0, y: 0 });
+
+        assert_eq!(ZERO.as_ref().x, 0);
+        assert_eq!(ZERO.as_ref().y, 0);
+    }
+
+    #[test]
+    fn test_any_const_fn_sanitized() {
+        #[nutype(
+            const_fn,
+            derive(AsRef),
+            sanitize(with = clamp100_x),
+        )]
+        struct ConstSanitizedPoint(Point);
+
+        const CLAMPED: ConstSanitizedPoint = ConstSanitizedPoint::new(Point { x: 101, y: -199 });
+
+        assert_eq!(CLAMPED.as_ref().x, 100);
+        assert_eq!(CLAMPED.as_ref().y, -199);
+    }
+
+    #[test]
+    fn test_any_const_fn_validated() {
+        #[nutype(
+            const_fn,
+            derive(AsRef),
+            validate(predicate = x_is_greather_than_y),
+        )]
+        struct ConstSanitizedPoint(Point);
+
+        const VALID: ConstSanitizedPoint =
+            match ConstSanitizedPoint::try_new(Point { x: 11, y: 10 }) {
+                Ok(point) => point,
+                Err(_) => panic!("Expected valid point"),
+            };
+
+        assert_eq!(VALID.as_ref().x, 11);
+        assert_eq!(VALID.as_ref().y, 10);
+    }
+}
