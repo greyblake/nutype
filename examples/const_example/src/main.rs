@@ -1,6 +1,7 @@
 // Adding `const_fn` flag to #[nutype] macro will make the generated `new` and `try_new` functions
 // be marked with `const` keyword.
 use nutype::nutype;
+use std::sync::LazyLock;
 
 #[nutype(const_fn, validate(greater_or_equal = 18))]
 pub struct Age(u8);
@@ -41,8 +42,16 @@ struct TaxClass(u8);
 
 const DEFAULT_TAX_CLASS: TaxClass = unsafe { TaxClass::new_unchecked(1) };
 
+// Heap allocated types cannot be used as const,
+// so for that purpose one could use LazyLock from std::sync.
+#[nutype(derive(Debug, AsRef), validate(not_empty))]
+pub struct Name(String);
+
+const DEFAULT_NAME: LazyLock<Name> = LazyLock::new(|| Name::try_new("John".to_string()).unwrap());
+
 fn main() {
     assert_eq!(PENSION_AGE.into_inner(), 67);
     assert_eq!(DEFAULT_TAX_CLASS.into_inner(), 1);
     assert_eq!(MAX_CORRELATION.into_inner(), 1.0);
+    assert_eq!(DEFAULT_NAME.as_ref(), "John");
 }

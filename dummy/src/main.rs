@@ -7,18 +7,16 @@ use nutype::nutype;
 )]
 pub struct Celsius(f64);
 
-impl Celsius {
-    pub const fn new_const(value: f64) -> Self {
-        match Self::try_new(value) {
+macro_rules! nutype_const {
+    ($name:ident, $ty:ty, $value:expr) => {
+        const $name: $ty = match <$ty>::try_new($value) {
             Ok(value) => value,
-            Err(_e) => {
-                panic!("Failed to create Celsius");
-            }
-        }
-    }
+            Err(_) => panic!("Invalid value"),
+        };
+    };
 }
 
-const WATER_BOILING_POINT: Celsius = Celsius::new_const(100.0);
+nutype_const!(WATER_BOILING_POINT, Celsius, 100.0);
 
 fn main() {
     println!("{:?}", WATER_BOILING_POINT);
