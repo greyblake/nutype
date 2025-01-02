@@ -21,7 +21,7 @@ use syn::{
 use crate::common::models::SpannedDeriveTrait;
 
 use super::models::{
-    CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
+    ConstFn, CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
 };
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
@@ -65,6 +65,10 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
 
     /// Parsed from `new_unchecked` attribute
     pub new_unchecked: NewUnchecked,
+
+    /// Parsed from `const` attribute,
+    /// Defines if the generated function should be marked with `const`.
+    pub const_fn: ConstFn,
 
     /// Parsed from `default = ` attribute
     pub default: Option<Expr>,
@@ -223,6 +227,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             sanitizers: vec![],
             validation: None,
             new_unchecked: NewUnchecked::Off,
+            const_fn: ConstFn::NoConst,
             default: None,
             derive_traits: vec![],
         }
@@ -286,6 +291,8 @@ where
                 let _eq: Token![=] = input.parse()?;
                 let default_expr: Expr = input.parse()?;
                 attrs.default = Some(default_expr);
+            } else if ident == "const_fn" {
+                attrs.const_fn = ConstFn::Const;
             } else if ident == "new_unchecked" {
                 cfg_if! {
                     if #[cfg(feature = "new_unchecked")] {

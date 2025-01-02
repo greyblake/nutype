@@ -39,6 +39,7 @@ where
         sanitizers,
         validation,
         new_unchecked,
+        const_fn,
         default,
         derive_traits,
     } = attrs;
@@ -49,6 +50,7 @@ where
     let guard = validate_float_guard(raw_guard, type_name)?;
     Ok(Attributes {
         new_unchecked,
+        const_fn,
         guard,
         default,
         derive_traits,

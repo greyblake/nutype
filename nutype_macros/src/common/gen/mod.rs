@@ -10,8 +10,8 @@ use std::collections::HashSet;
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked, ParseErrorTypeName,
-    TypeName, TypeTrait,
+    ConstFn, CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked,
+    ParseErrorTypeName, TypeName, TypeTrait,
 };
 use crate::common::{
     gen::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
@@ -220,13 +220,17 @@ pub trait GenerateNewtype {
     /// If it's true, then `::new()` function receives `impl Into<T>` instead of `T`.
     const NEW_CONVERT_INTO_INNER_TYPE: bool = false;
 
-    fn gen_fn_sanitize(inner_type: &Self::InnerType, sanitizers: &[Self::Sanitizer])
-        -> TokenStream;
+    fn gen_fn_sanitize(
+        inner_type: &Self::InnerType,
+        sanitizers: &[Self::Sanitizer],
+        const_fn: ConstFn,
+    ) -> TokenStream;
 
     fn gen_fn_validate(
         inner_type: &Self::InnerType,
         error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
+        const_fn: ConstFn,
     ) -> TokenStream;
 
     fn gen_validation_error_type(
@@ -250,9 +254,10 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
         validation: &Validation<Self::Validator>,
+        const_fn: ConstFn,
     ) -> TokenStream {
         let generics_without_bounds = strip_trait_bounds_on_generics(generics);
-        let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
+        let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers, const_fn);
 
         let maybe_generated_validation_error = match validation {
             Validation::Standard {
@@ -270,11 +275,11 @@ pub trait GenerateNewtype {
             Validation::Standard {
                 validators,
                 error_type_path,
-            } => Self::gen_fn_validate(inner_type, error_type_path, validators),
+            } => Self::gen_fn_validate(inner_type, error_type_path, validators, const_fn),
             Validation::Custom {
                 with,
                 error_type_path,
-            } => gen_fn_validate_custom(inner_type, with, error_type_path),
+            } => gen_fn_validate_custom(inner_type, with, error_type_path, const_fn),
         };
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
@@ -292,11 +297,17 @@ pub trait GenerateNewtype {
             #maybe_generated_validation_error
 
             impl #generics #type_name #generics_without_bounds {
-                pub fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
+                pub #const_fn fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
                     #convert_raw_value_if_necessary
 
                     let sanitized_value: #inner_type = Self::__sanitize__(raw_value);
-                    Self::__validate__(&sanitized_value)?;
+                    // NOTE:  `?` operator cannot be used in const functions: https://github.com/rust-lang/rust/issues/74935
+                    // So we cannot write
+                    //     Self::__validate__(&sanitized_value)?;
+                    #[allow(clippy::question_mark)]
+                    if let Err(e) = Self::__validate__(&sanitized_value) {
+                        return Err(e);
+                    }
                     Ok(#type_name(sanitized_value))
                 }
 
@@ -319,9 +330,10 @@ pub trait GenerateNewtype {
         generics: &Generics,
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
+        const_fn: ConstFn,
     ) -> TokenStream {
         let generics_without_bounds = strip_trait_bounds_on_generics(generics);
-        let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers);
+        let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers, const_fn);
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
             (
@@ -334,7 +346,7 @@ pub trait GenerateNewtype {
 
         quote!(
             impl #generics #type_name #generics_without_bounds {
-                pub fn new(raw_value: #input_type) -> Self {
+                pub #const_fn fn new(raw_value: #input_type) -> Self {
                     #convert_raw_value_if_necessary
                     Self(Self::__sanitize__(raw_value))
                 }
@@ -351,18 +363,21 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         new_unchecked: NewUnchecked,
+        const_fn: ConstFn,
     ) -> TokenStream {
         let impl_new = match guard {
             Guard::WithoutValidation { sanitizers } => {
-                Self::gen_new(type_name, generics, inner_type, sanitizers)
+                Self::gen_new(type_name, generics, inner_type, sanitizers, const_fn)
             }
             Guard::WithValidation {
                 sanitizers,
                 validation,
-            } => Self::gen_try_new(type_name, generics, inner_type, sanitizers, validation),
+            } => Self::gen_try_new(
+                type_name, generics, inner_type, sanitizers, validation, const_fn,
+            ),
         };
         let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type);
-        let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked);
+        let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked, const_fn);
 
         quote! {
             #impl_new
@@ -386,14 +401,21 @@ pub trait GenerateNewtype {
             type_name,
             guard,
             new_unchecked,
+            const_fn,
             maybe_default_value,
             inner_type,
             generics,
         } = params;
 
         let module_name = gen_module_name_for_type(&type_name);
-        let implementation =
-            Self::gen_implementation(&type_name, &generics, &inner_type, &guard, new_unchecked);
+        let implementation = Self::gen_implementation(
+            &type_name,
+            &generics,
+            &inner_type,
+            &guard,
+            new_unchecked,
+            const_fn,
+        );
 
         let has_from_str_trait = traits.iter().any(|t| t.is_from_str());
         let maybe_parse_error_type_path = if has_from_str_trait && Self::HAS_DEDICATED_PARSE_ERROR {
@@ -479,12 +501,13 @@ fn gen_fn_validate_custom<InnerType: ToTokens>(
     inner_type: &InnerType,
     with: &CustomFunction,
     error_type_path: &ErrorTypePath,
+    const_fn: ConstFn,
 ) -> TokenStream {
     quote! {
         // For some types like `String` clippy suggests using `&str` instead of `&String` here,
         // but it does not really matter in this context.
         #[allow(clippy::ptr_arg)]
-        fn __validate__(value: &#inner_type) -> ::core::result::Result<(), #error_type_path> {
+        #const_fn fn __validate__(value: &#inner_type) -> ::core::result::Result<(), #error_type_path> {
             #with(value)
         }
     }

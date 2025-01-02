@@ -26,6 +26,7 @@ pub fn parse_attributes(
         sanitizers,
         validation,
         new_unchecked,
+        const_fn,
         default,
         derive_traits,
     } = attrs;
@@ -36,6 +37,7 @@ pub fn parse_attributes(
     let guard = validate_any_guard(raw_guard, type_name)?;
     Ok(Attributes {
         new_unchecked,
+        const_fn,
         guard,
         default,
         derive_traits,

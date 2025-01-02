@@ -22,7 +22,7 @@ use crate::{
             traits::GeneratedTraits,
             GenerateNewtype,
         },
-        models::{ErrorTypePath, Guard, TypeName},
+        models::{ConstFn, ErrorTypePath, Guard, TypeName},
     },
     float::models::FloatInnerType,
 };
@@ -40,6 +40,7 @@ where
     fn gen_fn_sanitize(
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
+        const_fn: ConstFn,
     ) -> TokenStream {
         let transformations: TokenStream = sanitizers
             .iter()
@@ -56,7 +57,7 @@ where
             .collect();
 
         quote!(
-            fn __sanitize__(mut value: #inner_type) -> #inner_type {
+            #const_fn fn __sanitize__(mut value: #inner_type) -> #inner_type {
                 #transformations
                 value
             }
@@ -67,6 +68,7 @@ where
         inner_type: &Self::InnerType,
         error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
+        const_fn: ConstFn,
     ) -> TokenStream {
         let validations: TokenStream = validators
             .iter()
@@ -117,7 +119,7 @@ where
             .collect();
 
         quote!(
-            fn __validate__(val: &#inner_type) -> core::result::Result<(), #error_type_path> {
+            #const_fn fn __validate__(val: &#inner_type) -> core::result::Result<(), #error_type_path> {
                 let val = *val;
                 #validations
                 Ok(())

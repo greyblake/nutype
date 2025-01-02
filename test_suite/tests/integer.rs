@@ -880,3 +880,59 @@ mod custom_error {
         assert_eq!(podd.into_inner(), 3);
     }
 }
+
+mod constants {
+    use super::*;
+
+    const fn clamp_age(value: u8) -> u8 {
+        if value > 100 {
+            return 100;
+        } else {
+            return value;
+        }
+    }
+
+    #[test]
+    fn test_const_fn() {
+        #[nutype(const_fn)]
+        pub struct Age(u8);
+
+        const ADULT_AGE: Age = Age::new(18);
+
+        assert_eq!(ADULT_AGE.into_inner(), 18);
+    }
+
+    #[test]
+    fn test_const_fn_with_sanitize() {
+        #[nutype(
+            const_fn,
+            sanitize(with = clamp_age),
+        )]
+        pub struct Age(u8);
+
+        const BIG_AGE: Age = Age::new(150);
+
+        assert_eq!(BIG_AGE.into_inner(), 100);
+    }
+
+    #[test]
+    fn test_const_fn_with_sanitize_and_validate() {
+        #[nutype(
+            const_fn,
+            sanitize(with = clamp_age),
+            validate(greater_or_equal = 18),
+        )]
+        pub struct Age(u8);
+
+        const fn unwrap(result: Result<Age, AgeError>) -> Age {
+            match result {
+                Ok(value) => value,
+                Err(_) => panic!("const unwrap() failed"),
+            }
+        }
+
+        const MID_AGE: Age = unwrap(Age::try_new(35));
+
+        assert_eq!(MID_AGE.into_inner(), 35);
+    }
+}

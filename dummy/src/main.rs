@@ -1,35 +1,25 @@
 use nutype::nutype;
 
-fn validate_name(name: &str) -> Result<(), NameError> {
-    if name.len() < 3 {
-        Err(NameError::TooShort)
-    } else if name.len() > 10 {
-        Err(NameError::TooLong)
-    } else {
-        Ok(())
+#[nutype(
+    const_fn,
+    derive(Debug),
+    validate(greater_or_equal = -273.15),
+)]
+pub struct Celsius(f64);
+
+impl Celsius {
+    pub const fn new_const(value: f64) -> Self {
+        match Self::try_new(value) {
+            Ok(value) => value,
+            Err(_e) => {
+                panic!("Failed to create Celsius");
+            }
+        }
     }
 }
 
-#[derive(Debug, PartialEq)]
-enum NameError {
-    TooShort,
-    TooLong,
-}
-
-#[nutype(
-    validate(with = validate_name, error = NameError),
-    derive(Debug, AsRef, PartialEq),
-)]
-struct Name(String);
+const WATER_BOILING_POINT: Celsius = Celsius::new_const(100.0);
 
 fn main() {
-    let name = Name::try_new("John").unwrap();
-    assert_eq!(name.as_ref(), "John");
-
-    assert_eq!(
-        Name::try_new("JohnJohnJohnJohnJohn"),
-        Err(NameError::TooLong)
-    );
-
-    assert_eq!(Name::try_new("Jo"), Err(NameError::TooShort));
+    println!("{:?}", WATER_BOILING_POINT);
 }
