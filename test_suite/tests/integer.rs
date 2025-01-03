@@ -899,7 +899,10 @@ mod constants {
 
         const ADULT_AGE: Age = Age::new(18);
 
+        const DOUBLE_AGE: u8 = ADULT_AGE.into_inner() * 2;
+
         assert_eq!(ADULT_AGE.into_inner(), 18);
+        assert_eq!(DOUBLE_AGE, 36);
     }
 
     #[test]
@@ -934,5 +937,31 @@ mod constants {
         const MID_AGE: Age = unwrap(Age::try_new(35));
 
         assert_eq!(MID_AGE.into_inner(), 35);
+    }
+
+    mod const_into_inner_with_copy {
+        use super::*;
+
+        // This test demonstrates that moving semantic in `const` functions works differently than
+        // usually. Despite Meter does not implement `Copy` trait, it's possible to "move" it and
+        // then use it again.
+
+        #[nutype(const_fn)]
+        pub struct Meter(i32);
+
+        #[nutype(const_fn)]
+        pub struct Distance(Meter);
+
+        const METERS: Meter = Meter::new(100);
+        const DISTANCE: Distance = Distance::new(METERS);
+
+        const SAME_METERS: Meter = DISTANCE.into_inner();
+
+        #[test]
+        fn test_const_into_inner_without_copy() {
+            assert_eq!(METERS.into_inner(), 100);
+            assert_eq!(SAME_METERS.into_inner(), 100);
+            assert_eq!(DISTANCE.into_inner().into_inner(), 100);
+        }
     }
 }

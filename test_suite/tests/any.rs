@@ -996,7 +996,7 @@ mod constants {
         p
     }
 
-    const fn x_is_greather_than_y(p: &Point) -> bool {
+    const fn x_is_greater_than_y(p: &Point) -> bool {
         p.x > p.y
     }
 
@@ -1031,7 +1031,7 @@ mod constants {
         #[nutype(
             const_fn,
             derive(AsRef),
-            validate(predicate = x_is_greather_than_y),
+            validate(predicate = x_is_greater_than_y),
         )]
         struct ConstSanitizedPoint(Point);
 

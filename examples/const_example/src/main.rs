@@ -7,7 +7,7 @@ pub struct Age(u8);
 
 // Unfortunately `Result::unwrap` is not a `const` function, so we have
 // to unwrap it ourselves.
-const PENSION_AGE: Age = match Age::try_new(67) {
+const DRINKING_AGE: Age = match Age::try_new(21) {
     Ok(age) => age,
     Err(_) => panic!("Invalid Age"),
 };
@@ -41,8 +41,12 @@ struct TaxClass(u8);
 
 const DEFAULT_TAX_CLASS: TaxClass = unsafe { TaxClass::new_unchecked(1) };
 
+// Note: `into_inner()` is const function as well.
+nutype_const!(DOUBLE_AGE, Age, DRINKING_AGE.into_inner() * 2);
+
 fn main() {
-    assert_eq!(PENSION_AGE.into_inner(), 67);
+    assert_eq!(DRINKING_AGE.into_inner(), 21);
     assert_eq!(DEFAULT_TAX_CLASS.into_inner(), 1);
     assert_eq!(MAX_CORRELATION.into_inner(), 1.0);
+    assert_eq!(DOUBLE_AGE.into_inner(), 42);
 }

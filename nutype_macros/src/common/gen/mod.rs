@@ -136,12 +136,13 @@ pub fn gen_impl_into_inner(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: impl ToTokens,
+    const_fn: ConstFn,
 ) -> TokenStream {
     let generics_without_bounds = strip_trait_bounds_on_generics(generics);
     quote! {
         impl #generics #type_name #generics_without_bounds {
             #[inline]
-            pub fn into_inner(self) -> #inner_type {
+            pub #const_fn fn into_inner(self) -> #inner_type {
                 self.0
             }
         }
@@ -376,7 +377,7 @@ pub trait GenerateNewtype {
                 type_name, generics, inner_type, sanitizers, validation, const_fn,
             ),
         };
-        let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type);
+        let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type, const_fn);
         let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked, const_fn);
 
         quote! {
