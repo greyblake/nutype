@@ -389,7 +389,7 @@ pub enum NewUnchecked {
     On,
 }
 
-/// The flag that indicates the functions must be generated with `const_fn` keyword.
+/// The flag that indicates the functions must be generated with `const` keyword.
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ConstFn {
     #[default]
