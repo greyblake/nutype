@@ -441,6 +441,20 @@
 //!
 //! ## Recipes
 //!
+//! ### Obtaining a reference to the inner value
+//!
+//! The function `.into_inner()` takes ownership of the newtype and returns its inner type. However, if you only need to borrow the inner value (rather than consume it), you can derive `AsRef`. This allows you to call `as_ref()` to obtain a reference to the underlying data:
+//!
+//! ```rs
+//! use nutype::nutype;
+//!
+//! #[nutype(derive(AsRef))]
+//! struct Username(String);
+//!
+//! let username = Username::new("Jack");
+//! assert_eq!(username.as_ref(), "Jack");
+//! ```
+//!
 //! ### Derive `Default`
 //!
 //! ```
