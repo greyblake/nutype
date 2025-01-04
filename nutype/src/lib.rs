@@ -396,6 +396,49 @@
 //!
 //! It's important to ensure that the type specified in the `error` attribute matches the error type returned by the validation function.
 //!
+//!
+//! ## Constants
+//!
+//! You can mark a type with the `const_fn` flag. In that case, its `new` and `try_new` functions will be declared as `const`:
+//!
+//! ```
+//! use nutype::nutype;
+//!
+//! #[nutype(
+//!     const_fn,
+//!     derive(Debug),
+//!     validate(greater_or_equal = -273.15),
+//! )]
+//! pub struct Celsius(f64);
+//!
+//! // Since `Result::unwrap()` is not allowed in `const` contexts,
+//! // we must manually handle the `Result` when creating constants.
+//! // Any attempt to instantiate an invalid `Celsius` at compile time
+//! // will trigger a compilation error:
+//! const FREEZING_POINT: Celsius = match Celsius::try_new(0.0) {
+//!     Ok(value) => value,
+//!     Err(_) => panic!("Invalid value"),
+//! };
+//!
+//! assert_eq!(FREEZING_POINT.into_inner(), 0.0);
+//!
+//! // Alternatively, you can use a helper macro like this:
+//! macro_rules! nutype_const {
+//!     ($name:ident, $ty:ty, $value:expr) => {
+//!         const $name: $ty = match <$ty>::try_new($value) {
+//!             Ok(value) => value,
+//!             Err(_) => panic!("Invalid value"),
+//!         };
+//!     };
+//! }
+//!
+//! nutype_const!(WATER_BOILING_POINT, Celsius, 100.0);
+//!
+//! assert_eq!(WATER_BOILING_POINT.into_inner(), 100.0);
+//! ```
+//! Note that `const` works only for stack allocated types.
+//! If you are dealing with a heap allocated type (e.g. `String`) you should consider using `static` with [`LazyLock`](https://doc.rust-lang.org/beta/std/sync/struct.LazyLock.html).
+//!
 //! ## Recipes
 //!
 //! ### Derive `Default`

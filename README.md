@@ -21,6 +21,7 @@ Nutype is a proc macro that allows adding extra constraints like _sanitization_ 
 * [Quick start](#quick-start)
 * [Inner types](#inner-types) ([String](#string) | [Integer](#integer) | [Float](#float) | [Other](#other-inner-types-and-generics))
 * [Custom](#custom-sanitizers) ([sanitizers](#custom-sanitizers) | [validators](#custom-validators) | [errors](#custom-validation-with-a-custom-error-type))
+* [Constants](#constants)
 * [Recipes](#recipes)
 * [Breaking constraints with new_unchecked](#breaking-constraints-with-new_unchecked)
 * [Feature Flags](#feature-flags)
@@ -344,6 +345,46 @@ struct Name(String);
 ```
 
 It's important to ensure that the type specified in the `error` attribute matches the error type returned by the validation function.
+
+## Constants
+
+You can mark a type with the `const_fn` flag. In that case, its `new` and `try_new` functions will be declared as `const`:
+
+```rust
+#[nutype(
+    const_fn,
+    derive(Debug),
+    validate(greater_or_equal = -273.15),
+)]
+pub struct Celsius(f64);
+```
+
+Since `Result::unwrap()` is not allowed in `const` contexts, we must manually handle the `Result` when creating constants. Any attempt to instantiate an invalid `Celsius` at compile time will trigger a compilation error:
+
+```rust
+const FREEZING_POINT: Celsius = match Celsius::try_new(0.0) {
+    Ok(value) => value,
+    Err(_) => panic!("Invalid value"),
+};
+```
+
+Alternatively, you can use a helper macro like this:
+
+```rust
+macro_rules! nutype_const {
+    ($name:ident, $ty:ty, $value:expr) => {
+        const $name: $ty = match <$ty>::try_new($value) {
+            Ok(value) => value,
+            Err(_) => panic!("Invalid value"),
+        };
+    };
+}
+
+nutype_const!(WATER_BOILING_POINT, Celsius, 100.0);
+```
+
+Note that `const` works only for stack allocated types.
+If you are dealing with a heap allocated type (e.g. `String`) you should consider using `static` with [`LazyLock`](https://doc.rust-lang.org/beta/std/sync/struct.LazyLock.html).
 
 ## Recipes
 
