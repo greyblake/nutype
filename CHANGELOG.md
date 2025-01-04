@@ -1,6 +1,5 @@
 ### v0.x.x - 2025-xx-xx
-
-* Placeholder
+* **[FEATURE]** Ability to instantiate types in `const` context, when declared with `const_fn` flag.
 
 ### v0.5.1 - 2024-12-20
 

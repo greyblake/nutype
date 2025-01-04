@@ -14,7 +14,7 @@ use crate::{
             tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits,
             GenerateNewtype,
         },
-        models::{ErrorTypePath, Guard, TypeName},
+        models::{ConstFn, ErrorTypePath, Guard, TypeName},
     },
     string::models::{RegexDef, StringInnerType, StringSanitizer, StringValidator},
 };
@@ -42,6 +42,7 @@ impl GenerateNewtype for StringNewtype {
     fn gen_fn_sanitize(
         _inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
+        const_fn: ConstFn,
     ) -> TokenStream {
         let transformations: TokenStream = sanitizers
             .iter()
@@ -72,7 +73,7 @@ impl GenerateNewtype for StringNewtype {
             .collect();
 
         quote!(
-            fn __sanitize__(value: String) -> String {
+            #const_fn fn __sanitize__(value: String) -> String {
                 #transformations
                 value
             }
@@ -83,6 +84,7 @@ impl GenerateNewtype for StringNewtype {
         _inner_type: &Self::InnerType,
         error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
+        const_fn: ConstFn,
     ) -> TokenStream {
         // Indicates that `chars_count` variable needs to be set, which is used within
         // min_len and max_len validations.
@@ -155,7 +157,7 @@ impl GenerateNewtype for StringNewtype {
         };
 
         quote!(
-            fn __validate__(val: &str) -> ::core::result::Result<(), #error_type_path> {
+            #const_fn fn __validate__(val: &str) -> ::core::result::Result<(), #error_type_path> {
                 #chars_count_if_required
                 #validations
                 Ok(())

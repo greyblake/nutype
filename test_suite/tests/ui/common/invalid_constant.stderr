@@ -1,0 +1,7 @@
+error[E0080]: evaluation of constant value failed
+  --> tests/ui/common/invalid_constant.rs:12:15
+   |
+12 |     Err(_) => panic!("Invalid Celsius value"),
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the evaluated program panicked at 'Invalid Celsius value', $DIR/tests/ui/common/invalid_constant.rs:12:15
+   |
+   = note: this error originates in the macro `$crate::panic::panic_2021` which comes from the expansion of the macro `panic` (in Nightly builds, run with -Z macro-backtrace for more info)

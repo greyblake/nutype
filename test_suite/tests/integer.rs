@@ -880,3 +880,88 @@ mod custom_error {
         assert_eq!(podd.into_inner(), 3);
     }
 }
+
+mod constants {
+    use super::*;
+
+    const fn clamp_age(value: u8) -> u8 {
+        if value > 100 {
+            return 100;
+        } else {
+            return value;
+        }
+    }
+
+    #[test]
+    fn test_const_fn() {
+        #[nutype(const_fn)]
+        pub struct Age(u8);
+
+        const ADULT_AGE: Age = Age::new(18);
+
+        const DOUBLE_AGE: u8 = ADULT_AGE.into_inner() * 2;
+
+        assert_eq!(ADULT_AGE.into_inner(), 18);
+        assert_eq!(DOUBLE_AGE, 36);
+    }
+
+    #[test]
+    fn test_const_fn_with_sanitize() {
+        #[nutype(
+            const_fn,
+            sanitize(with = clamp_age),
+        )]
+        pub struct Age(u8);
+
+        const BIG_AGE: Age = Age::new(150);
+
+        assert_eq!(BIG_AGE.into_inner(), 100);
+    }
+
+    #[test]
+    fn test_const_fn_with_sanitize_and_validate() {
+        #[nutype(
+            const_fn,
+            sanitize(with = clamp_age),
+            validate(greater_or_equal = 18),
+        )]
+        pub struct Age(u8);
+
+        const fn unwrap(result: Result<Age, AgeError>) -> Age {
+            match result {
+                Ok(value) => value,
+                Err(_) => panic!("const unwrap() failed"),
+            }
+        }
+
+        const MID_AGE: Age = unwrap(Age::try_new(35));
+
+        assert_eq!(MID_AGE.into_inner(), 35);
+    }
+
+    mod const_into_inner_with_copy {
+        use super::*;
+
+        // This test demonstrates that moving semantic in `const` functions works differently than
+        // usually. Despite Meter does not implement `Copy` trait, it's possible to "move" it and
+        // then use it again.
+
+        #[nutype(const_fn)]
+        pub struct Meter(i32);
+
+        #[nutype(const_fn)]
+        pub struct Distance(Meter);
+
+        const METERS: Meter = Meter::new(100);
+        const DISTANCE: Distance = Distance::new(METERS);
+
+        const SAME_METERS: Meter = DISTANCE.into_inner();
+
+        #[test]
+        fn test_const_into_inner_without_copy() {
+            assert_eq!(METERS.into_inner(), 100);
+            assert_eq!(SAME_METERS.into_inner(), 100);
+            assert_eq!(DISTANCE.into_inner().into_inner(), 100);
+        }
+    }
+}

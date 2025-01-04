@@ -11,7 +11,7 @@ use crate::common::{
     gen::{
         tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits, GenerateNewtype,
     },
-    models::{ErrorTypePath, Guard, TypeName, TypedCustomFunction},
+    models::{ConstFn, ErrorTypePath, Guard, TypeName, TypedCustomFunction},
 };
 
 use self::error::gen_validation_error_type;
@@ -32,6 +32,7 @@ impl GenerateNewtype for AnyNewtype {
     fn gen_fn_sanitize(
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
+        const_fn: ConstFn,
     ) -> TokenStream {
         let transformations: TokenStream = sanitizers
             .iter()
@@ -52,7 +53,7 @@ impl GenerateNewtype for AnyNewtype {
             .collect();
 
         quote!(
-            fn __sanitize__(mut value: #inner_type) -> #inner_type {
+            #const_fn fn __sanitize__(mut value: #inner_type) -> #inner_type {
                 #transformations
                 value
             }
@@ -63,6 +64,7 @@ impl GenerateNewtype for AnyNewtype {
         inner_type: &Self::InnerType,
         error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
+        const_fn: ConstFn,
     ) -> TokenStream {
         let validations: TokenStream = validators
             .iter()
@@ -98,7 +100,7 @@ impl GenerateNewtype for AnyNewtype {
             // Since this code is generic which is used for different inner types (not only Cow), we cannot easily fix it to make
             // clippy happy.
             #[allow(clippy::ptr_arg)]
-            fn __validate__<'nutype_a>(val: &'nutype_a #inner_type) -> ::core::result::Result<(), #error_type_path> {
+            #const_fn fn __validate__<'nutype_a>(val: &'nutype_a #inner_type) -> ::core::result::Result<(), #error_type_path> {
                 #validations
                 Ok(())
             }

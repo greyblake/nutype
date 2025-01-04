@@ -803,3 +803,56 @@ mod custom_error {
         assert_eq!(oh_my_float.into_inner(), 99.0);
     }
 }
+
+mod constants {
+    use super::*;
+
+    const fn clamp100(value: f64) -> f64 {
+        if value > 100.0 {
+            return 100.0;
+        } else {
+            return value;
+        }
+    }
+
+    #[test]
+    fn test_const_fn() {
+        #[nutype(const_fn)]
+        pub struct SimpleFloatValue(f64);
+
+        const VALUE: SimpleFloatValue = SimpleFloatValue::new(3.14);
+
+        assert_eq!(VALUE.into_inner(), 3.14);
+    }
+
+    #[test]
+    fn test_const_fn_with_sanitize() {
+        #[nutype(
+            const_fn,
+            sanitize(with = clamp100),
+        )]
+        pub struct SanitizedFloatValue(f64);
+
+        const BIG_VALUE: SanitizedFloatValue = SanitizedFloatValue::new(150.0);
+
+        assert_eq!(BIG_VALUE.into_inner(), 100.0);
+    }
+
+    #[test]
+    fn test_const_fn_with_sanitize_and_validate() {
+        #[nutype(
+            const_fn,
+            sanitize(with = clamp100),
+            validate(greater_or_equal = 0, less_or_equal = 100),
+
+        )]
+        pub struct ValidatedFloat(f64);
+
+        const FIFTY: ValidatedFloat = match ValidatedFloat::try_new(50.0) {
+            Ok(value) => value,
+            Err(_) => panic!("Failed to create ValidatedFloat"),
+        };
+
+        assert_eq!(FIFTY.into_inner(), 50.0);
+    }
+}
