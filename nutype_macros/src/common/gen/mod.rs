@@ -144,6 +144,10 @@ pub fn gen_impl_into_inner(
             pub fn into_inner(self) -> #inner_type {
                 self.0
             }
+            #[inline]
+            pub fn inner(&self) -> &#inner_type {
+                &self.0
+            }
         }
     }
 }
