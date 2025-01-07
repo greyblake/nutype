@@ -65,18 +65,7 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
     })?;
     validate_inner_field_visibility(&seg.vis)?;
 
-    let type_path = match seg.ty.clone() {
-        syn::Type::Path(tp) => tp,
-        _ => {
-            let error = syn::Error::new(
-                seg.span(),
-                "#[nutype] requires a simple inner type (e.g. String, i32, etc.)",
-            );
-            return Err(error);
-        }
-    };
-
-    let type_path_str = type_path.into_token_stream().to_string();
+    let type_path_str = seg.ty.clone().into_token_stream().to_string();
 
     let inner_type = match type_path_str.as_ref() {
         "String" => InnerType::String(StringInnerType),

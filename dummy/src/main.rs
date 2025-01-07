@@ -1,23 +1,12 @@
 use nutype::nutype;
 
 #[nutype(
-    const_fn,
     derive(Debug),
-    validate(greater_or_equal = -273.15),
+    validate(predicate = |name| !name.trim().is_empty())
 )]
-pub struct Celsius(f64);
-
-macro_rules! nutype_const {
-    ($name:ident, $ty:ty, $value:expr) => {
-        const $name: $ty = match <$ty>::try_new($value) {
-            Ok(value) => value,
-            Err(_) => panic!("Invalid value"),
-        };
-    };
-}
-
-nutype_const!(WATER_BOILING_POINT, Celsius, 100.0);
+pub struct Name<'a>(&'a str);
 
 fn main() {
-    println!("{:?}", WATER_BOILING_POINT);
+    let name_error = Name::try_new("  ").unwrap_err();
+    assert_eq!(name_error, NameError::PredicateViolated);
 }

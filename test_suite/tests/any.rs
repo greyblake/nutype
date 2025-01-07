@@ -1045,3 +1045,26 @@ mod constants {
         assert_eq!(VALID.as_ref().y, 10);
     }
 }
+
+mod str_reference {
+    use nutype::nutype;
+
+    #[nutype(
+        derive(Debug),
+        validate(predicate = |name| !name.trim().is_empty())
+    )]
+    pub struct Name<'a>(&'a str);
+
+    #[test]
+    fn test_validation_of_str_reference() {
+        {
+            let name_error = Name::try_new("  ").unwrap_err();
+            assert_eq!(name_error, NameError::PredicateViolated);
+        }
+
+        {
+            let name = Name::try_new("John").unwrap();
+            assert_eq!(name.into_inner(), "John");
+        }
+    }
+}
