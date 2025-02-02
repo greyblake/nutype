@@ -1,6 +1,7 @@
 ### v0.x.x - 2025-xx-xx
 - **[BREAKING]** Fallible `::new()` constructor is removed (was deprecated in 0.4.3).
 - **[FEATURE]** Ability to instantiate types in `const` context, when declared with `const_fn` flag.
+- **[FEATURE]** Support `derive(IntoIterator)` for inner types that implement `IntoIterator`.
 - **[FIX]** Enable `&'a str` as an inner type.
 
 ### v0.5.1 - 2024-12-20

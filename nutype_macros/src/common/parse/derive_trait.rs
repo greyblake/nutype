@@ -26,6 +26,7 @@ impl Parse for SpannedDeriveTrait {
             "Hash" => DeriveTrait::Hash,
             "Borrow" => DeriveTrait::Borrow,
             "Default" => DeriveTrait::Default,
+            "IntoIterator" => DeriveTrait::IntoIterator,
             "Serialize" => {
                 cfg_if! {
                     if #[cfg(feature = "serde")] {
