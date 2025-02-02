@@ -192,6 +192,10 @@ fn to_float_derive_trait(
                 Ok(FloatDeriveTrait::From)
             }
         }
+        DeriveTrait::IntoIterator => Err(syn::Error::new(
+            span,
+            "#[nutype] cannot derive `IntoIterator` trait for float types. Inner type must be a collection type.",
+        )),
         DeriveTrait::TryFrom => Ok(FloatDeriveTrait::TryFrom),
         DeriveTrait::SerdeSerialize => Ok(FloatDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),

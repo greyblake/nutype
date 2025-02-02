@@ -354,6 +354,7 @@ pub enum DeriveTrait {
     Display,
     Default,
     Deref,
+    IntoIterator,
 
     // External crates
     //

@@ -44,6 +44,7 @@ pub enum AnyDeriveTrait {
     TryFrom,
     Default,
     Hash,
+    IntoIterator,
 
     // External crates
     SerdeSerialize,

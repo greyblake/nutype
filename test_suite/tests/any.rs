@@ -1068,3 +1068,47 @@ mod str_reference {
         }
     }
 }
+
+mod into_iter {
+    use nutype::nutype;
+    use std::fmt::Display;
+
+    #[test]
+    fn test_into_iter_for_vector_of_strings() {
+        #[nutype(derive(IntoIterator))]
+        struct StringNames(Vec<String>);
+
+        let alice = "Alice".to_string();
+        let bob = "Bob".to_string();
+        let string_names = StringNames::new(vec![alice, bob]);
+
+        // Test iterator over references
+        {
+            let mut ref_iter = (&string_names).into_iter();
+            assert_eq!(ref_iter.next(), Some(&"Alice".to_string()));
+            assert_eq!(ref_iter.next(), Some(&"Bob".to_string()));
+            assert_eq!(ref_iter.next(), None);
+        }
+
+        // Test iterator over owned values
+        {
+            let mut owned_iter = string_names.into_iter();
+            assert_eq!(owned_iter.next(), Some("Alice".to_string()));
+            assert_eq!(owned_iter.next(), Some("Bob".to_string()));
+            assert_eq!(owned_iter.next(), None);
+        }
+    }
+
+    #[test]
+    fn test_into_iter_for_vector_of_generic_references() {
+        #[nutype(derive(IntoIterator))]
+        struct GenericNames<'a, T: Display + ?Sized>(Vec<&'a T>);
+
+        let names = GenericNames::new(vec!["Alice", "Bob"]);
+
+        let mut iter = names.into_iter();
+        assert_eq!(iter.next(), Some("Alice"));
+        assert_eq!(iter.next(), Some("Bob"));
+        assert_eq!(iter.next(), None);
+    }
+}

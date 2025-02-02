@@ -163,6 +163,10 @@ fn to_string_derive_trait(
         }
         DeriveTrait::TryFrom => Ok(StringDeriveTrait::TryFrom),
         DeriveTrait::ArbitraryArbitrary => Ok(StringDeriveTrait::ArbitraryArbitrary),
+        DeriveTrait::IntoIterator => Err(syn::Error::new(
+            span,
+            "#[nutype] cannot derive `IntoIterator` trait for String types. Inner type must be a collection type.",
+        )),
     }
 }
 

@@ -1,4 +1,5 @@
 pub mod arbitrary;
+pub mod into_iter;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
@@ -45,6 +46,9 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::FromStr => AnyGeneratableTrait::Irregular(AnyIrregularTrait::FromStr),
             AnyDeriveTrait::TryFrom => AnyGeneratableTrait::Irregular(AnyIrregularTrait::TryFrom),
             AnyDeriveTrait::Default => AnyGeneratableTrait::Irregular(AnyIrregularTrait::Default),
+            AnyDeriveTrait::IntoIterator => {
+                AnyGeneratableTrait::Irregular(AnyIrregularTrait::IntoIterator)
+            }
             AnyDeriveTrait::SerdeSerialize => {
                 AnyGeneratableTrait::Irregular(AnyIrregularTrait::SerdeSerialize)
             }
@@ -100,6 +104,7 @@ enum AnyIrregularTrait {
     FromStr,
     TryFrom,
     Default,
+    IntoIterator,
     SerdeSerialize,
     SerdeDeserialize,
     ArbitraryArbitrary,
@@ -174,6 +179,9 @@ fn gen_implemented_traits(
                     Err(syn::Error::new(span, msg))
                 }
             },
+            AnyIrregularTrait::IntoIterator => {
+                Ok(into_iter::gen_impl_trait_into_iter(type_name, generics, inner_type))
+            }
             AnyIrregularTrait::SerdeSerialize => Ok(
                 gen_impl_trait_serde_serialize(type_name, generics)
             ),

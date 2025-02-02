@@ -115,5 +115,9 @@ fn to_integer_derive_trait(
                 Ok(IntegerDeriveTrait::From)
             }
         }
+        DeriveTrait::IntoIterator => Err(syn::Error::new(
+            span,
+            "#[nutype] cannot derive `IntoIterator` trait for integer types. Inner type must be a collection type.",
+        )),
     }
 }
