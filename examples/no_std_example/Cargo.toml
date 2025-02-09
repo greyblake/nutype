@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nutype = { path = "../../nutype", default-features = false }
+nutype = { path = "../../nutype", default-features = false, features = ["serde"] }
+serde = { version = "1.0", default-features = false }
 
 # Exclude this package from the common workspace, since it's no_std.
 [workspace]
