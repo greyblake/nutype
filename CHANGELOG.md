@@ -1,3 +1,6 @@
+### v0.6.1 - 2025-02-09
+- **[FIX]** Fix `derive(Deserialize)` for no_std.
+
 ### v0.6.0 - 2025-02-02
 - **[FEATURE]** Ability to instantiate types in `const` context, when declared with `const_fn` flag.
 - **[FEATURE]** Support `derive(IntoIterator)` for inner types that implement `IntoIterator`.
