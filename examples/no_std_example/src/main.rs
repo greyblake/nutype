@@ -72,3 +72,9 @@ pub struct Point {
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, AsRef, Into, From, Deref, Borrow, Hash
 ))]
 pub struct Location(Point);
+
+#[nutype(
+    validate(less_or_equal = 100),
+    derive(Serialize, Deserialize)
+)]
+pub struct Percentage(u8);
