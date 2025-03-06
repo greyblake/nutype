@@ -377,7 +377,7 @@ pub trait TypeTrait {
     fn is_from_str(&self) -> bool;
 }
 
-/// The flag the indicates that a newtype will be generated with extra constructor,
+/// The flag that indicates that a newtype will be generated with extra constructor,
 /// `::new_unchecked()` constructor which allows to avoid the guards.
 /// Generally, usage of `new_unchecked` is discouraged.
 #[derive(Debug, Default)]
