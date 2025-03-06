@@ -1,0 +1,7 @@
+error: Numeric operations can only be implemented for integer types
+ --> tests/ui/string/attributes/unsupported_attribute.rs:3:1
+  |
+3 | #[nutype(checked_ops)]
+  | ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)

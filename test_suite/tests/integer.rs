@@ -677,6 +677,249 @@ mod traits {
         assert_eq!(age.to_string(), "35");
     }
 
+    #[test]
+    fn test_trait_checked_ops_without_validation() {
+        #[nutype(checked_ops)]
+        pub struct Offset(i64);
+
+        {
+            let lhs = Offset::new(-100);
+            let rhs = Offset::new(100);
+            let result = lhs.checked_add(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 0);
+        }
+
+        {
+            let lhs = Offset::new(i64::MAX);
+            let rhs = Offset::new(i64::MAX);
+            let result = lhs.checked_add(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::new(100);
+            let rhs = Offset::new(100);
+            let result = lhs.checked_div(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 1);
+        }
+
+        {
+            let lhs = Offset::new(i64::MAX);
+            let rhs = Offset::new(0);
+            let result = lhs.checked_div(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::new(100);
+            let rhs = Offset::new(100);
+            let result = lhs.checked_mul(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 10_000);
+        }
+
+        {
+            let lhs = Offset::new(i64::MAX);
+            let rhs = Offset::new(i64::MAX);
+            let result = lhs.checked_mul(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::new(100);
+            let result = lhs.checked_neg();
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), -100);
+        }
+
+        {
+            let lhs = Offset::new(i64::MIN);
+            let result = lhs.checked_neg();
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::new(100);
+            let rhs = Offset::new(80);
+            let result = lhs.checked_rem(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 20);
+        }
+
+        {
+            let lhs = Offset::new(i64::MAX);
+            let rhs = Offset::new(0);
+            let result = lhs.checked_rem(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::new(1);
+            let result = lhs.checked_shl(1);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 2);
+        }
+
+        {
+            let lhs = Offset::new(1);
+            let result = lhs.checked_shl(i64::BITS + 1);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::new(2);
+            let result = lhs.checked_shr(1);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 1);
+        }
+
+        {
+            let lhs = Offset::new(1);
+            let result = lhs.checked_shr(i64::BITS + 1);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::new(100);
+            let rhs = Offset::new(100);
+            let result = lhs.checked_sub(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 0);
+        }
+
+        {
+            let lhs = Offset::new(i64::MIN);
+            let rhs = Offset::new(i64::MAX);
+            let result = lhs.checked_sub(&rhs);
+            assert!(result.is_none());
+        }
+    }
+
+    #[test]
+    fn test_trait_checked_ops_with_validation() {
+        #[nutype(checked_ops, validate(greater_or_equal = -100, less_or_equal = 100))]
+        pub struct Offset(i64);
+
+        {
+            let lhs = Offset::try_new(-100).unwrap();
+            let rhs = Offset::try_new(100).unwrap();
+            let result = lhs.checked_add(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 0);
+        }
+
+        {
+            let lhs = Offset::try_new(-100).unwrap();
+            let rhs = Offset::try_new(-100).unwrap();
+            let result = lhs.checked_add(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::try_new(100).unwrap();
+            let rhs = Offset::try_new(100).unwrap();
+            let result = lhs.checked_div(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 1);
+        }
+
+        {
+            let lhs = Offset::try_new(100).unwrap();
+            let rhs = Offset::try_new(0).unwrap();
+            let result = lhs.checked_div(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::try_new(10).unwrap();
+            let rhs = Offset::try_new(10).unwrap();
+            let result = lhs.checked_mul(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 100);
+        }
+
+        {
+            let lhs = Offset::try_new(100).unwrap();
+            let rhs = Offset::try_new(100).unwrap();
+            let result = lhs.checked_mul(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::try_new(100).unwrap();
+            let result = lhs.checked_neg();
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), -100);
+        }
+
+        {
+            #[nutype(checked_ops, validate(greater_or_equal = -100, less_or_equal = 0))]
+            pub struct Offset(i64);
+
+            let lhs = Offset::try_new(-100).unwrap();
+            let result = lhs.checked_neg();
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::try_new(100).unwrap();
+            let rhs = Offset::try_new(80).unwrap();
+            let result = lhs.checked_rem(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 20);
+        }
+
+        {
+            let lhs = Offset::try_new(100).unwrap();
+            let rhs = Offset::try_new(0).unwrap();
+            let result = lhs.checked_rem(&rhs);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::try_new(1).unwrap();
+            let result = lhs.checked_shl(1);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 2);
+        }
+
+        {
+            let lhs = Offset::try_new(1).unwrap();
+            let result = lhs.checked_shl(i64::BITS);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::try_new(2).unwrap();
+            let result = lhs.checked_shr(1);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 1);
+        }
+
+        {
+            let lhs = Offset::try_new(1).unwrap();
+            let result = lhs.checked_shr(i64::BITS + 1);
+            assert!(result.is_none());
+        }
+
+        {
+            let lhs = Offset::try_new(100).unwrap();
+            let rhs = Offset::try_new(100).unwrap();
+            let result = lhs.checked_sub(&rhs);
+            assert!(result.is_some());
+            assert_eq!(result.unwrap().into_inner(), 0);
+        }
+
+        {
+            let lhs = Offset::try_new(-100).unwrap();
+            let rhs = Offset::try_new(100).unwrap();
+            let result = lhs.checked_sub(&rhs);
+            assert!(result.is_none());
+        }
+    }
+
     #[cfg(feature = "serde")]
     mod serialization {
         use super::*;

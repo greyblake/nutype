@@ -22,7 +22,7 @@ use crate::{
             traits::GeneratedTraits,
             GenerateNewtype,
         },
-        models::{ConstFn, ErrorTypePath, Guard, TypeName},
+        models::{CheckedOps, ConstFn, ErrorTypePath, Guard, TypeName},
     },
     float::models::FloatInnerType,
 };
@@ -151,6 +151,22 @@ where
             traits,
             guard,
         )
+    }
+
+    fn gen_ops(
+        _type_name: &TypeName,
+        _generics: &Generics,
+        _guard: &Guard<Self::Sanitizer, Self::Validator>,
+        checked_ops: CheckedOps,
+    ) -> Result<TokenStream, syn::Error> {
+        match checked_ops {
+            CheckedOps::Off => Ok(TokenStream::default()),
+            CheckedOps::On => {
+                let span = proc_macro2::Span::call_site();
+                let msg = "Numeric operations can only be implemented for integer types";
+                Err(syn::Error::new(span, msg))
+            }
+        }
     }
 
     fn gen_tests(

@@ -10,7 +10,7 @@ use std::collections::HashSet;
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    ConstFn, CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked,
+    CheckedOps, ConstFn, CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked,
     ParseErrorTypeName, TypeName, TypeTrait,
 };
 use crate::common::{
@@ -249,6 +249,13 @@ pub trait GenerateNewtype {
         guard: &Guard<Self::Sanitizer, Self::Validator>,
     ) -> Result<GeneratedTraits, syn::Error>;
 
+    fn gen_ops(
+        type_name: &TypeName,
+        generics: &Generics,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        checked_ops: CheckedOps,
+    ) -> Result<TokenStream, syn::Error>;
+
     fn gen_try_new(
         type_name: &TypeName,
         generics: &Generics,
@@ -400,6 +407,7 @@ pub trait GenerateNewtype {
             maybe_default_value,
             inner_type,
             generics,
+            checked_ops,
         } = params;
 
         let module_name = gen_module_name_for_type(&type_name);
@@ -459,6 +467,8 @@ pub trait GenerateNewtype {
             &guard,
         )?;
 
+        let checked_ops = Self::gen_ops(&type_name, &generics, &guard, checked_ops)?;
+
         Ok(quote!(
             #[doc(hidden)]
             #[allow(non_snake_case, reason = "we keep original structure name which is probably CamelCase")]
@@ -471,6 +481,8 @@ pub trait GenerateNewtype {
 
                 #implementation
                 #implement_traits
+
+                #checked_ops
 
                 #[cfg(test)]
                 mod tests {

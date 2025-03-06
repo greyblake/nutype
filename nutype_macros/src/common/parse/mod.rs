@@ -21,7 +21,8 @@ use syn::{
 use crate::common::models::SpannedDeriveTrait;
 
 use super::models::{
-    ConstFn, CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
+    CheckedOps, ConstFn, CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction,
+    ValueOrExpr,
 };
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
@@ -75,6 +76,9 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
 
     /// Parsed from `derive(...)` attribute
     pub derive_traits: Vec<SpannedDeriveTrait>,
+
+    /// Parsed from `checked_ops` attribute
+    pub checked_ops: CheckedOps,
 }
 
 enum ValidateAttr<Validator: Parse + Kinded> {
@@ -230,6 +234,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             const_fn: ConstFn::NoConst,
             default: None,
             derive_traits: vec![],
+            checked_ops: CheckedOps::Off,
         }
     }
 }
@@ -306,6 +311,8 @@ where
                         return Err(syn::Error::new(ident.span(), msg));
                     }
                 }
+            } else if ident == "checked_ops" {
+                attrs.checked_ops = CheckedOps::On;
             } else {
                 let msg = format!("Unknown attribute `{ident}`");
                 return Err(syn::Error::new(ident.span(), msg));

@@ -391,3 +391,104 @@ pub fn gen_impl_trait_default(
         )
     }
 }
+
+/// Generate implementation of checked numeric operations for integer types.
+pub fn gen_impl_checked_ops(
+    type_name: &TypeName,
+    generics: &Generics,
+    maybe_error_type_name: Option<&ErrorTypePath>,
+) -> TokenStream {
+    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+
+    if let Some(_error_type_name) = maybe_error_type_name {
+        // The case with validation
+        quote! {
+            impl #type_name #generics_without_bounds {
+                #[inline]
+                pub fn checked_add(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_add(rhs.0)?).ok()
+                }
+
+                #[inline]
+                pub fn checked_div(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_div(rhs.0)?).ok()
+                }
+
+                #[inline]
+                pub fn checked_mul(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_mul(rhs.0)?).ok()
+                }
+
+                #[inline]
+                pub fn checked_neg(&self) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_neg()?).ok()
+                }
+
+                #[inline]
+                pub fn checked_rem(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_rem(rhs.0)?).ok()
+                }
+
+                #[inline]
+                pub fn checked_shl(&self, rhs: u32) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_shl(rhs)?).ok()
+                }
+
+                #[inline]
+                pub fn checked_shr(&self, rhs: u32) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_shr(rhs)?).ok()
+                }
+
+                #[inline]
+                pub fn checked_sub(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Self::try_new(self.0.checked_sub(rhs.0)?).ok()
+                }
+            }
+        }
+    } else {
+        // The case without validation
+        quote! {
+            impl #type_name #generics_without_bounds {
+                #[inline]
+                pub fn checked_add(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_add(rhs.0)?))
+                }
+
+                #[inline]
+                pub fn checked_div(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_div(rhs.0)?))
+                }
+
+                #[inline]
+                pub fn checked_mul(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_mul(rhs.0)?))
+                }
+
+                #[inline]
+                pub fn checked_neg(&self) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_neg()?))
+                }
+
+                #[inline]
+                pub fn checked_rem(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_rem(rhs.0)?))
+                }
+
+                #[inline]
+                pub fn checked_shl(&self, rhs: u32) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_shl(rhs)?))
+                }
+
+                #[inline]
+                pub fn checked_shr(&self, rhs: u32) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_shr(rhs)?))
+                }
+
+                #[inline]
+                pub fn checked_sub(&self, rhs: &Self) -> ::core::option::Option<Self> {
+                    Some(Self::new(self.0.checked_sub(rhs.0)?))
+                }
+            }
+        }
+    }
+}

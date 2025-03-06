@@ -42,6 +42,7 @@ where
         const_fn,
         default,
         derive_traits,
+        checked_ops,
     } = attrs;
     let raw_guard = FloatRawGuard {
         sanitizers,
@@ -54,6 +55,7 @@ where
         guard,
         default,
         derive_traits,
+        checked_ops,
     })
 }
 
