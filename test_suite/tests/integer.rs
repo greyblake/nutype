@@ -553,7 +553,7 @@ mod traits {
     }
 
     #[test]
-    fn test_with_validaiton() {
+    fn test_with_validation() {
         #[nutype(
             validate(less_or_equal = 1000),
             derive(Debug, TryFrom, FromStr, Borrow, Clone, Copy)

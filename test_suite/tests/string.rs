@@ -322,7 +322,7 @@ mod derives {
     }
 
     #[test]
-    fn test_with_validaiton() {
+    fn test_with_validation() {
         #[nutype(
             validate(not_empty),
             derive(Debug, Hash, TryFrom, FromStr, Borrow, Clone)

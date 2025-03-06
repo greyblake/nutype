@@ -8,7 +8,7 @@ fn main() {
     should_respect_not_empty_validation_with_trim();
     should_respect_not_empty_validation_without_trim();
     should_respect_len_char_max();
-    should_respec_both_len_boundaries();
+    should_respect_both_len_boundaries();
 }
 
 fn should_generate_arbitrary_string_without_validation_with_respect_to_sanitizers() {
@@ -68,7 +68,7 @@ fn should_respect_len_char_max() {
     });
 }
 
-fn should_respec_both_len_boundaries() {
+fn should_respect_both_len_boundaries() {
     #[nutype(validate(len_char_min = 3, len_char_max = 5), derive(Arbitrary, Debug))]
     struct Text(String);
 
