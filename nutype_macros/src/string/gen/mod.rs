@@ -14,7 +14,7 @@ use crate::{
             tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits,
             GenerateNewtype,
         },
-        models::{ConstFn, ErrorTypePath, Guard, TypeName},
+        models::{CheckedOps, ConstFn, ErrorTypePath, Guard, TypeName},
     },
     string::models::{RegexDef, StringInnerType, StringSanitizer, StringValidator},
 };
@@ -182,6 +182,22 @@ impl GenerateNewtype for StringNewtype {
         guard: &StringGuard,
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(type_name, generics, traits, maybe_default_value, guard)
+    }
+
+    fn gen_ops(
+        _type_name: &TypeName,
+        _generics: &Generics,
+        _guard: &Guard<Self::Sanitizer, Self::Validator>,
+        checked_ops: CheckedOps,
+    ) -> Result<TokenStream, syn::Error> {
+        match checked_ops {
+            CheckedOps::Off => Ok(TokenStream::default()),
+            CheckedOps::On => {
+                let span = proc_macro2::Span::call_site();
+                let msg = "Numeric operations can only be implemented for integer types";
+                Err(syn::Error::new(span, msg))
+            }
+        }
     }
 
     fn gen_tests(

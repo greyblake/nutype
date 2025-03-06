@@ -38,6 +38,7 @@ pub fn parse_attributes(
         const_fn,
         default,
         derive_traits,
+        checked_ops,
     } = attrs;
     let raw_guard = StringRawGuard {
         sanitizers,
@@ -50,6 +51,7 @@ pub fn parse_attributes(
         guard,
         default,
         derive_traits,
+        checked_ops,
     })
 }
 

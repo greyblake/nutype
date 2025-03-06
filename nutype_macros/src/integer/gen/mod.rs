@@ -21,10 +21,10 @@ use crate::common::{
             gen_test_should_have_consistent_lower_and_upper_boundaries,
             gen_test_should_have_valid_default_value,
         },
-        traits::GeneratedTraits,
+        traits::{gen_impl_checked_ops, GeneratedTraits},
         GenerateNewtype,
     },
-    models::{ConstFn, ErrorTypePath, Guard, TypeName},
+    models::{CheckedOps, ConstFn, ErrorTypePath, Guard, TypeName},
 };
 
 impl<T> GenerateNewtype for IntegerNewtype<T>
@@ -143,6 +143,22 @@ where
             maybe_default_value,
             guard,
         )
+    }
+
+    fn gen_ops(
+        type_name: &TypeName,
+        generics: &Generics,
+        guard: &Guard<Self::Sanitizer, Self::Validator>,
+        checked_ops: CheckedOps,
+    ) -> Result<TokenStream, syn::Error> {
+        let checked_ops = match checked_ops {
+            CheckedOps::Off => TokenStream::default(),
+            CheckedOps::On => {
+                let maybe_error_type_name = guard.maybe_error_type_path();
+                gen_impl_checked_ops(type_name, generics, maybe_error_type_name)
+            }
+        };
+        Ok(checked_ops)
     }
 
     fn gen_tests(

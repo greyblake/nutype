@@ -259,6 +259,9 @@ pub struct Attributes<G, DT> {
     /// `new_unchecked` flag
     pub new_unchecked: NewUnchecked,
 
+    /// `checked_ops` flag
+    pub checked_ops: CheckedOps,
+
     /// `const_fn` flag
     pub const_fn: ConstFn,
 
@@ -390,6 +393,16 @@ pub enum NewUnchecked {
     On,
 }
 
+/// The flag indicating generation of checked operations,
+/// as defined in `num_traits::ops::checked` module.
+#[derive(Debug, Clone, Copy, Default)]
+pub enum CheckedOps {
+    #[default]
+    Off,
+
+    On,
+}
+
 /// The flag that indicates the functions must be generated with `const` keyword.
 #[derive(Debug, Clone, Copy, Default)]
 pub enum ConstFn {
@@ -420,6 +433,7 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub guard: Guard,
     pub new_unchecked: NewUnchecked,
     pub const_fn: ConstFn,
+    pub checked_ops: CheckedOps,
     pub maybe_default_value: Option<syn::Expr>,
 }
 
@@ -466,6 +480,7 @@ pub trait Newtype {
             const_fn,
             default: maybe_default_value,
             derive_traits,
+            checked_ops,
         } = Self::parse_attributes(attrs, &type_name)?;
         let traits = Self::validate(&guard, derive_traits)?;
         let generated_output = Self::generate(GenerateParams {
@@ -477,6 +492,7 @@ pub trait Newtype {
             guard,
             new_unchecked,
             const_fn,
+            checked_ops,
             maybe_default_value,
             inner_type,
         })?;
