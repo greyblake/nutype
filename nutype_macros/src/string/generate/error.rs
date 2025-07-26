@@ -64,10 +64,22 @@ fn gen_impl_display_trait(
 ) -> TokenStream {
     let match_arms = validators.iter().map(|validator| match validator {
         StringValidator::LenCharMax(len_char_max) => quote! {
-             #error_type_path::LenCharMaxViolated => write!(f, "{} is too long. The value length must be less than {:#?} character(s).", stringify!(#type_name), #len_char_max)
+            #error_type_path::LenCharMaxViolated => write!(
+                f,
+                "{} is too long: the maximum valid length is {} character{}.",
+                stringify!(#type_name),
+                #len_char_max,
+                if #len_char_max == 1 { "" } else { "s" }
+            )
         },
         StringValidator::LenCharMin(len_char_min) => quote! {
-             #error_type_path::LenCharMinViolated => write!(f, "{} is too short. The value length must be more than {:#?} character(s).", stringify!(#type_name), #len_char_min)
+            #error_type_path::LenCharMinViolated => write!(
+                f,
+                "{} is too short: the minimum valid length is {} character{}.",
+                stringify!(#type_name),
+                #len_char_min,
+                if #len_char_min == 1 { "" } else { "s" }
+            )
         },
         StringValidator::NotEmpty => quote! {
              #error_type_path::NotEmptyViolated => write!(f, "{} is empty.", stringify!(#type_name))
