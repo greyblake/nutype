@@ -2,8 +2,8 @@ use kinded::Kinded;
 use proc_macro2::TokenStream;
 
 use crate::common::models::{
-    impl_numeric_bound_on_vec_of, impl_numeric_bound_validator, Guard, RawGuard, SpannedItem,
-    TypeTrait, TypedCustomFunction, ValueOrExpr,
+    Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction, ValueOrExpr,
+    impl_numeric_bound_on_vec_of, impl_numeric_bound_validator,
 };
 
 // Sanitizer

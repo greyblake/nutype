@@ -1,3 +1,6 @@
+### v0.x.x - 2025-xx-xx
+- Update Rust edition: 2021 -> 2024
+
 ### v0.6.1 - 2025-02-09
 - **[FIX]** Fix `derive(Deserialize)` for no_std.
 

@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use syn::{spanned::Spanned, Attribute, DeriveInput, Visibility};
+use syn::{Attribute, DeriveInput, Visibility, spanned::Spanned};
 
 use crate::{
     any::models::AnyInnerType,

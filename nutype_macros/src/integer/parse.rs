@@ -6,14 +6,14 @@ use core::{
 use crate::common::{
     models::{Attributes, SpannedDeriveTrait, TypeName},
     parse::{
-        parse_number_or_expr, parse_sanitizer_kind, parse_typed_custom_function,
-        parse_validator_kind, ParseableAttributes,
+        ParseableAttributes, parse_number_or_expr, parse_sanitizer_kind,
+        parse_typed_custom_function, parse_validator_kind,
     },
 };
 use proc_macro2::TokenStream;
 use syn::{
-    parse::{Parse, ParseStream},
     Token,
+    parse::{Parse, ParseStream},
 };
 
 use super::{

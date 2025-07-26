@@ -2,12 +2,12 @@ use kinded::Kinded;
 use proc_macro2::Span;
 
 use super::{
+    r#generate::error::gen_error_type_name,
     models::{
         DeriveTrait, Guard, NumericBoundValidator, RawGuard, SpannedDeriveTrait, SpannedItem,
         TypeName, Validation,
     },
     parse::RawValidation,
-    r#gen::error::gen_error_type_name,
 };
 
 /// Some kind of template method to validate a guard of all types.

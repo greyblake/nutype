@@ -11,11 +11,10 @@ use cfg_if::cfg_if;
 use kinded::{Kind, Kinded};
 use proc_macro2::{Ident, Span};
 use syn::{
-    parenthesized,
+    Expr, Lit, Token, parenthesized,
     parse::{Parse, ParseStream},
     spanned::Spanned,
     token::Paren,
-    Expr, Lit, Token,
 };
 
 use crate::common::models::SpannedDeriveTrait;
@@ -142,7 +141,9 @@ where
                 .collect::<Vec<_>>()
                 .join(", ");
             let ident: Ident = input.parse()?;
-            let msg = format!("Unknown validation attribute: `{ident}`.\nPossible attributes are {possible_values}.");
+            let msg = format!(
+                "Unknown validation attribute: `{ident}`.\nPossible attributes are {possible_values}."
+            );
             Err(syn::Error::new(ident.span(), msg))
         }
     }
@@ -203,7 +204,9 @@ where
                 Err(syn::Error::new(input.span(), msg))
             }
             (0, None, Some(error_type)) => {
-                let msg = format!("The `error` attribute requires an accompanying `with` attribute.\nPlease provide the validation function that returns Result<(), {error_type}>.");
+                let msg = format!(
+                    "The `error` attribute requires an accompanying `with` attribute.\nPlease provide the validation function that returns Result<(), {error_type}>."
+                );
                 Err(syn::Error::new(input.span(), msg))
             }
             (0, None, None) => {
