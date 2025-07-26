@@ -1,4 +1,4 @@
-pub mod gen;
+pub mod generate;
 pub mod models;
 pub mod parse;
 pub mod validate;
@@ -6,7 +6,7 @@ pub mod validate;
 use std::collections::HashSet;
 
 use crate::common::{
-    gen::GenerateNewtype,
+    generate::GenerateNewtype,
     models::{Attributes, GenerateParams, Newtype, SpannedDeriveTrait, TypeName},
 };
 

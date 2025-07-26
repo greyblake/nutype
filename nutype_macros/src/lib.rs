@@ -16,8 +16,8 @@ use common::{
     models::{InnerType, Newtype, TypedMeta},
     parse::meta::parse_meta,
 };
-use float::{models::FloatInnerType, FloatNewtype};
-use integer::{models::IntegerInnerType, IntegerNewtype};
+use float::{FloatNewtype, models::FloatInnerType};
+use integer::{IntegerNewtype, models::IntegerInnerType};
 use proc_macro2::TokenStream;
 use string::StringNewtype;
 

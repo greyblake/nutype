@@ -30,7 +30,7 @@ impl Parse for ErrorTypePath {
 impl core::fmt::Display for ErrorTypePath {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let token_stream: TokenStream = self.0.clone().to_token_stream();
-        write!(f, "{}", token_stream)
+        write!(f, "{token_stream}")
     }
 }
 

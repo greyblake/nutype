@@ -1,11 +1,11 @@
 use crate::common::{
     models::{Attributes, CustomFunction, SpannedDeriveTrait, TypeName},
-    parse::{parse_sanitizer_kind, parse_validator_kind, ParseableAttributes},
+    parse::{ParseableAttributes, parse_sanitizer_kind, parse_validator_kind},
 };
 use proc_macro2::TokenStream;
 use syn::{
-    parse::{Parse, ParseStream},
     Token,
+    parse::{Parse, ParseStream},
 };
 
 use super::{

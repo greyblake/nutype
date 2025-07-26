@@ -9,7 +9,7 @@ use proc_macro2::TokenStream;
 use quote::ToTokens;
 
 use crate::common::{
-    gen::GenerateNewtype,
+    generate::GenerateNewtype,
     models::{Attributes, GenerateParams, Guard, Newtype, SpannedDeriveTrait, TypeName},
 };
 
@@ -20,7 +20,7 @@ use self::{
     validate::validate_float_derive_traits,
 };
 
-pub mod gen;
+pub mod generate;
 pub mod models;
 pub mod parse;
 pub mod validate;

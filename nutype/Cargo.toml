@@ -2,7 +2,7 @@
 name = "nutype"
 version = "0.6.1"
 authors = ["Serhii Potapov <blake131313@gmail.com>"]
-edition = "2021"
+edition = "2024"
 description = "The newtype with guarantees."
 keywords = ["newtype", "validation", "sanitization", "derive", "invariant"]
 license = "MIT"

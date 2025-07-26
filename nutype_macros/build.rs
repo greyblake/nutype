@@ -1,4 +1,4 @@
-use rustc_version::{version, version_meta, Channel};
+use rustc_version::{Channel, version, version_meta};
 
 fn main() {
     let version = version().expect("Couldn't get Rust version");

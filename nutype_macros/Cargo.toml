@@ -1,7 +1,7 @@
 [package]
 name = "nutype_macros"
 version = "0.6.1"
-edition = "2021"
+edition = "2024"
 authors = ["Serhii Potapov <blake131313@gmail.com>"]
 description = "The newtype with guarantees."
 keywords = ["newtype", "validation", "sanitization", "derive", "invariant"]

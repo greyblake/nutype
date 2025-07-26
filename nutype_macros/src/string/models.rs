@@ -1,6 +1,6 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 
 use crate::common::models::{
     Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction, ValueOrExpr,

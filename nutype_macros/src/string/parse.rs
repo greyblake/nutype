@@ -2,8 +2,8 @@ use crate::{
     common::{
         models::{Attributes, SpannedDeriveTrait, SpannedItem, TypeName},
         parse::{
-            parse_number_or_expr, parse_sanitizer_kind, parse_typed_custom_function_raw,
-            parse_validator_kind, ParseableAttributes,
+            ParseableAttributes, parse_number_or_expr, parse_sanitizer_kind,
+            parse_typed_custom_function_raw, parse_validator_kind,
         },
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
@@ -11,9 +11,9 @@ use crate::{
 use cfg_if::cfg_if;
 use proc_macro2::TokenStream;
 use syn::{
+    LitStr, Path, Token,
     parse::{Parse, ParseStream},
     spanned::Spanned,
-    LitStr, Path, Token,
 };
 
 use super::{

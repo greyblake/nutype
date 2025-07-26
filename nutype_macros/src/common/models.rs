@@ -6,10 +6,10 @@ use std::collections::HashSet;
 use syn::Generics;
 
 use proc_macro2::{Span, TokenStream};
-use quote::{quote, ToTokens};
+use quote::{ToTokens, quote};
 use syn::{
-    parse::{Parse, ParseStream},
     Attribute, ExprClosure, Path,
+    parse::{Parse, ParseStream},
 };
 
 use crate::{
@@ -17,7 +17,7 @@ use crate::{
     string::models::StringInnerType,
 };
 
-use super::gen::type_custom_closure;
+use super::generate::type_custom_closure;
 use super::parse::RawValidation;
 
 pub use error_type_path::ErrorTypePath;
@@ -49,6 +49,7 @@ impl<T: Kinded> Kinded for SpannedItem<T> {
 }
 
 /// Represents the inner type of a newtype.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InnerType {
     String(StringInnerType),
@@ -198,6 +199,7 @@ pub struct TypedMeta {
 }
 
 /// Validated model, that represents precisely what needs to be generated.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum Guard<Sanitizer, Validator> {
     WithoutValidation {
