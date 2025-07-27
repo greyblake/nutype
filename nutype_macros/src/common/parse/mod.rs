@@ -17,7 +17,7 @@ use syn::{
     token::Paren,
 };
 
-use crate::common::models::SpannedDeriveTrait;
+use crate::common::models::{SpannedDeriveTrait, SpannedDeriveUnsafeTrait};
 
 use super::models::{
     ConstFn, CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
@@ -74,6 +74,9 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
 
     /// Parsed from `derive(...)` attribute
     pub derive_traits: Vec<SpannedDeriveTrait>,
+
+    /// Parse from `derive_unsafe(...)` attribute
+    pub derive_unsafe_traits: Vec<SpannedDeriveUnsafeTrait>,
 }
 
 enum ValidateAttr<Validator: Parse + Kinded> {
@@ -233,6 +236,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             const_fn: ConstFn::NoConst,
             default: None,
             derive_traits: vec![],
+            derive_unsafe_traits: vec![],
         }
     }
 }
@@ -308,6 +312,17 @@ where
                         );
                         return Err(syn::Error::new(ident.span(), msg));
                     }
+                }
+            } else if ident == "derive_unsafe" {
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let items =
+                        content.parse_terminated(SpannedDeriveUnsafeTrait::parse, Token![,])?;
+                    attrs.derive_unsafe_traits = items.into_iter().collect();
+                } else {
+                    let msg = "`derive_unsafe(...)` must be used with parenthesis.";
+                    return Err(syn::Error::new(ident.span(), msg));
                 }
             } else {
                 let msg = format!("Unknown attribute `{ident}`");

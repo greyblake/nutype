@@ -24,7 +24,7 @@ use crate::common::{
         },
         traits::GeneratedTraits,
     },
-    models::{ConstFn, ErrorTypePath, Guard, TypeName},
+    models::{ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName},
 };
 
 impl<T> GenerateNewtype for IntegerNewtype<T>
@@ -132,6 +132,7 @@ where
         generics: &Generics,
         inner_type: &Self::InnerType,
         traits: HashSet<Self::TypedTrait>,
+        unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &IntegerGuard<T>,
     ) -> Result<GeneratedTraits, syn::Error> {
@@ -140,6 +141,7 @@ where
             generics,
             inner_type,
             traits,
+            unsafe_traits,
             maybe_default_value,
             guard,
         )
