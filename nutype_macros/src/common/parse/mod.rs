@@ -314,15 +314,31 @@ where
                     }
                 }
             } else if ident == "derive_unsafe" {
-                if input.peek(Paren) {
-                    let content;
-                    parenthesized!(content in input);
-                    let items =
-                        content.parse_terminated(SpannedDeriveUnsafeTrait::parse, Token![,])?;
-                    attrs.derive_unsafe_traits = items.into_iter().collect();
-                } else {
-                    let msg = "`derive_unsafe(...)` must be used with parenthesis.";
-                    return Err(syn::Error::new(ident.span(), msg));
+                cfg_if! {
+                    if #[cfg(feature = "derive_unsafe")] {
+                        if input.peek(Paren) {
+                            let content;
+                            parenthesized!(content in input);
+                            let items =
+                                content.parse_terminated(SpannedDeriveUnsafeTrait::parse, Token![,])?;
+                            attrs.derive_unsafe_traits = items.into_iter().collect();
+                        } else {
+                            let msg = "`derive_unsafe(...)` must be used with parenthesis.";
+                            return Err(syn::Error::new(ident.span(), msg));
+                        }
+                    } else {
+                        // The feature is not enabled, so we return an error
+                        let msg = concat!(
+                            "To use derive_unsafe() function, the feature `derive_unsafe` of crate `nutype` needs to be enabled.\n\n",
+                            "DID YOU KNOW?\n",
+                            "It's called `derive_unsafe` because it enables to derive any traits that nutype is not aware of.\n",
+                            "So it is developer's responsibility to ensure that the derived traits do not create a loophole to bypass the constraints.\n",
+                            "As the rule of thumb avoid using `derive_unsafe` with traits that:\n",
+                            "- Create a new instance of the type\n",
+                            "- Mutate the value\n\n",
+                        );
+                        return Err(syn::Error::new(ident.span(), msg));
+                    }
                 }
             } else {
                 let msg = format!("Unknown attribute `{ident}`");
