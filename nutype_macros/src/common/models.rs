@@ -384,6 +384,7 @@ pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
 /// But since it's bypasses the validation, it's possible to derive traits that:
 /// - have a constructor function
 /// - have  mutable methods
+///
 /// Both of these can lead to nutype constraints being violated.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeriveUnsafeTrait(::syn::Path);
