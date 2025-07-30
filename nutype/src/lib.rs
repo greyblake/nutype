@@ -397,6 +397,39 @@
 //! It's important to ensure that the type specified in the `error` attribute matches the error type returned by the validation function.
 //!
 //!
+//! ## Deriving Traits
+//!
+//! There are two ways to derive traits for a `nutype`.
+//!
+//! ### `derive`
+//!
+//! The recommended approach is to use the `derive(..)` attribute within the `#[nutype(..)]` macro:
+//!
+//! ```rust
+//! #[nutype(derive(Debug))]
+//! pub struct Username(String);
+//! ```
+//!
+//! When using `derive`, `nutype` ensures that the derived traits do not compromise the type's invariants (i.e., validation constraints).
+//!
+//! However, this approach has a limitation: only a predefined set of traits is supported. Deriving arbitrary third-party traits is not allowed via `derive`.
+//!
+//! ### `derive_unsafe`
+//!
+//! To overcome this limitation, you can use the `derive_unsafe(..)` attribute (requires the corresponding feature flag to be enabled):
+//!
+//! ```rust
+//! use derive_more::DerefMut;
+//!
+//! #[nutype(derive_unsafe(DerefMut))]
+//! pub struct Username(String);
+//! ```
+//!
+//! This enables deriving arbitrary traits, including those from third-party crates.
+//! However, **use this with caution**: `nutype` cannot verify that these traits preserve the invariants of the type.
+//! It is the developer’s responsibility to ensure that the derived traits do not introduce ways to bypass validation (e.g., by allowing mutable access to the inner value).
+//!
+//!
 //! ## Constants
 //!
 //! You can mark a type with the `const_fn` flag. In that case, its `new` and `try_new` functions will be declared as `const`:
@@ -506,6 +539,7 @@
 //! ## Feature flags
 //!
 //! * `arbitrary` - enables derive of [`arbitrary::Arbitrary`](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html).
+//! * `derive_unsafe` - enables `derive_unsafe` attribute to derive any arbitrary trait.
 //! * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 //! * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` within its dependencies.
 //! * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
