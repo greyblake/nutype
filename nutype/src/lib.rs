@@ -406,6 +406,8 @@
 //! The recommended approach is to use the `derive(..)` attribute within the `#[nutype(..)]` macro:
 //!
 //! ```rust
+//! use nutype::nutype;
+//!
 //! #[nutype(derive(Debug))]
 //! pub struct Username(String);
 //! ```
@@ -419,9 +421,9 @@
 //! To overcome this limitation, you can use the `derive_unsafe(..)` attribute (requires the corresponding feature flag to be enabled):
 //!
 //! ```rust
-//! use derive_more::DerefMut;
+//! use nutype::nutype;
 //!
-//! #[nutype(derive_unsafe(DerefMut))]
+//! #[nutype(derive_unsafe(std::fmt::Debug))]
 //! pub struct Username(String);
 //! ```
 //!

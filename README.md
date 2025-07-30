@@ -526,6 +526,7 @@ Thank you.
 * [refinement](https://docs.rs/refinement/latest/refinement/) - Convenient creation of type-safe refinement types (based on generics).
 * [semval](https://github.com/slowtec/semval) - Semantic validation for Rust.
 * [validator](https://github.com/Keats/validator) - Simple validation for Rust structs (powered by macros).
+* [derive_more](https://github.com/JelteF/derive_more) - If you just need to derive traits on a newtype without extra logic.
 
 ## License
 
