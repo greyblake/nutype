@@ -347,7 +347,7 @@ dependencies = [
 
 [[package]]
 name = "nutype"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "lazy_static",
  "nutype_macros",
@@ -357,7 +357,7 @@ dependencies = [
 
 [[package]]
 name = "nutype_macros"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "cfg-if",
  "kinded",
