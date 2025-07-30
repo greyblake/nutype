@@ -11,11 +11,11 @@ use nutype::nutype;
 struct LlmTemperature(f64);
 
 fn main() {
-    let mut temprature = LlmTemperature::try_new(1.5).unwrap();
+    let mut temperature = LlmTemperature::try_new(1.5).unwrap();
 
     // This is not what nutype is designed for!
-    *temprature = 2.5;
+    *temperature = 2.5;
 
     // OH no, we've just violated the validation rule!
-    assert_eq!(temprature.as_ref(), &2.5);
+    assert_eq!(temperature.as_ref(), &2.5);
 }
