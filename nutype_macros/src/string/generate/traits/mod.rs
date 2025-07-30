@@ -15,7 +15,7 @@ use crate::{
             gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
             gen_impl_trait_try_from, split_into_generatable_traits,
         },
-        models::{ErrorTypePath, TypeName},
+        models::{ErrorTypePath, SpannedDeriveUnsafeTrait, TypeName},
     },
     string::models::{StringDeriveTrait, StringGuard, StringInnerType},
 };
@@ -140,6 +140,7 @@ pub fn gen_traits(
     type_name: &TypeName,
     generics: &Generics,
     traits: HashSet<StringDeriveTrait>,
+    unsafe_traits: &[SpannedDeriveUnsafeTrait],
     maybe_default_value: Option<syn::Expr>,
     guard: &StringGuard,
 ) -> Result<GeneratedTraits, syn::Error> {
@@ -151,6 +152,7 @@ pub fn gen_traits(
     let derive_transparent_traits = quote! {
         #[derive(
             #(#transparent_traits,)*
+            #(#unsafe_traits,)*
         )]
     };
 

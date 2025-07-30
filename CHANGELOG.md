@@ -1,5 +1,6 @@
 ### v0.x.x - 2025-xx-xx
-- Update Rust edition: 2021 -> 2024
+- Introduce `derive_unsafe(..)` attribute to derive any arbitrary trait (requires `derive_unsafe` feature to be enabled).
+- Update Rust edition: 2021 -> 2024.
 - Improve error messages for `len_char_max` and `len_char_min` validators.
 
 ### v0.6.1 - 2025-02-09

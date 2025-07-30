@@ -22,7 +22,7 @@ use crate::{
             },
             traits::GeneratedTraits,
         },
-        models::{ConstFn, ErrorTypePath, Guard, TypeName},
+        models::{ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName},
     },
     float::models::FloatInnerType,
 };
@@ -140,6 +140,7 @@ where
         generics: &Generics,
         inner_type: &Self::InnerType,
         traits: HashSet<Self::TypedTrait>,
+        unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &FloatGuard<T>,
     ) -> Result<GeneratedTraits, syn::Error> {
@@ -149,6 +150,7 @@ where
             inner_type,
             maybe_default_value,
             traits,
+            unsafe_traits,
             guard,
         )
     }

@@ -10,6 +10,7 @@ members = [
 
     # All examples except "no_std_example" are tested in the test suite
     "examples/any_arbitrary",
+    "examples/derive_unsafe_example",
     "examples/float_arbitrary",
     "examples/float_sortable",
     "examples/integer_arbitrary",
