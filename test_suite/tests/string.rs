@@ -688,16 +688,7 @@ mod derive_valuable {
         pub struct Name(String);
 
         assert_eq!(format!("{:?}", Name::new("Sherlock".to_owned()).as_value()), r#"Name("Sherlock")"#);
-        // let a = assert_eq!(Name("Sherlock".to_owned().as_value()), "Sherlock");
-        // // Make sure it compiles
-        // let _schema = schema_for!(CustomerIdentifier);
     }
-
-    // fn bleh () {
-    //     let a = Bleh("jfke".to_owned());
-    //     assert_eq!(format!("{:?}", a.as_value()), r#"Bleh("jfke")"#);
-      
-    //   }
 }
 
 mod custom_error {
