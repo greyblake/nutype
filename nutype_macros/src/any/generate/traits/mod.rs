@@ -58,6 +58,9 @@ impl From<AnyDeriveTrait> for AnyGeneratableTrait {
             AnyDeriveTrait::ArbitraryArbitrary => {
                 AnyGeneratableTrait::Irregular(AnyIrregularTrait::ArbitraryArbitrary)
             }
+            AnyDeriveTrait::ValuableValuable => {
+                AnyGeneratableTrait::Transparent(AnyTransparentTrait::ValuableValuable)
+            }
         }
     }
 }
@@ -73,6 +76,7 @@ enum AnyTransparentTrait {
     PartialOrd,
     Ord,
     Hash,
+    ValuableValuable,
 }
 
 impl ToTokens for AnyTransparentTrait {
@@ -86,6 +90,7 @@ impl ToTokens for AnyTransparentTrait {
             Self::PartialOrd => quote!(PartialOrd),
             Self::Ord => quote!(Ord),
             Self::Hash => quote!(Hash),
+            Self::ValuableValuable => quote!(::valuable::Valuable),
         };
         tokens.to_tokens(token_stream)
     }

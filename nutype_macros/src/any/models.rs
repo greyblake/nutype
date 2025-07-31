@@ -50,6 +50,7 @@ pub enum AnyDeriveTrait {
     SerdeSerialize,
     SerdeDeserialize,
     ArbitraryArbitrary,
+    ValuableValuable,
 }
 
 impl TypeTrait for AnyDeriveTrait {
