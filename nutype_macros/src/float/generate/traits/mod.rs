@@ -30,6 +30,7 @@ enum FloatTransparentTrait {
     PartialEq,
     PartialOrd,
     SchemarsJsonSchema,
+    ValuableValuable,
 }
 
 /// A trait that can not be automatically derived and we need to generate
@@ -103,6 +104,9 @@ impl From<FloatDeriveTrait> for FloatGeneratableTrait {
             FloatDeriveTrait::SchemarsJsonSchema => {
                 FloatGeneratableTrait::Transparent(FloatTransparentTrait::SchemarsJsonSchema)
             }
+            FloatDeriveTrait::ValuableValuable => {
+                FloatGeneratableTrait::Transparent(FloatTransparentTrait::ValuableValuable)
+            }
         }
     }
 }
@@ -116,6 +120,7 @@ impl ToTokens for FloatTransparentTrait {
             Self::PartialEq => quote!(PartialEq),
             Self::PartialOrd => quote!(PartialOrd),
             Self::SchemarsJsonSchema => quote!(::schemars::JsonSchema),
+            Self::ValuableValuable => quote!(::valuable::Valuable),
         };
         tokens.to_tokens(token_stream)
     }

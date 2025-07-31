@@ -201,5 +201,6 @@ fn to_float_derive_trait(
         DeriveTrait::SerdeDeserialize => Ok(FloatDeriveTrait::SerdeDeserialize),
         DeriveTrait::SchemarsJsonSchema => Ok(FloatDeriveTrait::SchemarsJsonSchema),
         DeriveTrait::ArbitraryArbitrary => Ok(FloatDeriveTrait::ArbitraryArbitrary),
+        DeriveTrait::ValuableValuable => Ok(FloatDeriveTrait::ValuableValuable),
     }
 }
