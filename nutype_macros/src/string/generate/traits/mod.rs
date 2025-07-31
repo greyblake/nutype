@@ -33,6 +33,7 @@ enum StringTransparentTrait {
     Ord,
     Hash,
     SchemarsJsonSchema,
+    ValuableValuable,
 }
 
 /// A trait that can not be automatically derived and we need to generate
@@ -116,6 +117,9 @@ impl From<StringDeriveTrait> for StringGeneratableTrait {
             StringDeriveTrait::ArbitraryArbitrary => {
                 StringGeneratableTrait::Irregular(StringIrregularTrait::ArbitraryArbitrary)
             }
+            StringDeriveTrait::ValuableValuable => {
+                StringGeneratableTrait::Transparent(StringTransparentTrait::ValuableValuable)
+            }
         }
     }
 }
@@ -131,6 +135,7 @@ impl ToTokens for StringTransparentTrait {
             Self::Ord => quote!(Ord),
             Self::Hash => quote!(Hash),
             Self::SchemarsJsonSchema => quote!(::schemars::JsonSchema),
+            Self::ValuableValuable => quote!(::valuable::Valuable),
         };
         tokens.to_tokens(token_stream)
     }

@@ -75,6 +75,7 @@ pub enum StringDeriveTrait {
     SerdeDeserialize,
     SchemarsJsonSchema,
     ArbitraryArbitrary,
+    ValuableValuable,
 }
 
 impl TypeTrait for StringDeriveTrait {

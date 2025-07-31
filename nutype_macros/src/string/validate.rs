@@ -147,6 +147,7 @@ fn to_string_derive_trait(
         DeriveTrait::SerdeSerialize => Ok(StringDeriveTrait::SerdeSerialize),
         DeriveTrait::SerdeDeserialize => Ok(StringDeriveTrait::SerdeDeserialize),
         DeriveTrait::SchemarsJsonSchema => Ok(StringDeriveTrait::SchemarsJsonSchema),
+        DeriveTrait::ValuableValuable => Ok(StringDeriveTrait::ValuableValuable),
         DeriveTrait::Copy => Err(syn::Error::new(
             span,
             "Copy trait cannot be derived for a String based type",
