@@ -758,6 +758,21 @@ mod derive_schemars_json_schema {
     }
 }
 
+#[cfg(test)]
+#[cfg(feature = "valuable")]
+mod derive_valuable {
+    use super::*;
+    use valuable::Valuable;
+
+    #[test]
+    fn test_valuable_derive() {
+        #[nutype(derive(Valuable))]
+        pub struct Temperature(f32);
+
+        assert_eq!(format!("{:?}", Temperature::new(32.3).as_value()), r#"Temperature(32.3)"#);
+    }
+}
+
 mod custom_error {
     use super::*;
     use thiserror::Error;

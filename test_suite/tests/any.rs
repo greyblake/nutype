@@ -766,6 +766,7 @@ mod with_generics {
         }
     }
 
+    #[cfg(feature = "arbitrary")]
     mod generics_and_arbitrary {
         use super::*;
         use arbitrary::Arbitrary;
@@ -923,6 +924,29 @@ mod with_generics {
 
         let collection = Collection::<u32>::default();
         assert_eq!(collection.into_inner(), vec![0]);
+    }
+}
+
+#[cfg(test)]
+#[cfg(feature = "valuable")]
+mod derive_valuable {
+    use super::*;
+    use valuable::Valuable;
+
+    #[derive(Valuable)]
+    pub struct Sleuth {
+        name: String,
+        solved_cases: u32 
+    }
+
+    #[test]
+    fn test_valuable_derive() {
+
+        #[nutype(derive(Valuable))]
+        pub struct MainCharacter(Sleuth);
+
+        assert_eq!(format!("{:?}", MainCharacter::new(Sleuth { name: "Sherlock Holmes".to_owned(), solved_cases: 72 }).as_value()), 
+        r#"MainCharacter(Sleuth { name: "Sherlock Holmes", solved_cases: 60 })"#);
     }
 }
 

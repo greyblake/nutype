@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nutype = { path = "../nutype" }
+nutype = { path = "../nutype"}
 trybuild = { version = "1.0.71", features = ["diff"] }
 
 serde = { version = "1.0.150", optional = true }
@@ -21,6 +21,7 @@ ron = "0.8.1"
 rmp-serde = "1.1.2"
 num = "0.4.3"
 thiserror = "1.0.63"
+valuable = { version = "0.1.1", features = ["derive"], optional = true }
 
 [features]
 serde = ["nutype/serde", "dep:serde", "dep:serde_json"]
@@ -29,3 +30,4 @@ arbitrary = ["nutype/arbitrary"]
 schemars08 = ["schemars"]
 new_unchecked = []
 ui = []
+valuable = ["nutype/valuable", "dep:valuable"]
