@@ -64,6 +64,7 @@ pub enum IntegerDeriveTrait {
     SerdeDeserialize,
     SchemarsJsonSchema,
     ArbitraryArbitrary,
+    ValuableValuable,
 }
 
 impl TypeTrait for IntegerDeriveTrait {
