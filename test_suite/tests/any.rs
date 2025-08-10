@@ -936,17 +936,25 @@ mod derive_valuable {
     #[derive(Valuable)]
     pub struct Sleuth {
         name: String,
-        solved_cases: u32 
+        solved_cases: u32,
     }
 
     #[test]
     fn test_valuable_derive() {
-
         #[nutype(derive(Valuable))]
         pub struct MainCharacter(Sleuth);
 
-        assert_eq!(format!("{:?}", MainCharacter::new(Sleuth { name: "Sherlock Holmes".to_owned(), solved_cases: 72 }).as_value()), 
-        r#"MainCharacter(Sleuth { name: "Sherlock Holmes", solved_cases: 60 })"#);
+        assert_eq!(
+            format!(
+                "{:?}",
+                MainCharacter::new(Sleuth {
+                    name: "Sherlock Holmes".to_owned(),
+                    solved_cases: 72
+                })
+                .as_value()
+            ),
+            r#"MainCharacter(Sleuth { name: "Sherlock Holmes", solved_cases: 72 })"#
+        );
     }
 }
 

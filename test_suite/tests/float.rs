@@ -769,7 +769,10 @@ mod derive_valuable {
         #[nutype(derive(Valuable))]
         pub struct Temperature(f32);
 
-        assert_eq!(format!("{:?}", Temperature::new(32.3).as_value()), r#"Temperature(32.3)"#);
+        assert_eq!(
+            format!("{:?}", Temperature::new(32.3).as_value()),
+            r#"Temperature(32.3)"#
+        );
     }
 }
 

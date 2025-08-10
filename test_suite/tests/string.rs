@@ -687,7 +687,10 @@ mod derive_valuable {
         #[nutype(derive(Valuable))]
         pub struct Name(String);
 
-        assert_eq!(format!("{:?}", Name::new("Sherlock".to_owned()).as_value()), r#"Name("Sherlock")"#);
+        assert_eq!(
+            format!("{:?}", Name::new("Sherlock".to_owned()).as_value()),
+            r#"Name("Sherlock")"#
+        );
     }
 }
 
