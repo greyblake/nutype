@@ -14,7 +14,7 @@ use crate::{
             GenerateNewtype, tests::gen_test_should_have_valid_default_value,
             traits::GeneratedTraits,
         },
-        models::{ConstFn, ErrorTypePath, Guard, TypeName},
+        models::{ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName},
     },
     string::models::{RegexDef, StringInnerType, StringSanitizer, StringValidator},
 };
@@ -178,10 +178,18 @@ impl GenerateNewtype for StringNewtype {
         generics: &Generics,
         _inner_type: &Self::InnerType,
         traits: HashSet<Self::TypedTrait>,
+        unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &StringGuard,
     ) -> Result<GeneratedTraits, syn::Error> {
-        gen_traits(type_name, generics, traits, maybe_default_value, guard)
+        gen_traits(
+            type_name,
+            generics,
+            traits,
+            unsafe_traits,
+            maybe_default_value,
+            guard,
+        )
     }
 
     fn gen_tests(

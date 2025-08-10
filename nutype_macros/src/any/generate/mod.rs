@@ -11,7 +11,9 @@ use crate::common::{
     generate::{
         GenerateNewtype, tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits,
     },
-    models::{ConstFn, ErrorTypePath, Guard, TypeName, TypedCustomFunction},
+    models::{
+        ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName, TypedCustomFunction,
+    },
 };
 
 use self::error::gen_validation_error_type;
@@ -120,6 +122,7 @@ impl GenerateNewtype for AnyNewtype {
         generics: &Generics,
         inner_type: &Self::InnerType,
         traits: HashSet<Self::TypedTrait>,
+        unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &AnyGuard,
     ) -> Result<GeneratedTraits, syn::Error> {
@@ -128,6 +131,7 @@ impl GenerateNewtype for AnyNewtype {
             generics,
             inner_type,
             traits,
+            unsafe_traits,
             maybe_default_value,
             guard,
         )

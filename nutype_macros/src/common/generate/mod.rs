@@ -11,7 +11,7 @@ use self::traits::GeneratedTraits;
 
 use super::models::{
     ConstFn, CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked,
-    ParseErrorTypeName, TypeName, TypeTrait,
+    ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName, TypeTrait,
 };
 use crate::common::{
     generate::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
@@ -245,6 +245,7 @@ pub trait GenerateNewtype {
         generics: &Generics,
         inner_type: &Self::InnerType,
         traits: HashSet<Self::TypedTrait>,
+        unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
     ) -> Result<GeneratedTraits, syn::Error>;
@@ -392,6 +393,7 @@ pub trait GenerateNewtype {
         let GenerateParams {
             doc_attrs,
             traits,
+            unsafe_traits,
             vis,
             type_name,
             guard,
@@ -455,6 +457,7 @@ pub trait GenerateNewtype {
             &generics,
             &inner_type,
             traits,
+            &unsafe_traits,
             maybe_default_value,
             &guard,
         )?;

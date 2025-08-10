@@ -14,7 +14,7 @@ use crate::{
             gen_impl_trait_into, gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
             gen_impl_trait_try_from, split_into_generatable_traits,
         },
-        models::TypeName,
+        models::{SpannedDeriveUnsafeTrait, TypeName},
     },
     float::models::{FloatDeriveTrait, FloatGuard, FloatInnerType},
 };
@@ -132,6 +132,7 @@ pub fn gen_traits<T: ToTokens>(
     inner_type: &FloatInnerType,
     maybe_default_value: Option<syn::Expr>,
     traits: HashSet<FloatDeriveTrait>,
+    unsafe_traits: &[SpannedDeriveUnsafeTrait],
     guard: &FloatGuard<T>,
 ) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
@@ -142,6 +143,7 @@ pub fn gen_traits<T: ToTokens>(
     let derive_transparent_traits = quote! {
         #[derive(
             #(#transparent_traits,)*
+            #(#unsafe_traits,)*
         )]
     };
 

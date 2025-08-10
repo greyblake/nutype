@@ -1,6 +1,9 @@
 use nutype::nutype;
 
-#[nutype(derive(Debug), validate(len_char_max = 5, len_char_min = 3))]
+#[nutype(
+    derive_unsafe(::std::fmt::Debug),
+    validate(len_char_max = 5, len_char_min = 3)
+)]
 struct Name(String);
 
 fn main() {

@@ -267,7 +267,11 @@ pub struct Attributes<G, DT> {
     /// Value for Default trait. Provide with `default = `
     pub default: Option<syn::Expr>,
 
+    /// List of traits that are derived with `derive(...)` attribute.
     pub derive_traits: Vec<DT>,
+
+    /// List of unsafe traits that are derived with `derive_unsafe(...)` attribute.
+    pub derive_unsafe_traits: Vec<SpannedDeriveUnsafeTrait>,
 }
 
 /// Represents a value known at compile time or an expression.
@@ -377,6 +381,38 @@ pub enum DeriveTrait {
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
 
+/// A trait that is derive with `derive_unsafe(...)` attribute.
+/// `derive_unsafe` simply bypasses traits into `derive(...)`. This allows
+/// allows to derive traits that nutype is not aware of.
+/// But since it's bypasses the validation, it's possible to derive traits that:
+/// - have a constructor function
+/// - have  mutable methods
+///
+/// Both of these can lead to nutype constraints being violated.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DeriveUnsafeTrait(::syn::Path);
+
+impl ToTokens for DeriveUnsafeTrait {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        self.0.to_tokens(token_stream);
+    }
+}
+
+pub type SpannedDeriveUnsafeTrait = SpannedItem<DeriveUnsafeTrait>;
+
+impl ToTokens for SpannedDeriveUnsafeTrait {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        self.item.to_tokens(token_stream);
+    }
+}
+
+impl Parse for SpannedDeriveUnsafeTrait {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let path: syn::Path = input.parse()?;
+        Ok(SpannedItem::new(DeriveUnsafeTrait(path), input.span()))
+    }
+}
+
 pub trait TypeTrait {
     // If this is FromStr variant?
     fn is_from_str(&self) -> bool;
@@ -419,6 +455,7 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub inner_type: IT,
     pub doc_attrs: Vec<Attribute>,
     pub traits: HashSet<Trait>,
+    pub unsafe_traits: Vec<SpannedDeriveUnsafeTrait>,
     pub vis: syn::Visibility,
     pub type_name: TypeName,
     pub generics: Generics,
@@ -471,11 +508,13 @@ pub trait Newtype {
             const_fn,
             default: maybe_default_value,
             derive_traits,
+            derive_unsafe_traits,
         } = Self::parse_attributes(attrs, &type_name)?;
         let traits = Self::validate(&guard, derive_traits)?;
         let generated_output = Self::generate(GenerateParams {
             doc_attrs,
             traits,
+            unsafe_traits: derive_unsafe_traits,
             vis,
             type_name,
             generics,
