@@ -54,13 +54,11 @@ fn validate_validators(
         .next();
     if let (Some((_, len_char_min)), Some((len_char_max_span, len_char_max))) =
         (maybe_len_char_min, maybe_len_char_max)
-    {
-        if len_char_min > len_char_max {
+        && len_char_min > len_char_max {
             let msg = "`len_char_min` cannot be greater than `len_char_max`.\nDon't you find this obvious?";
             let err = syn::Error::new(len_char_max_span, msg);
             return Err(err);
         }
-    }
 
     // Validate regex
     //
