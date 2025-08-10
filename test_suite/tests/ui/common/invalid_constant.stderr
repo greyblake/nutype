@@ -1,5 +1,5 @@
-error[E0080]: evaluation of constant value failed
+error[E0080]: evaluation panicked: Invalid Celsius value
   --> tests/ui/common/invalid_constant.rs:12:15
    |
 12 |     Err(_) => panic!("Invalid Celsius value"),
-   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation panicked: Invalid Celsius value
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ evaluation of `TOO_COLD` failed here
