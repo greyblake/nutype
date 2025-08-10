@@ -23,5 +23,5 @@ members = [
     "examples/string_arbitrary",
     "examples/any_generics",
     "examples/custom_error",
-    "examples/const_example",
+    "examples/const_example", "examples/valuable_example",
 ]

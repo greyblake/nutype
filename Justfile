@@ -11,6 +11,7 @@ test-features:
 	cargo test --features new_unchecked
 	cargo test --features schemars08
 	cargo test --features arbitrary
+	cargo test --features valuable
 	cargo test --all-features
 
 

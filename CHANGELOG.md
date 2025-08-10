@@ -1,3 +1,6 @@
+### v0.x.x - 202x-xx-xx
+- **[FEATURE]** Ability to derive [`Valuable`](https://docs.rs/valuable/0.1.1/valuable/trait.Valuable.html) (requires `valuable` feature).
+
 ### v0.6.2 - 2025-06-30
 - **[FEATURE]** Introduce `derive_unsafe(..)` attribute to derive any arbitrary trait (requires `derive_unsafe` feature to be enabled).
 - **[FIX]** Update Rust edition: 2021 -> 2024.
