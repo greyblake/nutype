@@ -127,12 +127,13 @@ where
     }
 
     // less VS greater
-    if let (Some(lower), Some(upper)) = (maybe_greater.clone(), maybe_less.clone()) {
-        if lower.item >= upper.item {
-            let msg = "The lower bound (`greater`) cannot be equal or higher than the upper bound (`less`).";
-            let err = syn::Error::new(upper.span(), msg);
-            return Err(err);
-        }
+    if let (Some(lower), Some(upper)) = (maybe_greater.clone(), maybe_less.clone())
+        && lower.item >= upper.item
+    {
+        let msg =
+            "The lower bound (`greater`) cannot be equal or higher than the upper bound (`less`).";
+        let err = syn::Error::new(upper.span(), msg);
+        return Err(err);
     }
 
     let maybe_lower_bound = maybe_greater.or(maybe_greater_or_equal);
@@ -140,12 +141,12 @@ where
 
     // less_or_equal VS greater_or_equal
     //
-    if let (Some(lower), Some(upper)) = (maybe_lower_bound, maybe_upper_bound) {
-        if lower.item > upper.item {
-            let msg = "The lower bound (`greater` or `greater_or_equal`) cannot be greater than the upper bound (`less or `less_or_equal`).\nSometimes we all need a little break.";
-            let err = syn::Error::new(upper.span(), msg);
-            return Err(err);
-        }
+    if let (Some(lower), Some(upper)) = (maybe_lower_bound, maybe_upper_bound)
+        && lower.item > upper.item
+    {
+        let msg = "The lower bound (`greater` or `greater_or_equal`) cannot be greater than the upper bound (`less or `less_or_equal`).\nSometimes we all need a little break.";
+        let err = syn::Error::new(upper.span(), msg);
+        return Err(err);
     }
 
     Ok(())
