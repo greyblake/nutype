@@ -1,0 +1,13 @@
+error: To use derive_unchecked() function, the feature `derive_unchecked` of crate `nutype` needs to be enabled.
+
+       DID YOU KNOW?
+       It's called `derive_unchecked` because it enables to derive any traits that nutype is not aware of.
+       So it is developer's responsibility to ensure that the derived traits do not create a loophole to bypass the constraints.
+       As the rule of thumb avoid using `derive_unchecked` with traits that:
+       - Create a new instance of the type
+       - Mutate the value
+
+ --> tests/ui/common/derive_unchecked.rs:4:5
+  |
+4 |     derive_unchecked(::std::fmt::Debug),
+  |     ^^^^^^^^^^^^^^^^

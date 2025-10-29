@@ -1,4 +1,5 @@
 ### v0.x.x - 202x-xx-xx
+- **[BREAKING]** Rename `derive_unsafe` to `derive_unchecked` (both the feature flag and the attribute).
 - **[FEATURE]** Ability to derive [`Valuable`](https://docs.rs/valuable/0.1.1/valuable/trait.Valuable.html) (requires `valuable` feature).
 
 ### v0.6.2 - 2025-06-30

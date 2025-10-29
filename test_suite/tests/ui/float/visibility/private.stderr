@@ -7,11 +7,11 @@ error[E0603]: struct import `Percentage` is private
 note: the struct import `Percentage` is defined here...
   --> tests/ui/float/visibility/private.rs:4:5
    |
-4  |     #[nutype(sanitize(with = |n| n.clamp(0.0, 100.0)))]
+ 4 |     #[nutype(sanitize(with = |n| n.clamp(0.0, 100.0)))]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: ...and refers to the struct `Percentage` which is defined here
   --> tests/ui/float/visibility/private.rs:4:5
    |
-4  |     #[nutype(sanitize(with = |n| n.clamp(0.0, 100.0)))]
+ 4 |     #[nutype(sanitize(with = |n| n.clamp(0.0, 100.0)))]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
    = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)

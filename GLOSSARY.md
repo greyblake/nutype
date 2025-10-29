@@ -12,4 +12,4 @@ Example: consider `Email` type defined as `Email(String)`. We have say that `Ema
 
 * _Transparent trait_ - a trait that can be simply derived (e.g. `Debug`, `Clone`).
 * _Irregular trait_ - a trait that requires a custom implementation to be generated (e.g. `TryFrom`).
-* _Unsafe trait_ - a trait that potentially may violate the constraints. Traits derive with `derive_unsafe(...)` are not validated by nutype.
+* _Unchecked trait_ - a trait that potentially may violate the constraints. Traits derive with `derive_unchecked(...)` are not validated by nutype.
