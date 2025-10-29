@@ -1,7 +1,7 @@
 use nutype::nutype;
 
 #[nutype(
-    derive_unsafe(::std::fmt::Debug),
+    derive_unchecked(::std::fmt::Debug),
     validate(len_char_max = 5, len_char_min = 3)
 )]
 struct Name(String);

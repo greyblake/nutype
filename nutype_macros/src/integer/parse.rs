@@ -42,7 +42,7 @@ where
         const_fn,
         default,
         derive_traits,
-        derive_unsafe_traits,
+        derive_unchecked_traits,
     } = attrs;
     let raw_guard = IntegerRawGuard {
         sanitizers,
@@ -55,7 +55,7 @@ where
         guard,
         default,
         derive_traits,
-        derive_unsafe_traits,
+        derive_unchecked_traits,
     })
 }
 

@@ -270,8 +270,8 @@ pub struct Attributes<G, DT> {
     /// List of traits that are derived with `derive(...)` attribute.
     pub derive_traits: Vec<DT>,
 
-    /// List of unsafe traits that are derived with `derive_unsafe(...)` attribute.
-    pub derive_unsafe_traits: Vec<SpannedDeriveUnsafeTrait>,
+    /// List of unchecked traits that are derived with `derive_unchecked(...)` attribute.
+    pub derive_unchecked_traits: Vec<SpannedDeriveUnsafeTrait>,
 }
 
 /// Represents a value known at compile time or an expression.
@@ -381,8 +381,8 @@ pub enum DeriveTrait {
 
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
 
-/// A trait that is derive with `derive_unsafe(...)` attribute.
-/// `derive_unsafe` simply bypasses traits into `derive(...)`. This allows
+/// A trait that is derive with `derive_unchecked(...)` attribute.
+/// `derive_unchecked` simply bypasses traits into `derive(...)`. This allows
 /// allows to derive traits that nutype is not aware of.
 /// But since it's bypasses the validation, it's possible to derive traits that:
 /// - have a constructor function
@@ -508,13 +508,13 @@ pub trait Newtype {
             const_fn,
             default: maybe_default_value,
             derive_traits,
-            derive_unsafe_traits,
+            derive_unchecked_traits,
         } = Self::parse_attributes(attrs, &type_name)?;
         let traits = Self::validate(&guard, derive_traits)?;
         let generated_output = Self::generate(GenerateParams {
             doc_attrs,
             traits,
-            unsafe_traits: derive_unsafe_traits,
+            unsafe_traits: derive_unchecked_traits,
             vis,
             type_name,
             generics,

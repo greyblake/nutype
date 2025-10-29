@@ -365,20 +365,20 @@ When using `derive`, `nutype` ensures that the derived traits do not compromise 
 
 However, this approach has a limitation: only a predefined set of traits is supported. Deriving arbitrary third-party traits is not allowed via `derive`.
 
-### `derive_unsafe`
+### `derive_unchecked`
 
-To overcome this limitation, you can use the `derive_unsafe(..)` attribute (requires the corresponding feature flag to be enabled):
+To overcome this limitation, you can use the `derive_unchecked(..)` attribute (requires the corresponding feature flag to be enabled):
 
 ```rust
 use derive_more::DerefMut;
 
-#[nutype(derive_unsafe(DerefMut))]
+#[nutype(derive_unchecked(DerefMut))]
 pub struct Username(String);
 ```
 
 This enables deriving arbitrary traits, including those from third-party crates.
 However, **use this with caution**: `nutype` cannot verify that these traits preserve the invariants of the type.
-It is the developer’s responsibility to ensure that the derived traits do not introduce ways to bypass validation (e.g., by allowing mutable access to the inner value).
+It is the developer's responsibility to ensure that the derived traits do not introduce ways to bypass validation (e.g., by allowing mutable access to the inner value).
 
 
 ## Constants
@@ -481,7 +481,7 @@ assert_eq!(name.into_inner(), " boo ");
 ## Feature flags
 
 * `arbitrary` - enables derive of [`arbitrary::Arbitrary`](https://docs.rs/arbitrary/latest/arbitrary/trait.Arbitrary.html).
-* `derive_unsafe` - enables `derive_unsafe` attribute to derive any arbitrary trait.
+* `derive_unchecked` - enables `derive_unchecked` attribute to derive any arbitrary trait.
 * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` within its dependencies.
 * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.

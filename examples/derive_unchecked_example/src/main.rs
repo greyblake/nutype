@@ -1,11 +1,11 @@
-// WATCH OUT: derive_unsafe() allows to derive any trait even those that may create loopholes
+// WATCH OUT: derive_unchecked() allows to derive any trait even those that may create loopholes
 // in the validation and sanitization logic!
 use derive_more::{Deref, DerefMut};
 use nutype::nutype;
 
 #[nutype(
     derive(Debug, AsRef),
-    derive_unsafe(Deref, DerefMut),
+    derive_unchecked(Deref, DerefMut),
     validate(greater_or_equal = 0.0, less_or_equal = 2.0)
 )]
 struct LlmTemperature(f64);

@@ -75,8 +75,8 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
     /// Parsed from `derive(...)` attribute
     pub derive_traits: Vec<SpannedDeriveTrait>,
 
-    /// Parse from `derive_unsafe(...)` attribute
-    pub derive_unsafe_traits: Vec<SpannedDeriveUnsafeTrait>,
+    /// Parse from `derive_unchecked(...)` attribute
+    pub derive_unchecked_traits: Vec<SpannedDeriveUnsafeTrait>,
 }
 
 enum ValidateAttr<Validator: Parse + Kinded> {
@@ -236,7 +236,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             const_fn: ConstFn::NoConst,
             default: None,
             derive_traits: vec![],
-            derive_unsafe_traits: vec![],
+            derive_unchecked_traits: vec![],
         }
     }
 }
@@ -313,27 +313,27 @@ where
                         return Err(syn::Error::new(ident.span(), msg));
                     }
                 }
-            } else if ident == "derive_unsafe" {
+            } else if ident == "derive_unchecked" {
                 cfg_if! {
-                    if #[cfg(feature = "derive_unsafe")] {
+                    if #[cfg(feature = "derive_unchecked")] {
                         if input.peek(Paren) {
                             let content;
                             parenthesized!(content in input);
                             let items =
                                 content.parse_terminated(SpannedDeriveUnsafeTrait::parse, Token![,])?;
-                            attrs.derive_unsafe_traits = items.into_iter().collect();
+                            attrs.derive_unchecked_traits = items.into_iter().collect();
                         } else {
-                            let msg = "`derive_unsafe(...)` must be used with parenthesis.";
+                            let msg = "`derive_unchecked(...)` must be used with parenthesis.";
                             return Err(syn::Error::new(ident.span(), msg));
                         }
                     } else {
                         // The feature is not enabled, so we return an error
                         let msg = concat!(
-                            "To use derive_unsafe() function, the feature `derive_unsafe` of crate `nutype` needs to be enabled.\n\n",
+                            "To use derive_unchecked() function, the feature `derive_unchecked` of crate `nutype` needs to be enabled.\n\n",
                             "DID YOU KNOW?\n",
-                            "It's called `derive_unsafe` because it enables to derive any traits that nutype is not aware of.\n",
+                            "It's called `derive_unchecked` because it enables to derive any traits that nutype is not aware of.\n",
                             "So it is developer's responsibility to ensure that the derived traits do not create a loophole to bypass the constraints.\n",
-                            "As the rule of thumb avoid using `derive_unsafe` with traits that:\n",
+                            "As the rule of thumb avoid using `derive_unchecked` with traits that:\n",
                             "- Create a new instance of the type\n",
                             "- Mutate the value\n\n",
                         );
