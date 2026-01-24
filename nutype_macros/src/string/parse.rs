@@ -36,6 +36,7 @@ pub fn parse_attributes(
         validation,
         new_unchecked,
         const_fn,
+        constructor_visibility,
         default,
         derive_traits,
         derive_unchecked_traits,
@@ -48,6 +49,7 @@ pub fn parse_attributes(
     Ok(Attributes {
         new_unchecked,
         const_fn,
+        constructor_visibility,
         guard,
         default,
         derive_traits,

@@ -264,6 +264,10 @@ pub struct Attributes<G, DT> {
     /// `const_fn` flag
     pub const_fn: ConstFn,
 
+    /// Visibility for constructor functions (`new()` and `try_new()`).
+    /// Parsed from `constructor(visibility = ...)` attribute.
+    pub constructor_visibility: ConstructorVisibility,
+
     /// Value for Default trait. Provide with `default = `
     pub default: Option<syn::Expr>,
 
@@ -451,6 +455,42 @@ impl ToTokens for ConstFn {
     }
 }
 
+/// Visibility for constructor functions (`new()` and `try_new()`).
+/// By default, constructors are public.
+#[derive(Debug, Clone, Default)]
+pub enum ConstructorVisibility {
+    /// `pub fn new()` / `pub fn try_new()` - the default behavior
+    #[default]
+    Public,
+
+    /// `pub(crate) fn new()` / `pub(crate) fn try_new()` - accessible within the crate
+    PubCrate,
+
+    /// `pub(super) fn new()` / `pub(super) fn try_new()` - accessible only in the defining module
+    /// Note: We use `pub(super)` because nutype wraps the type in an internal module,
+    /// so `pub(super)` makes it accessible from the user's module but not outside.
+    Private,
+}
+
+impl ToTokens for ConstructorVisibility {
+    fn to_tokens(&self, token_stream: &mut TokenStream) {
+        match self {
+            Self::Public => {
+                quote!(pub).to_tokens(token_stream);
+            }
+            Self::PubCrate => {
+                quote!(pub(crate)).to_tokens(token_stream);
+            }
+            Self::Private => {
+                // Use pub(super) because nutype wraps types in an internal module.
+                // This makes the constructor accessible from the user's defining module
+                // but not from outside that module.
+                quote!(pub(super)).to_tokens(token_stream);
+            }
+        }
+    }
+}
+
 pub struct GenerateParams<IT, Trait, Guard> {
     pub inner_type: IT,
     pub doc_attrs: Vec<Attribute>,
@@ -462,6 +502,7 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub guard: Guard,
     pub new_unchecked: NewUnchecked,
     pub const_fn: ConstFn,
+    pub constructor_visibility: ConstructorVisibility,
     pub maybe_default_value: Option<syn::Expr>,
 }
 
@@ -506,6 +547,7 @@ pub trait Newtype {
             guard,
             new_unchecked,
             const_fn,
+            constructor_visibility,
             default: maybe_default_value,
             derive_traits,
             derive_unchecked_traits,
@@ -521,6 +563,7 @@ pub trait Newtype {
             guard,
             new_unchecked,
             const_fn,
+            constructor_visibility,
             maybe_default_value,
             inner_type,
         })?;

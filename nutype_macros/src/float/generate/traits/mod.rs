@@ -140,7 +140,23 @@ pub fn gen_traits<T: ToTokens>(
         irregular_traits,
     } = split_into_generatable_traits(traits);
 
+    // When PartialOrd is derived but Ord is manually implemented, clippy warns about it.
+    // We need to allow this lint on the struct because nutype intentionally implements Ord
+    // manually for floats with `finite` validation.
+    let has_derived_partial_ord = transparent_traits
+        .iter()
+        .any(|t| matches!(t, FloatTransparentTrait::PartialOrd));
+    let has_manual_ord = irregular_traits
+        .iter()
+        .any(|t| matches!(t, FloatIrregularTrait::Ord));
+    let maybe_allow_ord_partial_ord_mismatch = if has_derived_partial_ord && has_manual_ord {
+        quote! { #[allow(clippy::derive_ord_xor_partial_ord)] }
+    } else {
+        quote! {}
+    };
+
     let derive_transparent_traits = quote! {
+        #maybe_allow_ord_partial_ord_mismatch
         #[derive(
             #(#transparent_traits,)*
             #(#unsafe_traits,)*

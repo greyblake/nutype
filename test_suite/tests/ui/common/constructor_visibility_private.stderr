@@ -1,0 +1,12 @@
+error[E0624]: associated function `new` is private
+ --> tests/ui/common/constructor_visibility_private.rs:15:37
+  |
+ 5 | /     #[nutype(
+ 6 | |         sanitize(trim),
+ 7 | |         constructor(visibility = private),
+ 8 | |         derive(Debug, AsRef),
+ 9 | |     )]
+   | |______- private associated function defined here
+...
+15 |       let _name = inner::PrivateName::new("test");
+   |                                       ^^^ private associated function

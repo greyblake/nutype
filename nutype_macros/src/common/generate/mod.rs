@@ -10,8 +10,8 @@ use std::collections::HashSet;
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    ConstFn, CustomFunction, ErrorTypePath, GenerateParams, Guard, NewUnchecked,
-    ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName, TypeTrait,
+    ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath, GenerateParams, Guard,
+    NewUnchecked, ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName, TypeTrait,
 };
 use crate::common::{
     generate::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
@@ -257,6 +257,7 @@ pub trait GenerateNewtype {
         sanitizers: &[Self::Sanitizer],
         validation: &Validation<Self::Validator>,
         const_fn: ConstFn,
+        constructor_visibility: &ConstructorVisibility,
     ) -> TokenStream {
         let generics_without_bounds = strip_trait_bounds_on_generics(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers, const_fn);
@@ -299,7 +300,7 @@ pub trait GenerateNewtype {
             #maybe_generated_validation_error
 
             impl #generics #type_name #generics_without_bounds {
-                pub #const_fn fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
+                #constructor_visibility #const_fn fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
                     #convert_raw_value_if_necessary
 
                     let sanitized_value: #inner_type = Self::__sanitize__(raw_value);
@@ -327,6 +328,7 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         sanitizers: &[Self::Sanitizer],
         const_fn: ConstFn,
+        constructor_visibility: &ConstructorVisibility,
     ) -> TokenStream {
         let generics_without_bounds = strip_trait_bounds_on_generics(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers, const_fn);
@@ -342,7 +344,7 @@ pub trait GenerateNewtype {
 
         quote!(
             impl #generics #type_name #generics_without_bounds {
-                pub #const_fn fn new(raw_value: #input_type) -> Self {
+                #constructor_visibility #const_fn fn new(raw_value: #input_type) -> Self {
                     #convert_raw_value_if_necessary
                     Self(Self::__sanitize__(raw_value))
                 }
@@ -360,20 +362,38 @@ pub trait GenerateNewtype {
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         new_unchecked: NewUnchecked,
         const_fn: ConstFn,
+        constructor_visibility: &ConstructorVisibility,
     ) -> TokenStream {
         let impl_new = match guard {
-            Guard::WithoutValidation { sanitizers } => {
-                Self::gen_new(type_name, generics, inner_type, sanitizers, const_fn)
-            }
+            Guard::WithoutValidation { sanitizers } => Self::gen_new(
+                type_name,
+                generics,
+                inner_type,
+                sanitizers,
+                const_fn,
+                constructor_visibility,
+            ),
             Guard::WithValidation {
                 sanitizers,
                 validation,
             } => Self::gen_try_new(
-                type_name, generics, inner_type, sanitizers, validation, const_fn,
+                type_name,
+                generics,
+                inner_type,
+                sanitizers,
+                validation,
+                const_fn,
+                constructor_visibility,
             ),
         };
         let impl_into_inner = gen_impl_into_inner(type_name, generics, inner_type, const_fn);
-        let impl_new_unchecked = gen_new_unchecked(type_name, inner_type, new_unchecked, const_fn);
+        let impl_new_unchecked = gen_new_unchecked(
+            type_name,
+            inner_type,
+            new_unchecked,
+            const_fn,
+            constructor_visibility,
+        );
 
         quote! {
             #impl_new
@@ -399,6 +419,7 @@ pub trait GenerateNewtype {
             guard,
             new_unchecked,
             const_fn,
+            constructor_visibility,
             maybe_default_value,
             inner_type,
             generics,
@@ -412,6 +433,7 @@ pub trait GenerateNewtype {
             &guard,
             new_unchecked,
             const_fn,
+            &constructor_visibility,
         );
 
         let has_from_str_trait = traits.iter().any(|t| t.is_from_str());

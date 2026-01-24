@@ -20,7 +20,8 @@ use syn::{
 use crate::common::models::{SpannedDeriveTrait, SpannedDeriveUnsafeTrait};
 
 use super::models::{
-    ConstFn, CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
+    ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath, NewUnchecked,
+    TypedCustomFunction, ValueOrExpr,
 };
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
@@ -68,6 +69,10 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
     /// Parsed from `const` attribute,
     /// Defines if the generated function should be marked with `const`.
     pub const_fn: ConstFn,
+
+    /// Parsed from `constructor(visibility = ...)` attribute.
+    /// Controls the visibility of `new()` and `try_new()` functions.
+    pub constructor_visibility: ConstructorVisibility,
 
     /// Parsed from `default = ` attribute
     pub default: Option<Expr>,
@@ -234,6 +239,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             validation: None,
             new_unchecked: NewUnchecked::Off,
             const_fn: ConstFn::NoConst,
+            constructor_visibility: ConstructorVisibility::default(),
             default: None,
             derive_traits: vec![],
             derive_unchecked_traits: vec![],
@@ -339,6 +345,20 @@ where
                         );
                         return Err(syn::Error::new(ident.span(), msg));
                     }
+                }
+            } else if ident == "constructor" {
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    attrs.constructor_visibility = parse_constructor_attrs(&content)?;
+                } else {
+                    let msg = concat!(
+                        "`constructor` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    constructor(visibility = pub(crate))\n",
+                        "    constructor(visibility = private)\n\n",
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
                 }
             } else {
                 let msg = format!("Unknown attribute `{ident}`");
@@ -463,5 +483,114 @@ where
             .join(", ");
         let msg = format!("Unknown {attr_type} `{ident}`.\nPossible values are {possible_values}.");
         Err(syn::Error::new(ident.span(), msg))
+    }
+}
+
+const CONSTRUCTOR_VISIBILITY_ERROR: &str = concat!(
+    "Invalid constructor visibility.\n\n",
+    "Valid options:\n",
+    "    constructor(visibility = pub)         public (default)\n",
+    "    constructor(visibility = pub(crate))  crate-level\n",
+    "    constructor(visibility = private)     defining module only\n",
+);
+
+/// Parses the content inside `constructor(...)`.
+/// Expected format: `visibility = <visibility>`
+/// Where `<visibility>` can be:
+/// - `pub` - public visibility (default)
+/// - `pub(crate)` - crate-level visibility
+/// - `private` - accessible only in the defining module
+fn parse_constructor_attrs(input: ParseStream) -> syn::Result<ConstructorVisibility> {
+    let ident: Ident = input.parse()?;
+
+    if ident != "visibility" {
+        return Err(syn::Error::new(ident.span(), CONSTRUCTOR_VISIBILITY_ERROR));
+    }
+
+    let _eq: Token![=] = input.parse()?;
+
+    // Check for `pub` keyword first (since it's a keyword, not an identifier)
+    if input.peek(Token![pub]) {
+        let _: Token![pub] = input.parse()?;
+
+        // Check for `(crate)` after `pub`
+        if input.peek(syn::token::Paren) {
+            let content;
+            syn::parenthesized!(content in input);
+            // `crate` is a keyword, so we need to parse it with Token![crate]
+            if content.peek(Token![crate]) {
+                let _: Token![crate] = content.parse()?;
+                return Ok(ConstructorVisibility::PubCrate);
+            } else {
+                return Err(syn::Error::new(
+                    content.span(),
+                    CONSTRUCTOR_VISIBILITY_ERROR,
+                ));
+            }
+        }
+
+        return Ok(ConstructorVisibility::Public);
+    }
+
+    // Parse identifier for `private`
+    let vis_ident: Ident = input.parse()?;
+
+    if vis_ident == "private" {
+        Ok(ConstructorVisibility::Private)
+    } else {
+        Err(syn::Error::new(
+            vis_ident.span(),
+            CONSTRUCTOR_VISIBILITY_ERROR,
+        ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parse_visibility(input: &str) -> syn::Result<ConstructorVisibility> {
+        syn::parse_str::<ConstructorVisibilityWrapper>(input).map(|w| w.0)
+    }
+
+    // Wrapper to allow parsing with syn::parse_str
+    struct ConstructorVisibilityWrapper(ConstructorVisibility);
+
+    impl syn::parse::Parse for ConstructorVisibilityWrapper {
+        fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+            parse_constructor_attrs(input).map(ConstructorVisibilityWrapper)
+        }
+    }
+
+    #[test]
+    fn test_parse_visibility_pub() {
+        let result = parse_visibility("visibility = pub").unwrap();
+        assert!(matches!(result, ConstructorVisibility::Public));
+    }
+
+    #[test]
+    fn test_parse_visibility_pub_crate() {
+        let result = parse_visibility("visibility = pub(crate)").unwrap();
+        assert!(matches!(result, ConstructorVisibility::PubCrate));
+    }
+
+    #[test]
+    fn test_parse_visibility_private() {
+        let result = parse_visibility("visibility = private").unwrap();
+        assert!(matches!(result, ConstructorVisibility::Private));
+    }
+
+    #[test]
+    fn test_parse_visibility_invalid() {
+        let result = parse_visibility("visibility = invalid");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("Invalid constructor visibility"));
+    }
+
+    #[test]
+    fn test_parse_visibility_invalid_pub_modifier() {
+        let result = parse_visibility("visibility = pub(super)");
+        assert!(result.is_err());
     }
 }

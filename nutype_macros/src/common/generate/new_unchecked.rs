@@ -1,4 +1,4 @@
-use crate::common::models::{ConstFn, NewUnchecked, TypeName};
+use crate::common::models::{ConstFn, ConstructorVisibility, NewUnchecked, TypeName};
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 
@@ -7,6 +7,7 @@ pub fn gen_new_unchecked(
     inner_type: impl ToTokens,
     new_unchecked: NewUnchecked,
     const_fn: ConstFn,
+    constructor_visibility: &ConstructorVisibility,
 ) -> TokenStream {
     match new_unchecked {
         NewUnchecked::Off => quote! {},
@@ -15,7 +16,7 @@ pub fn gen_new_unchecked(
                 /// Creates a value of type skipping the sanitization and validation
                 /// rules. Generally, you should avoid using `::new_unchecked()` without a real need.
                 /// Use `::new()` instead when it's possible.
-                pub #const_fn unsafe fn new_unchecked(inner_value: #inner_type) -> #type_name {
+                #constructor_visibility #const_fn unsafe fn new_unchecked(inner_value: #inner_type) -> #type_name {
                     #type_name(inner_value)
                 }
             }
