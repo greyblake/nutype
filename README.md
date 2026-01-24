@@ -24,6 +24,7 @@ Nutype is a proc macro that allows adding extra constraints like _sanitization_ 
 * [Deriving traits](#deriving-traits)
 * [Constants](#constants)
 * [Recipes](#recipes)
+* [Constructor visibility](#constructor-visibility)
 * [Breaking constraints with new_unchecked](#breaking-constraints-with-new_unchecked)
 * [Feature Flags](#feature-flags)
 * [Support Ukrainian military forces](#support-ukrainian-military-forces)
@@ -458,6 +459,32 @@ The `finite` validation ensures that the valid value excludes `NaN`.
 pub struct Weight(f64);
 ```
 
+
+## Constructor visibility
+
+By default, the constructor functions (`new()` or `try_new()`) are public. You can control their visibility using the `constructor(visibility = ...)` attribute:
+
+```rust
+// Private constructor - only accessible within the defining module
+#[nutype(
+    sanitize(trim),
+    constructor(visibility = private),
+)]
+pub struct InternalName(String);
+
+// Explicit public visibility (same as default)
+#[nutype(
+    validate(not_empty),
+    constructor(visibility = pub),
+)]
+pub struct PublicName(String);
+```
+
+Available visibility options:
+- `private` - Only accessible within the defining module
+- `pub` - Public (default behavior)
+
+This is useful when you want to restrict where instances can be created, ensuring they only come from trusted factory functions or specific modules.
 
 ## Breaking constraints with new_unchecked
 

@@ -736,3 +736,105 @@ mod custom_error {
         assert_eq!(name.as_ref(), "John");
     }
 }
+
+#[cfg(test)]
+mod constructor_visibility {
+    use super::*;
+
+    // Note: UI tests verify that `constructor(visibility = private)` makes constructors
+    // inaccessible from outside the defining module.
+
+    mod private_visibility {
+        use super::*;
+
+        #[nutype(
+            sanitize(trim),
+            constructor(visibility = private),
+            derive(Debug, AsRef),
+        )]
+        pub struct PrivateName(String);
+
+        // Factory function within the same module can access the private constructor
+        pub fn create_name(s: &str) -> PrivateName {
+            PrivateName::new(s)
+        }
+
+        #[test]
+        fn test_private_new_accessible_within_module() {
+            let name = PrivateName::new("  test  ");
+            assert_eq!(name.as_ref(), "test");
+        }
+    }
+
+    #[test]
+    fn test_private_via_factory() {
+        // Access via factory function works
+        let name = private_visibility::create_name("  hello  ");
+        assert_eq!(name.as_ref(), "hello");
+    }
+
+    mod private_try_new_visibility {
+        use super::*;
+
+        #[nutype(
+            validate(not_empty),
+            constructor(visibility = private),
+            derive(Debug, AsRef),
+        )]
+        pub struct PrivateValidatedName(String);
+
+        pub fn create_validated_name(
+            s: &str,
+        ) -> Result<PrivateValidatedName, PrivateValidatedNameError> {
+            PrivateValidatedName::try_new(s)
+        }
+
+        #[test]
+        fn test_private_try_new_accessible_within_module() {
+            let name = PrivateValidatedName::try_new("test").unwrap();
+            assert_eq!(name.as_ref(), "test");
+        }
+    }
+
+    #[test]
+    fn test_private_try_new_via_factory() {
+        let name = private_try_new_visibility::create_validated_name("world").unwrap();
+        assert_eq!(name.as_ref(), "world");
+    }
+
+    mod explicit_pub_visibility {
+        use super::*;
+
+        #[nutype(
+            sanitize(trim),
+            constructor(visibility = pub),
+            derive(Debug, AsRef),
+        )]
+        pub struct ExplicitPubName(String);
+
+        #[test]
+        fn test_explicit_pub_visibility() {
+            // Explicit pub should work the same as default
+            let name = ExplicitPubName::new("  explicit  ");
+            assert_eq!(name.as_ref(), "explicit");
+        }
+    }
+
+    mod explicit_pub_try_new_visibility {
+        use super::*;
+
+        #[nutype(
+            validate(not_empty),
+            constructor(visibility = pub),
+            derive(Debug, AsRef),
+        )]
+        pub struct ExplicitPubValidatedName(String);
+
+        #[test]
+        fn test_explicit_pub_try_new_visibility() {
+            // Explicit pub should work the same as default
+            let name = ExplicitPubValidatedName::try_new("test").unwrap();
+            assert_eq!(name.as_ref(), "test");
+        }
+    }
+}

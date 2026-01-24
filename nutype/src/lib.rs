@@ -517,6 +517,41 @@
 //! pub struct Weight(f64);
 //! ```
 //!
+//! ## Constructor visibility
+//!
+//! By default, the constructor functions (`new()` or `try_new()`) are public.
+//! You can control their visibility using the `constructor(visibility = ...)` attribute:
+//!
+//! ```
+//! use nutype::nutype;
+//!
+//! mod inner {
+//!     use nutype::nutype;
+//!
+//!     // Private constructor - only accessible within this module
+//!     #[nutype(
+//!         sanitize(trim),
+//!         constructor(visibility = private),
+//!     )]
+//!     pub struct PrivateName(String);
+//!
+//!     pub fn create_name(s: impl Into<String>) -> PrivateName {
+//!         PrivateName::new(s.into())
+//!     }
+//! }
+//!
+//! // Can't call inner::PrivateName::new() directly from here,
+//! // but can use the factory function
+//! let name = inner::create_name("hello");
+//! ```
+//!
+//! Available visibility options:
+//! - `private` - Only accessible within the defining module
+//! - `pub` - Public (default behavior)
+//!
+//! This is useful when you want to restrict where instances can be created,
+//! ensuring they only come from trusted factory functions or specific modules.
+//!
 //! ## How to break the constraints?
 //!
 //! It's discouraged, but it's possible to bypass the constraints by enabling `new_unchecked` crate feature and marking a type with `new_unchecked`:

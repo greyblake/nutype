@@ -20,7 +20,8 @@ use syn::{
 use crate::common::models::{SpannedDeriveTrait, SpannedDeriveUnsafeTrait};
 
 use super::models::{
-    ConstFn, CustomFunction, ErrorTypePath, NewUnchecked, TypedCustomFunction, ValueOrExpr,
+    ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath, NewUnchecked,
+    TypedCustomFunction, ValueOrExpr,
 };
 
 pub fn is_doc_attribute(attribute: &syn::Attribute) -> bool {
@@ -68,6 +69,10 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
     /// Parsed from `const` attribute,
     /// Defines if the generated function should be marked with `const`.
     pub const_fn: ConstFn,
+
+    /// Parsed from `constructor(visibility = ...)` attribute.
+    /// Controls the visibility of `new()` and `try_new()` functions.
+    pub constructor_visibility: ConstructorVisibility,
 
     /// Parsed from `default = ` attribute
     pub default: Option<Expr>,
@@ -234,6 +239,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             validation: None,
             new_unchecked: NewUnchecked::Off,
             const_fn: ConstFn::NoConst,
+            constructor_visibility: ConstructorVisibility::default(),
             default: None,
             derive_traits: vec![],
             derive_unchecked_traits: vec![],
@@ -339,6 +345,20 @@ where
                         );
                         return Err(syn::Error::new(ident.span(), msg));
                     }
+                }
+            } else if ident == "constructor" {
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    attrs.constructor_visibility = parse_constructor_attrs(&content)?;
+                } else {
+                    let msg = concat!(
+                        "`constructor` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    constructor(visibility = pub(crate))\n",
+                        "    constructor(visibility = private)\n\n",
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
                 }
             } else {
                 let msg = format!("Unknown attribute `{ident}`");
@@ -463,5 +483,48 @@ where
             .join(", ");
         let msg = format!("Unknown {attr_type} `{ident}`.\nPossible values are {possible_values}.");
         Err(syn::Error::new(ident.span(), msg))
+    }
+}
+
+/// Parses the content inside `constructor(...)`.
+/// Expected format: `visibility = <visibility>`
+/// Where `<visibility>` can be:
+/// - `pub` - public visibility (default)
+/// - `private` - accessible only in the defining module
+fn parse_constructor_attrs(input: ParseStream) -> syn::Result<ConstructorVisibility> {
+    let ident: Ident = input.parse()?;
+
+    if ident != "visibility" {
+        let msg = concat!(
+            "Unknown constructor attribute.\n",
+            "Expected `visibility`.\n\n",
+            "Example usage:\n",
+            "    constructor(visibility = pub)\n",
+            "    constructor(visibility = private)\n",
+        );
+        return Err(syn::Error::new(ident.span(), msg));
+    }
+
+    let _eq: Token![=] = input.parse()?;
+
+    // Check for `pub` keyword first (since it's a keyword, not an identifier)
+    if input.peek(Token![pub]) {
+        let _: Token![pub] = input.parse()?;
+        return Ok(ConstructorVisibility::Public);
+    }
+
+    // Parse identifier for `private`
+    let vis_ident: Ident = input.parse()?;
+
+    if vis_ident == "private" {
+        Ok(ConstructorVisibility::Private)
+    } else {
+        let msg = concat!(
+            "Unknown visibility value.\n\n",
+            "Valid options:\n",
+            "    visibility = pub       (public, default)\n",
+            "    visibility = private   (accessible only in the defining module)\n",
+        );
+        Err(syn::Error::new(vis_ident.span(), msg))
     }
 }

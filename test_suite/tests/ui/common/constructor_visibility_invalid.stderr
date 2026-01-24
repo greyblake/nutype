@@ -1,0 +1,10 @@
+error: Unknown visibility value.
+
+       Valid options:
+           visibility = pub       (public, default)
+           visibility = private   (accessible only in the defining module)
+
+ --> tests/ui/common/constructor_visibility_invalid.rs:6:30
+  |
+6 |     constructor(visibility = invalid_visibility_value),
+  |                              ^^^^^^^^^^^^^^^^^^^^^^^^
