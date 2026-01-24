@@ -1,8 +1,9 @@
-error: Unknown visibility value.
+error: Invalid constructor visibility.
 
        Valid options:
-           visibility = pub       (public, default)
-           visibility = private   (accessible only in the defining module)
+           constructor(visibility = pub)         public (default)
+           constructor(visibility = pub(crate))  crate-level
+           constructor(visibility = private)     defining module only
 
  --> tests/ui/common/constructor_visibility_invalid.rs:6:30
   |

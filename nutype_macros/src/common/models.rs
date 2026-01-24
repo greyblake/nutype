@@ -463,6 +463,9 @@ pub enum ConstructorVisibility {
     #[default]
     Public,
 
+    /// `pub(crate) fn new()` / `pub(crate) fn try_new()` - accessible within the crate
+    PubCrate,
+
     /// `pub(super) fn new()` / `pub(super) fn try_new()` - accessible only in the defining module
     /// Note: We use `pub(super)` because nutype wraps the type in an internal module,
     /// so `pub(super)` makes it accessible from the user's module but not outside.
@@ -474,6 +477,9 @@ impl ToTokens for ConstructorVisibility {
         match self {
             Self::Public => {
                 quote!(pub).to_tokens(token_stream);
+            }
+            Self::PubCrate => {
+                quote!(pub(crate)).to_tokens(token_stream);
             }
             Self::Private => {
                 // Use pub(super) because nutype wraps types in an internal module.

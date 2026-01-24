@@ -802,6 +802,40 @@ mod constructor_visibility {
         assert_eq!(name.as_ref(), "world");
     }
 
+    mod pub_crate_visibility {
+        use super::*;
+
+        #[nutype(
+            sanitize(trim),
+            constructor(visibility = pub(crate)),
+            derive(Debug, AsRef),
+        )]
+        pub struct CrateName(String);
+
+        #[test]
+        fn test_pub_crate_new() {
+            let name = CrateName::new("  crate  ");
+            assert_eq!(name.as_ref(), "crate");
+        }
+    }
+
+    mod pub_crate_try_new_visibility {
+        use super::*;
+
+        #[nutype(
+            validate(not_empty),
+            constructor(visibility = pub(crate)),
+            derive(Debug, AsRef),
+        )]
+        pub struct CrateValidatedName(String);
+
+        #[test]
+        fn test_pub_crate_try_new() {
+            let name = CrateValidatedName::try_new("crate").unwrap();
+            assert_eq!(name.as_ref(), "crate");
+        }
+    }
+
     mod explicit_pub_visibility {
         use super::*;
 

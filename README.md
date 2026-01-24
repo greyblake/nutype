@@ -472,16 +472,17 @@ By default, the constructor functions (`new()` or `try_new()`) are public. You c
 )]
 pub struct InternalName(String);
 
-// Explicit public visibility (same as default)
+// Crate-level visibility
 #[nutype(
     validate(not_empty),
-    constructor(visibility = pub),
+    constructor(visibility = pub(crate)),
 )]
-pub struct PublicName(String);
+pub struct CrateName(String);
 ```
 
 Available visibility options:
 - `private` - Only accessible within the defining module
+- `pub(crate)` - Accessible within the current crate
 - `pub` - Public (default behavior)
 
 This is useful when you want to restrict where instances can be created, ensuring they only come from trusted factory functions or specific modules.

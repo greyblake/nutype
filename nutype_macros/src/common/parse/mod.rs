@@ -486,23 +486,25 @@ where
     }
 }
 
+const CONSTRUCTOR_VISIBILITY_ERROR: &str = concat!(
+    "Invalid constructor visibility.\n\n",
+    "Valid options:\n",
+    "    constructor(visibility = pub)         public (default)\n",
+    "    constructor(visibility = pub(crate))  crate-level\n",
+    "    constructor(visibility = private)     defining module only\n",
+);
+
 /// Parses the content inside `constructor(...)`.
 /// Expected format: `visibility = <visibility>`
 /// Where `<visibility>` can be:
 /// - `pub` - public visibility (default)
+/// - `pub(crate)` - crate-level visibility
 /// - `private` - accessible only in the defining module
 fn parse_constructor_attrs(input: ParseStream) -> syn::Result<ConstructorVisibility> {
     let ident: Ident = input.parse()?;
 
     if ident != "visibility" {
-        let msg = concat!(
-            "Unknown constructor attribute.\n",
-            "Expected `visibility`.\n\n",
-            "Example usage:\n",
-            "    constructor(visibility = pub)\n",
-            "    constructor(visibility = private)\n",
-        );
-        return Err(syn::Error::new(ident.span(), msg));
+        return Err(syn::Error::new(ident.span(), CONSTRUCTOR_VISIBILITY_ERROR));
     }
 
     let _eq: Token![=] = input.parse()?;
@@ -510,6 +512,23 @@ fn parse_constructor_attrs(input: ParseStream) -> syn::Result<ConstructorVisibil
     // Check for `pub` keyword first (since it's a keyword, not an identifier)
     if input.peek(Token![pub]) {
         let _: Token![pub] = input.parse()?;
+
+        // Check for `(crate)` after `pub`
+        if input.peek(syn::token::Paren) {
+            let content;
+            syn::parenthesized!(content in input);
+            // `crate` is a keyword, so we need to parse it with Token![crate]
+            if content.peek(Token![crate]) {
+                let _: Token![crate] = content.parse()?;
+                return Ok(ConstructorVisibility::PubCrate);
+            } else {
+                return Err(syn::Error::new(
+                    content.span(),
+                    CONSTRUCTOR_VISIBILITY_ERROR,
+                ));
+            }
+        }
+
         return Ok(ConstructorVisibility::Public);
     }
 
@@ -519,12 +538,59 @@ fn parse_constructor_attrs(input: ParseStream) -> syn::Result<ConstructorVisibil
     if vis_ident == "private" {
         Ok(ConstructorVisibility::Private)
     } else {
-        let msg = concat!(
-            "Unknown visibility value.\n\n",
-            "Valid options:\n",
-            "    visibility = pub       (public, default)\n",
-            "    visibility = private   (accessible only in the defining module)\n",
-        );
-        Err(syn::Error::new(vis_ident.span(), msg))
+        Err(syn::Error::new(
+            vis_ident.span(),
+            CONSTRUCTOR_VISIBILITY_ERROR,
+        ))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parse_visibility(input: &str) -> syn::Result<ConstructorVisibility> {
+        syn::parse_str::<ConstructorVisibilityWrapper>(input).map(|w| w.0)
+    }
+
+    // Wrapper to allow parsing with syn::parse_str
+    struct ConstructorVisibilityWrapper(ConstructorVisibility);
+
+    impl syn::parse::Parse for ConstructorVisibilityWrapper {
+        fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+            parse_constructor_attrs(input).map(ConstructorVisibilityWrapper)
+        }
+    }
+
+    #[test]
+    fn test_parse_visibility_pub() {
+        let result = parse_visibility("visibility = pub").unwrap();
+        assert!(matches!(result, ConstructorVisibility::Public));
+    }
+
+    #[test]
+    fn test_parse_visibility_pub_crate() {
+        let result = parse_visibility("visibility = pub(crate)").unwrap();
+        assert!(matches!(result, ConstructorVisibility::PubCrate));
+    }
+
+    #[test]
+    fn test_parse_visibility_private() {
+        let result = parse_visibility("visibility = private").unwrap();
+        assert!(matches!(result, ConstructorVisibility::Private));
+    }
+
+    #[test]
+    fn test_parse_visibility_invalid() {
+        let result = parse_visibility("visibility = invalid");
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        assert!(err.to_string().contains("Invalid constructor visibility"));
+    }
+
+    #[test]
+    fn test_parse_visibility_invalid_pub_modifier() {
+        let result = parse_visibility("visibility = pub(super)");
+        assert!(result.is_err());
     }
 }

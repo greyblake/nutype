@@ -38,20 +38,28 @@
 //!
 //! Ok, but let's try to obtain an instance of `Username` that violates the validation rules:
 //!
-//! ```ignore
-//! let username = Username("".to_string())
+//! ```compile_fail
+//! use nutype::nutype;
+//!
+//! #[nutype(validate(not_empty))]
+//! pub struct Username(String);
 //!
 //! // error[E0423]: cannot initialize a tuple struct which contains private fields
+//! let username = Username("".to_string());
 //! ```
 //!
-//! ```ignore
+//! ```compile_fail
+//! use nutype::nutype;
+//!
+//! #[nutype(validate(not_empty))]
+//! pub struct Username(String);
+//!
 //! let mut username = Username::try_new("foo").unwrap();
-//! username.0 = "".to_string();
-//!
 //! // error[E0616]: field `0` of struct `Username` is private
+//! username.0 = "".to_string();
 //! ```
 //!
-//! Haha. It's does not seem to be easy!
+//! Haha. It does not seem to be easy!
 //!
 //!
 //! ## A few more examples
@@ -547,6 +555,7 @@
 //!
 //! Available visibility options:
 //! - `private` - Only accessible within the defining module
+//! - `pub(crate)` - Accessible within the current crate
 //! - `pub` - Public (default behavior)
 //!
 //! This is useful when you want to restrict where instances can be created,
