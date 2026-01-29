@@ -87,8 +87,11 @@ impl GenerateNewtype for StringNewtype {
         const_fn: ConstFn,
     ) -> TokenStream {
         // Indicates that `chars_count` variable needs to be set, which is used within
-        // min_len and max_len validations.
+        // len_char_min and len_char_max validations.
         let mut requires_chars_count = false;
+        // Indicates that `utf16_count` variable needs to be set, which is used within
+        // len_utf16_min and len_utf16_max validations.
+        let mut requires_utf16_count = false;
 
         let validations: TokenStream = validators
             .iter()
@@ -106,6 +109,22 @@ impl GenerateNewtype for StringNewtype {
                     quote!(
                         if chars_count < #min_len {
                             return Err(#error_type_path::LenCharMinViolated);
+                        }
+                    )
+                }
+                StringValidator::LenUtf16Max(max_len) => {
+                    requires_utf16_count = true;
+                    quote!(
+                        if utf16_count > #max_len {
+                            return Err(#error_type_path::LenUtf16MaxViolated);
+                        }
+                    )
+                }
+                StringValidator::LenUtf16Min(min_len) => {
+                    requires_utf16_count = true;
+                    quote!(
+                        if utf16_count < #min_len {
+                            return Err(#error_type_path::LenUtf16MinViolated);
                         }
                     )
                 }
@@ -156,9 +175,18 @@ impl GenerateNewtype for StringNewtype {
             quote!()
         };
 
+        let utf16_count_if_required = if requires_utf16_count {
+            quote!(
+                let utf16_count = val.encode_utf16().count();
+            )
+        } else {
+            quote!()
+        };
+
         quote!(
             #const_fn fn __validate__(val: &str) -> ::core::result::Result<(), #error_type_path> {
                 #chars_count_if_required
+                #utf16_count_if_required
                 #validations
                 Ok(())
             }

@@ -23,7 +23,7 @@ syn = { version = "2.0", features = ["extra-traits", "full"] }
 # as `regex = "^foo|bar$"` can be compiled to a Regex without errors.
 regex = { version = "1", optional = true }
 cfg-if = "1.0"
-kinded = "0.3.0"
+kinded = "0.4.1"
 urlencoding = "2.0"
 
 [build-dependencies]

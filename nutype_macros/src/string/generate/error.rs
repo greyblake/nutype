@@ -37,6 +37,12 @@ fn gen_definition(error_type_path: &ErrorTypePath, validators: &[StringValidator
             StringValidator::LenCharMin(_len) => {
                 quote!(LenCharMinViolated,)
             }
+            StringValidator::LenUtf16Max(_len) => {
+                quote!(LenUtf16MaxViolated,)
+            }
+            StringValidator::LenUtf16Min(_len) => {
+                quote!(LenUtf16MinViolated,)
+            }
             StringValidator::NotEmpty => {
                 quote!(NotEmptyViolated,)
             }
@@ -79,6 +85,24 @@ fn gen_impl_display_trait(
                 stringify!(#type_name),
                 #len_char_min,
                 if #len_char_min == 1 { "" } else { "s" }
+            )
+        },
+        StringValidator::LenUtf16Max(len_utf16_max) => quote! {
+            #error_type_path::LenUtf16MaxViolated => write!(
+                f,
+                "{} is too long: the maximum valid UTF-16 length is {} code unit{}.",
+                stringify!(#type_name),
+                #len_utf16_max,
+                if #len_utf16_max == 1 { "" } else { "s" }
+            )
+        },
+        StringValidator::LenUtf16Min(len_utf16_min) => quote! {
+            #error_type_path::LenUtf16MinViolated => write!(
+                f,
+                "{} is too short: the minimum valid UTF-16 length is {} code unit{}.",
+                stringify!(#type_name),
+                #len_utf16_min,
+                if #len_utf16_min == 1 { "" } else { "s" }
             )
         },
         StringValidator::NotEmpty => quote! {

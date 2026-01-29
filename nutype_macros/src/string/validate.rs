@@ -62,6 +62,32 @@ fn validate_validators(
         return Err(err);
     }
 
+    // len_utf16_max VS len_utf16_min
+    //
+    let maybe_len_utf16_min = validators
+        .iter()
+        .flat_map(|v| match v.item {
+            StringValidator::LenUtf16Min(ValueOrExpr::Value(len)) => Some((v.span, len)),
+            _ => None,
+        })
+        .next();
+    let maybe_len_utf16_max = validators
+        .iter()
+        .flat_map(|v| match v.item {
+            StringValidator::LenUtf16Max(ValueOrExpr::Value(len)) => Some((v.span, len)),
+            _ => None,
+        })
+        .next();
+    if let (Some((_, len_utf16_min)), Some((len_utf16_max_span, len_utf16_max))) =
+        (maybe_len_utf16_min, maybe_len_utf16_max)
+        && len_utf16_min > len_utf16_max
+    {
+        let msg =
+            "`len_utf16_min` cannot be greater than `len_utf16_max`.\nDon't you find this obvious?";
+        let err = syn::Error::new(len_utf16_max_span, msg);
+        return Err(err);
+    }
+
     // Validate regex
     //
     #[cfg(feature = "regex")]

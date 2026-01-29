@@ -177,6 +177,10 @@ fn filter_validators(validators: &[StringValidator]) -> Result<Vec<RelevantValid
                 let msg = "It's not possible to derive `Arbitrary` trait for a type with `regex` validator.\nYou have to implement `Arbitrary` trait on you own.";
                 Err(syn::Error::new(Span::call_site(), msg))
             }
+            StringValidator::LenUtf16Min(_) | StringValidator::LenUtf16Max(_) => {
+                let msg = "It's not possible to derive `Arbitrary` trait for a type with `len_utf16_min` or `len_utf16_max` validator.\nYou have to implement `Arbitrary` trait on you own.";
+                Err(syn::Error::new(Span::call_site(), msg))
+            }
         }
     }).collect()
 }

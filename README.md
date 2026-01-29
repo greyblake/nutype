@@ -91,14 +91,16 @@ At the moment the string inner type supports only `String` (owned) type.
 
 ### String validators
 
-| Validator      | Description                                                                     | Error variant        | Example                                      |
-|----------------|---------------------------------------------------------------------------------|----------------------|----------------------------------------------|
-| `len_char_min` | Min length of the string (in chars, not bytes)                                  | `LenCharMinViolated` | `len_char_min = 5`                           |
-| `len_char_max` | Max length of the string (in chars, not bytes)                                  | `LenCharMaxViolated` | `len_char_max = 255`                         |
-| `not_empty`    | Rejects an empty string                                                         | `NotEmptyViolated`   | `not_empty`                                  |
-| `regex`        | Validates format with a regex. Requires `regex` feature.                        | `RegexViolated`      | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
-| `predicate`    | Custom validator. A function or closure that receives `&str` and returns `bool` | `PredicateViolated`  | `predicate = \|s: &str\| s.contains('@')`    |
-| `with`         | Custom validator with a custom error                                            | N/A                  | (see example below)                          |
+| Validator       | Description                                                                     | Error variant         | Example                                      |
+|-----------------|---------------------------------------------------------------------------------|-----------------------|----------------------------------------------|
+| `len_char_min`  | Min length of the string (in chars, not bytes)                                  | `LenCharMinViolated`  | `len_char_min = 5`                           |
+| `len_char_max`  | Max length of the string (in chars, not bytes)                                  | `LenCharMaxViolated`  | `len_char_max = 255`                         |
+| `len_utf16_min` | Min length of the string in UTF-16 code units (useful for JavaScript interop)   | `LenUtf16MinViolated` | `len_utf16_min = 5`                          |
+| `len_utf16_max` | Max length of the string in UTF-16 code units (useful for JavaScript interop)   | `LenUtf16MaxViolated` | `len_utf16_max = 255`                        |
+| `not_empty`     | Rejects an empty string                                                         | `NotEmptyViolated`    | `not_empty`                                  |
+| `regex`         | Validates format with a regex. Requires `regex` feature.                        | `RegexViolated`       | `regex = "^[0-9]{7}$"` or `regex = ID_REGEX` |
+| `predicate`     | Custom validator. A function or closure that receives `&str` and returns `bool` | `PredicateViolated`   | `predicate = \|s: &str\| s.contains('@')`    |
+| `with`          | Custom validator with a custom error                                            | N/A                   | (see example below)                          |
 
 
 #### Regex validation

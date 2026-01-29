@@ -29,6 +29,10 @@ pub type SpannedStringValidator = SpannedItem<StringValidator>;
 pub enum StringValidator {
     LenCharMin(ValueOrExpr<usize>),
     LenCharMax(ValueOrExpr<usize>),
+    #[kinded(rename = "len_utf16_min")]
+    LenUtf16Min(ValueOrExpr<usize>),
+    #[kinded(rename = "len_utf16_max")]
+    LenUtf16Max(ValueOrExpr<usize>),
     NotEmpty,
     Predicate(TypedCustomFunction),
     #[cfg_attr(not(feature = "regex"), allow(dead_code))]

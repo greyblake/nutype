@@ -2,6 +2,7 @@
 - **[BREAKING]** Rename `derive_unsafe` to `derive_unchecked` (both the feature flag and the attribute).
 - **[FEATURE]** Ability to derive [`Valuable`](https://docs.rs/valuable/0.1.1/valuable/trait.Valuable.html) (requires `valuable` feature).
 - **[FEATURE]** Ability to control constructor visibility with `constructor(visibility = ...)` attribute (see [#211](https://github.com/greyblake/nutype/issues/211)).
+- **[FEATURE]** Add `len_utf16_min` and `len_utf16_max` validators for string types to validate UTF-16 code unit length (useful for JavaScript interop) (see [#162](https://github.com/greyblake/nutype/issues/162)).
 
 ### v0.6.2 - 2025-06-30
 - **[FEATURE]** Introduce `derive_unsafe(..)` attribute to derive any arbitrary trait (requires `derive_unsafe` feature to be enabled).
