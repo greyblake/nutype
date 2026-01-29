@@ -1,5 +1,5 @@
 error: Unknown validation attribute: `lenCharMax`.
-       Possible attributes are `len_char_min`, `len_char_max`, `not_empty`, `predicate`, `regex`, `with`, `error`.
+       Possible attributes are `len_char_min`, `len_char_max`, `len_utf16_min`, `len_utf16_max`, `not_empty`, `predicate`, `regex`, `with`, `error`.
  --> tests/ui/common/attribute_with_wrong_case.rs:3:19
   |
 3 | #[nutype(validate(lenCharMax = 255))]

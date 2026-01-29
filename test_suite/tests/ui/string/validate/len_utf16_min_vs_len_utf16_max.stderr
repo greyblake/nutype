@@ -1,0 +1,6 @@
+error: `len_utf16_min` cannot be greater than `len_utf16_max`.
+       Don't you find this obvious?
+ --> tests/ui/string/validate/len_utf16_min_vs_len_utf16_max.rs:3:56
+  |
+3 | #[nutype(validate(len_utf16_min = 127, len_utf16_max = 63))]
+  |                                                        ^^

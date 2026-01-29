@@ -108,6 +108,22 @@ impl Parse for SpannedStringValidator {
                     span,
                 })
             }
+            StringValidatorKind::LenUtf16Min => {
+                let _: Token![=] = input.parse()?;
+                let (min_len, span) = parse_number_or_expr::<usize>(input)?;
+                Ok(SpannedStringValidator {
+                    item: StringValidator::LenUtf16Min(min_len),
+                    span,
+                })
+            }
+            StringValidatorKind::LenUtf16Max => {
+                let _: Token![=] = input.parse()?;
+                let (max_len, span) = parse_number_or_expr::<usize>(input)?;
+                Ok(SpannedStringValidator {
+                    item: StringValidator::LenUtf16Max(max_len),
+                    span,
+                })
+            }
             StringValidatorKind::NotEmpty => Ok(SpannedStringValidator {
                 item: StringValidator::NotEmpty,
                 span: ident.span(),

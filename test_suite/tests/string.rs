@@ -229,6 +229,36 @@ mod validators {
         assert_eq!(EmailError::NotEmptyViolated.to_string(), "Email is empty.");
     }
 
+    #[test]
+    fn test_error_display_utf16() {
+        #[nutype(validate(len_utf16_min = 2, len_utf16_max = 5))]
+        pub struct JsString(String);
+
+        assert_eq!(
+            JsStringError::LenUtf16MinViolated.to_string(),
+            "JsString is too short: the minimum valid UTF-16 length is 2 code units."
+        );
+        assert_eq!(
+            JsStringError::LenUtf16MaxViolated.to_string(),
+            "JsString is too long: the maximum valid UTF-16 length is 5 code units."
+        );
+    }
+
+    #[test]
+    fn test_error_display_utf16_singular() {
+        #[nutype(validate(len_utf16_min = 1, len_utf16_max = 1))]
+        pub struct SingleUnit(String);
+
+        assert_eq!(
+            SingleUnitError::LenUtf16MinViolated.to_string(),
+            "SingleUnit is too short: the minimum valid UTF-16 length is 1 code unit."
+        );
+        assert_eq!(
+            SingleUnitError::LenUtf16MaxViolated.to_string(),
+            "SingleUnit is too long: the maximum valid UTF-16 length is 1 code unit."
+        );
+    }
+
     mod when_boundaries_defined_as_constants {
         use super::*;
 
@@ -256,6 +286,138 @@ mod validators {
             assert_eq!(
                 Login::try_new("abcdefghij").unwrap().into_inner(),
                 "abcdefghij".to_string(),
+            );
+        }
+    }
+
+    #[test]
+    fn test_len_utf16_max() {
+        // UTF-16 length validation - useful for JavaScript interop
+        // 🦀 (crab emoji) is 1 char but 2 UTF-16 code units
+        #[nutype(validate(len_utf16_max = 5), derive(Debug, PartialEq))]
+        pub struct ShortText(String);
+
+        // ASCII: 5 chars = 5 UTF-16 code units (valid)
+        assert_eq!(ShortText::try_new("Anton").unwrap().into_inner(), "Anton");
+
+        // ASCII: 6 chars = 6 UTF-16 code units (invalid)
+        assert_eq!(
+            ShortText::try_new("Serhii"),
+            Err(ShortTextError::LenUtf16MaxViolated)
+        );
+
+        // Emoji: 2 crabs = 2 chars but 4 UTF-16 code units (valid)
+        assert_eq!(ShortText::try_new("🦀🦀").unwrap().into_inner(), "🦀🦀");
+
+        // Emoji: 3 crabs = 3 chars but 6 UTF-16 code units (invalid)
+        assert_eq!(
+            ShortText::try_new("🦀🦀🦀"),
+            Err(ShortTextError::LenUtf16MaxViolated)
+        );
+    }
+
+    #[test]
+    fn test_len_utf16_min() {
+        // UTF-16 length validation - useful for JavaScript interop
+        #[nutype(validate(len_utf16_min = 4), derive(Debug, PartialEq))]
+        pub struct LongText(String);
+
+        // ASCII: 3 chars = 3 UTF-16 code units (invalid)
+        assert_eq!(
+            LongText::try_new("abc"),
+            Err(LongTextError::LenUtf16MinViolated)
+        );
+
+        // ASCII: 4 chars = 4 UTF-16 code units (valid)
+        assert_eq!(LongText::try_new("abcd").unwrap().into_inner(), "abcd");
+
+        // Emoji: 1 crab = 1 char but 2 UTF-16 code units (invalid)
+        assert_eq!(
+            LongText::try_new("🦀"),
+            Err(LongTextError::LenUtf16MinViolated)
+        );
+
+        // Emoji: 2 crabs = 2 chars but 4 UTF-16 code units (valid)
+        assert_eq!(LongText::try_new("🦀🦀").unwrap().into_inner(), "🦀🦀");
+    }
+
+    #[test]
+    fn test_len_utf16_min_and_max() {
+        // Combined UTF-16 length validation
+        #[nutype(
+            validate(len_utf16_min = 2, len_utf16_max = 4),
+            derive(Debug, PartialEq)
+        )]
+        pub struct BoundedText(String);
+
+        // Too short: 1 UTF-16 code unit
+        assert_eq!(
+            BoundedText::try_new("a"),
+            Err(BoundedTextError::LenUtf16MinViolated)
+        );
+
+        // Just right: 2 UTF-16 code units
+        assert_eq!(BoundedText::try_new("ab").unwrap().into_inner(), "ab");
+
+        // Just right: 4 UTF-16 code units
+        assert_eq!(BoundedText::try_new("abcd").unwrap().into_inner(), "abcd");
+
+        // Too long: 5 UTF-16 code units
+        assert_eq!(
+            BoundedText::try_new("abcde"),
+            Err(BoundedTextError::LenUtf16MaxViolated)
+        );
+
+        // 1 emoji = 2 UTF-16 code units (valid)
+        assert_eq!(BoundedText::try_new("🦀").unwrap().into_inner(), "🦀");
+
+        // 2 emojis = 4 UTF-16 code units (valid)
+        assert_eq!(BoundedText::try_new("🦀🦀").unwrap().into_inner(), "🦀🦀");
+
+        // 3 emojis = 6 UTF-16 code units (invalid)
+        assert_eq!(
+            BoundedText::try_new("🦀🦀🦀"),
+            Err(BoundedTextError::LenUtf16MaxViolated)
+        );
+    }
+
+    mod when_utf16_boundaries_defined_as_constants {
+        use super::*;
+
+        const MIN_UTF16_LEN: usize = 2;
+        const MAX_UTF16_LEN: usize = 6;
+
+        #[nutype(validate(len_utf16_min = MIN_UTF16_LEN, len_utf16_max = MAX_UTF16_LEN), derive(Debug))]
+        struct JsText(String);
+
+        #[test]
+        fn test_utf16_boundaries_defined_as_constants() {
+            assert_eq!(
+                JsText::try_new("a").unwrap_err(),
+                JsTextError::LenUtf16MinViolated,
+            );
+            assert_eq!(
+                JsText::try_new("ab").unwrap().into_inner(),
+                "ab".to_string(),
+            );
+
+            assert_eq!(
+                JsText::try_new("abcdefg").unwrap_err(),
+                JsTextError::LenUtf16MaxViolated,
+            );
+            assert_eq!(
+                JsText::try_new("abcdef").unwrap().into_inner(),
+                "abcdef".to_string(),
+            );
+
+            // Test with emoji (2 UTF-16 code units each)
+            assert_eq!(
+                JsText::try_new("🦀🦀🦀🦀").unwrap_err(), // 8 UTF-16 code units
+                JsTextError::LenUtf16MaxViolated,
+            );
+            assert_eq!(
+                JsText::try_new("🦀🦀🦀").unwrap().into_inner(), // 6 UTF-16 code units
+                "🦀🦀🦀".to_string(),
             );
         }
     }
