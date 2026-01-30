@@ -4,7 +4,7 @@ use quote::{format_ident, quote};
 use syn::Generics;
 
 use crate::common::{
-    generate::{add_bound_to_all_type_params, strip_trait_bounds_on_generics},
+    generate::generics::{SplitGenerics, add_bound_to_all_type_params},
     models::{ErrorTypePath, InnerType, ParseErrorTypeName, TypeName},
 };
 
@@ -26,21 +26,33 @@ pub fn gen_def_parse_error(
     let inner_type: InnerType = inner_type.into();
     let type_name_str = type_name.to_string();
 
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
     let generics_with_fromstr_bound = add_bound_to_all_type_params(
-        &generics_without_bounds,
+        generics,
         syn::parse_quote!(::core::str::FromStr<Err: ::core::fmt::Debug>),
     );
 
+    let SplitGenerics {
+        impl_generics: enum_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(&generics_with_fromstr_bound);
+
+    // Example for `struct Wrapper<T>(T) where T: Clone`:
+    //
+    // #[derive(Debug)]
+    // pub enum WrapperParseError<T: FromStr<Err: Debug>> where T: Clone {
+    //     Parse(<T as FromStr>::Err),
+    //     Validate(WrapperError),
+    // }
     let definition = if let Some(error_type_name) = maybe_error_type_name {
         quote! {
-            #[derive(Debug)]                                                                    // #[derive(Debug)]
-            pub enum #parse_error_type_name #generics_with_fromstr_bound {                      // pub enum ParseErrorFoo<T: ::core::str::FromStr<Err: ::core::fmt::Debug>> {
-                Parse(<#inner_type as ::core::str::FromStr>::Err),                              //     Parse(<Foo as ::core::str::FromStr>::Err),
-                Validate(#error_type_name),                                                     //     Validate(ErrorFoo),
-            }                                                                                   // }
+            #[derive(Debug)]
+            pub enum #parse_error_type_name #enum_generics #where_clause {
+                Parse(<#inner_type as ::core::str::FromStr>::Err),
+                Validate(#error_type_name),
+            }
 
-            impl #generics_with_fromstr_bound ::core::fmt::Display for #parse_error_type_name #generics_without_bounds {
+            impl #enum_generics ::core::fmt::Display for #parse_error_type_name #type_generics #where_clause {
                 fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                     match self {
                         #parse_error_type_name::Parse(err) => write!(f, "Failed to parse {}: {:?}", #type_name_str, err),
@@ -52,12 +64,12 @@ pub fn gen_def_parse_error(
         }
     } else {
         quote! {
-            #[derive(Debug)]                                                 // #[derive(Debug)
-            pub enum #parse_error_type_name #generics_with_fromstr_bound {   // pub enum ParseErrorFoo<T: ::core::str::FromStr<Err: ::core::fmt::Debug>> {
-                Parse(<#inner_type as ::core::str::FromStr>::Err),           //     Parse(<Foo as ::core::str::FromStr>::Err),
-            }                                                                // }
+            #[derive(Debug)]
+            pub enum #parse_error_type_name #enum_generics #where_clause {
+                Parse(<#inner_type as ::core::str::FromStr>::Err),
+            }
 
-            impl #generics_with_fromstr_bound ::core::fmt::Display for #parse_error_type_name #generics_without_bounds {
+            impl #enum_generics ::core::fmt::Display for #parse_error_type_name #type_generics #where_clause {
                 fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                     match self {
                         #parse_error_type_name::Parse(err) => write!(f, "Failed to parse {}: {:?}", #type_name_str, err),
@@ -80,8 +92,13 @@ pub fn gen_def_parse_error(
                 &generics_with_fromstr_bound,
                 syn::parse_quote!(::core::fmt::Debug),
             );
+            let SplitGenerics {
+                impl_generics: error_impl_generics,
+                type_generics: error_type_generics,
+                where_clause: error_where_clause,
+            } = SplitGenerics::new(&generics_with_fromstr_and_debug_bounds);
             let impl_error = quote! {
-                impl #generics_with_fromstr_and_debug_bounds #error for #parse_error_type_name #generics_without_bounds {
+                impl #error_impl_generics #error for #parse_error_type_name #error_type_generics #error_where_clause {
                     fn source(&self) -> Option<&(dyn #error + 'static)> {
                         None
                     }

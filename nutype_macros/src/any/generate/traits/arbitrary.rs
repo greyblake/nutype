@@ -4,7 +4,7 @@ use syn::Generics;
 
 use crate::{
     any::models::{AnyGuard, AnyInnerType},
-    common::generate::{add_bound_to_all_type_params, add_param, strip_trait_bounds_on_generics},
+    common::generate::generics::{SplitGenerics, add_bound_to_all_type_params, add_generic_param},
     common::models::TypeName,
 };
 
@@ -25,14 +25,32 @@ pub fn gen_impl_trait_arbitrary(
 
     // Generate implementation of `Arbitrary` trait, assuming that inner type implements Arbitrary
     // too.
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
-    let generics_with_lifetime = add_param(&generics_without_bounds, quote!('nu_arb));
+    //
+    // We need to:
+    // 1. Add a lifetime 'nu_arb
+    // 2. Add Arbitrary<'nu_arb> bound to all type params
+    let generics_with_lifetime = add_generic_param(generics, syn::parse_quote!('nu_arb));
     let generics_with_bounds = add_bound_to_all_type_params(
         &generics_with_lifetime,
-        quote!(::arbitrary::Arbitrary<'nu_arb>),
+        syn::parse_quote!(::arbitrary::Arbitrary<'nu_arb>),
     );
+
+    let SplitGenerics {
+        impl_generics,
+        type_generics: _,
+        where_clause,
+    } = SplitGenerics::new(&generics_with_bounds);
+
+    // Get type generics without the added lifetime
+    let SplitGenerics { type_generics, .. } = SplitGenerics::new(generics);
+
+    // Example for `struct Wrapper<T>(T) where T: Clone`:
+    //
+    // impl<'nu_arb, T: Arbitrary<'nu_arb>> Arbitrary<'nu_arb> for Wrapper<T> where T: Clone {
+    //     fn arbitrary(u: &mut Unstructured<'nu_arb>) -> Result<Self> { ... }
+    // }
     Ok(quote!(
-        impl #generics_with_bounds ::arbitrary::Arbitrary<'nu_arb> for #type_name #generics_without_bounds {
+        impl #impl_generics ::arbitrary::Arbitrary<'nu_arb> for #type_name #type_generics #where_clause {
             fn arbitrary(u: &mut ::arbitrary::Unstructured<'nu_arb>) -> ::arbitrary::Result<Self> {
                 let inner_value: #inner_type = u.arbitrary()?;
                 Ok(#type_name::new(inner_value))

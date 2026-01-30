@@ -5,7 +5,7 @@ use quote::{ToTokens, quote};
 use syn::Generics;
 
 use crate::common::{
-    generate::{add_bound_to_all_type_params, strip_trait_bounds_on_generics},
+    generate::generics::{SplitGenerics, add_bound_to_all_type_params},
     models::{ErrorTypePath, InnerType, TypeName},
 };
 
@@ -61,15 +61,20 @@ pub fn gen_impl_trait_into(
     inner_type: impl Into<InnerType>,
 ) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(generics);
 
     // NOTE: We're getting blank implementation of
     //     Into<Inner> for Type
     // by implementing
     //     From<Type> for Inner
     quote! {
-        impl #generics ::core::convert::From<#type_name #generics> for #inner_type {
+        impl #impl_generics ::core::convert::From<#type_name #type_generics> for #inner_type #where_clause {
             #[inline]
-            fn from(value: #type_name #generics) -> Self {
+            fn from(value: #type_name #type_generics) -> Self {
                 value.into_inner()
             }
         }
@@ -81,15 +86,27 @@ pub fn gen_impl_trait_as_ref(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(generics);
 
+    // Example for `struct Collection<T: Ord>(Vec<T>) where T: Clone`:
+    //
+    // impl<T: Ord> AsRef<Vec<T>> for Collection<T> where T: Clone {
+    //     #[inline]
+    //     fn as_ref(&self) -> &Vec<T> {
+    //         &self.0
+    //     }
+    // }
     quote! {
-        impl #generics ::core::convert::AsRef<#inner_type> for #type_name #generics_without_bounds {  // impl<T: Ord> AsRef<Vec<T>> for Collection<T> {
-            #[inline]                                                                                 //     #[inline]
-            fn as_ref(&self) -> &#inner_type {                                                        //     fn as_ref(&self) -> &Vec<T> {
-                &self.0                                                                               //         &self.0
-            }                                                                                         //     }
-        }                                                                                             // }
+        impl #impl_generics ::core::convert::AsRef<#inner_type> for #type_name #type_generics #where_clause {
+            #[inline]
+            fn as_ref(&self) -> &#inner_type {
+                &self.0
+            }
+        }
     }
 }
 
@@ -98,26 +115,35 @@ pub fn gen_impl_trait_deref(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(generics);
 
     quote! {
-        impl #generics ::core::ops::Deref for #type_name #generics_without_bounds {  // impl<T: Ord> Deref for Collection<T> {
-            type Target = #inner_type;                                               //     type Target = Vec<T>;
-                                                                                     //
-            #[inline]                                                                //     #[inline]
-            fn deref(&self) -> &Self::Target {                                       //     fn deref(&self) -> &Self::Target {
-                &self.0                                                              //         &self.0
-            }                                                                        //     }
-        }                                                                            // }
+        impl #impl_generics ::core::ops::Deref for #type_name #type_generics #where_clause {
+            type Target = #inner_type;
+
+            #[inline]
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
     }
 }
 
 pub fn gen_impl_trait_display(type_name: &TypeName, generics: &Generics) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
     let generics_with_display_bound =
         add_bound_to_all_type_params(generics, syn::parse_quote!(::core::fmt::Display));
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(&generics_with_display_bound);
+
     quote! {
-        impl #generics_with_display_bound ::core::fmt::Display for #type_name #generics_without_bounds {
+        impl #impl_generics ::core::fmt::Display for #type_name #type_generics #where_clause {
             #[inline]
             fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
                 // A tiny wrapper function with trait boundary that improves error reporting.
@@ -139,15 +165,19 @@ pub fn gen_impl_trait_borrow(
     generics: &Generics,
     borrowed_type: impl ToTokens,
 ) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(generics);
 
     quote! {
-        impl #generics ::core::borrow::Borrow<#borrowed_type> for #type_name #generics_without_bounds {  // impl<T: Ord> Borrow<Vec<T>> for Collection<T> {
-            #[inline]                                                                                    //     #[inline]
-            fn borrow(&self) -> &#borrowed_type {                                                        //     fn borrow(&self) -> &Vec<T> {
-                &self.0                                                                                  //         &self.0
-            }                                                                                            //     }
-        }                                                                                                // }
+        impl #impl_generics ::core::borrow::Borrow<#borrowed_type> for #type_name #type_generics #where_clause {
+            #[inline]
+            fn borrow(&self) -> &#borrowed_type {
+                &self.0
+            }
+        }
     }
 }
 
@@ -156,15 +186,19 @@ pub fn gen_impl_trait_from(
     generics: &Generics,
     inner_type: impl ToTokens,
 ) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(generics);
 
     quote! {
-        impl #generics ::core::convert::From<#inner_type> for #type_name #generics_without_bounds {  // impl<T: Ord> From<Vec<T>> for Collection<T> {
-            #[inline]                                                                                //     #[inline]
-            fn from(raw_value: #inner_type) -> Self {                                                //     fn from(raw_value: Vec<T>) -> Self {
-                Self::new(raw_value)                                                                 //         Self::new(raw_value)
-            }                                                                                        //     }
-        }                                                                                            // }
+        impl #impl_generics ::core::convert::From<#inner_type> for #type_name #type_generics #where_clause {
+            #[inline]
+            fn from(raw_value: #inner_type) -> Self {
+                Self::new(raw_value)
+            }
+        }
     }
 }
 
@@ -174,18 +208,21 @@ pub fn gen_impl_trait_try_from(
     inner_type: impl ToTokens,
     maybe_error_type_name: Option<&ErrorTypePath>,
 ) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(generics);
 
     match maybe_error_type_name {
         Some(error_type_name) => {
             // The case when there are validation
-            //
             quote! {
-                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics_without_bounds {
+                impl #impl_generics ::core::convert::TryFrom<#inner_type> for #type_name #type_generics #where_clause {
                     type Error = #error_type_name;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics_without_bounds, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #type_generics, Self::Error> {
                         Self::try_new(raw_value)
                     }
                 }
@@ -193,13 +230,12 @@ pub fn gen_impl_trait_try_from(
         }
         None => {
             // The case when there are no validation
-            //
             quote! {
-                impl #generics ::core::convert::TryFrom<#inner_type> for #type_name #generics_without_bounds {
+                impl #impl_generics ::core::convert::TryFrom<#inner_type> for #type_name #type_generics #where_clause {
                     type Error = ::core::convert::Infallible;
 
                     #[inline]
-                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #generics_without_bounds, Self::Error> {
+                    fn try_from(raw_value: #inner_type) -> ::core::result::Result<#type_name #type_generics, Self::Error> {
                         Ok(Self::new(raw_value))
                     }
                 }
@@ -225,19 +261,23 @@ pub fn gen_impl_trait_from_str(
         &parse_error_type_name,
     );
 
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
     let generics_with_fromstr_bound = add_bound_to_all_type_params(
         generics,
         syn::parse_quote!(::core::str::FromStr<Err: ::core::fmt::Debug>),
     );
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(&generics_with_fromstr_bound);
 
     if let Some(_error_type_name) = maybe_error_type_name {
         // The case with validation
         quote! {
             #def_parse_error
 
-            impl #generics_with_fromstr_bound ::core::str::FromStr for #type_name #generics_without_bounds {
-                type Err = #parse_error_type_name #generics_without_bounds;
+            impl #impl_generics ::core::str::FromStr for #type_name #type_generics #where_clause {
+                type Err = #parse_error_type_name #type_generics;
 
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     let raw_value: #inner_type = raw_string.parse().map_err(#parse_error_type_name::Parse)?;
@@ -250,8 +290,8 @@ pub fn gen_impl_trait_from_str(
         quote! {
             #def_parse_error
 
-            impl #generics_with_fromstr_bound ::core::str::FromStr for #type_name #generics_without_bounds {
-                type Err = #parse_error_type_name #generics_without_bounds;
+            impl #impl_generics ::core::str::FromStr for #type_name #type_generics #where_clause {
+                type Err = #parse_error_type_name #type_generics;
 
                 fn from_str(raw_string: &str) -> ::core::result::Result<Self, Self::Err> {
                     let value: #inner_type = raw_string.parse().map_err(#parse_error_type_name::Parse)?;
@@ -263,15 +303,18 @@ pub fn gen_impl_trait_from_str(
 }
 
 pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
-
     // Turn `<T>` into `<T: Serialize>`
     let all_generics_with_serialize_bound =
         add_bound_to_all_type_params(generics, syn::parse_quote!(::serde::Serialize));
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(&all_generics_with_serialize_bound);
 
     let type_name_str = type_name.to_string();
     quote! {
-        impl #all_generics_with_serialize_bound ::serde::Serialize for #type_name #generics_without_bounds {
+        impl #impl_generics ::serde::Serialize for #type_name #type_generics #where_clause {
             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
             where
                 S: ::serde::Serializer
@@ -312,23 +355,41 @@ pub fn gen_impl_trait_serde_deserialize(
         all_generics.params.push(syn::parse_quote!('de));
         all_generics
     };
-    let all_generics_without_bounds = strip_trait_bounds_on_generics(&all_generics);
-    let type_generics_without_bounds = strip_trait_bounds_on_generics(type_generics);
 
     // Turn `<'de, T>` into `<'de, T: Deserialize<'de>>`
     let all_generics_with_deserialize_bound =
         add_bound_to_all_type_params(&all_generics, syn::parse_quote!(::serde::Deserialize<'de>));
 
+    // Split for the outer impl (with 'de)
+    let SplitGenerics {
+        impl_generics: all_impl_generics,
+        type_generics: all_type_generics,
+        where_clause: all_where_clause,
+    } = SplitGenerics::new(&all_generics_with_deserialize_bound);
+
+    // Split for the type itself (without 'de)
+    let SplitGenerics {
+        type_generics: inner_type_generics,
+        ..
+    } = SplitGenerics::new(type_generics);
+
+    // For the visitor struct, we need generics without bounds but with 'de
+    let SplitGenerics {
+        impl_generics: visitor_impl_generics,
+        type_generics: _visitor_type_generics,
+        where_clause: visitor_where_clause,
+    } = SplitGenerics::new(&all_generics);
+
     quote! {
-        impl #all_generics_with_deserialize_bound ::serde::Deserialize<'de> for #type_name #type_generics_without_bounds {
+        impl #all_impl_generics ::serde::Deserialize<'de> for #type_name #inner_type_generics #all_where_clause {
             fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> ::core::result::Result<Self, D::Error> {
-                struct __Visitor #all_generics {
-                    marker: ::core::marker::PhantomData<#type_name #type_generics_without_bounds>,
+                struct __Visitor #visitor_impl_generics #visitor_where_clause {
+                    marker: ::core::marker::PhantomData<#type_name #inner_type_generics>,
                     lifetime: ::core::marker::PhantomData<&'de ()>,
                 }
 
-                impl #all_generics_with_deserialize_bound ::serde::de::Visitor<'de> for __Visitor #all_generics_without_bounds {
-                    type Value = #type_name #type_generics_without_bounds;
+                impl #all_impl_generics ::serde::de::Visitor<'de> for __Visitor #all_type_generics #all_where_clause {
+                    type Value = #type_name #inner_type_generics;
 
                     fn expecting(&self, formatter: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
                         write!(formatter, #expecting_str)
@@ -365,12 +426,16 @@ pub fn gen_impl_trait_default(
     default_value: impl ToTokens,
     has_validation: bool,
 ) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = SplitGenerics::new(generics);
 
     if has_validation {
         let tp = type_name.to_string();
         quote!(
-            impl #generics ::core::default::Default for #type_name #generics_without_bounds {
+            impl #impl_generics ::core::default::Default for #type_name #type_generics #where_clause {
                 fn default() -> Self {
                     Self::try_new(#default_value)
                         .unwrap_or_else(|err| {
@@ -382,7 +447,7 @@ pub fn gen_impl_trait_default(
         )
     } else {
         quote!(
-            impl #generics ::core::default::Default for #type_name #generics_without_bounds {
+            impl #impl_generics ::core::default::Default for #type_name #type_generics #where_clause {
                 #[inline]
                 fn default() -> Self {
                     Self::new(#default_value)

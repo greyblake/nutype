@@ -1,4 +1,5 @@
 pub mod error;
+pub mod generics;
 pub mod new_unchecked;
 pub mod parse_error;
 pub mod tests;
@@ -138,68 +139,28 @@ pub fn gen_impl_into_inner(
     inner_type: impl ToTokens,
     const_fn: ConstFn,
 ) -> TokenStream {
-    let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+    let generics::SplitGenerics {
+        impl_generics,
+        type_generics,
+        where_clause,
+    } = generics::SplitGenerics::new(generics);
+
+    // Example for `struct Wrapper<T: Clone>(T) where T: Default`:
+    //
+    // impl<T: Clone> Wrapper<T> where T: Default {
+    //     #[inline]
+    //     pub fn into_inner(self) -> T {
+    //         self.0
+    //     }
+    // }
     quote! {
-        impl #generics #type_name #generics_without_bounds {
+        impl #impl_generics #type_name #type_generics #where_clause {
             #[inline]
             pub #const_fn fn into_inner(self) -> #inner_type {
                 self.0
             }
         }
     }
-}
-
-/// Remove trait bounds from generics.
-///
-/// Input:
-///    <T: Display + Debug, U: Clone>
-///
-/// Output:
-///   <T, U>
-pub fn strip_trait_bounds_on_generics(original: &Generics) -> Generics {
-    let mut generics = original.clone();
-    for param in &mut generics.params {
-        if let syn::GenericParam::Type(syn::TypeParam { bounds, .. }) = param {
-            *bounds = syn::punctuated::Punctuated::new();
-        }
-    }
-    generics
-}
-
-/// Add a bound to all generics types.
-///
-/// Input:
-///     <T, U>
-///     Serialize
-///
-/// Output:
-///    <T: Serialize, U: Serialize>
-pub fn add_bound_to_all_type_params(generics: &Generics, bound: TokenStream) -> Generics {
-    let mut generics = generics.clone();
-    let parsed_bound: syn::TypeParamBound =
-        syn::parse2(bound).expect("Failed to parse TypeParamBound");
-    for param in &mut generics.params {
-        if let syn::GenericParam::Type(syn::TypeParam { bounds, .. }) = param {
-            bounds.push(parsed_bound.clone());
-        }
-    }
-    generics
-}
-
-/// Add a parameter to generics.
-///
-/// Input:
-///     <T, U>
-///     'a
-///
-/// Output:
-///     <'a, T, U>
-///
-pub fn add_param(generics: &Generics, param: TokenStream) -> Generics {
-    let mut generics = generics.clone();
-    let parsed_param: syn::GenericParam = syn::parse2(param).expect("Failed to parse GenericParam");
-    generics.params.push(parsed_param);
-    generics
 }
 
 pub trait GenerateNewtype {
@@ -259,7 +220,11 @@ pub trait GenerateNewtype {
         const_fn: ConstFn,
         constructor_visibility: &ConstructorVisibility,
     ) -> TokenStream {
-        let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+        let generics::SplitGenerics {
+            impl_generics,
+            type_generics,
+            where_clause,
+        } = generics::SplitGenerics::new(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers, const_fn);
 
         let maybe_generated_validation_error = match validation {
@@ -296,10 +261,15 @@ pub trait GenerateNewtype {
 
         let error_type_path = validation.error_type_path();
 
+        // Example for `struct Wrapper<T: Clone>(T) where T: Default`:
+        //
+        // impl<T: Clone> Wrapper<T> where T: Default {
+        //     pub fn try_new(raw_value: T) -> Result<Self, WrapperError> { ... }
+        // }
         quote!(
             #maybe_generated_validation_error
 
-            impl #generics #type_name #generics_without_bounds {
+            impl #impl_generics #type_name #type_generics #where_clause {
                 #constructor_visibility #const_fn fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
                     #convert_raw_value_if_necessary
 
@@ -330,7 +300,11 @@ pub trait GenerateNewtype {
         const_fn: ConstFn,
         constructor_visibility: &ConstructorVisibility,
     ) -> TokenStream {
-        let generics_without_bounds = strip_trait_bounds_on_generics(generics);
+        let generics::SplitGenerics {
+            impl_generics,
+            type_generics,
+            where_clause,
+        } = generics::SplitGenerics::new(generics);
         let fn_sanitize = Self::gen_fn_sanitize(inner_type, sanitizers, const_fn);
 
         let (input_type, convert_raw_value_if_necessary) = if Self::NEW_CONVERT_INTO_INNER_TYPE {
@@ -342,8 +316,13 @@ pub trait GenerateNewtype {
             (quote!(#inner_type), quote!())
         };
 
+        // Example for `struct Wrapper<T: Clone>(T) where T: Default`:
+        //
+        // impl<T: Clone> Wrapper<T> where T: Default {
+        //     pub fn new(raw_value: T) -> Self { ... }
+        // }
         quote!(
-            impl #generics #type_name #generics_without_bounds {
+            impl #impl_generics #type_name #type_generics #where_clause {
                 #constructor_visibility #const_fn fn new(raw_value: #input_type) -> Self {
                     #convert_raw_value_if_necessary
                     Self(Self::__sanitize__(raw_value))
@@ -484,6 +463,17 @@ pub trait GenerateNewtype {
             &guard,
         )?;
 
+        // Split generics for struct definition to properly handle where clauses
+        let generics::SplitGenerics {
+            impl_generics: struct_generics,
+            type_generics: _,
+            where_clause: struct_where_clause,
+        } = generics::SplitGenerics::new(&generics);
+
+        // Example for `struct Wrapper<T: Clone>(T) where T: Default`:
+        //
+        // #[derive(Debug, Clone)]
+        // pub struct Wrapper<T: Clone>(T) where T: Default;
         Ok(quote!(
             #[doc(hidden)]
             #[allow(non_snake_case, reason = "we keep original structure name which is probably CamelCase")]
@@ -492,7 +482,7 @@ pub trait GenerateNewtype {
 
                 #(#doc_attrs)*
                 #derive_transparent_traits
-                pub struct #type_name #generics(#inner_type);
+                pub struct #type_name #struct_generics (#inner_type) #struct_where_clause;
 
                 #implementation
                 #implement_traits

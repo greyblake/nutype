@@ -266,7 +266,32 @@ assert_eq!(numbers.as_ref(), &[1, 2, 4, 7]);
 assert_eq!(numbers.len(), 4);
 ```
 
+### Where clauses
 
+Nutype fully supports `where` clauses in generic newtypes, including Higher-Ranked Trait Bounds (HRTB):
+
+```rust
+use nutype::nutype;
+
+// Simple where clause
+#[nutype(derive(Debug, Clone))]
+struct Wrapper<T>(T)
+where
+    T: Default + Clone;
+
+// HRTB for collections - validate that collection is non-empty
+#[nutype(
+    validate(predicate = |c| c.into_iter().next().is_some()),
+    derive(Debug)
+)]
+struct NonEmpty<C>(C)
+where
+    for<'a> &'a C: IntoIterator;
+
+// Usage
+let non_empty = NonEmpty::try_new(vec![1, 2, 3]).unwrap();
+assert!(NonEmpty::try_new(Vec::<i32>::new()).is_err());
+```
 
 ## Custom sanitizers
 
