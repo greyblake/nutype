@@ -1,6 +1,6 @@
 error[E0624]: associated function `new` is private
- --> tests/ui/common/constructor_visibility_private.rs:15:37
-  |
+  --> tests/ui/common/constructor_visibility_private.rs:15:37
+   |
  5 | /     #[nutype(
  6 | |         sanitize(trim),
  7 | |         constructor(visibility = private),
