@@ -144,7 +144,7 @@ where
             let possible_values: String = <Validator as Kinded>::Kind::all()
                 .iter()
                 .map(|k| format!("`{k}`"))
-                .filter(|s| s != "`phantom`") // filter out _Phantom variant
+                .filter(|s| s != "`_phantom`") // filter out _Phantom variant
                 .chain(["`with`", "`error`"].iter().map(|s| s.to_string()))
                 .collect::<Vec<_>>()
                 .join(", ");
@@ -478,7 +478,7 @@ where
         let possible_values: String = K::all()
             .iter()
             .map(|k| format!("`{k}`"))
-            .filter(|s| s != "`phantom`") // filter out _Phantom variant
+            .filter(|s| s != "`_phantom`") // filter out _Phantom variant
             .collect::<Vec<_>>()
             .join(", ");
         let msg = format!("Unknown {attr_type} `{ident}`.\nPossible values are {possible_values}.");
