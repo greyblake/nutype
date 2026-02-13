@@ -57,6 +57,9 @@ impl TypeTrait for AnyDeriveTrait {
     fn is_from_str(&self) -> bool {
         self == &AnyDeriveTrait::FromStr
     }
+    fn is_default(&self) -> bool {
+        self == &AnyDeriveTrait::Default
+    }
 }
 
 pub type AnyRawGuard = RawGuard<SpannedAnySanitizer, SpannedAnyValidator>;

@@ -447,6 +447,16 @@ pub struct ValidatedDerives<TypedTrait> {
     pub conditional: Vec<ValidatedCfgAttrDerives<TypedTrait>>,
 }
 
+impl<T: TypeTrait> ValidatedDerives<T> {
+    pub fn has_default_trait(&self) -> bool {
+        self.unconditional.iter().any(|t| t.is_default())
+            || self
+                .conditional
+                .iter()
+                .any(|entry| entry.traits.iter().any(|t| t.is_default()))
+    }
+}
+
 /// A single cfg_attr derive group after validation and type conversion.
 pub struct ValidatedCfgAttrDerives<TypedTrait> {
     pub predicate: TokenStream,
@@ -498,8 +508,8 @@ impl Parse for SpannedDeriveUnsafeTrait {
 }
 
 pub trait TypeTrait {
-    // If this is FromStr variant?
     fn is_from_str(&self) -> bool;
+    fn is_default(&self) -> bool;
 }
 
 /// The flag that indicates that a newtype will be generated with extra constructor,
@@ -591,7 +601,7 @@ pub struct GenerateParams<IT, Trait, Guard> {
 pub trait Newtype {
     type Sanitizer;
     type Validator;
-    type TypedTrait;
+    type TypedTrait: TypeTrait;
     type InnerType;
 
     #[allow(clippy::type_complexity)]
@@ -641,6 +651,14 @@ pub trait Newtype {
         crate::common::validate::check_cfg_attr_no_duplicates(&derive_traits, &cfg_attr_entries)?;
 
         let validated = Self::validate(&guard, derive_traits, &cfg_attr_entries)?;
+
+        // If Default appears ANYWHERE (unconditional or conditional), require default = <value>
+        if validated.has_default_trait() && maybe_default_value.is_none() {
+            let msg = format!(
+                "Trait `Default` is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro"
+            );
+            return Err(syn::Error::new(proc_macro2::Span::call_site(), msg));
+        }
 
         let conditional_derives =
             build_conditional_derive_groups(validated.conditional, &cfg_attr_entries);
