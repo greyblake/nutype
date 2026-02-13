@@ -1044,6 +1044,13 @@ mod cfg_attr {
 
         // Valid parse but fails validation
         assert!("0".parse::<PositiveNum>().is_err());
+
+        // Verify ParseError type is accessible by name (re-exported)
+        let err = "abc".parse::<PositiveNum>().unwrap_err();
+        assert!(matches!(err, PositiveNumParseError::Parse(_)));
+
+        let err = "0".parse::<PositiveNum>().unwrap_err();
+        assert!(matches!(err, PositiveNumParseError::Validate(_)));
     }
 
     #[test]

@@ -215,6 +215,7 @@ pub fn gen_traits(
         implement_traits,
         conditional_derive_transparent_traits,
         conditional_implement_traits,
+        conditional_from_str_parse_errors: vec![],
     })
 }
 

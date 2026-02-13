@@ -104,6 +104,7 @@ pub fn gen_reimports(
     module_name: &ModuleName,
     maybe_error_type_path: Option<&ErrorTypePath>,
     maybe_parse_error_type_name: Option<&ParseErrorTypeName>,
+    conditional_parse_error_reimports: &[(TokenStream, ParseErrorTypeName)],
 ) -> TokenStream {
     let reimport_main_type = quote! {
         #vis use #module_name::#type_name;
@@ -127,10 +128,21 @@ pub fn gen_reimports(
         }
     };
 
+    let reimport_conditional_parse_errors: TokenStream = conditional_parse_error_reimports
+        .iter()
+        .map(|(pred, parse_error_name)| {
+            quote! {
+                #[cfg(#pred)]
+                #vis use #module_name::#parse_error_name;
+            }
+        })
+        .collect();
+
     quote! {
         #reimport_main_type
         #reimport_error_type_if_needed
         #reimport_parse_error_type_if_needed
+        #reimport_conditional_parse_errors
     }
 }
 
@@ -446,19 +458,12 @@ pub trait GenerateNewtype {
             },
         };
 
-        let reimports = gen_reimports(
-            vis,
-            &type_name,
-            &module_name,
-            maybe_reimported_error_type_path,
-            maybe_parse_error_type_path.as_ref(),
-        );
-
         let GeneratedTraits {
             derive_transparent_traits,
             implement_traits,
             conditional_derive_transparent_traits,
             conditional_implement_traits,
+            conditional_from_str_parse_errors,
         } = Self::gen_traits(
             &type_name,
             &generics,
@@ -469,6 +474,15 @@ pub trait GenerateNewtype {
             &guard,
             &conditional_derives,
         )?;
+
+        let reimports = gen_reimports(
+            vis,
+            &type_name,
+            &module_name,
+            maybe_reimported_error_type_path,
+            maybe_parse_error_type_path.as_ref(),
+            &conditional_from_str_parse_errors,
+        );
 
         // Split generics for struct definition to properly handle where clauses
         let generics::SplitGenerics {

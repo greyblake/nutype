@@ -6,7 +6,7 @@ use syn::Generics;
 
 use crate::common::{
     generate::generics::{SplitGenerics, add_bound_to_all_type_params},
-    models::{ErrorTypePath, InnerType, TypeName},
+    models::{ErrorTypePath, InnerType, ParseErrorTypeName, TypeName},
 };
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
@@ -24,6 +24,9 @@ pub struct GeneratedTraits {
 
     /// Conditional `#[cfg(pred)] impl ...` blocks.
     pub conditional_implement_traits: TokenStream,
+
+    /// (predicate, ParseErrorTypeName) pairs for conditional `FromStr` re-exports.
+    pub conditional_from_str_parse_errors: Vec<(TokenStream, ParseErrorTypeName)>,
 }
 
 /// Split traits into 2 groups for generation:
