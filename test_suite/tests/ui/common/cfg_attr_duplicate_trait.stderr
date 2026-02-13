@@ -1,0 +1,5 @@
+error: Trait `Clone` appears in both unconditional `derive()` and conditional `cfg_attr(..., derive())`. Remove it from one of them.
+ --> tests/ui/common/cfg_attr_duplicate_trait.rs:6:27
+  |
+6 |     cfg_attr(test, derive(Clone)),
+  |                           ^^^^^

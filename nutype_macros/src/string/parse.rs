@@ -40,6 +40,7 @@ pub fn parse_attributes(
         default,
         derive_traits,
         derive_unchecked_traits,
+        cfg_attr_entries,
     } = attrs;
     let raw_guard = StringRawGuard {
         sanitizers,
@@ -54,6 +55,7 @@ pub fn parse_attributes(
         default,
         derive_traits,
         derive_unchecked_traits,
+        cfg_attr_entries,
     })
 }
 

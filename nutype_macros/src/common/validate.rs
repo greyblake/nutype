@@ -1,11 +1,14 @@
+use core::hash::Hash;
 use kinded::Kinded;
 use proc_macro2::Span;
+use std::collections::HashSet;
 
 use super::{
     r#generate::error::gen_error_type_name,
     models::{
-        DeriveTrait, Guard, NumericBoundValidator, RawGuard, SpannedDeriveTrait, SpannedItem,
-        TypeName, Validation,
+        CfgAttrContent, CfgAttrEntry, DeriveTrait, Guard, NumericBoundValidator, RawGuard,
+        SpannedDeriveTrait, SpannedItem, TypeName, ValidatedCfgAttrDerives, ValidatedDerives,
+        Validation,
     },
     parse::RawValidation,
 };
@@ -170,4 +173,97 @@ pub fn validate_traits_from_xor_try_from(
         }
         _ => Ok(()),
     }
+}
+
+/// Check that no trait appears in both unconditional `derive(...)` and any conditional
+/// `cfg_attr(..., derive(...))`, and that no trait appears in multiple `cfg_attr` entries.
+pub fn check_cfg_attr_no_duplicates(
+    unconditional: &[SpannedDeriveTrait],
+    cfg_attr_entries: &[CfgAttrEntry],
+) -> Result<(), syn::Error> {
+    let unconditional_set: HashSet<DeriveTrait> = unconditional.iter().map(|s| s.item).collect();
+
+    let mut conditional_seen: HashSet<DeriveTrait> = HashSet::new();
+
+    for entry in cfg_attr_entries {
+        if let CfgAttrContent::Derive(ref traits) = entry.content {
+            for spanned in traits {
+                if unconditional_set.contains(&spanned.item) {
+                    let msg = format!(
+                        "Trait `{}` appears in both unconditional `derive()` and \
+                         conditional `cfg_attr(..., derive())`. Remove it from one of them.",
+                        spanned.item
+                    );
+                    return Err(syn::Error::new(spanned.span, msg));
+                }
+
+                if !conditional_seen.insert(spanned.item) {
+                    let msg = format!(
+                        "Trait `{}` appears in multiple `cfg_attr(...)` entries. \
+                         If their predicates overlap at compile time, this will cause \
+                         a compilation error. Combine them under a single predicate or \
+                         ensure predicates are mutually exclusive.",
+                        spanned.item
+                    );
+                    return Err(syn::Error::new(spanned.span, msg));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Validate all derive traits (unconditional + conditional) in a single pass.
+///
+/// The `convert` function is the only type-specific part — it converts a generic
+/// `DeriveTrait` to the type-specific `TypedTrait`.
+pub fn validate_all_derive_traits<TypedTrait>(
+    has_validation: bool,
+    derive_traits: Vec<SpannedDeriveTrait>,
+    cfg_attr_entries: &[CfgAttrEntry],
+    convert: impl Fn(DeriveTrait, bool, Span) -> Result<TypedTrait, syn::Error>,
+) -> Result<ValidatedDerives<TypedTrait>, syn::Error>
+where
+    TypedTrait: Eq + Hash,
+{
+    // 1. Build the union of all derive traits for cross-trait dependency checks
+    let mut all_spanned = derive_traits.clone();
+    for entry in cfg_attr_entries {
+        if let CfgAttrContent::Derive(ref traits) = entry.content {
+            all_spanned.extend(traits.iter().cloned());
+        }
+    }
+
+    // 2. Run cross-trait checks on the union (e.g., From XOR TryFrom)
+    validate_traits_from_xor_try_from(&all_spanned)?;
+
+    // 3. Convert and collect unconditional traits (with type-compatibility checks)
+    let unconditional = derive_traits
+        .iter()
+        .map(|st| convert(st.item, has_validation, st.span))
+        .collect::<Result<HashSet<_>, _>>()?;
+
+    // 4. Convert conditional traits (same conversion, per entry)
+    let conditional = cfg_attr_entries
+        .iter()
+        .filter_map(|entry| match &entry.content {
+            CfgAttrContent::Derive(traits) => Some((entry, traits)),
+            _ => None,
+        })
+        .map(|(entry, traits)| {
+            let typed = traits
+                .iter()
+                .map(|st| convert(st.item, has_validation, st.span))
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(ValidatedCfgAttrDerives {
+                predicate: entry.predicate.clone(),
+                traits: typed,
+            })
+        })
+        .collect::<Result<Vec<_>, syn::Error>>()?;
+
+    Ok(ValidatedDerives {
+        unconditional,
+        conditional,
+    })
 }

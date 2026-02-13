@@ -1,0 +1,5 @@
+error: Trait `Clone` appears in multiple `cfg_attr(...)` entries. If their predicates overlap at compile time, this will cause a compilation error. Combine them under a single predicate or ensure predicates are mutually exclusive.
+ --> tests/ui/common/cfg_attr_duplicate_cross_conditional.rs:7:27
+  |
+7 |     cfg_attr(test, derive(Clone)),
+  |                           ^^^^^

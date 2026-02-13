@@ -45,6 +45,7 @@ examples:
             cargo build
         else
             cargo run
+            cargo test
         fi
     done
 

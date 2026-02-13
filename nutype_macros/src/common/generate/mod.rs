@@ -11,8 +11,9 @@ use std::collections::HashSet;
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath, GenerateParams, Guard,
-    NewUnchecked, ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName, TypeTrait,
+    ConditionalDeriveGroup, ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath,
+    GenerateParams, Guard, NewUnchecked, ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName,
+    TypeTrait,
 };
 use crate::common::{
     generate::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
@@ -103,6 +104,7 @@ pub fn gen_reimports(
     module_name: &ModuleName,
     maybe_error_type_path: Option<&ErrorTypePath>,
     maybe_parse_error_type_name: Option<&ParseErrorTypeName>,
+    conditional_parse_error_reimports: &[(TokenStream, ParseErrorTypeName)],
 ) -> TokenStream {
     let reimport_main_type = quote! {
         #vis use #module_name::#type_name;
@@ -126,10 +128,21 @@ pub fn gen_reimports(
         }
     };
 
+    let reimport_conditional_parse_errors: TokenStream = conditional_parse_error_reimports
+        .iter()
+        .map(|(pred, parse_error_name)| {
+            quote! {
+                #[cfg(#pred)]
+                #vis use #module_name::#parse_error_name;
+            }
+        })
+        .collect();
+
     quote! {
         #reimport_main_type
         #reimport_error_type_if_needed
         #reimport_parse_error_type_if_needed
+        #reimport_conditional_parse_errors
     }
 }
 
@@ -201,6 +214,7 @@ pub trait GenerateNewtype {
         validators: &[Self::Validator],
     ) -> TokenStream;
 
+    #[allow(clippy::too_many_arguments)]
     fn gen_traits(
         type_name: &TypeName,
         generics: &Generics,
@@ -209,6 +223,7 @@ pub trait GenerateNewtype {
         unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
+        conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
     ) -> Result<GeneratedTraits, syn::Error>;
 
     fn gen_try_new(
@@ -402,6 +417,7 @@ pub trait GenerateNewtype {
             maybe_default_value,
             inner_type,
             generics,
+            conditional_derives,
         } = params;
 
         let module_name = gen_module_name_for_type(&type_name);
@@ -442,17 +458,12 @@ pub trait GenerateNewtype {
             },
         };
 
-        let reimports = gen_reimports(
-            vis,
-            &type_name,
-            &module_name,
-            maybe_reimported_error_type_path,
-            maybe_parse_error_type_path.as_ref(),
-        );
-
         let GeneratedTraits {
             derive_transparent_traits,
             implement_traits,
+            conditional_derive_transparent_traits,
+            conditional_implement_traits,
+            conditional_from_str_parse_errors,
         } = Self::gen_traits(
             &type_name,
             &generics,
@@ -461,7 +472,17 @@ pub trait GenerateNewtype {
             &unsafe_traits,
             maybe_default_value,
             &guard,
+            &conditional_derives,
         )?;
+
+        let reimports = gen_reimports(
+            vis,
+            &type_name,
+            &module_name,
+            maybe_reimported_error_type_path,
+            maybe_parse_error_type_path.as_ref(),
+            &conditional_from_str_parse_errors,
+        );
 
         // Split generics for struct definition to properly handle where clauses
         let generics::SplitGenerics {
@@ -482,10 +503,12 @@ pub trait GenerateNewtype {
 
                 #(#doc_attrs)*
                 #derive_transparent_traits
+                #conditional_derive_transparent_traits
                 pub struct #type_name #struct_generics (#inner_type) #struct_where_clause;
 
                 #implementation
                 #implement_traits
+                #conditional_implement_traits
 
                 #[cfg(test)]
                 mod tests {

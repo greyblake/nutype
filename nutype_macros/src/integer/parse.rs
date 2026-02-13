@@ -44,6 +44,7 @@ where
         default,
         derive_traits,
         derive_unchecked_traits,
+        cfg_attr_entries,
     } = attrs;
     let raw_guard = IntegerRawGuard {
         sanitizers,
@@ -58,6 +59,7 @@ where
         default,
         derive_traits,
         derive_unchecked_traits,
+        cfg_attr_entries,
     })
 }
 

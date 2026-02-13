@@ -3,11 +3,12 @@ pub mod models;
 pub mod parse;
 pub mod validate;
 
-use std::collections::HashSet;
-
 use crate::common::{
     generate::GenerateNewtype,
-    models::{Attributes, GenerateParams, Newtype, SpannedDeriveTrait, TypeName},
+    models::{
+        Attributes, CfgAttrEntry, GenerateParams, Newtype, SpannedDeriveTrait, TypeName,
+        ValidatedDerives,
+    },
 };
 
 use models::{StringDeriveTrait, StringSanitizer, StringValidator};
@@ -36,8 +37,9 @@ impl Newtype for StringNewtype {
     fn validate(
         guard: &StringGuard,
         derive_traits: Vec<SpannedDeriveTrait>,
-    ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
-        validate_string_derive_traits(guard, derive_traits)
+        cfg_attr_entries: &[CfgAttrEntry],
+    ) -> Result<ValidatedDerives<Self::TypedTrait>, syn::Error> {
+        validate_string_derive_traits(guard, derive_traits, cfg_attr_entries)
     }
 
     fn generate(

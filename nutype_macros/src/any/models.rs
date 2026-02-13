@@ -24,7 +24,7 @@ pub enum AnyValidator {
 
 pub type SpannedAnyValidator = SpannedItem<AnyValidator>;
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AnyDeriveTrait {
     // Standard
     Debug,
@@ -56,6 +56,9 @@ pub enum AnyDeriveTrait {
 impl TypeTrait for AnyDeriveTrait {
     fn is_from_str(&self) -> bool {
         self == &AnyDeriveTrait::FromStr
+    }
+    fn is_default(&self) -> bool {
+        self == &AnyDeriveTrait::Default
     }
 }
 
