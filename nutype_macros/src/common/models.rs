@@ -421,6 +421,9 @@ pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
 
 /// The inner attribute of a `cfg_attr(...)` entry.
 #[derive(Debug)]
+// Suppress dead_code warning: `DeriveUnchecked` is only constructed when
+// the `derive_unchecked` feature is enabled.
+#[allow(dead_code)]
 pub enum CfgAttrContent {
     /// `cfg_attr(<predicate>, derive(...))`
     Derive(Vec<SpannedDeriveTrait>),
