@@ -1144,4 +1144,21 @@ mod cfg_attr {
         let msg2 = msg.clone();
         assert_eq!(format!("{msg2}"), "hello");
     }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_cfg_attr_conditional_serde() {
+        // Conditional serde derives
+        #[nutype(
+            derive(Debug, PartialEq),
+            cfg_attr(feature = "serde", derive(Serialize, Deserialize))
+        )]
+        pub struct Label(String);
+
+        let label = Label::new("hello");
+        let json = serde_json::to_string(&label).unwrap();
+        assert_eq!(json, r#""hello""#);
+        let deserialized: Label = serde_json::from_str(&json).unwrap();
+        assert_eq!(label, deserialized);
+    }
 }
