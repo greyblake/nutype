@@ -38,7 +38,7 @@ pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 
 // Traits
 //
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum IntegerDeriveTrait {
     // Standard
     Debug,

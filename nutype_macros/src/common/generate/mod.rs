@@ -11,8 +11,9 @@ use std::collections::HashSet;
 use self::traits::GeneratedTraits;
 
 use super::models::{
-    ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath, GenerateParams, Guard,
-    NewUnchecked, ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName, TypeTrait,
+    ConditionalDeriveGroup, ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath,
+    GenerateParams, Guard, NewUnchecked, ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName,
+    TypeTrait,
 };
 use crate::common::{
     generate::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
@@ -201,6 +202,7 @@ pub trait GenerateNewtype {
         validators: &[Self::Validator],
     ) -> TokenStream;
 
+    #[allow(clippy::too_many_arguments)]
     fn gen_traits(
         type_name: &TypeName,
         generics: &Generics,
@@ -209,6 +211,7 @@ pub trait GenerateNewtype {
         unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
+        conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
     ) -> Result<GeneratedTraits, syn::Error>;
 
     fn gen_try_new(
@@ -402,6 +405,7 @@ pub trait GenerateNewtype {
             maybe_default_value,
             inner_type,
             generics,
+            conditional_derives,
         } = params;
 
         let module_name = gen_module_name_for_type(&type_name);
@@ -453,6 +457,8 @@ pub trait GenerateNewtype {
         let GeneratedTraits {
             derive_transparent_traits,
             implement_traits,
+            conditional_derive_transparent_traits,
+            conditional_implement_traits,
         } = Self::gen_traits(
             &type_name,
             &generics,
@@ -461,6 +467,7 @@ pub trait GenerateNewtype {
             &unsafe_traits,
             maybe_default_value,
             &guard,
+            &conditional_derives,
         )?;
 
         // Split generics for struct definition to properly handle where clauses
@@ -482,10 +489,12 @@ pub trait GenerateNewtype {
 
                 #(#doc_attrs)*
                 #derive_transparent_traits
+                #conditional_derive_transparent_traits
                 pub struct #type_name #struct_generics (#inner_type) #struct_where_clause;
 
                 #implementation
                 #implement_traits
+                #conditional_implement_traits
 
                 #[cfg(test)]
                 mod tests {

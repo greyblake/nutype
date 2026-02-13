@@ -39,7 +39,7 @@ pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
 
 // Traits
 //
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum FloatDeriveTrait {
     // Standard
     Debug,

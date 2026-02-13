@@ -24,7 +24,7 @@ pub enum AnyValidator {
 
 pub type SpannedAnyValidator = SpannedItem<AnyValidator>;
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum AnyDeriveTrait {
     // Standard
     Debug,

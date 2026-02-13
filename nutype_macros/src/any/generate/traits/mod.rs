@@ -15,7 +15,7 @@ use crate::{
             gen_impl_trait_into, gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
             gen_impl_trait_try_from, split_into_generatable_traits,
         },
-        models::{SpannedDeriveUnsafeTrait, TypeName},
+        models::{ConditionalDeriveGroup, SpannedDeriveUnsafeTrait, TypeName},
     },
 };
 
@@ -114,6 +114,7 @@ enum AnyIrregularTrait {
     ArbitraryArbitrary,
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn gen_traits(
     type_name: &TypeName,
     generics: &syn::Generics,
@@ -122,6 +123,7 @@ pub fn gen_traits(
     unsafe_traits: &[SpannedDeriveUnsafeTrait],
     maybe_default_value: Option<syn::Expr>,
     guard: &AnyGuard,
+    conditional_derives: &[ConditionalDeriveGroup<AnyDeriveTrait>],
 ) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
@@ -140,13 +142,55 @@ pub fn gen_traits(
         generics,
         inner_type,
         irregular_traits,
-        maybe_default_value,
+        maybe_default_value.clone(),
         guard,
     )?;
+
+    let mut conditional_derive_transparent_traits = TokenStream::new();
+    let mut conditional_implement_traits = TokenStream::new();
+
+    for group in conditional_derives {
+        let pred = &group.predicate;
+
+        let cond_traits: HashSet<AnyDeriveTrait> = group.typed_traits.iter().cloned().collect();
+        let GeneratableTraits {
+            transparent_traits: cond_transparent,
+            irregular_traits: cond_irregular,
+        } = split_into_generatable_traits(cond_traits);
+
+        let cond_unchecked = &group.unchecked_traits;
+        if !cond_transparent.is_empty() || !cond_unchecked.is_empty() {
+            conditional_derive_transparent_traits.extend(quote! {
+                #[cfg_attr(#pred, derive(
+                    #(#cond_transparent,)*
+                    #(#cond_unchecked,)*
+                ))]
+            });
+        }
+
+        if !cond_irregular.is_empty() {
+            let impl_tokens = gen_implemented_traits(
+                type_name,
+                generics,
+                inner_type,
+                cond_irregular,
+                maybe_default_value.clone(),
+                guard,
+            )?;
+            conditional_implement_traits.extend(quote! {
+                #[cfg(#pred)]
+                const _: () = {
+                    #impl_tokens
+                };
+            });
+        }
+    }
 
     Ok(GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
+        conditional_derive_transparent_traits,
+        conditional_implement_traits,
     })
 }
 

@@ -18,6 +18,12 @@ pub struct GeneratedTraits {
 
     /// Implementation of traits.
     pub implement_traits: TokenStream,
+
+    /// Conditional `#[cfg_attr(pred, derive(...))]` attributes.
+    pub conditional_derive_transparent_traits: TokenStream,
+
+    /// Conditional `#[cfg(pred)] impl ...` blocks.
+    pub conditional_implement_traits: TokenStream,
 }
 
 /// Split traits into 2 groups for generation:

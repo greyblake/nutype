@@ -3,14 +3,16 @@ use core::{
     marker::PhantomData,
     str::FromStr,
 };
-use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 
 use crate::common::{
     generate::GenerateNewtype,
-    models::{Attributes, GenerateParams, Guard, Newtype, SpannedDeriveTrait, TypeName},
+    models::{
+        Attributes, CfgAttrEntry, GenerateParams, Guard, Newtype, SpannedDeriveTrait, TypeName,
+        ValidatedDerives,
+    },
 };
 
 use self::{
@@ -48,9 +50,10 @@ where
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedDeriveTrait>,
-    ) -> Result<HashSet<Self::TypedTrait>, syn::Error> {
+        cfg_attr_entries: &[CfgAttrEntry],
+    ) -> Result<ValidatedDerives<Self::TypedTrait>, syn::Error> {
         let has_validation = guard.has_validation();
-        validate_integer_derive_traits(derive_traits, has_validation)
+        validate_integer_derive_traits(derive_traits, has_validation, cfg_attr_entries)
     }
 
     fn generate(

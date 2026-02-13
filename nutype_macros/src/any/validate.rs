@@ -1,10 +1,8 @@
-use std::collections::HashSet;
-
 use proc_macro2::Span;
 
 use crate::common::{
-    models::{DeriveTrait, SpannedDeriveTrait, TypeName},
-    validate::{validate_duplicates, validate_guard, validate_traits_from_xor_try_from},
+    models::{CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives},
+    validate::{validate_duplicates, validate_guard},
 };
 
 use super::models::{
@@ -50,23 +48,18 @@ fn validate_sanitizers(
 
 pub fn validate_any_derive_traits(
     guard: &AnyGuard,
-    spanned_derive_traits: Vec<SpannedDeriveTrait>,
-) -> Result<HashSet<AnyDeriveTrait>, syn::Error> {
-    validate_traits_from_xor_try_from(&spanned_derive_traits)?;
-
-    let mut traits = HashSet::with_capacity(24);
-    let has_validation = guard.has_validation();
-
-    for spanned_trait in spanned_derive_traits {
-        let string_derive_trait =
-            to_any_derive_trait(spanned_trait.item, has_validation, spanned_trait.span)?;
-        traits.insert(string_derive_trait);
-    }
-
-    Ok(traits)
+    derive_traits: Vec<SpannedDeriveTrait>,
+    cfg_attr_entries: &[CfgAttrEntry],
+) -> Result<ValidatedDerives<AnyDeriveTrait>, syn::Error> {
+    crate::common::validate::validate_all_derive_traits(
+        guard.has_validation(),
+        derive_traits,
+        cfg_attr_entries,
+        to_any_derive_trait,
+    )
 }
 
-fn to_any_derive_trait(
+pub(crate) fn to_any_derive_trait(
     tr: DeriveTrait,
     _has_validation: bool,
     span: Span,
