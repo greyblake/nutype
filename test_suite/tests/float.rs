@@ -874,3 +874,34 @@ mod constants {
         assert_eq!(FIFTY.into_inner(), 50.0);
     }
 }
+
+#[cfg(test)]
+mod cfg_attr {
+    use super::*;
+
+    #[test]
+    fn test_cfg_attr_derive_transparent_trait() {
+        #[nutype(
+            validate(finite, greater_or_equal = 0.0),
+            derive(Debug, PartialEq),
+            cfg_attr(test, derive(Clone, Copy))
+        )]
+        pub struct PositiveFloat(f64);
+
+        let val = PositiveFloat::try_new(3.14).unwrap();
+        let val2 = val;
+        let val3 = val;
+        assert_eq!(val2, val3);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_irregular_trait() {
+        #[nutype(derive(Debug), cfg_attr(test, derive(Display, Into)))]
+        pub struct Temperature(f64);
+
+        let temp = Temperature::new(36.6);
+        assert_eq!(format!("{temp}"), "36.6");
+        let inner: f64 = temp.into();
+        assert_eq!(inner, 36.6);
+    }
+}

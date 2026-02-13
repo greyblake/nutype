@@ -980,3 +980,49 @@ mod constants {
         }
     }
 }
+
+#[cfg(test)]
+mod cfg_attr {
+    use super::*;
+
+    #[test]
+    fn test_cfg_attr_derive_transparent_trait() {
+        #[nutype(
+            validate(greater_or_equal = 0, less_or_equal = 100),
+            derive(Debug, PartialEq),
+            cfg_attr(test, derive(Clone, Copy))
+        )]
+        pub struct Percent(i32);
+
+        let p = Percent::try_new(50).unwrap();
+        let p2 = p;
+        let p3 = p;
+        assert_eq!(p2, p3);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_irregular_trait() {
+        #[nutype(
+            validate(greater_or_equal = 1),
+            derive(Debug),
+            cfg_attr(test, derive(Display, AsRef))
+        )]
+        pub struct PositiveInt(i64);
+
+        let val = PositiveInt::try_new(42).unwrap();
+        assert_eq!(format!("{val}"), "42");
+        let inner: &i64 = val.as_ref();
+        assert_eq!(*inner, 42);
+    }
+
+    #[test]
+    fn test_cfg_attr_without_validation() {
+        #[nutype(derive(Debug, PartialEq), cfg_attr(test, derive(Clone, Copy, Into)))]
+        pub struct Count(u32);
+
+        let c = Count::new(10);
+        let c2 = c;
+        let val: u32 = c2.into();
+        assert_eq!(val, 10);
+    }
+}
