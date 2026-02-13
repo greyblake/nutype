@@ -1184,4 +1184,17 @@ mod cfg_attr {
         let inner: Vec<i32> = v2.into();
         assert_eq!(inner, vec![1, 2]);
     }
+
+    #[test]
+    fn test_cfg_attr_derive_default() {
+        #[nutype(
+            derive(Debug, PartialEq),
+            default = vec![0],
+            cfg_attr(test, derive(Default))
+        )]
+        pub struct DefaultVec(Vec<i32>);
+
+        let val = DefaultVec::default();
+        assert_eq!(val.into_inner(), vec![0]);
+    }
 }

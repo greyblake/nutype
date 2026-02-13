@@ -1117,4 +1117,31 @@ mod cfg_attr {
         let _item2 = item.clone();
         assert_eq!(format!("{item}"), "thing");
     }
+
+    #[test]
+    fn test_cfg_attr_derive_default() {
+        #[nutype(
+            derive(Debug, PartialEq),
+            default = "default",
+            cfg_attr(test, derive(Default))
+        )]
+        pub struct DefString(String);
+
+        let val = DefString::default();
+        assert_eq!(val.into_inner(), "default");
+    }
+
+    #[test]
+    fn test_cfg_attr_complex_predicate_any() {
+        // Complex cfg predicate with any(...)
+        #[nutype(
+            derive(Debug),
+            cfg_attr(any(test, debug_assertions), derive(Clone, Display))
+        )]
+        pub struct Msg(String);
+
+        let msg = Msg::new("hello");
+        let msg2 = msg.clone();
+        assert_eq!(format!("{msg2}"), "hello");
+    }
 }

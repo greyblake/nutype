@@ -904,4 +904,33 @@ mod cfg_attr {
         let inner: f64 = temp.into();
         assert_eq!(inner, 36.6);
     }
+
+    #[test]
+    fn test_cfg_attr_derive_from_str() {
+        // Conditional FromStr on float type
+        #[nutype(validate(finite), derive(Debug), cfg_attr(test, derive(FromStr)))]
+        pub struct FiniteFloat(f64);
+
+        let val: FiniteFloat = "3.14".parse().unwrap();
+        assert_eq!(val.into_inner(), 3.14);
+
+        // Invalid parse
+        assert!("not_a_number".parse::<FiniteFloat>().is_err());
+
+        // Valid parse but fails validation (NaN)
+        assert!("NaN".parse::<FiniteFloat>().is_err());
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_default() {
+        #[nutype(
+            derive(Debug, PartialEq),
+            default = 0.0,
+            cfg_attr(test, derive(Default))
+        )]
+        pub struct Score(f64);
+
+        let val = Score::default();
+        assert_eq!(val, Score::new(0.0));
+    }
 }
