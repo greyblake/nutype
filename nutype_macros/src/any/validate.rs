@@ -50,11 +50,15 @@ pub fn validate_any_derive_traits(
     guard: &AnyGuard,
     derive_traits: Vec<SpannedDeriveTrait>,
     cfg_attr_entries: &[CfgAttrEntry],
+    maybe_default_value: &Option<syn::Expr>,
+    type_name: &TypeName,
 ) -> Result<ValidatedDerives<AnyDeriveTrait>, syn::Error> {
     crate::common::validate::validate_all_derive_traits(
         guard.has_validation(),
         derive_traits,
         cfg_attr_entries,
+        maybe_default_value,
+        type_name,
         to_any_derive_trait,
     )
 }

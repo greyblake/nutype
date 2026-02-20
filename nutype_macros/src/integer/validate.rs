@@ -61,11 +61,15 @@ pub fn validate_integer_derive_traits(
     derive_traits: Vec<SpannedDeriveTrait>,
     has_validation: bool,
     cfg_attr_entries: &[CfgAttrEntry],
+    maybe_default_value: &Option<syn::Expr>,
+    type_name: &TypeName,
 ) -> Result<ValidatedDerives<IntegerDeriveTrait>, syn::Error> {
     crate::common::validate::validate_all_derive_traits(
         has_validation,
         derive_traits,
         cfg_attr_entries,
+        maybe_default_value,
+        type_name,
         to_integer_derive_trait,
     )
 }

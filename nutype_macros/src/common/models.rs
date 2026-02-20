@@ -617,6 +617,8 @@ pub trait Newtype {
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedDeriveTrait>,
         cfg_attr_entries: &[CfgAttrEntry],
+        maybe_default_value: &Option<syn::Expr>,
+        type_name: &TypeName,
     ) -> Result<ValidatedDerives<Self::TypedTrait>, syn::Error>;
 
     #[allow(clippy::type_complexity)]
@@ -650,18 +652,13 @@ pub trait Newtype {
             cfg_attr_entries,
         } = Self::parse_attributes(attrs, &type_name)?;
 
-        // Check for unconditional-vs-conditional duplicates
-        crate::common::validate::check_cfg_attr_no_duplicates(&derive_traits, &cfg_attr_entries)?;
-
-        let validated = Self::validate(&guard, derive_traits, &cfg_attr_entries)?;
-
-        // If Default appears ANYWHERE (unconditional or conditional), require default = <value>
-        if validated.has_default_trait() && maybe_default_value.is_none() {
-            let msg = format!(
-                "Trait `Default` is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro"
-            );
-            return Err(syn::Error::new(proc_macro2::Span::call_site(), msg));
-        }
+        let validated = Self::validate(
+            &guard,
+            derive_traits,
+            &cfg_attr_entries,
+            &maybe_default_value,
+            &type_name,
+        )?;
 
         let conditional_derives =
             build_conditional_derive_groups(validated.conditional, &cfg_attr_entries);

@@ -38,8 +38,16 @@ impl Newtype for StringNewtype {
         guard: &StringGuard,
         derive_traits: Vec<SpannedDeriveTrait>,
         cfg_attr_entries: &[CfgAttrEntry],
+        maybe_default_value: &Option<syn::Expr>,
+        type_name: &TypeName,
     ) -> Result<ValidatedDerives<Self::TypedTrait>, syn::Error> {
-        validate_string_derive_traits(guard, derive_traits, cfg_attr_entries)
+        validate_string_derive_traits(
+            guard,
+            derive_traits,
+            cfg_attr_entries,
+            maybe_default_value,
+            type_name,
+        )
     }
 
     fn generate(

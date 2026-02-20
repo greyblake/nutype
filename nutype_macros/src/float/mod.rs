@@ -50,8 +50,16 @@ where
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedDeriveTrait>,
         cfg_attr_entries: &[CfgAttrEntry],
+        maybe_default_value: &Option<syn::Expr>,
+        type_name: &TypeName,
     ) -> Result<ValidatedDerives<Self::TypedTrait>, syn::Error> {
-        validate_float_derive_traits(derive_traits, guard, cfg_attr_entries)
+        validate_float_derive_traits(
+            derive_traits,
+            guard,
+            cfg_attr_entries,
+            maybe_default_value,
+            type_name,
+        )
     }
 
     fn generate(

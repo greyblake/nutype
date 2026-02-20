@@ -51,9 +51,17 @@ where
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedDeriveTrait>,
         cfg_attr_entries: &[CfgAttrEntry],
+        maybe_default_value: &Option<syn::Expr>,
+        type_name: &TypeName,
     ) -> Result<ValidatedDerives<Self::TypedTrait>, syn::Error> {
         let has_validation = guard.has_validation();
-        validate_integer_derive_traits(derive_traits, has_validation, cfg_attr_entries)
+        validate_integer_derive_traits(
+            derive_traits,
+            has_validation,
+            cfg_attr_entries,
+            maybe_default_value,
+            type_name,
+        )
     }
 
     fn generate(

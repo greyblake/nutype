@@ -7,8 +7,8 @@ use super::{
     r#generate::error::gen_error_type_name,
     models::{
         CfgAttrContent, CfgAttrEntry, DeriveTrait, Guard, NumericBoundValidator, RawGuard,
-        SpannedDeriveTrait, SpannedItem, TypeName, ValidatedCfgAttrDerives, ValidatedDerives,
-        Validation,
+        SpannedDeriveTrait, SpannedItem, TypeName, TypeTrait, ValidatedCfgAttrDerives,
+        ValidatedDerives, Validation,
     },
     parse::RawValidation,
 };
@@ -221,11 +221,16 @@ pub fn validate_all_derive_traits<TypedTrait>(
     has_validation: bool,
     derive_traits: Vec<SpannedDeriveTrait>,
     cfg_attr_entries: &[CfgAttrEntry],
+    maybe_default_value: &Option<syn::Expr>,
+    type_name: &TypeName,
     convert: impl Fn(DeriveTrait, bool, Span) -> Result<TypedTrait, syn::Error>,
 ) -> Result<ValidatedDerives<TypedTrait>, syn::Error>
 where
-    TypedTrait: Eq + Hash,
+    TypedTrait: Eq + Hash + TypeTrait,
 {
+    // 0. Check for unconditional-vs-conditional duplicates
+    check_cfg_attr_no_duplicates(&derive_traits, cfg_attr_entries)?;
+
     // 1. Build the union of all derive traits for cross-trait dependency checks
     let mut all_spanned = derive_traits.clone();
     for entry in cfg_attr_entries {
@@ -262,8 +267,18 @@ where
         })
         .collect::<Result<Vec<_>, syn::Error>>()?;
 
-    Ok(ValidatedDerives {
+    let validated = ValidatedDerives {
         unconditional,
         conditional,
-    })
+    };
+
+    // 5. If Default appears ANYWHERE (unconditional or conditional), require default = <value>
+    if validated.has_default_trait() && maybe_default_value.is_none() {
+        let msg = format!(
+            "Trait `Default` is derived for type {type_name}, but `default = ` parameter is missing in #[nutype] macro"
+        );
+        return Err(syn::Error::new(proc_macro2::Span::call_site(), msg));
+    }
+
+    Ok(validated)
 }

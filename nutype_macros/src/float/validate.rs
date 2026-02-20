@@ -94,6 +94,8 @@ pub fn validate_float_derive_traits<T>(
     derive_traits: Vec<SpannedDeriveTrait>,
     guard: &FloatGuard<T>,
     cfg_attr_entries: &[CfgAttrEntry],
+    maybe_default_value: &Option<syn::Expr>,
+    type_name: &TypeName,
 ) -> Result<ValidatedDerives<FloatDeriveTrait>, syn::Error> {
     let validation = ValidationInfo::from_guard(guard);
 
@@ -152,6 +154,8 @@ pub fn validate_float_derive_traits<T>(
         validation.has_validation,
         derive_traits,
         cfg_attr_entries,
+        maybe_default_value,
+        type_name,
         |tr, _has_validation, span| to_float_derive_trait(tr, validation, span),
     )
 }

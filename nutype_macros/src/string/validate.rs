@@ -4,7 +4,9 @@ use proc_macro2::Span;
 
 use crate::{
     common::{
-        models::{DeriveTrait, SpannedDeriveTrait, TypeName, ValueOrExpr},
+        models::{
+            CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives, ValueOrExpr,
+        },
         validate::{validate_duplicates, validate_guard},
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
@@ -134,12 +136,16 @@ fn validate_sanitizers(
 pub fn validate_string_derive_traits(
     guard: &StringGuard,
     derive_traits: Vec<SpannedDeriveTrait>,
-    cfg_attr_entries: &[crate::common::models::CfgAttrEntry],
-) -> Result<crate::common::models::ValidatedDerives<StringDeriveTrait>, syn::Error> {
+    cfg_attr_entries: &[CfgAttrEntry],
+    maybe_default_value: &Option<syn::Expr>,
+    type_name: &TypeName,
+) -> Result<ValidatedDerives<StringDeriveTrait>, syn::Error> {
     crate::common::validate::validate_all_derive_traits(
         guard.has_validation(),
         derive_traits,
         cfg_attr_entries,
+        maybe_default_value,
+        type_name,
         to_string_derive_trait,
     )
 }
