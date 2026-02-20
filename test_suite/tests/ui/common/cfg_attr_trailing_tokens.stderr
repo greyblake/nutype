@@ -1,0 +1,5 @@
+error: unexpected tokens after `derive(...)` inside `cfg_attr()`
+ --> tests/ui/common/cfg_attr_trailing_tokens.rs:6:34
+  |
+6 |     cfg_attr(test, derive(Clone) some_garbage),
+  |                                  ^^^^^^^^^^^^

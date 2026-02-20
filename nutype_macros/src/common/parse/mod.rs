@@ -561,6 +561,10 @@ fn parse_cfg_attr_content(input: ParseStream) -> syn::Result<CfgAttrEntry> {
         return Err(syn::Error::new(attr_ident.span(), msg));
     };
 
+    if !input.is_empty() {
+        return Err(input.error("unexpected tokens after `derive(...)` inside `cfg_attr()`"));
+    }
+
     Ok(CfgAttrEntry { predicate, content })
 }
 

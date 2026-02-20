@@ -467,7 +467,7 @@ pub struct ValidatedCfgAttrDerives<TypedTrait> {
 }
 
 /// A single predicate group for conditional code generation.
-/// Combines typed derive traits and unchecked derive traits under one predicate.
+/// Contains either typed derive traits or unchecked derive traits (not both).
 pub struct ConditionalDeriveGroup<TypedTrait> {
     pub predicate: TokenStream,
 
@@ -685,8 +685,10 @@ pub trait Newtype {
     }
 }
 
-/// Merge validated conditional derives (from Derive entries) with unchecked traits
-/// (from DeriveUnchecked entries) into unified ConditionalDeriveGroups.
+/// Build a list of ConditionalDeriveGroups from validated conditional derives and cfg_attr entries.
+/// Each validated Derive entry becomes its own group (with typed_traits only).
+/// Each DeriveUnchecked entry becomes its own group (with unchecked_traits only).
+/// Groups with the same predicate are NOT merged.
 pub fn build_conditional_derive_groups<TypedTrait>(
     validated_conditional: Vec<ValidatedCfgAttrDerives<TypedTrait>>,
     cfg_attr_entries: &[CfgAttrEntry],
