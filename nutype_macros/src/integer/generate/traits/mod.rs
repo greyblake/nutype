@@ -8,20 +8,25 @@ use syn::Generics;
 
 use crate::{
     common::{
-        generate::traits::{
-            GeneratableTrait, GeneratableTraits, GeneratedTraits, gen_impl_trait_as_ref,
-            gen_impl_trait_borrow, gen_impl_trait_default, gen_impl_trait_deref,
-            gen_impl_trait_display, gen_impl_trait_from, gen_impl_trait_from_str,
-            gen_impl_trait_into, gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
-            gen_impl_trait_try_from, split_into_generatable_traits,
+        generate::{
+            parse_error::gen_parse_error_name,
+            traits::{
+                GeneratableTrait, GeneratableTraits, GeneratedTraits, gen_impl_trait_as_ref,
+                gen_impl_trait_borrow, gen_impl_trait_default, gen_impl_trait_deref,
+                gen_impl_trait_display, gen_impl_trait_from, gen_impl_trait_from_str,
+                gen_impl_trait_into, gen_impl_trait_serde_deserialize,
+                gen_impl_trait_serde_serialize, gen_impl_trait_try_from,
+                split_into_generatable_traits,
+            },
         },
-        models::{SpannedDeriveUnsafeTrait, TypeName},
+        models::{ConditionalDeriveGroup, ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName},
     },
     integer::models::{IntegerDeriveTrait, IntegerGuard, IntegerInnerType},
 };
 
 type IntegerGeneratableTrait = GeneratableTrait<IntegerTransparentTrait, IntegerIrregularTrait>;
 
+#[allow(clippy::too_many_arguments)]
 pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
     generics: &Generics,
@@ -30,6 +35,7 @@ pub fn gen_traits<T: ToTokens>(
     unsafe_traits: &[SpannedDeriveUnsafeTrait],
     maybe_default_value: Option<syn::Expr>,
     guard: &IntegerGuard<T>,
+    conditional_derives: &[ConditionalDeriveGroup<IntegerDeriveTrait>],
 ) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
@@ -48,13 +54,79 @@ pub fn gen_traits<T: ToTokens>(
         generics,
         inner_type,
         irregular_traits,
-        maybe_default_value,
+        maybe_default_value.clone(),
         guard,
     )?;
+
+    let mut conditional_derive_transparent_traits = TokenStream::new();
+    let mut conditional_implement_traits = TokenStream::new();
+    let mut conditional_from_str_parse_errors: Vec<(TokenStream, ParseErrorTypeName)> = vec![];
+
+    for group in conditional_derives {
+        let pred = &group.predicate;
+
+        let cond_traits: HashSet<IntegerDeriveTrait> = group.typed_traits.iter().cloned().collect();
+        let GeneratableTraits {
+            transparent_traits: cond_transparent,
+            irregular_traits: cond_irregular,
+        } = split_into_generatable_traits(cond_traits);
+
+        let cond_unchecked = &group.unchecked_traits;
+        if !cond_transparent.is_empty() || !cond_unchecked.is_empty() {
+            conditional_derive_transparent_traits.extend(quote! {
+                #[cfg_attr(#pred, derive(
+                    #(#cond_transparent,)*
+                    #(#cond_unchecked,)*
+                ))]
+            });
+        }
+
+        if !cond_irregular.is_empty() {
+            let has_from_str = cond_irregular
+                .iter()
+                .any(|t| matches!(t, IntegerIrregularTrait::FromStr));
+
+            let impl_tokens = gen_implemented_traits(
+                type_name,
+                generics,
+                inner_type,
+                cond_irregular,
+                maybe_default_value.clone(),
+                guard,
+            )?;
+
+            if has_from_str {
+                // When FromStr is conditional, use a module wrapper so ParseError
+                // is accessible for re-export (not trapped inside const block).
+                let fromstr_mod_name = quote::format_ident!("__fromstr_impl__");
+                let parse_error_name = gen_parse_error_name(type_name);
+                conditional_implement_traits.extend(quote! {
+                    #[cfg(#pred)]
+                    mod #fromstr_mod_name {
+                        use super::*;
+                        #impl_tokens
+                    }
+                    #[cfg(#pred)]
+                    pub use #fromstr_mod_name::#parse_error_name;
+                });
+                conditional_from_str_parse_errors.push((pred.clone(), parse_error_name));
+            } else {
+                conditional_implement_traits.extend(quote! {
+                    #[cfg(#pred)]
+                    const _: () = {
+                        #impl_tokens
+                    };
+                });
+            }
+        }
+    }
 
     Ok(GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
+        conditional_derive_transparent_traits,
+        conditional_implement_traits,
+        conditional_from_str_parse_errors,
     })
 }
 

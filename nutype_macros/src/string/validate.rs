@@ -1,12 +1,13 @@
 use kinded::Kinded;
-use std::collections::HashSet;
 
 use proc_macro2::Span;
 
 use crate::{
     common::{
-        models::{DeriveTrait, SpannedDeriveTrait, TypeName, ValueOrExpr},
-        validate::{validate_duplicates, validate_guard, validate_traits_from_xor_try_from},
+        models::{
+            CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives, ValueOrExpr,
+        },
+        validate::{validate_all_derive_traits, validate_duplicates, validate_guard},
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
 };
@@ -134,23 +135,22 @@ fn validate_sanitizers(
 
 pub fn validate_string_derive_traits(
     guard: &StringGuard,
-    spanned_derive_traits: Vec<SpannedDeriveTrait>,
-) -> Result<HashSet<StringDeriveTrait>, syn::Error> {
-    validate_traits_from_xor_try_from(&spanned_derive_traits)?;
-
-    let mut traits = HashSet::with_capacity(24);
-    let has_validation = guard.has_validation();
-
-    for spanned_trait in spanned_derive_traits {
-        let string_derive_trait =
-            to_string_derive_trait(spanned_trait.item, has_validation, spanned_trait.span)?;
-        traits.insert(string_derive_trait);
-    }
-
-    Ok(traits)
+    derive_traits: Vec<SpannedDeriveTrait>,
+    cfg_attr_entries: &[CfgAttrEntry],
+    maybe_default_value: &Option<syn::Expr>,
+    type_name: &TypeName,
+) -> Result<ValidatedDerives<StringDeriveTrait>, syn::Error> {
+    validate_all_derive_traits(
+        guard.has_validation(),
+        derive_traits,
+        cfg_attr_entries,
+        maybe_default_value,
+        type_name,
+        to_string_derive_trait,
+    )
 }
 
-fn to_string_derive_trait(
+pub(crate) fn to_string_derive_trait(
     tr: DeriveTrait,
     has_validation: bool,
     span: Span,

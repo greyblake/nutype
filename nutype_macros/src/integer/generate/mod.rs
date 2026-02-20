@@ -24,7 +24,9 @@ use crate::common::{
         },
         traits::GeneratedTraits,
     },
-    models::{ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName},
+    models::{
+        ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName,
+    },
 };
 
 impl<T> GenerateNewtype for IntegerNewtype<T>
@@ -135,6 +137,7 @@ where
         unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &IntegerGuard<T>,
+        conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
@@ -144,6 +147,7 @@ where
             unsafe_traits,
             maybe_default_value,
             guard,
+            conditional_derives,
         )
     }
 

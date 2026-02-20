@@ -276,6 +276,9 @@ pub struct Attributes<G, DT> {
 
     /// List of unchecked traits that are derived with `derive_unchecked(...)` attribute.
     pub derive_unchecked_traits: Vec<SpannedDeriveUnsafeTrait>,
+
+    /// Conditional entries from `cfg_attr(...)`.
+    pub cfg_attr_entries: Vec<CfgAttrEntry>,
 }
 
 /// Represents a value known at compile time or an expression.
@@ -344,7 +347,7 @@ pub struct RawGuard<Sanitizer, Validator> {
     pub validation: Option<RawValidation<Validator>>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum DeriveTrait {
     // Standard library
     Debug,
@@ -383,7 +386,97 @@ pub enum DeriveTrait {
     ValuableValuable,
 }
 
+impl core::fmt::Display for DeriveTrait {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let name = match self {
+            DeriveTrait::Debug => "Debug",
+            DeriveTrait::Clone => "Clone",
+            DeriveTrait::Copy => "Copy",
+            DeriveTrait::PartialEq => "PartialEq",
+            DeriveTrait::Eq => "Eq",
+            DeriveTrait::PartialOrd => "PartialOrd",
+            DeriveTrait::Ord => "Ord",
+            DeriveTrait::FromStr => "FromStr",
+            DeriveTrait::AsRef => "AsRef",
+            DeriveTrait::From => "From",
+            DeriveTrait::TryFrom => "TryFrom",
+            DeriveTrait::Into => "Into",
+            DeriveTrait::Hash => "Hash",
+            DeriveTrait::Borrow => "Borrow",
+            DeriveTrait::Display => "Display",
+            DeriveTrait::Default => "Default",
+            DeriveTrait::Deref => "Deref",
+            DeriveTrait::IntoIterator => "IntoIterator",
+            DeriveTrait::SerdeSerialize => "Serialize",
+            DeriveTrait::SerdeDeserialize => "Deserialize",
+            DeriveTrait::SchemarsJsonSchema => "JsonSchema",
+            DeriveTrait::ArbitraryArbitrary => "Arbitrary",
+            DeriveTrait::ValuableValuable => "Valuable",
+        };
+        write!(f, "{name}")
+    }
+}
+
 pub type SpannedDeriveTrait = SpannedItem<DeriveTrait>;
+
+/// The inner attribute of a `cfg_attr(...)` entry.
+#[derive(Debug)]
+// Suppress dead_code warning: `DeriveUnchecked` is only constructed when
+// the `derive_unchecked` feature is enabled.
+#[allow(dead_code)]
+pub enum CfgAttrContent {
+    /// `cfg_attr(<predicate>, derive(...))`
+    Derive(Vec<SpannedDeriveTrait>),
+
+    /// `cfg_attr(<predicate>, derive_unchecked(...))`
+    DeriveUnchecked(Vec<SpannedDeriveUnsafeTrait>),
+}
+
+/// A single `cfg_attr(<predicate>, <attribute>)` entry parsed from `#[nutype(...)]`.
+/// The predicate is stored as raw tokens  - the proc macro does not evaluate it.
+#[derive(Debug)]
+pub struct CfgAttrEntry {
+    pub predicate: TokenStream,
+    pub content: CfgAttrContent,
+}
+
+/// Result of trait validation, containing typed traits for both unconditional
+/// and conditional derive entries.
+pub struct ValidatedDerives<TypedTrait> {
+    /// Typed traits from unconditional `derive(...)`.
+    pub unconditional: HashSet<TypedTrait>,
+
+    /// Typed traits from `cfg_attr(...)` entries, grouped by predicate.
+    pub conditional: Vec<ValidatedCfgAttrDerives<TypedTrait>>,
+}
+
+impl<T: TypeTrait> ValidatedDerives<T> {
+    pub fn has_default_trait(&self) -> bool {
+        self.unconditional.iter().any(|t| t.is_default())
+            || self
+                .conditional
+                .iter()
+                .any(|entry| entry.traits.iter().any(|t| t.is_default()))
+    }
+}
+
+/// A single cfg_attr derive group after validation and type conversion.
+pub struct ValidatedCfgAttrDerives<TypedTrait> {
+    pub predicate: TokenStream,
+    pub traits: Vec<TypedTrait>,
+}
+
+/// A single predicate group for conditional code generation.
+/// Contains either typed derive traits or unchecked derive traits (not both).
+pub struct ConditionalDeriveGroup<TypedTrait> {
+    pub predicate: TokenStream,
+
+    /// Typed traits from `cfg_attr(pred, derive(...))`  - already validated and converted.
+    pub typed_traits: Vec<TypedTrait>,
+
+    /// Unchecked traits from `cfg_attr(pred, derive_unchecked(...))`  - passed through as-is.
+    pub unchecked_traits: Vec<SpannedDeriveUnsafeTrait>,
+}
 
 /// A trait that is derive with `derive_unchecked(...)` attribute.
 /// `derive_unchecked` simply bypasses traits into `derive(...)`. This allows
@@ -418,8 +511,8 @@ impl Parse for SpannedDeriveUnsafeTrait {
 }
 
 pub trait TypeTrait {
-    // If this is FromStr variant?
     fn is_from_str(&self) -> bool;
+    fn is_default(&self) -> bool;
 }
 
 /// The flag that indicates that a newtype will be generated with extra constructor,
@@ -504,12 +597,14 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub const_fn: ConstFn,
     pub constructor_visibility: ConstructorVisibility,
     pub maybe_default_value: Option<syn::Expr>,
+    /// Conditional derive groups, one per predicate.
+    pub conditional_derives: Vec<ConditionalDeriveGroup<Trait>>,
 }
 
 pub trait Newtype {
     type Sanitizer;
     type Validator;
-    type TypedTrait;
+    type TypedTrait: TypeTrait;
     type InnerType;
 
     #[allow(clippy::type_complexity)]
@@ -521,7 +616,10 @@ pub trait Newtype {
     fn validate(
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         derive_traits: Vec<SpannedDeriveTrait>,
-    ) -> Result<HashSet<Self::TypedTrait>, syn::Error>;
+        cfg_attr_entries: &[CfgAttrEntry],
+        maybe_default_value: &Option<syn::Expr>,
+        type_name: &TypeName,
+    ) -> Result<ValidatedDerives<Self::TypedTrait>, syn::Error>;
 
     #[allow(clippy::type_complexity)]
     fn generate(
@@ -551,11 +649,23 @@ pub trait Newtype {
             default: maybe_default_value,
             derive_traits,
             derive_unchecked_traits,
+            cfg_attr_entries,
         } = Self::parse_attributes(attrs, &type_name)?;
-        let traits = Self::validate(&guard, derive_traits)?;
+
+        let validated = Self::validate(
+            &guard,
+            derive_traits,
+            &cfg_attr_entries,
+            &maybe_default_value,
+            &type_name,
+        )?;
+
+        let conditional_derives =
+            build_conditional_derive_groups(validated.conditional, &cfg_attr_entries);
+
         let generated_output = Self::generate(GenerateParams {
             doc_attrs,
-            traits,
+            traits: validated.unconditional,
             unsafe_traits: derive_unchecked_traits,
             vis,
             type_name,
@@ -566,9 +676,41 @@ pub trait Newtype {
             constructor_visibility,
             maybe_default_value,
             inner_type,
+            conditional_derives,
         })?;
         Ok(generated_output)
     }
+}
+
+/// Build a list of ConditionalDeriveGroups from validated conditional derives and cfg_attr entries.
+/// Each validated Derive entry becomes its own group (with typed_traits only).
+/// Each DeriveUnchecked entry becomes its own group (with unchecked_traits only).
+/// Groups with the same predicate are NOT merged.
+pub fn build_conditional_derive_groups<TypedTrait>(
+    validated_conditional: Vec<ValidatedCfgAttrDerives<TypedTrait>>,
+    cfg_attr_entries: &[CfgAttrEntry],
+) -> Vec<ConditionalDeriveGroup<TypedTrait>> {
+    let mut groups: Vec<ConditionalDeriveGroup<TypedTrait>> = validated_conditional
+        .into_iter()
+        .map(|v| ConditionalDeriveGroup {
+            predicate: v.predicate,
+            typed_traits: v.traits,
+            unchecked_traits: vec![],
+        })
+        .collect();
+
+    // Append DeriveUnchecked entries as their own groups
+    for entry in cfg_attr_entries {
+        if let CfgAttrContent::DeriveUnchecked(ref unchecked) = entry.content {
+            groups.push(ConditionalDeriveGroup {
+                predicate: entry.predicate.clone(),
+                typed_traits: vec![],
+                unchecked_traits: unchecked.clone(),
+            });
+        }
+    }
+
+    groups
 }
 
 /// Represents a function that is used for custom sanitizers and validators specified

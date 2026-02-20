@@ -39,7 +39,7 @@ pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
 
 // Traits
 //
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum FloatDeriveTrait {
     // Standard
     Debug,
@@ -70,6 +70,9 @@ pub enum FloatDeriveTrait {
 impl TypeTrait for FloatDeriveTrait {
     fn is_from_str(&self) -> bool {
         self == &FloatDeriveTrait::FromStr
+    }
+    fn is_default(&self) -> bool {
+        self == &FloatDeriveTrait::Default
     }
 }
 

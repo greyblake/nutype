@@ -24,4 +24,5 @@ members = [
     "examples/any_generics",
     "examples/custom_error",
     "examples/const_example", "examples/valuable_example",
+    "examples/cfg_attr_example",
 ]

@@ -874,3 +874,63 @@ mod constants {
         assert_eq!(FIFTY.into_inner(), 50.0);
     }
 }
+
+#[cfg(test)]
+mod cfg_attr {
+    use super::*;
+
+    #[test]
+    fn test_cfg_attr_derive_transparent_trait() {
+        #[nutype(
+            validate(finite, greater_or_equal = 0.0),
+            derive(Debug, PartialEq),
+            cfg_attr(test, derive(Clone, Copy))
+        )]
+        pub struct PositiveFloat(f64);
+
+        let val = PositiveFloat::try_new(3.14).unwrap();
+        let val2 = val;
+        let val3 = val;
+        assert_eq!(val2, val3);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_irregular_trait() {
+        #[nutype(derive(Debug), cfg_attr(test, derive(Display, Into)))]
+        pub struct Temperature(f64);
+
+        let temp = Temperature::new(36.6);
+        assert_eq!(format!("{temp}"), "36.6");
+        let inner: f64 = temp.into();
+        assert_eq!(inner, 36.6);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_from_str() {
+        // Conditional FromStr on float type
+        #[nutype(validate(finite), derive(Debug), cfg_attr(test, derive(FromStr)))]
+        pub struct FiniteFloat(f64);
+
+        let val: FiniteFloat = "3.14".parse().unwrap();
+        assert_eq!(val.into_inner(), 3.14);
+
+        // Invalid parse
+        assert!("not_a_number".parse::<FiniteFloat>().is_err());
+
+        // Valid parse but fails validation (NaN)
+        assert!("NaN".parse::<FiniteFloat>().is_err());
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_default() {
+        #[nutype(
+            derive(Debug, PartialEq),
+            default = 0.0,
+            cfg_attr(test, derive(Default))
+        )]
+        pub struct Score(f64);
+
+        let val = Score::default();
+        assert_eq!(val, Score::new(0.0));
+    }
+}

@@ -17,7 +17,9 @@ use syn::{
     token::Paren,
 };
 
-use crate::common::models::{SpannedDeriveTrait, SpannedDeriveUnsafeTrait};
+use crate::common::models::{
+    CfgAttrContent, CfgAttrEntry, SpannedDeriveTrait, SpannedDeriveUnsafeTrait,
+};
 
 use super::models::{
     ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath, NewUnchecked,
@@ -82,6 +84,9 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
 
     /// Parse from `derive_unchecked(...)` attribute
     pub derive_unchecked_traits: Vec<SpannedDeriveUnsafeTrait>,
+
+    /// Parsed from `cfg_attr(...)` entries
+    pub cfg_attr_entries: Vec<CfgAttrEntry>,
 }
 
 enum ValidateAttr<Validator: Parse + Kinded> {
@@ -243,6 +248,7 @@ impl<Sanitizer, Validator> Default for ParseableAttributes<Sanitizer, Validator>
             default: None,
             derive_traits: vec![],
             derive_unchecked_traits: vec![],
+            cfg_attr_entries: vec![],
         }
     }
 }
@@ -345,6 +351,20 @@ where
                         );
                         return Err(syn::Error::new(ident.span(), msg));
                     }
+                }
+            } else if ident == "cfg_attr" {
+                if input.peek(Paren) {
+                    let content;
+                    parenthesized!(content in input);
+                    let entry = parse_cfg_attr_content(&content)?;
+                    attrs.cfg_attr_entries.push(entry);
+                } else {
+                    let msg = concat!(
+                        "`cfg_attr` must be used with parenthesis.\n",
+                        "For example:\n\n",
+                        "    cfg_attr(feature = \"serde\", derive(Serialize, Deserialize))\n\n"
+                    );
+                    return Err(syn::Error::new(ident.span(), msg));
                 }
             } else if ident == "constructor" {
                 if input.peek(Paren) {
@@ -484,6 +504,68 @@ where
         let msg = format!("Unknown {attr_type} `{ident}`.\nPossible values are {possible_values}.");
         Err(syn::Error::new(ident.span(), msg))
     }
+}
+
+fn parse_cfg_predicate(input: ParseStream) -> syn::Result<proc_macro2::TokenStream> {
+    let mut tokens = Vec::new();
+
+    while !input.is_empty() && !input.peek(Token![,]) {
+        tokens.push(input.parse::<proc_macro2::TokenTree>()?);
+    }
+
+    if tokens.is_empty() {
+        return Err(input.error("expected cfg predicate"));
+    }
+
+    Ok(tokens.into_iter().collect())
+}
+
+fn parse_cfg_attr_content(input: ParseStream) -> syn::Result<CfgAttrEntry> {
+    // 1. Parse the predicate: everything before the first top-level `,`
+    let predicate = parse_cfg_predicate(input)?;
+    let _comma: Token![,] = input.parse()?;
+
+    // 2. Parse the inner attribute keyword
+    let attr_ident: Ident = input.parse()?;
+
+    let content = if attr_ident == "derive" {
+        let inner;
+        parenthesized!(inner in input);
+        let items = inner.parse_terminated(SpannedDeriveTrait::parse, Token![,])?;
+        CfgAttrContent::Derive(items.into_iter().collect())
+    } else if attr_ident == "derive_unchecked" {
+        cfg_if! {
+            if #[cfg(feature = "derive_unchecked")] {
+                let inner;
+                parenthesized!(inner in input);
+                let items = inner.parse_terminated(SpannedDeriveUnsafeTrait::parse, Token![,])?;
+                CfgAttrContent::DeriveUnchecked(items.into_iter().collect())
+            } else {
+                let msg = concat!(
+                    "To use derive_unchecked() function, the feature `derive_unchecked` ",
+                    "of crate `nutype` needs to be enabled.\n\n",
+                    "DID YOU KNOW?\n",
+                    "It's called `derive_unchecked` because it enables to derive any traits ",
+                    "that nutype is not aware of.\n",
+                    "So it is developer's responsibility to ensure that the derived traits ",
+                    "do not create a loophole to bypass the constraints.\n",
+                );
+                return Err(syn::Error::new(attr_ident.span(), msg));
+            }
+        }
+    } else {
+        let msg = format!(
+            "Attribute `{attr_ident}` is not supported inside `cfg_attr()`.\n\
+             Only `derive(...)` and `derive_unchecked(...)` are allowed."
+        );
+        return Err(syn::Error::new(attr_ident.span(), msg));
+    };
+
+    if !input.is_empty() {
+        return Err(input.error("unexpected tokens after `derive(...)` inside `cfg_attr()`"));
+    }
+
+    Ok(CfgAttrEntry { predicate, content })
 }
 
 const CONSTRUCTOR_VISIBILITY_ERROR: &str = concat!(

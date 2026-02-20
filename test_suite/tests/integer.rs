@@ -980,3 +980,119 @@ mod constants {
         }
     }
 }
+
+#[cfg(test)]
+mod cfg_attr {
+    use super::*;
+
+    #[test]
+    fn test_cfg_attr_derive_transparent_trait() {
+        #[nutype(
+            validate(greater_or_equal = 0, less_or_equal = 100),
+            derive(Debug, PartialEq),
+            cfg_attr(test, derive(Clone, Copy))
+        )]
+        pub struct Percent(i32);
+
+        let p = Percent::try_new(50).unwrap();
+        let p2 = p;
+        let p3 = p;
+        assert_eq!(p2, p3);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_irregular_trait() {
+        #[nutype(
+            validate(greater_or_equal = 1),
+            derive(Debug),
+            cfg_attr(test, derive(Display, AsRef))
+        )]
+        pub struct PositiveInt(i64);
+
+        let val = PositiveInt::try_new(42).unwrap();
+        assert_eq!(format!("{val}"), "42");
+        let inner: &i64 = val.as_ref();
+        assert_eq!(*inner, 42);
+    }
+
+    #[test]
+    fn test_cfg_attr_without_validation() {
+        #[nutype(derive(Debug, PartialEq), cfg_attr(test, derive(Clone, Copy, Into)))]
+        pub struct Count(u32);
+
+        let c = Count::new(10);
+        let c2 = c;
+        let val: u32 = c2.into();
+        assert_eq!(val, 10);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_from_str() {
+        // Conditional FromStr on integer type
+        #[nutype(
+            validate(greater_or_equal = 1),
+            derive(Debug),
+            cfg_attr(test, derive(FromStr))
+        )]
+        pub struct PositiveNum(i32);
+
+        let val: PositiveNum = "42".parse().unwrap();
+        assert_eq!(val.into_inner(), 42);
+
+        // Invalid parse (not a number)
+        assert!("abc".parse::<PositiveNum>().is_err());
+
+        // Valid parse but fails validation
+        assert!("0".parse::<PositiveNum>().is_err());
+
+        // Verify ParseError type is accessible by name (re-exported)
+        let err = "abc".parse::<PositiveNum>().unwrap_err();
+        assert!(matches!(err, PositiveNumParseError::Parse(_)));
+
+        let err = "0".parse::<PositiveNum>().unwrap_err();
+        assert!(matches!(err, PositiveNumParseError::Validate(_)));
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_default() {
+        // Conditional Default with unconditional default value
+        #[nutype(
+            derive(Debug, PartialEq),
+            default = 10,
+            cfg_attr(test, derive(Default))
+        )]
+        pub struct DefNum(i32);
+
+        let val = DefNum::default();
+        assert_eq!(val, DefNum::new(10));
+    }
+
+    #[test]
+    fn test_cfg_attr_complex_predicate() {
+        // Complex cfg predicate with all(...)
+        #[nutype(
+            derive(Debug),
+            cfg_attr(all(test, target_pointer_width = "64"), derive(Clone, Copy))
+        )]
+        pub struct Width(u64);
+
+        let w = Width::new(100);
+        #[cfg(all(test, target_pointer_width = "64"))]
+        {
+            let w2 = w;
+            let _w3 = w2;
+        }
+        let _ = w;
+    }
+
+    #[test]
+    fn test_cfg_attr_cross_predicate_traits() {
+        // PartialEq unconditional, Eq conditional  - should work when predicate is true
+        #[nutype(derive(Debug, PartialEq), cfg_attr(test, derive(Eq)))]
+        pub struct Level(i32);
+
+        let a = Level::new(5);
+        let b = Level::new(5);
+        assert_eq!(a, b);
+    }
+}
