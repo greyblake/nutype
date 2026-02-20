@@ -1073,6 +1073,7 @@ mod cfg_attr {
 
         let _label = Label::new("test");
         // Clone should NOT be available here (not(test) is false in test context)
+        assert!(!impls::impls!(Label: Clone));
     }
 
     #[test]
