@@ -86,7 +86,7 @@ pub struct ParseableAttributes<Sanitizer, Validator> {
     pub derive_unchecked_traits: Vec<SpannedDeriveUnsafeTrait>,
 
     /// Parsed from `cfg_attr(...)` entries
-    pub cfg_attr_entries: Vec<crate::common::models::CfgAttrEntry>,
+    pub cfg_attr_entries: Vec<CfgAttrEntry>,
 }
 
 enum ValidateAttr<Validator: Parse + Kinded> {

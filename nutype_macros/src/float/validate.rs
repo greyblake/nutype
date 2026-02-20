@@ -6,7 +6,9 @@ use crate::common::{
         CfgAttrContent, CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives,
         Validation,
     },
-    validate::{validate_duplicates, validate_guard, validate_numeric_bounds},
+    validate::{
+        validate_all_derive_traits, validate_duplicates, validate_guard, validate_numeric_bounds,
+    },
 };
 
 use super::models::{
@@ -150,7 +152,7 @@ pub fn validate_float_derive_traits<T>(
     }
 
     // Use shared helper for the rest (From XOR TryFrom, conversion)
-    crate::common::validate::validate_all_derive_traits(
+    validate_all_derive_traits(
         validation.has_validation,
         derive_traits,
         cfg_attr_entries,

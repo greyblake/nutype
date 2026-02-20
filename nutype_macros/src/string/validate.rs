@@ -7,7 +7,7 @@ use crate::{
         models::{
             CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives, ValueOrExpr,
         },
-        validate::{validate_duplicates, validate_guard},
+        validate::{validate_all_derive_traits, validate_duplicates, validate_guard},
     },
     string::models::{StringGuard, StringRawGuard, StringSanitizer, StringValidator},
 };
@@ -140,7 +140,7 @@ pub fn validate_string_derive_traits(
     maybe_default_value: &Option<syn::Expr>,
     type_name: &TypeName,
 ) -> Result<ValidatedDerives<StringDeriveTrait>, syn::Error> {
-    crate::common::validate::validate_all_derive_traits(
+    validate_all_derive_traits(
         guard.has_validation(),
         derive_traits,
         cfg_attr_entries,
