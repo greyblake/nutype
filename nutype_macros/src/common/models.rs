@@ -433,7 +433,7 @@ pub enum CfgAttrContent {
 }
 
 /// A single `cfg_attr(<predicate>, <attribute>)` entry parsed from `#[nutype(...)]`.
-/// The predicate is stored as raw tokens — the proc macro does not evaluate it.
+/// The predicate is stored as raw tokens  - the proc macro does not evaluate it.
 #[derive(Debug)]
 pub struct CfgAttrEntry {
     pub predicate: TokenStream,
@@ -471,10 +471,10 @@ pub struct ValidatedCfgAttrDerives<TypedTrait> {
 pub struct ConditionalDeriveGroup<TypedTrait> {
     pub predicate: TokenStream,
 
-    /// Typed traits from `cfg_attr(pred, derive(...))` — already validated and converted.
+    /// Typed traits from `cfg_attr(pred, derive(...))`  - already validated and converted.
     pub typed_traits: Vec<TypedTrait>,
 
-    /// Unchecked traits from `cfg_attr(pred, derive_unchecked(...))` — passed through as-is.
+    /// Unchecked traits from `cfg_attr(pred, derive_unchecked(...))`  - passed through as-is.
     pub unchecked_traits: Vec<SpannedDeriveUnsafeTrait>,
 }
 

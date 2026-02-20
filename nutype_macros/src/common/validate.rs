@@ -215,7 +215,7 @@ pub fn check_cfg_attr_no_duplicates(
 
 /// Validate all derive traits (unconditional + conditional) in a single pass.
 ///
-/// The `convert` function is the only type-specific part — it converts a generic
+/// The `convert` function is the only type-specific part  - it converts a generic
 /// `DeriveTrait` to the type-specific `TypedTrait`.
 pub fn validate_all_derive_traits<TypedTrait>(
     has_validation: bool,

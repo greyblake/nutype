@@ -1087,7 +1087,7 @@ mod cfg_attr {
 
     #[test]
     fn test_cfg_attr_cross_predicate_traits() {
-        // PartialEq unconditional, Eq conditional — should work when predicate is true
+        // PartialEq unconditional, Eq conditional  - should work when predicate is true
         #[nutype(derive(Debug, PartialEq), cfg_attr(test, derive(Eq)))]
         pub struct Level(i32);
 
