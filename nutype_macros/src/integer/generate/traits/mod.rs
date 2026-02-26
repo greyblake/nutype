@@ -10,11 +10,11 @@ use crate::{
     common::{
         generate::traits::{
             ConditionalTraits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
-            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
-            gen_impl_trait_deref, gen_impl_trait_display, gen_impl_trait_from,
-            gen_impl_trait_from_str, gen_impl_trait_into, gen_impl_trait_serde_deserialize,
-            gen_impl_trait_serde_serialize, gen_impl_trait_try_from, process_conditional_derives,
-            split_into_generatable_traits,
+            HasGeneratedParseError, gen_impl_trait_as_ref, gen_impl_trait_borrow,
+            gen_impl_trait_default, gen_impl_trait_deref, gen_impl_trait_display,
+            gen_impl_trait_from, gen_impl_trait_from_str, gen_impl_trait_into,
+            gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
+            gen_impl_trait_try_from, process_conditional_derives, split_into_generatable_traits,
         },
         models::{ConditionalDeriveGroup, SpannedDeriveUnsafeTrait, TypeName},
     },
@@ -59,21 +59,16 @@ pub fn gen_traits<T: ToTokens>(
         derive_transparent_traits: conditional_derive_transparent_traits,
         implement_traits: conditional_implement_traits,
         from_str_parse_errors: conditional_from_str_parse_errors,
-    } = process_conditional_derives(
-        conditional_derives,
-        type_name,
-        |irregular| {
-            gen_implemented_traits(
-                type_name,
-                generics,
-                inner_type,
-                irregular,
-                maybe_default_value.clone(),
-                guard,
-            )
-        },
-        |t| matches!(t, IntegerIrregularTrait::FromStr),
-    )?;
+    } = process_conditional_derives(conditional_derives, type_name, |irregular| {
+        gen_implemented_traits(
+            type_name,
+            generics,
+            inner_type,
+            irregular,
+            maybe_default_value.clone(),
+            guard,
+        )
+    })?;
 
     Ok(GeneratedTraits {
         derive_transparent_traits,
@@ -188,6 +183,14 @@ enum IntegerIrregularTrait {
     SerdeSerialize,
     SerdeDeserialize,
     ArbitraryArbitrary,
+}
+
+/// Integer's `FromStr` generates a `ParseError` type via `gen_impl_trait_from_str` ->
+/// `gen_def_parse_error`, which needs module-level re-export in conditional derives.
+impl HasGeneratedParseError for IntegerIrregularTrait {
+    fn has_generated_parse_error(&self) -> bool {
+        matches!(self, Self::FromStr)
+    }
 }
 
 impl ToTokens for IntegerTransparentTrait {

@@ -71,22 +71,43 @@ pub struct ConditionalTraits {
     pub from_str_parse_errors: Vec<(TokenStream, ParseErrorTypeName)>,
 }
 
+/// Indicates whether an irregular trait variant generates a `ParseError` type definition
+/// that must be re-exported at module level when used inside conditional derives.
+///
+/// For non-string types (integer, float, any), `FromStr` generates a `ParseError` enum
+/// (via `gen_impl_trait_from_str` -> `gen_def_parse_error`). When such a trait appears
+/// inside a conditional derive group, the generated code must use a `mod` wrapper
+/// instead of `const _: () = { ... }`, so that `ParseError` is accessible for re-export.
+///
+/// String's `FromStr` does **not** generate a `ParseError` type -- it reuses the
+/// validation error type directly -- so it returns `false` for all variants.
+pub trait HasGeneratedParseError {
+    /// Returns `true` if this irregular trait variant generates a `ParseError` type
+    /// definition that needs module-level re-export in conditional derives.
+    fn has_generated_parse_error(&self) -> bool;
+}
+
 /// Process conditional derive groups, splitting each into transparent and irregular traits,
 /// and generating the appropriate `#[cfg_attr(...)]` / `#[cfg(...)]` wrappers.
 ///
 /// This is shared logic used by all type-specific `gen_traits` functions.
 ///
-/// - `gen_impl_traits`: closure that generates impl blocks for irregular traits
-/// - `has_from_str`: predicate to check if an irregular trait is `FromStr`
+/// For each conditional group:
+/// 1. Transparent traits + unchecked traits -> `#[cfg_attr(pred, derive(...))]`
+/// 2. Irregular traits -> wrapped in either:
+///    - `mod __fromstr_impl__ { ... }` + `pub use ...` if any trait
+///      [`has_generated_parse_error`](HasGeneratedParseError::has_generated_parse_error),
+///      so the `ParseError` type is accessible for re-export.
+///    - `const _: () = { ... };` otherwise.
 pub fn process_conditional_derives<InputTrait, TransparentTrait, IrregularTrait>(
     conditional_derives: &[ConditionalDeriveGroup<InputTrait>],
     type_name: &TypeName,
     gen_impl_traits: impl Fn(Vec<IrregularTrait>) -> Result<TokenStream, syn::Error>,
-    has_from_str: impl Fn(&IrregularTrait) -> bool,
 ) -> Result<ConditionalTraits, syn::Error>
 where
     InputTrait: Eq + Hash + Clone,
     TransparentTrait: ToTokens,
+    IrregularTrait: HasGeneratedParseError,
     GeneratableTrait<TransparentTrait, IrregularTrait>: From<InputTrait>,
 {
     let mut derive_transparent_traits = TokenStream::new();
@@ -113,11 +134,13 @@ where
         }
 
         if !cond_irregular.is_empty() {
-            let from_str_present = cond_irregular.iter().any(&has_from_str);
+            let needs_parse_error_reexport = cond_irregular
+                .iter()
+                .any(HasGeneratedParseError::has_generated_parse_error);
 
             let impl_tokens = gen_impl_traits(cond_irregular)?;
 
-            if from_str_present {
+            if needs_parse_error_reexport {
                 // When FromStr is conditional, use a module wrapper so ParseError
                 // is accessible for re-export (not trapped inside const block).
                 let fromstr_mod_name = quote::format_ident!("__fromstr_impl__");
