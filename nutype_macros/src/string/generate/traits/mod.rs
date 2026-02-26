@@ -9,11 +9,11 @@ use syn::Generics;
 use crate::{
     common::{
         generate::traits::{
-            GeneratableTrait, GeneratableTraits, GeneratedTraits, gen_impl_trait_as_ref,
-            gen_impl_trait_borrow, gen_impl_trait_default, gen_impl_trait_deref,
-            gen_impl_trait_display, gen_impl_trait_from, gen_impl_trait_into,
+            ConditionalTraits, GeneratableTrait, GeneratableTraits, GeneratedTraits,
+            gen_impl_trait_as_ref, gen_impl_trait_borrow, gen_impl_trait_default,
+            gen_impl_trait_deref, gen_impl_trait_display, gen_impl_trait_from, gen_impl_trait_into,
             gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
-            gen_impl_trait_try_from, split_into_generatable_traits,
+            gen_impl_trait_try_from, process_conditional_derives, split_into_generatable_traits,
         },
         models::{ConditionalDeriveGroup, ErrorTypePath, SpannedDeriveUnsafeTrait, TypeName},
     },
@@ -171,51 +171,31 @@ pub fn gen_traits(
         guard,
     )?;
 
-    let mut conditional_derive_transparent_traits = TokenStream::new();
-    let mut conditional_implement_traits = TokenStream::new();
-
-    for group in conditional_derives {
-        let pred = &group.predicate;
-
-        let cond_traits: HashSet<StringDeriveTrait> = group.typed_traits.iter().cloned().collect();
-        let GeneratableTraits {
-            transparent_traits: cond_transparent,
-            irregular_traits: cond_irregular,
-        } = split_into_generatable_traits(cond_traits);
-
-        let cond_unchecked = &group.unchecked_traits;
-        if !cond_transparent.is_empty() || !cond_unchecked.is_empty() {
-            conditional_derive_transparent_traits.extend(quote! {
-                #[cfg_attr(#pred, derive(
-                    #(#cond_transparent,)*
-                    #(#cond_unchecked,)*
-                ))]
-            });
-        }
-
-        if !cond_irregular.is_empty() {
-            let impl_tokens = gen_implemented_traits(
+    let ConditionalTraits {
+        derive_transparent_traits: conditional_derive_transparent_traits,
+        implement_traits: conditional_implement_traits,
+        from_str_parse_errors: conditional_from_str_parse_errors,
+    } = process_conditional_derives(
+        conditional_derives,
+        type_name,
+        |irregular| {
+            gen_implemented_traits(
                 type_name,
                 generics,
                 maybe_default_value.clone(),
-                cond_irregular,
+                irregular,
                 guard,
-            )?;
-            conditional_implement_traits.extend(quote! {
-                #[cfg(#pred)]
-                const _: () = {
-                    #impl_tokens
-                };
-            });
-        }
-    }
+            )
+        },
+        |_| false,
+    )?;
 
     Ok(GeneratedTraits {
         derive_transparent_traits,
         implement_traits,
         conditional_derive_transparent_traits,
         conditional_implement_traits,
-        conditional_from_str_parse_errors: vec![],
+        conditional_from_str_parse_errors,
     })
 }
 

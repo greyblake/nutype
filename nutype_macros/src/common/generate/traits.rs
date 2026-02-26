@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, hash::Hash};
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
@@ -6,7 +6,7 @@ use syn::Generics;
 
 use crate::common::{
     generate::generics::{SplitGenerics, add_bound_to_all_type_params},
-    models::{ErrorTypePath, InnerType, ParseErrorTypeName, TypeName},
+    models::{ConditionalDeriveGroup, ErrorTypePath, InnerType, ParseErrorTypeName, TypeName},
 };
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
@@ -62,6 +62,92 @@ where
         transparent_traits,
         irregular_traits,
     }
+}
+
+/// Output of processing conditional derives.
+pub struct ConditionalTraits {
+    pub derive_transparent_traits: TokenStream,
+    pub implement_traits: TokenStream,
+    pub from_str_parse_errors: Vec<(TokenStream, ParseErrorTypeName)>,
+}
+
+/// Process conditional derive groups, splitting each into transparent and irregular traits,
+/// and generating the appropriate `#[cfg_attr(...)]` / `#[cfg(...)]` wrappers.
+///
+/// This is shared logic used by all type-specific `gen_traits` functions.
+///
+/// - `gen_impl_traits`: closure that generates impl blocks for irregular traits
+/// - `has_from_str`: predicate to check if an irregular trait is `FromStr`
+pub fn process_conditional_derives<InputTrait, TransparentTrait, IrregularTrait>(
+    conditional_derives: &[ConditionalDeriveGroup<InputTrait>],
+    type_name: &TypeName,
+    gen_impl_traits: impl Fn(Vec<IrregularTrait>) -> Result<TokenStream, syn::Error>,
+    has_from_str: impl Fn(&IrregularTrait) -> bool,
+) -> Result<ConditionalTraits, syn::Error>
+where
+    InputTrait: Eq + Hash + Clone,
+    TransparentTrait: ToTokens,
+    GeneratableTrait<TransparentTrait, IrregularTrait>: From<InputTrait>,
+{
+    let mut derive_transparent_traits = TokenStream::new();
+    let mut implement_traits = TokenStream::new();
+    let mut from_str_parse_errors: Vec<(TokenStream, ParseErrorTypeName)> = vec![];
+
+    for group in conditional_derives {
+        let pred = &group.predicate;
+
+        let cond_traits: HashSet<InputTrait> = group.typed_traits.iter().cloned().collect();
+        let GeneratableTraits {
+            transparent_traits: cond_transparent,
+            irregular_traits: cond_irregular,
+        } = split_into_generatable_traits(cond_traits);
+
+        let cond_unchecked = &group.unchecked_traits;
+        if !cond_transparent.is_empty() || !cond_unchecked.is_empty() {
+            derive_transparent_traits.extend(quote! {
+                #[cfg_attr(#pred, derive(
+                    #(#cond_transparent,)*
+                    #(#cond_unchecked,)*
+                ))]
+            });
+        }
+
+        if !cond_irregular.is_empty() {
+            let from_str_present = cond_irregular.iter().any(&has_from_str);
+
+            let impl_tokens = gen_impl_traits(cond_irregular)?;
+
+            if from_str_present {
+                // When FromStr is conditional, use a module wrapper so ParseError
+                // is accessible for re-export (not trapped inside const block).
+                let fromstr_mod_name = quote::format_ident!("__fromstr_impl__");
+                let parse_error_name = gen_parse_error_name(type_name);
+                implement_traits.extend(quote! {
+                    #[cfg(#pred)]
+                    mod #fromstr_mod_name {
+                        use super::*;
+                        #impl_tokens
+                    }
+                    #[cfg(#pred)]
+                    pub use #fromstr_mod_name::#parse_error_name;
+                });
+                from_str_parse_errors.push((pred.clone(), parse_error_name));
+            } else {
+                implement_traits.extend(quote! {
+                    #[cfg(#pred)]
+                    const _: () = {
+                        #impl_tokens
+                    };
+                });
+            }
+        }
+    }
+
+    Ok(ConditionalTraits {
+        derive_transparent_traits,
+        implement_traits,
+        from_str_parse_errors,
+    })
 }
 
 pub fn gen_impl_trait_into(
