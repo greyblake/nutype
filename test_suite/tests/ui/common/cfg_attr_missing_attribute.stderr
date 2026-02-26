@@ -1,0 +1,5 @@
+error: expected `,`
+ --> tests/ui/common/cfg_attr_missing_attribute.rs:6:18
+  |
+6 |     cfg_attr(test),
+  |                  ^

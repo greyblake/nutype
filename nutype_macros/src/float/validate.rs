@@ -2,10 +2,12 @@ use proc_macro2::Span;
 use std::collections::HashSet;
 
 use crate::common::{
-    models::{DeriveTrait, SpannedDeriveTrait, TypeName, Validation},
+    models::{
+        CfgAttrContent, CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives,
+        Validation,
+    },
     validate::{
-        validate_duplicates, validate_guard, validate_numeric_bounds,
-        validate_traits_from_xor_try_from,
+        validate_all_derive_traits, validate_duplicates, validate_guard, validate_numeric_bounds,
     },
 };
 
@@ -74,7 +76,7 @@ fn has_validation_against_nan<T>(guard: &FloatGuard<T>) -> bool {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct ValidationInfo {
+pub(crate) struct ValidationInfo {
     has_validation: bool,
     has_nan_validation: bool,
 }
@@ -91,25 +93,32 @@ impl ValidationInfo {
 }
 
 pub fn validate_float_derive_traits<T>(
-    spanned_derive_traits: Vec<SpannedDeriveTrait>,
+    derive_traits: Vec<SpannedDeriveTrait>,
     guard: &FloatGuard<T>,
-) -> Result<HashSet<FloatDeriveTrait>, syn::Error> {
-    validate_traits_from_xor_try_from(&spanned_derive_traits)?;
-
+    cfg_attr_entries: &[CfgAttrEntry],
+    maybe_default_value: &Option<syn::Expr>,
+    type_name: &TypeName,
+) -> Result<ValidatedDerives<FloatDeriveTrait>, syn::Error> {
     let validation = ValidationInfo::from_guard(guard);
-    let mut traits = HashSet::with_capacity(24);
 
-    for spanned_trait in spanned_derive_traits.iter() {
-        let normal_trait = spanned_trait.item;
-        let string_derive_trait =
-            to_float_derive_trait(normal_trait, validation, spanned_trait.span)?;
-        traits.insert(string_derive_trait);
+    // Build union of all spanned traits for inter-trait dependency checks
+    let mut all_spanned = derive_traits.clone();
+    for entry in cfg_attr_entries {
+        if let CfgAttrContent::Derive(ref traits) = entry.content {
+            all_spanned.extend(traits.iter().cloned());
+        }
     }
 
-    // Get a span of a given trait, so we can render a better message below
-    // when we validate inter trait dependencies.
+    // Convert all traits for dependency checks
+    let mut all_typed = HashSet::with_capacity(24);
+    for spanned_trait in all_spanned.iter() {
+        let typed = to_float_derive_trait(spanned_trait.item, validation, spanned_trait.span)?;
+        all_typed.insert(typed);
+    }
+
+    // Get a span of a given trait from the full union
     let get_span_for = |needle: DeriveTrait| -> Span {
-        spanned_derive_traits
+        all_spanned
             .iter()
             .flat_map(|spanned_tr| {
                 if spanned_tr.item == needle {
@@ -122,29 +131,38 @@ pub fn validate_float_derive_traits<T>(
             .unwrap_or_else(Span::call_site)
     };
 
-    // Validate inter trait dependencies
-    //
-    if traits.contains(&FloatDeriveTrait::Eq) && !traits.contains(&FloatDeriveTrait::PartialEq) {
+    // Validate inter trait dependencies on the union
+    if all_typed.contains(&FloatDeriveTrait::Eq)
+        && !all_typed.contains(&FloatDeriveTrait::PartialEq)
+    {
         let span = get_span_for(DeriveTrait::Eq);
         let msg = "Trait Eq requires PartialEq.\nEvery expert was once a beginner.";
         return Err(syn::Error::new(span, msg));
     }
-    if traits.contains(&FloatDeriveTrait::Ord) {
-        if !traits.contains(&FloatDeriveTrait::PartialOrd) {
+    if all_typed.contains(&FloatDeriveTrait::Ord) {
+        if !all_typed.contains(&FloatDeriveTrait::PartialOrd) {
             let span = get_span_for(DeriveTrait::Ord);
             let msg = "Trait Ord requires PartialOrd.\nÜbung macht den Meister.";
             return Err(syn::Error::new(span, msg));
-        } else if !traits.contains(&FloatDeriveTrait::Eq) {
+        } else if !all_typed.contains(&FloatDeriveTrait::Eq) {
             let span = get_span_for(DeriveTrait::Ord);
             let msg = "Trait Ord requires Eq.\nFestina lente.";
             return Err(syn::Error::new(span, msg));
         }
     }
 
-    Ok(traits)
+    // Use shared helper for the rest (From XOR TryFrom, conversion)
+    validate_all_derive_traits(
+        validation.has_validation,
+        derive_traits,
+        cfg_attr_entries,
+        maybe_default_value,
+        type_name,
+        |tr, _has_validation, span| to_float_derive_trait(tr, validation, span),
+    )
 }
 
-fn to_float_derive_trait(
+pub(crate) fn to_float_derive_trait(
     tr: DeriveTrait,
     validation: ValidationInfo,
     span: Span,

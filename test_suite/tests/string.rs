@@ -1034,3 +1034,132 @@ mod constructor_visibility {
         }
     }
 }
+
+#[cfg(test)]
+mod cfg_attr {
+    use super::*;
+
+    #[test]
+    fn test_cfg_attr_derive_transparent_trait() {
+        // cfg_attr with a trait that is always true (test cfg)
+        #[nutype(
+            sanitize(trim),
+            validate(not_empty),
+            derive(Debug, PartialEq),
+            cfg_attr(test, derive(Clone))
+        )]
+        pub struct Name(String);
+
+        let name = Name::try_new("hello").unwrap();
+        let name2 = name.clone();
+        assert_eq!(name, name2);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_irregular_trait() {
+        // cfg_attr with Display which requires a custom impl
+        #[nutype(sanitize(trim), derive(Debug), cfg_attr(test, derive(Display)))]
+        pub struct Greeting(String);
+
+        let greeting = Greeting::new("hello");
+        assert_eq!(format!("{greeting}"), "hello");
+    }
+
+    #[test]
+    fn test_cfg_attr_with_false_predicate() {
+        // cfg_attr with a predicate that is never true should not derive
+        #[nutype(derive(Debug), cfg_attr(not(test), derive(Clone)))]
+        pub struct Label(String);
+
+        let _label = Label::new("test");
+        // Clone should NOT be available here (not(test) is false in test context)
+        assert!(!impls::impls!(Label: Clone));
+    }
+
+    #[test]
+    fn test_cfg_attr_multiple_traits() {
+        // cfg_attr deriving multiple traits at once
+        #[nutype(derive(Debug), cfg_attr(test, derive(Clone, PartialEq, Eq, Display)))]
+        pub struct Tag(String);
+
+        let tag1 = Tag::new("rust");
+        let tag2 = tag1.clone();
+        assert_eq!(tag1, tag2);
+        assert_eq!(format!("{tag1}"), "rust");
+    }
+
+    #[test]
+    fn test_cfg_attr_with_validation() {
+        // cfg_attr with a validated type
+        #[nutype(
+            validate(not_empty, len_char_max = 100),
+            derive(Debug, PartialEq),
+            cfg_attr(test, derive(Clone, Display))
+        )]
+        pub struct Title(String);
+
+        let title = Title::try_new("Hello World").unwrap();
+        let title2 = title.clone();
+        assert_eq!(title, title2);
+        assert_eq!(format!("{title}"), "Hello World");
+    }
+
+    #[test]
+    fn test_cfg_attr_multiple_cfg_attr_entries() {
+        // Multiple cfg_attr entries
+        #[nutype(
+            derive(Debug),
+            cfg_attr(test, derive(Clone)),
+            cfg_attr(test, derive(Display))
+        )]
+        pub struct Item(String);
+
+        let item = Item::new("thing");
+        let _item2 = item.clone();
+        assert_eq!(format!("{item}"), "thing");
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_default() {
+        #[nutype(
+            derive(Debug, PartialEq),
+            default = "default",
+            cfg_attr(test, derive(Default))
+        )]
+        pub struct DefString(String);
+
+        let val = DefString::default();
+        assert_eq!(val.into_inner(), "default");
+    }
+
+    #[test]
+    fn test_cfg_attr_complex_predicate_any() {
+        // Complex cfg predicate with any(...)
+        #[nutype(
+            derive(Debug),
+            cfg_attr(any(test, debug_assertions), derive(Clone, Display))
+        )]
+        pub struct Msg(String);
+
+        let msg = Msg::new("hello");
+        let msg2 = msg.clone();
+        assert_eq!(format!("{msg2}"), "hello");
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn test_cfg_attr_conditional_serde() {
+        // Conditional serde derives
+        #[nutype(
+            derive(Debug, PartialEq),
+            cfg_attr(feature = "serde", derive(Serialize, Deserialize))
+        )]
+        pub struct Label(String);
+
+        let label = Label::new("hello");
+        let json = serde_json::to_string(&label).unwrap();
+        assert_eq!(json, r#""hello""#);
+        let deserialized: Label = serde_json::from_str(&json).unwrap();
+        assert_eq!(label, deserialized);
+    }
+}

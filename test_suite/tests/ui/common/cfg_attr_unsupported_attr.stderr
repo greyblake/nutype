@@ -1,0 +1,6 @@
+error: Attribute `sanitize` is not supported inside `cfg_attr()`.
+       Only `derive(...)` and `derive_unchecked(...)` are allowed.
+ --> tests/ui/common/cfg_attr_unsupported_attr.rs:6:20
+  |
+6 |     cfg_attr(test, sanitize(trim)),
+  |                    ^^^^^^^^

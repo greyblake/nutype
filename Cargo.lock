@@ -84,6 +84,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
+name = "cfg_attr_example"
+version = "0.1.0"
+dependencies = [
+ "nutype",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "const_example"
 version = "0.1.0"
 dependencies = [
@@ -207,6 +216,12 @@ name = "hashbrown"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
+
+[[package]]
+name = "impls"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a46645bbd70538861a90d0f26c31537cdf1e44aae99a794fb75a664b70951bc"
 
 [[package]]
 name = "indexmap"
@@ -673,6 +688,7 @@ version = "0.1.0"
 dependencies = [
  "arbitrary",
  "arbtest 0.2.0",
+ "impls",
  "lazy_static",
  "num",
  "nutype",

@@ -38,7 +38,7 @@ pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 
 // Traits
 //
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum IntegerDeriveTrait {
     // Standard
     Debug,
@@ -70,6 +70,9 @@ pub enum IntegerDeriveTrait {
 impl TypeTrait for IntegerDeriveTrait {
     fn is_from_str(&self) -> bool {
         self == &IntegerDeriveTrait::FromStr
+    }
+    fn is_default(&self) -> bool {
+        self == &IntegerDeriveTrait::Default
     }
 }
 

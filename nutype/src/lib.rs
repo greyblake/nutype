@@ -469,6 +469,50 @@
 //! It is the developer's responsibility to ensure that the derived traits do not introduce ways to bypass validation (e.g., by allowing mutable access to the inner value).
 //!
 //!
+//! ### `cfg_attr`
+//!
+//! You can use `cfg_attr` to conditionally derive traits based on `cfg` predicates:
+//!
+//! ```rust
+//! use nutype::nutype;
+//!
+//! #[nutype(
+//!     derive(Debug, PartialEq),
+//!     cfg_attr(test, derive(Clone)),
+//! )]
+//! pub struct Email(String);
+//! ```
+//!
+//! Only `derive(...)` and `derive_unchecked(...)` are supported inside `cfg_attr`.
+//!
+//! Complex predicates work as well:
+//!
+//! ```rust
+//! use nutype::nutype;
+//!
+//! #[nutype(
+//!     derive(Debug),
+//!     cfg_attr(all(test, debug_assertions), derive(Clone, Display)),
+//! )]
+//! pub struct Label(String);
+//! ```
+//!
+//! Multiple `cfg_attr` entries are allowed:
+//!
+//! ```rust
+//! use nutype::nutype;
+//!
+//! #[nutype(
+//!     derive(Debug),
+//!     cfg_attr(test, derive(Clone)),
+//!     cfg_attr(test, derive(Display)),
+//! )]
+//! pub struct Tag(String);
+//! ```
+//!
+//! Note that a trait cannot appear in both unconditional `derive` and `cfg_attr` `derive` at the same time.
+//!
+//!
 //! ## Constants
 //!
 //! You can mark a type with the `const_fn` flag. In that case, its `new` and `try_new` functions will be declared as `const`:

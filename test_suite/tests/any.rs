@@ -1144,3 +1144,57 @@ mod into_iter {
         assert_eq!(iter.next(), None);
     }
 }
+
+#[cfg(test)]
+mod cfg_attr {
+    use super::*;
+
+    #[test]
+    fn test_cfg_attr_derive_transparent_trait() {
+        #[nutype(derive(Debug, PartialEq), cfg_attr(test, derive(Clone)))]
+        pub struct Wrapper(Vec<i32>);
+
+        let w = Wrapper::new(vec![1, 2, 3]);
+        let w2 = w.clone();
+        assert_eq!(w, w2);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_irregular_trait() {
+        #[nutype(derive(Debug), cfg_attr(test, derive(Display, Deref)))]
+        pub struct Num(i32);
+
+        let num = Num::new(42);
+        assert_eq!(format!("{num}"), "42");
+        assert_eq!(*num, 42);
+    }
+
+    #[test]
+    fn test_cfg_attr_with_validation() {
+        #[nutype(
+            validate(predicate = |v: &Vec<i32>| !v.is_empty()),
+            derive(Debug, PartialEq),
+            cfg_attr(test, derive(Clone, Into)),
+        )]
+        pub struct NonEmptyVec(Vec<i32>);
+
+        let v = NonEmptyVec::try_new(vec![1, 2]).unwrap();
+        let v2 = v.clone();
+        assert_eq!(v, v2);
+        let inner: Vec<i32> = v2.into();
+        assert_eq!(inner, vec![1, 2]);
+    }
+
+    #[test]
+    fn test_cfg_attr_derive_default() {
+        #[nutype(
+            derive(Debug, PartialEq),
+            default = vec![0],
+            cfg_attr(test, derive(Default))
+        )]
+        pub struct DefaultVec(Vec<i32>);
+
+        let val = DefaultVec::default();
+        assert_eq!(val.into_inner(), vec![0]);
+    }
+}

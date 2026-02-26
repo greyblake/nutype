@@ -1,0 +1,10 @@
+error: Trait `Default` is derived for type Name, but `default = ` parameter is missing in #[nutype] macro
+ --> tests/ui/common/cfg_attr_default_missing_value.rs:4:1
+  |
+4 | / #[nutype(
+5 | |     derive(Debug),
+6 | |     cfg_attr(test, derive(Default)),
+7 | | )]
+  | |__^
+  |
+  = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
