@@ -1,4 +1,5 @@
-use std::{collections::HashSet, hash::Hash};
+use core::hash::Hash;
+use std::collections::HashSet;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
