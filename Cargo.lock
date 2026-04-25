@@ -633,6 +633,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "str_reference"
+version = "0.1.0"
+dependencies = [
+ "nutype",
+]
+
+[[package]]
 name = "string_arbitrary"
 version = "0.1.0"
 dependencies = [
