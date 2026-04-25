@@ -1,0 +1,7 @@
+[package]
+name = "str_reference"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+nutype = { path = "../../nutype" }
