@@ -1,4 +1,4 @@
-### v0.x.x - 202x-xx-xx
+### v0.7.0 - 2026-04-25
 - **[BREAKING]** Rename `derive_unsafe` to `derive_unchecked` (both the feature flag and the attribute).
 - **[FEATURE]** Support `cfg_attr` for conditional derives, e.g. `cfg_attr(feature = "serde", derive(Serialize, Deserialize))`. Supports complex predicates and multiple entries.
 - **[FEATURE]** Support `where` clauses in generic newtypes, including Higher-Ranked Trait Bounds (HRTB) like `for<'a> &'a C: IntoIterator` (see [#160](https://github.com/greyblake/nutype/issues/160)).
