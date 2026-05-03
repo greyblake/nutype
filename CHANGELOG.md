@@ -1,3 +1,6 @@
+### v0.7.1 - Unreleased
+- **[FEATURE]** Friendlier error when a `#[nutype(...)]` attribute is mistyped: suggests the closest match (e.g. `validte` -> `validate`) and lists the available nutype attributes (see [#240](https://github.com/greyblake/nutype/issues/240)).
+
 ### v0.7.0 - 2026-04-25
 - **[BREAKING]** Rename `derive_unsafe` to `derive_unchecked` (both the feature flag and the attribute).
 - **[FEATURE]** Support `cfg_attr` for conditional derives, e.g. `cfg_attr(feature = "serde", derive(Serialize, Deserialize))`. Supports complex predicates and multiple entries.

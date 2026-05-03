@@ -381,8 +381,10 @@ where
                     return Err(syn::Error::new(ident.span(), msg));
                 }
             } else {
-                let msg = format!("Unknown attribute `{ident}`");
-                return Err(syn::Error::new(ident.span(), msg));
+                return Err(syn::Error::new(
+                    ident.span(),
+                    unknown_top_level_attribute_message(&ident.to_string()),
+                ));
             }
 
             // Parse `,` unless it's the end of the stream
@@ -392,6 +394,54 @@ where
         }
 
         Ok(attrs)
+    }
+}
+
+fn known_top_level_attributes() -> Vec<&'static str> {
+    let mut names: Vec<&'static str> = vec![
+        "sanitize",
+        "validate",
+        "derive",
+        "default",
+        "const_fn",
+        "cfg_attr",
+        "constructor",
+    ];
+    if cfg!(feature = "new_unchecked") {
+        names.push("new_unchecked");
+    }
+    if cfg!(feature = "derive_unchecked") {
+        names.push("derive_unchecked");
+    }
+    names
+}
+
+fn unknown_top_level_attribute_message(ident: &str) -> String {
+    use crate::utils::levenshtein::closest_match;
+
+    let known = known_top_level_attributes();
+    let suggestion = closest_match(ident, &known, 2);
+
+    let format_list = |names: &[&str]| -> String {
+        names
+            .iter()
+            .map(|n| format!("`{n}`"))
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+
+    match suggestion {
+        Some(suggested) => {
+            let others: Vec<&str> = known.iter().copied().filter(|n| *n != suggested).collect();
+            format!(
+                "Unknown nutype attribute `{ident}`. Did you mean `{suggested}`?\nOther available nutype attributes are: {}.",
+                format_list(&others)
+            )
+        }
+        None => format!(
+            "Unknown nutype attribute `{ident}`.\nAvailable nutype attributes are: {}.",
+            format_list(&known)
+        ),
     }
 }
 
