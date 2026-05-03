@@ -1,0 +1,4 @@
+[default.extend-words]
+# Intentional misspelling used in tests/docs that demonstrate the
+# "Did you mean ...?" suggestion for mistyped nutype attributes.
+validte = "validte"
