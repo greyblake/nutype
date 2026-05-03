@@ -1,0 +1,6 @@
+error: Unknown nutype attribute `validte`. Did you mean `validate`?
+       Other available nutype attributes are: `sanitize`, `derive`, `default`, `const_fn`, `cfg_attr`, `constructor`.
+ --> tests/ui/common/unknown_top_level_attribute.rs:3:10
+  |
+3 | #[nutype(validte)]
+  |          ^^^^^^^
