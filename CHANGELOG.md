@@ -1,5 +1,6 @@
 ### v0.7.1 - Unreleased
 - **[FEATURE]** Friendlier error when a `#[nutype(...)]` attribute is mistyped: suggests the closest match (e.g. `validte` -> `validate`) and lists the available nutype attributes (see [#240](https://github.com/greyblake/nutype/issues/240)).
+- **[FIX]** Fix misleading error for value-type mismatches in validators (see [#241](https://github.com/greyblake/nutype/issues/241)).
 
 ### v0.7.0 - 2026-04-25
 - **[BREAKING]** Rename `derive_unsafe` to `derive_unchecked` (both the feature flag and the attribute).
