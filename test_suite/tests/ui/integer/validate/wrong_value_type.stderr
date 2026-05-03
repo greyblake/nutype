@@ -1,0 +1,5 @@
+error: Expected i32, got `0.0`
+ --> tests/ui/integer/validate/wrong_value_type.rs:5:29
+  |
+5 | #[nutype(validate(greater = 0.0))]
+  |                             ^^^

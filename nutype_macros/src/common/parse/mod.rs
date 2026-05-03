@@ -124,28 +124,30 @@ impl Parse for ExtraValidateAttr {
 impl<Validator> Parse for ValidateAttr<Validator>
 where
     Validator: Parse + Kinded,
-    <Validator as Kinded>::Kind: Kind + Display + 'static,
+    <Validator as Kinded>::Kind: Kind + Display + FromStr + 'static,
 {
     /// Try to parse either standard validation attributes or combination of `error` and `with` attributes.
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        // NOTE: ParseStream has interior mutability, so we want to try to parse validator,
-        // but we don't want to advance the input if it fails.
-        if input.fork().parse::<Validator>().is_ok() {
+        // Peek the leading identifier without consuming it, then dispatch based on whether
+        // it names a known validator (or the `with`/`error` extras).
+        // This way, when the ident IS recognized but the rest fails (e.g. wrong value type:
+        // `validate(greater = 0.0)` on an `i32` newtype), we propagate the real underlying
+        // error instead of synthesizing a misleading "Unknown validation attribute" message.
+        let ident_name: Option<String> = input.fork().parse::<Ident>().ok().map(|i| i.to_string());
+
+        let is_known_validator = ident_name
+            .as_deref()
+            .map(|n| n.parse::<<Validator as Kinded>::Kind>().is_ok())
+            .unwrap_or(false);
+        let is_extra = matches!(ident_name.as_deref(), Some("with") | Some("error"));
+
+        if is_known_validator {
             let validator: Validator = input.parse()?;
             Ok(ValidateAttr::Standard(validator))
-        } else if input.fork().parse::<ExtraValidateAttr>().is_ok() {
+        } else if is_extra {
             let extra_attr: ExtraValidateAttr = input.parse()?;
             Ok(ValidateAttr::Extra(extra_attr))
         } else {
-            // HACK: we want to propagate the original error in case if it was `regex` attribute.
-            // Most likely it was not parsed, because `regex` feature was not enabled.
-            if let Ok(ident) = input.fork().parse::<Ident>()
-                && ident == "regex"
-            {
-                // Parse again and return the original error
-                input.fork().parse::<Validator>()?;
-            }
-
             let possible_values: String = <Validator as Kinded>::Kind::all()
                 .iter()
                 .map(|k| format!("`{k}`"))
@@ -176,7 +178,7 @@ pub enum RawValidation<Validator> {
 impl<Validator> Parse for RawValidation<Validator>
 where
     Validator: Parse + Kinded,
-    <Validator as Kinded>::Kind: Kind + Display + 'static,
+    <Validator as Kinded>::Kind: Kind + Display + FromStr + 'static,
 {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let items = input.parse_terminated(ValidateAttr::<Validator>::parse, Token![,])?;
@@ -257,7 +259,7 @@ impl<Sanitizer, Validator> Parse for ParseableAttributes<Sanitizer, Validator>
 where
     Sanitizer: Parse,
     Validator: Parse + Kinded,
-    <Validator as Kinded>::Kind: Kind + Display + 'static,
+    <Validator as Kinded>::Kind: Kind + Display + FromStr + 'static,
 {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut attrs = ParseableAttributes::default();
@@ -477,11 +479,18 @@ where
 
 /// Try to parse input as a number of type T (if the value specified directly)
 /// If that fails then try to parse it as an expression (if the value is specified as an expression, a constant, etc.)
+///
+/// Dispatch is done by peeking the leading token: if it looks like a numeric literal
+/// (or a leading `-`), we commit to `parse_number` and propagate any error directly
+/// (e.g. `Expected i32, got `0.0``). Without this, a literal-that-doesn't-fit-T
+/// would silently advance the input and then fail downstream with a misleading
+/// "expected an expression" error.
 pub fn parse_number_or_expr<T>(input: ParseStream) -> syn::Result<(ValueOrExpr<T>, Span)>
 where
     T: FromStr,
 {
-    if let Ok((number, span)) = parse_number::<T>(input) {
+    if input.peek(Lit) || input.peek(Token![-]) {
+        let (number, span) = parse_number::<T>(input)?;
         Ok((ValueOrExpr::Value(number), span))
     } else {
         let expr: Expr = input.parse()?;

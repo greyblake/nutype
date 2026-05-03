@@ -1,0 +1,5 @@
+error: Expected f64, got `5i32`
+ --> tests/ui/float/validate/wrong_value_type.rs:5:29
+  |
+5 | #[nutype(validate(greater = 5i32))]
+  |                             ^^^^
