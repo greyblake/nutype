@@ -1,0 +1,9 @@
+error: To use `Decimal` as the inner type, enable the `rust_decimal` feature of crate `nutype`, e.g.
+
+           nutype = { version = "0.7", features = ["rust_decimal"] }
+
+       You also need to add `rust_decimal` as a dependency of your crate.
+ --> tests/ui_decimal_off/feature_off.rs:6:14
+  |
+6 | struct Price(rust_decimal::Decimal);
+  |              ^^^^^^^^^^^^

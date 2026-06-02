@@ -19,7 +19,7 @@ Nutype is a proc macro that allows adding extra constraints like _sanitization_ 
 
 
 * [Quick start](#quick-start)
-* [Inner types](#inner-types) ([String](#string) | [Integer](#integer) | [Float](#float) | [Other](#other-inner-types-and-generics))
+* [Inner types](#inner-types) ([String](#string) | [Integer](#integer) | [Float](#float) | [Decimal](#decimal) | [Other](#other-inner-types-and-generics))
 * [Custom](#custom-sanitizers) ([sanitizers](#custom-sanitizers) | [validators](#custom-validators) | [errors](#custom-validation-with-a-custom-error-type))
 * [Deriving traits](#deriving-traits)
 * [Constants](#constants)
@@ -74,6 +74,7 @@ Available sanitizers, validators, and derivable traits are determined by the inn
 * String
 * Integer (`u8`, `u16`,`u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`, `usize`, `isize`)
 * Float (`f32`, `f64`)
+* Decimal (`rust_decimal::Decimal`, requires the `rust_decimal` feature)
 * Anything else
 
 ## String
@@ -230,6 +231,67 @@ This can be done applying by `finite` validation. For example:
 )]
 struct Size(f64);
 ```
+
+## Decimal
+
+The `rust_decimal::Decimal` type is supported as an inner type behind the
+`rust_decimal` feature flag.
+
+Requirements:
+* The `rust_decimal` feature of `nutype` is enabled.
+* You have to explicitly include `rust_decimal` as a dependency of your crate.
+* For `derive(Arbitrary)` you also need `rust_decimal`'s `rust-fuzz` feature, and
+  for `derive(Serialize, Deserialize)` its `serde` feature.
+
+All three spellings of the inner type are detected:
+
+```rust
+struct A(Decimal);                  // assumes `use rust_decimal::Decimal;`
+struct B(rust_decimal::Decimal);
+struct C(::rust_decimal::Decimal);
+```
+
+Example:
+
+```rust
+use nutype::nutype;
+use rust_decimal::Decimal;
+
+#[nutype(
+    validate(greater_or_equal = 0, less_or_equal = 100),  // bare literals, no dec!() needed
+    derive(Debug, Clone, Copy, PartialEq, PartialOrd, Display),
+)]
+pub struct Percentage(Decimal);
+```
+
+Note the asymmetry: bounds in the attribute are written as bare literals (parsed
+at compile time via `rust_decimal`'s `FromStr`), while values passed to
+`try_new()` are real `Decimal`s, so you typically reach for `dec!(...)` or
+`Decimal::from(...)` there.
+
+### Decimal sanitizers
+
+| Sanitizer | Description       | Example                                |
+|-----------|-------------------|----------------------------------------|
+| `with`    | Custom sanitizer. | `with = \|d: Decimal\| d.round_dp(2)`  |
+
+### Decimal validators
+
+| Validator          | Description                          | Error variant            | Example                  |
+| ------------------ | ------------------------------------ | ------------------------ | ------------------------ |
+| `less`             | Exclusive upper bound                | `LessViolated`           | `less = 100`             |
+| `less_or_equal`    | Inclusive upper bound                | `LessOrEqualViolated`    | `less_or_equal = 100`    |
+| `greater`          | Exclusive lower bound                | `GreaterViolated`        | `greater = 0`            |
+| `greater_or_equal` | Inclusive lower bound                | `GreaterOrEqualViolated` | `greater_or_equal = 0`   |
+| `predicate`        | Custom predicate                     | `PredicateViolated`      | `predicate = \|d: &Decimal\| d.scale() <= 2` |
+| `with`             | Custom validator with a custom error | N/A                      | (see custom error section) |
+
+
+### Decimal derivable traits
+
+The following traits can be derived for a decimal-based type:
+`Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `PartialOrd`, `Ord`, `FromStr`, `AsRef`, `Deref`,
+`Into`, `From`, `TryFrom`, `Hash`, `Borrow`, `Display`, `Default`, `Serialize`, `Deserialize`, `Arbitrary`.
 
 ## Other inner types and generics
 
@@ -577,6 +639,7 @@ assert_eq!(name.into_inner(), " boo ");
 * `derive_unchecked` - enables `derive_unchecked` attribute to derive any arbitrary trait.
 * `new_unchecked` - enables generation of unsafe `::new_unchecked()` function.
 * `regex` - allows to use `regex = ` validation on string-based types. Note: your crate also has to explicitly have `regex` within its dependencies.
+* `rust_decimal` - enables `rust_decimal::Decimal` as an inner type. Note: your crate also has to explicitly have `rust_decimal` within its dependencies.
 * `serde` - integrations with [`serde`](https://crates.io/crates/serde) crate. Allows to derive `Serialize` and `Deserialize` traits.
 * `schemars08` - allows to derive [`JsonSchema`](https://docs.rs/schemars/0.8.12/schemars/trait.JsonSchema.html) trait of [schemars](https://crates.io/crates/schemars) crate. Note that at the moment validation rules are not respected.
 * `std` - enabled by default. Use `default-features = false` to disable.

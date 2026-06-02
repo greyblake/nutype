@@ -12,11 +12,13 @@ test-features:
 	cargo test --features schemars08
 	cargo test --features arbitrary
 	cargo test --features valuable
+	cargo test --features rust_decimal
 	cargo test --all-features
 
 
 test-ui:
 	cargo test --features ui
+	cargo test --features "ui rust_decimal arbitrary"
 
 test-doc:
   cd nutype && cargo test --doc --all-features

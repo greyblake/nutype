@@ -1,0 +1,13 @@
+error: #[nutype] cannot derive `Valuable` trait for `rust_decimal::Decimal`, because it does not implement `valuable::Valuable`.
+ --> tests/ui_decimal_on/derive_valuable.rs:6:24
+  |
+6 | #[nutype(derive(Debug, Valuable))]
+  |                        ^^^^^^^^
+
+warning: unused import: `rust_decimal::Decimal`
+ --> tests/ui_decimal_on/derive_valuable.rs:2:5
+  |
+2 | use rust_decimal::Decimal;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

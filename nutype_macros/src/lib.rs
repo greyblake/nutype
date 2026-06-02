@@ -6,6 +6,8 @@
 
 mod any;
 mod common;
+#[cfg(feature = "rust_decimal")]
+mod decimal;
 mod float;
 mod integer;
 mod string;
@@ -16,6 +18,8 @@ use common::{
     models::{InnerType, Newtype, TypedMeta},
     parse::meta::parse_meta,
 };
+#[cfg(feature = "rust_decimal")]
+use decimal::{DecimalNewtype, models::DecimalLit};
 use float::{FloatNewtype, models::FloatInnerType};
 use integer::{IntegerNewtype, models::IntegerInnerType};
 use proc_macro2::TokenStream;
@@ -45,6 +49,8 @@ fn expand_nutype(
         InnerType::String(tp) => StringNewtype::expand(typed_meta, tp),
         InnerType::Integer(inner) => expand_nutype_integer(typed_meta, inner),
         InnerType::Float(inner) => expand_nutype_float(typed_meta, inner),
+        #[cfg(feature = "rust_decimal")]
+        InnerType::Decimal(inner) => DecimalNewtype::<DecimalLit>::expand(typed_meta, inner),
         InnerType::Any(any_inner_type) => AnyNewtype::expand(typed_meta, any_inner_type),
     }
 }

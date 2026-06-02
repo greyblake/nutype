@@ -1,0 +1,14 @@
+error: Unknown validation attribute: `finite`.
+       Possible attributes are `greater`, `greater_or_equal`, `less`, `less_or_equal`, `predicate`, `with`, `error`.
+ --> tests/ui_decimal_on/unknown_validator.rs:7:14
+  |
+7 |     validate(finite),
+  |              ^^^^^^
+
+warning: unused import: `rust_decimal::Decimal`
+ --> tests/ui_decimal_on/unknown_validator.rs:2:5
+  |
+2 | use rust_decimal::Decimal;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
