@@ -14,10 +14,10 @@ use crate::common::models::{
 
 /// A decimal literal value parsed at compile time.
 ///
-/// Alt A (see DECIMAL_PLAN.md): this is a thin wrapper around a real
-/// `rust_decimal::Decimal`. The wrapper exists only to satisfy the orphan rule
-/// for `ToTokens` (we cannot `impl ToTokens for rust_decimal::Decimal`). All
-/// parsing and comparison delegate to `Decimal`.
+/// This is a thin wrapper around a real `rust_decimal::Decimal`. The wrapper
+/// exists only to satisfy the orphan rule for `ToTokens` (we cannot
+/// `impl ToTokens for rust_decimal::Decimal`). All parsing and comparison
+/// delegate to `Decimal`.
 #[derive(Debug, Clone)]
 pub struct DecimalLit(rust_decimal::Decimal);
 

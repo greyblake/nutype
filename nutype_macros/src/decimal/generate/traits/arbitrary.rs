@@ -12,7 +12,10 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
     inner_type: &DecimalInnerType,
     guard: &DecimalGuard<T>,
 ) -> Result<TokenStream, syn::Error> {
-    let generate_inner_value = gen_generate_valid_inner_value(inner_type, guard)?;
+    let GeneratedInnerValue {
+        body: generate_inner_value,
+        consumed_bytes,
+    } = gen_generate_valid_inner_value(inner_type, guard)?;
 
     let construct_value = if guard.has_validation() {
         // If by some reason we generate an invalid value, make it very easy for the user to report
@@ -40,23 +43,36 @@ pub fn gen_impl_trait_arbitrary<T: ToTokens>(
 
             #[inline]
             fn size_hint(_depth: usize) -> (usize, Option<usize>) {
-                let n = ::core::mem::size_of::<#inner_type>();
+                // Mirror exactly what `arbitrary` draws above: the two-bound case
+                // consumes a single `u64`, every other case a single `Decimal`.
+                let n = #consumed_bytes;
                 (n, Some(n))
             }
         }
     ))
 }
 
+/// The generated code that produces a valid inner value, together with a token
+/// stream that evaluates to the number of bytes it draws from `Unstructured`.
+/// The latter feeds `size_hint`, so the two must stay in sync.
+struct GeneratedInnerValue {
+    body: TokenStream,
+    consumed_bytes: TokenStream,
+}
+
 /// Generates code that produces a valid inner `Decimal` value.
 fn gen_generate_valid_inner_value<T: ToTokens>(
     inner_type: &DecimalInnerType,
     guard: &DecimalGuard<T>,
-) -> Result<TokenStream, syn::Error> {
+) -> Result<GeneratedInnerValue, syn::Error> {
     match guard {
         DecimalGuard::WithoutValidation { .. } => {
             // No validation: delegate straight to the inner type's Arbitrary impl
             // (requires the user to enable `rust_decimal/rust-fuzz`).
-            Ok(quote!(u.arbitrary()?))
+            Ok(GeneratedInnerValue {
+                body: quote!(u.arbitrary()?),
+                consumed_bytes: quote!(::core::mem::size_of::<#inner_type>()),
+            })
         }
         DecimalGuard::WithValidation {
             sanitizers,
@@ -78,9 +94,9 @@ fn gen_generate_valid_inner_value<T: ToTokens>(
 }
 
 fn gen_generate_valid_inner_value_with_validators<T: ToTokens>(
-    _inner_type: &DecimalInnerType,
+    inner_type: &DecimalInnerType,
     validators: &[DecimalValidator<T>],
-) -> Result<TokenStream, syn::Error> {
+) -> Result<GeneratedInnerValue, syn::Error> {
     let mut lower: Option<TokenStream> = None;
     let mut upper: Option<TokenStream> = None;
 
@@ -103,37 +119,57 @@ fn gen_generate_valid_inner_value_with_validators<T: ToTokens>(
         }
     }
 
-    let body = match (lower, upper) {
-        (Some(lower), Some(upper)) => quote!(
-            let lower: ::rust_decimal::Decimal = #lower;
-            let upper: ::rust_decimal::Decimal = #upper;
-            // Build a fraction in [0, 1] (u64::MAX fits comfortably in Decimal's range).
-            let numerator = ::rust_decimal::Decimal::from(<u64 as ::arbitrary::Arbitrary>::arbitrary(u)?);
-            let denominator = ::rust_decimal::Decimal::from(u64::MAX);
-            let fraction = numerator
-                .checked_div(denominator)
-                .unwrap_or(::rust_decimal::Decimal::ZERO);
-            // Scale into [lower, upper], using checked arithmetic and falling back
-            // to `lower` (always valid) on overflow, then clamp to be safe.
-            let value = upper
-                .checked_sub(lower)
-                .and_then(|span| fraction.checked_mul(span))
-                .and_then(|delta| lower.checked_add(delta))
-                .unwrap_or(lower);
-            ::core::cmp::Ord::clamp(value, lower, upper)
-        ),
-        (Some(lower), None) => quote!(
-            let lower: ::rust_decimal::Decimal = #lower;
-            let base: ::rust_decimal::Decimal = u.arbitrary()?;
-            lower.checked_add(base.abs()).unwrap_or(lower)
-        ),
-        (None, Some(upper)) => quote!(
-            let upper: ::rust_decimal::Decimal = #upper;
-            let base: ::rust_decimal::Decimal = u.arbitrary()?;
-            upper.checked_sub(base.abs()).unwrap_or(upper)
-        ),
-        (None, None) => quote!(u.arbitrary()?),
+    let decimal_bytes = quote!(::core::mem::size_of::<#inner_type>());
+
+    let generated = match (lower, upper) {
+        (Some(lower), Some(upper)) => GeneratedInnerValue {
+            body: quote!(
+                let lower: ::rust_decimal::Decimal = #lower;
+                let upper: ::rust_decimal::Decimal = #upper;
+                // Build a fraction in [0, 1] (u64::MAX fits comfortably in Decimal's range).
+                let numerator = ::rust_decimal::Decimal::from(<u64 as ::arbitrary::Arbitrary>::arbitrary(u)?);
+                let denominator = ::rust_decimal::Decimal::from(u64::MAX);
+                let fraction = numerator
+                    .checked_div(denominator)
+                    .unwrap_or(::rust_decimal::Decimal::ZERO);
+                // Scale into [lower, upper], using checked arithmetic and falling back
+                // to `lower` (always valid) on overflow, then clamp to be safe.
+                let value = upper
+                    .checked_sub(lower)
+                    .and_then(|span| fraction.checked_mul(span))
+                    .and_then(|delta| lower.checked_add(delta))
+                    .unwrap_or(lower);
+                ::core::cmp::Ord::clamp(value, lower, upper)
+            ),
+            // Only a single `u64` is drawn in this branch.
+            consumed_bytes: quote!(::core::mem::size_of::<u64>()),
+        },
+        (Some(lower), None) => GeneratedInnerValue {
+            // Best-effort: `lower + |base|` is always `>= lower`; on overflow we fall
+            // back to exactly `lower` (still valid). The distribution is therefore
+            // whatever the inner `Arbitrary` produces, biased towards `lower`.
+            body: quote!(
+                let lower: ::rust_decimal::Decimal = #lower;
+                let base: ::rust_decimal::Decimal = u.arbitrary()?;
+                lower.checked_add(base.abs()).unwrap_or(lower)
+            ),
+            consumed_bytes: decimal_bytes.clone(),
+        },
+        (None, Some(upper)) => GeneratedInnerValue {
+            // Best-effort: `upper - |base|` is always `<= upper`; on overflow we fall
+            // back to exactly `upper` (still valid).
+            body: quote!(
+                let upper: ::rust_decimal::Decimal = #upper;
+                let base: ::rust_decimal::Decimal = u.arbitrary()?;
+                upper.checked_sub(base.abs()).unwrap_or(upper)
+            ),
+            consumed_bytes: decimal_bytes.clone(),
+        },
+        (None, None) => GeneratedInnerValue {
+            body: quote!(u.arbitrary()?),
+            consumed_bytes: decimal_bytes,
+        },
     };
 
-    Ok(body)
+    Ok(generated)
 }

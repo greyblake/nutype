@@ -206,7 +206,7 @@ where
                 })
             }
             DecimalSanitizerKind::_Phantom => {
-                let msg = format!("Unknown validator `{ident}`");
+                let msg = format!("Unknown sanitizer `{ident}`");
                 Err(syn::Error::new(ident.span(), msg))
             }
         }
