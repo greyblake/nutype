@@ -1,0 +1,13 @@
+error: Invalid decimal default value `1e40`: Scale exceeds the maximum precision allowed: 40 > 28
+ --> tests/ui_decimal_on/invalid_default_literal.rs:8:15
+  |
+8 |     default = 1e40,
+  |               ^^^^
+
+warning: unused import: `rust_decimal::Decimal`
+ --> tests/ui_decimal_on/invalid_default_literal.rs:2:5
+  |
+2 | use rust_decimal::Decimal;
+  |     ^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default

@@ -1,5 +1,5 @@
 [package]
-name = "serde_complex"
+name = "decimal_percentage"
 version = "0.1.0"
 edition = "2024"
 publish = false
@@ -8,6 +8,6 @@ authors = ["Serhii Potapov <blake131313@gmail.com>"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-nutype = { path = "../../nutype", features = ["serde"] }
-serde = { version = "1.0.192", features = ["derive"] }
-serde_json = "1.0.108"
+nutype = { path = "../../nutype", features = ["rust_decimal"] }
+rust_decimal = "1"
+rust_decimal_macros = "1"

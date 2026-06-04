@@ -27,4 +27,5 @@ members = [
     "examples/cfg_attr_example",
     "examples/valuable_example",
     "examples/str_reference",
+    "examples/decimal_percentage",
 ]

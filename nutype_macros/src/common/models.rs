@@ -12,6 +12,8 @@ use syn::{
     parse::{Parse, ParseStream},
 };
 
+#[cfg(feature = "rust_decimal")]
+use crate::decimal::models::DecimalInnerType;
 use crate::{
     any::models::AnyInnerType, float::models::FloatInnerType, integer::models::IntegerInnerType,
     string::models::StringInnerType,
@@ -55,12 +57,28 @@ pub enum InnerType {
     String(StringInnerType),
     Integer(IntegerInnerType),
     Float(FloatInnerType),
+    #[cfg(feature = "rust_decimal")]
+    Decimal(DecimalInnerType),
     Any(AnyInnerType),
 }
 
 impl From<IntegerInnerType> for InnerType {
     fn from(tp: IntegerInnerType) -> InnerType {
         InnerType::Integer(tp)
+    }
+}
+
+#[cfg(feature = "rust_decimal")]
+impl From<DecimalInnerType> for InnerType {
+    fn from(tp: DecimalInnerType) -> InnerType {
+        InnerType::Decimal(tp)
+    }
+}
+
+#[cfg(feature = "rust_decimal")]
+impl From<&DecimalInnerType> for InnerType {
+    fn from(tp: &DecimalInnerType) -> InnerType {
+        InnerType::Decimal(*tp)
     }
 }
 
@@ -111,6 +129,10 @@ impl ToTokens for InnerType {
             }
             InnerType::Float(float_type) => {
                 float_type.to_tokens(token_stream);
+            }
+            #[cfg(feature = "rust_decimal")]
+            InnerType::Decimal(decimal_type) => {
+                decimal_type.to_tokens(token_stream);
             }
             InnerType::Any(any_type) => {
                 any_type.to_tokens(token_stream);

@@ -1,4 +1,5 @@
 ### v0.7.1 - Unreleased
+- **[FEATURE]** Support `rust_decimal::Decimal` as an inner type behind the `rust_decimal` feature flag, with the standard numeric validators and sanitizers (see [#242](https://github.com/greyblake/nutype/issues/242)).
 - **[FEATURE]** Friendlier error when a `#[nutype(...)]` attribute is mistyped: suggests the closest match (e.g. `validte` -> `validate`) and lists the available nutype attributes (see [#240](https://github.com/greyblake/nutype/issues/240)).
 - **[FIX]** Fix misleading error for value-type mismatches in validators (see [#241](https://github.com/greyblake/nutype/issues/241)).
 

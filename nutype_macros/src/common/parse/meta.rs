@@ -67,7 +67,15 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
 
     let type_path_str = seg.ty.clone().into_token_stream().to_string();
 
-    let inner_type = match type_path_str.as_ref() {
+    // `into_token_stream().to_string()` renders paths with spaces around `::`
+    // (e.g. `"rust_decimal :: Decimal"`), and that spacing is brittle across
+    // syn versions. Strip all whitespace before matching the compact forms.
+    let compact_type_path: String = type_path_str
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
+
+    let inner_type = match compact_type_path.as_str() {
         "String" => InnerType::String(StringInnerType),
         "u8" => InnerType::Integer(IntegerInnerType::U8),
         "u16" => InnerType::Integer(IntegerInnerType::U16),
@@ -83,6 +91,23 @@ pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
         "isize" => InnerType::Integer(IntegerInnerType::Isize),
         "f32" => InnerType::Float(FloatInnerType::F32),
         "f64" => InnerType::Float(FloatInnerType::F64),
+        "Decimal" | "rust_decimal::Decimal" | "::rust_decimal::Decimal" => {
+            #[cfg(feature = "rust_decimal")]
+            {
+                InnerType::Decimal(crate::decimal::models::DecimalInnerType)
+            }
+            #[cfg(not(feature = "rust_decimal"))]
+            {
+                return Err(syn::Error::new(
+                    seg.ty.span(),
+                    concat!(
+                        "To use `Decimal` as the inner type, enable the `rust_decimal` feature of crate `nutype`, e.g.\n\n",
+                        "    nutype = { version = \"0.7\", features = [\"rust_decimal\"] }\n\n",
+                        "You also need to add `rust_decimal` as a dependency of your crate."
+                    ),
+                ));
+            }
+        }
         _ => InnerType::Any(AnyInnerType::new(seg.clone())),
     };
 
