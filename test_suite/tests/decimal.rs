@@ -130,6 +130,19 @@ mod sanitizers {
     fn sanitizer_runs_before_validation() {
         assert_eq!(Money::try_new(d("9.999")).unwrap().into_inner(), d("10.00"));
     }
+
+    // An *untyped* sanitizer closure must compile: the macro has to inject the
+    // real `Decimal` inner type, not the internal `DecimalLit` literal type.
+    #[nutype(
+        sanitize(with = |d| d.round_dp(2)),
+        derive(Debug, Clone, Copy, PartialEq),
+    )]
+    pub struct UntypedMoney(Decimal);
+
+    #[test]
+    fn untyped_sanitizer_closure() {
+        assert_eq!(UntypedMoney::new(d("9.999")).into_inner(), d("10.00"));
+    }
 }
 
 mod predicate {
@@ -147,6 +160,23 @@ mod predicate {
         assert_eq!(
             Price::try_new(d("9.999")),
             Err(PriceError::PredicateViolated)
+        );
+    }
+
+    // An *untyped* predicate closure must compile: the macro has to inject the
+    // real `&Decimal` inner type, not the internal `DecimalLit` literal type.
+    #[nutype(
+        validate(predicate = |d| d.scale() <= 2),
+        derive(Debug, Clone, Copy, PartialEq),
+    )]
+    pub struct UntypedPrice(Decimal);
+
+    #[test]
+    fn untyped_predicate_closure() {
+        assert!(UntypedPrice::try_new(d("9.99")).is_ok());
+        assert_eq!(
+            UntypedPrice::try_new(d("9.999")),
+            Err(UntypedPriceError::PredicateViolated)
         );
     }
 }

@@ -7,7 +7,7 @@ use crate::common::{
     models::{Attributes, ConstFn, SpannedDeriveTrait, TypeName},
     parse::{
         ParseableAttributes, parse_number_or_expr, parse_sanitizer_kind,
-        parse_typed_custom_function, parse_validator_kind,
+        parse_typed_custom_function_raw, parse_validator_kind,
     },
 };
 use proc_macro2::TokenStream;
@@ -178,7 +178,12 @@ where
             }
             DecimalValidatorKind::Predicate => {
                 let _eq: Token![=] = input.parse()?;
-                let (typed_custom_function, span) = parse_typed_custom_function::<&T>(input)?;
+                // The predicate closure receives `&Decimal`. We must inject the real
+                // inner type, not the internal `DecimalLit` literal type (`T`), otherwise
+                // an untyped closure like `|d| ...` would expand to reference the private
+                // `nutype_macros::...::DecimalLit` type and fail to compile.
+                let (typed_custom_function, span) =
+                    parse_typed_custom_function_raw(input, "&::rust_decimal::Decimal")?;
                 Ok(SpannedDecimalValidator {
                     item: DecimalValidator::Predicate(typed_custom_function),
                     span,
@@ -199,7 +204,11 @@ where
         match kind {
             DecimalSanitizerKind::With => {
                 let _eq: Token![=] = input.parse()?;
-                let (typed_custom_function, span) = parse_typed_custom_function::<T>(input)?;
+                // The sanitizer closure receives `Decimal` by value. Inject the real
+                // inner type rather than the internal `DecimalLit` literal type (`T`),
+                // so that an untyped closure like `|d| ...` compiles.
+                let (typed_custom_function, span) =
+                    parse_typed_custom_function_raw(input, "::rust_decimal::Decimal")?;
                 Ok(SpannedDecimalSanitizer {
                     item: DecimalSanitizer::With(typed_custom_function),
                     span,
