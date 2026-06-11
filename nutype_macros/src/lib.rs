@@ -33,8 +33,18 @@ pub fn nutype(
     attrs: proc_macro::TokenStream,
     type_definition: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    expand_nutype(attrs.into(), type_definition.into())
-        .unwrap_or_else(|e| syn::Error::to_compile_error(&e))
+    let type_definition: TokenStream = type_definition.into();
+    expand_nutype(attrs.into(), type_definition.clone())
+        .unwrap_or_else(|e| {
+            let compile_error = e.to_compile_error();
+            // Emit a best-effort skeleton of the newtype alongside the error so
+            // rust-analyzer keeps resolving the type while the attribute is
+            // still being typed. See `common::fallback` for details.
+            match common::fallback::fallback_skeleton(&type_definition) {
+                Some(skeleton) => quote::quote! { #skeleton #compile_error },
+                None => compile_error,
+            }
+        })
         .into()
 }
 

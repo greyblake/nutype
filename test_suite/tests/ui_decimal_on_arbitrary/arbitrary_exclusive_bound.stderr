@@ -9,11 +9,3 @@ error: Deriving `Arbitrary` for a Decimal type currently supports inclusive boun
   | |__^
   |
   = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-warning: unused import: `rust_decimal::Decimal`
- --> tests/ui_decimal_on_arbitrary/arbitrary_exclusive_bound.rs:2:5
-  |
-2 | use rust_decimal::Decimal;
-  |     ^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
