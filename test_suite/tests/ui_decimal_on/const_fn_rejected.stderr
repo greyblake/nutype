@@ -9,11 +9,3 @@ error: `const_fn` is not supported for `rust_decimal::Decimal`, because Decimal'
    | |__^
    |
    = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
-
-warning: unused import: `rust_decimal::Decimal`
- --> tests/ui_decimal_on/const_fn_rejected.rs:2:5
-  |
-2 | use rust_decimal::Decimal;
-  |     ^^^^^^^^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
