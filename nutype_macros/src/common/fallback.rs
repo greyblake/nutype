@@ -136,7 +136,7 @@ mod tests {
     }
 
     #[test]
-    fn no_skeleton_for_unparseable_input() {
+    fn no_skeleton_for_unparsable_input() {
         let input = quote! { this is not a struct @ # !; };
         assert!(fallback_skeleton(&input).is_none());
     }
