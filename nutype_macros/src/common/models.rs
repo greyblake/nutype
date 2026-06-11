@@ -809,17 +809,21 @@ impl ToTokens for TypedCustomFunction {
     }
 }
 
-/// This trait allows to reuse validation of numeric validators.
-pub trait NumericBoundValidator<T: Clone> {
-    fn greater(&self) -> Option<T>;
-    fn greater_or_equal(&self) -> Option<T>;
-    fn less(&self) -> Option<T>;
-    fn less_or_equal(&self) -> Option<T>;
+/// This trait allows to reuse validation of numeric validators. The associated
+/// `Bound` type is the inner value type of the bounds (e.g. `i32` for an integer
+/// newtype), which is a function of the validator type itself.
+pub trait NumericBoundValidator {
+    type Bound: Clone;
+    fn greater(&self) -> Option<Self::Bound>;
+    fn greater_or_equal(&self) -> Option<Self::Bound>;
+    fn less(&self) -> Option<Self::Bound>;
+    fn less_or_equal(&self) -> Option<Self::Bound>;
 }
 
 macro_rules! impl_numeric_bound_validator {
     ($tp:ident) => {
-        impl<T: Clone> crate::common::models::NumericBoundValidator<T> for $tp<T> {
+        impl<T: Clone> crate::common::models::NumericBoundValidator for $tp<T> {
+            type Bound = T;
             fn greater(&self) -> Option<T> {
                 if let $tp::Greater(ValueOrExpr::Value(value)) = self {
                     Some(value.clone())

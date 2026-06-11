@@ -2,15 +2,10 @@ use proc_macro2::Span;
 
 use crate::common::{
     models::{CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives},
-    validate::{
-        validate_all_derive_traits, validate_duplicates, validate_guard, validate_numeric_bounds,
-    },
+    validate::{validate_all_derive_traits, validate_numeric_guard},
 };
 
-use super::models::{
-    IntegerDeriveTrait, IntegerGuard, IntegerRawGuard, IntegerSanitizer, IntegerValidator,
-    SpannedIntegerSanitizer, SpannedIntegerValidator,
-};
+use super::models::{IntegerDeriveTrait, IntegerGuard, IntegerRawGuard};
 
 pub fn validate_integer_guard<T>(
     raw_guard: IntegerRawGuard<T>,
@@ -19,44 +14,7 @@ pub fn validate_integer_guard<T>(
 where
     T: PartialOrd + Clone,
 {
-    validate_guard(
-        raw_guard,
-        type_name,
-        validate_validators,
-        validate_sanitizers,
-    )
-}
-
-fn validate_validators<T>(
-    validators: Vec<SpannedIntegerValidator<T>>,
-) -> Result<Vec<IntegerValidator<T>>, syn::Error>
-where
-    T: PartialOrd + Clone,
-{
-    validate_duplicates(&validators, |kind| {
-        format!(
-            "Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!"
-        )
-    })?;
-
-    validate_numeric_bounds(&validators)?;
-
-    let validators: Vec<_> = validators.into_iter().map(|v| v.item).collect();
-    Ok(validators)
-}
-
-fn validate_sanitizers<T>(
-    sanitizers: Vec<SpannedIntegerSanitizer<T>>,
-) -> Result<Vec<IntegerSanitizer<T>>, syn::Error>
-where
-    T: PartialOrd + Clone,
-{
-    validate_duplicates(&sanitizers, |kind| {
-        format!("Duplicated sanitizer `{kind}`.\nIt happens, don't worry. We still love you!")
-    })?;
-
-    let sanitizers: Vec<_> = sanitizers.into_iter().map(|s| s.item).collect();
-    Ok(sanitizers)
+    validate_numeric_guard(raw_guard, type_name)
 }
 
 pub fn validate_integer_derive_traits(

@@ -6,15 +6,10 @@ use crate::common::{
         CfgAttrContent, CfgAttrEntry, DeriveTrait, SpannedDeriveTrait, TypeName, ValidatedDerives,
         Validation,
     },
-    validate::{
-        validate_all_derive_traits, validate_duplicates, validate_guard, validate_numeric_bounds,
-    },
+    validate::{validate_all_derive_traits, validate_numeric_guard},
 };
 
-use super::models::{
-    FloatDeriveTrait, FloatGuard, FloatRawGuard, FloatSanitizer, FloatValidator,
-    FloatValidatorKind, SpannedFloatSanitizer, SpannedFloatValidator,
-};
+use super::models::{FloatDeriveTrait, FloatGuard, FloatRawGuard, FloatValidatorKind};
 
 pub fn validate_float_guard<T>(
     raw_guard: FloatRawGuard<T>,
@@ -23,44 +18,7 @@ pub fn validate_float_guard<T>(
 where
     T: PartialOrd + Clone,
 {
-    validate_guard(
-        raw_guard,
-        type_name,
-        validate_validators,
-        validate_sanitizers,
-    )
-}
-
-fn validate_validators<T>(
-    validators: Vec<SpannedFloatValidator<T>>,
-) -> Result<Vec<FloatValidator<T>>, syn::Error>
-where
-    T: PartialOrd + Clone,
-{
-    validate_duplicates(&validators, |kind| {
-        format!(
-            "Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!"
-        )
-    })?;
-
-    validate_numeric_bounds(&validators)?;
-
-    let validators: Vec<_> = validators.into_iter().map(|v| v.item).collect();
-    Ok(validators)
-}
-
-fn validate_sanitizers<T>(
-    sanitizers: Vec<SpannedFloatSanitizer<T>>,
-) -> Result<Vec<FloatSanitizer<T>>, syn::Error>
-where
-    T: PartialOrd + Clone,
-{
-    validate_duplicates(&sanitizers, |kind| {
-        format!("Duplicated sanitizer `{kind}`.\nIt happens, don't worry. We still love you!")
-    })?;
-
-    let sanitizers: Vec<_> = sanitizers.into_iter().map(|s| s.item).collect();
-    Ok(sanitizers)
+    validate_numeric_guard(raw_guard, type_name)
 }
 
 fn has_validation_against_nan<T>(guard: &FloatGuard<T>) -> bool {
