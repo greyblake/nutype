@@ -1,4 +1,3 @@
-pub mod error;
 pub mod traits;
 
 use std::collections::HashSet;
@@ -7,7 +6,6 @@ use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
 use syn::Generics;
 
-use self::error::gen_validation_error_type;
 use super::{
     FloatNewtype,
     models::{FloatDeriveTrait, FloatGuard, FloatSanitizer, FloatType, FloatValidator},
@@ -16,6 +14,9 @@ use crate::{
     common::{
         generate::{
             GenerateNewtype,
+            numeric::{
+                gen_numeric_fn_sanitize, gen_numeric_fn_validate, gen_numeric_validation_error_type,
+            },
             tests::{
                 gen_test_should_have_consistent_lower_and_upper_boundaries,
                 gen_test_should_have_valid_default_value,
@@ -45,26 +46,7 @@ where
         sanitizers: &[Self::Sanitizer],
         const_fn: ConstFn,
     ) -> TokenStream {
-        let transformations: TokenStream = sanitizers
-            .iter()
-            .map(|san| match san {
-                FloatSanitizer::With(custom_sanitizer) => {
-                    quote!(
-                        value = (#custom_sanitizer)(value);
-                    )
-                }
-                FloatSanitizer::_Phantom(_) => {
-                    unreachable!("float::gen FloatSanitizer::_Phantom must not be used")
-                }
-            })
-            .collect();
-
-        quote!(
-            #const_fn fn __sanitize__(mut value: #inner_type) -> #inner_type {
-                #transformations
-                value
-            }
-        )
+        gen_numeric_fn_sanitize(inner_type, sanitizers, const_fn)
     }
 
     fn gen_fn_validate(
@@ -73,61 +55,7 @@ where
         validators: &[Self::Validator],
         const_fn: ConstFn,
     ) -> TokenStream {
-        let validations: TokenStream = validators
-            .iter()
-            .map(|validator| match validator {
-                FloatValidator::Less(exclusive_upper_bound) => {
-                    quote!(
-                        if val >= #exclusive_upper_bound {
-                            return Err(#error_type_path::LessViolated);
-                        }
-                    )
-                }
-                FloatValidator::LessOrEqual(max) => {
-                    quote!(
-                        if val > #max {
-                            return Err(#error_type_path::LessOrEqualViolated);
-                        }
-                    )
-                }
-                FloatValidator::Greater(exclusive_lower_bound) => {
-                    quote!(
-                        if val <= #exclusive_lower_bound {
-                            return Err(#error_type_path::GreaterViolated);
-                        }
-                    )
-                }
-                FloatValidator::GreaterOrEqual(min) => {
-                    quote!(
-                        if val < #min {
-                            return Err(#error_type_path::GreaterOrEqualViolated);
-                        }
-                    )
-                }
-                FloatValidator::Predicate(custom_is_valid_fn) => {
-                    quote!(
-                        if !(#custom_is_valid_fn)(&val) {
-                            return Err(#error_type_path::PredicateViolated);
-                        }
-                    )
-                }
-                FloatValidator::Finite => {
-                    quote!(
-                        if !val.is_finite() {
-                            return Err(#error_type_path::FiniteViolated);
-                        }
-                    )
-                }
-            })
-            .collect();
-
-        quote!(
-            #const_fn fn __validate__(val: &#inner_type) -> core::result::Result<(), #error_type_path> {
-                let val = *val;
-                #validations
-                Ok(())
-            }
-        )
+        gen_numeric_fn_validate(inner_type, error_type_path, validators, const_fn)
     }
 
     fn gen_validation_error_type(
@@ -135,7 +63,7 @@ where
         error_type_path: &ErrorTypePath,
         validators: &[Self::Validator],
     ) -> TokenStream {
-        gen_validation_error_type(type_name, error_type_path, validators)
+        gen_numeric_validation_error_type(type_name, error_type_path, validators)
     }
 
     fn gen_traits(

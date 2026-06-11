@@ -1,9 +1,13 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 
-use crate::common::models::{
-    Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction, ValueOrExpr,
-    impl_numeric_bound_on_vec_of, impl_numeric_bound_validator,
+use crate::common::{
+    generate::numeric::{NumericSanitizerTokens, NumericValidatorTokens, NumericValidatorView},
+    models::{
+        Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction, ValueOrExpr,
+        impl_numeric_bound_on_vec_of, impl_numeric_bound_validator,
+    },
 };
 
 // Sanitizer
@@ -33,6 +37,27 @@ pub enum IntegerValidator<T> {
 
 impl_numeric_bound_validator!(IntegerValidator);
 impl_numeric_bound_on_vec_of!(IntegerValidator);
+
+impl<T: ToTokens> NumericValidatorTokens for IntegerValidator<T> {
+    fn view(&self) -> NumericValidatorView<'_> {
+        match self {
+            IntegerValidator::Greater(v) => NumericValidatorView::Greater(v),
+            IntegerValidator::GreaterOrEqual(v) => NumericValidatorView::GreaterOrEqual(v),
+            IntegerValidator::Less(v) => NumericValidatorView::Less(v),
+            IntegerValidator::LessOrEqual(v) => NumericValidatorView::LessOrEqual(v),
+            IntegerValidator::Predicate(f) => NumericValidatorView::Predicate(f),
+        }
+    }
+}
+
+impl<T> NumericSanitizerTokens for IntegerSanitizer<T> {
+    fn custom_fn(&self) -> Option<&dyn ToTokens> {
+        match self {
+            IntegerSanitizer::With(f) => Some(f),
+            IntegerSanitizer::_Phantom(_) => None,
+        }
+    }
+}
 
 pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 

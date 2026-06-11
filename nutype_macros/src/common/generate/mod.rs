@@ -1,6 +1,7 @@
 pub mod error;
 pub mod generics;
 pub mod new_unchecked;
+pub mod numeric;
 pub mod parse_error;
 pub mod tests;
 pub mod traits;

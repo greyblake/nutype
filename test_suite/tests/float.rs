@@ -489,7 +489,7 @@ mod traits {
         let err: DistParseError = "12.35".parse::<Dist>().unwrap_err();
         assert_eq!(
             err.to_string(),
-            "Failed to parse Dist: Dist is too big. The value must be less than 12.34."
+            "Failed to parse Dist: Dist is too big. The value must be less or equal to 12.34."
         );
     }
 
