@@ -103,10 +103,10 @@ macro_rules! find_bound_variant {
     };
 }
 
-pub fn validate_numeric_bounds<V, T>(validators: &[SpannedItem<V>]) -> Result<(), syn::Error>
+pub fn validate_numeric_bounds<V>(validators: &[SpannedItem<V>]) -> Result<(), syn::Error>
 where
-    V: NumericBoundValidator<T>,
-    T: Clone + PartialOrd,
+    V: NumericBoundValidator,
+    V::Bound: Clone + PartialOrd,
 {
     let maybe_greater = find_bound_variant!(validators, greater);
     let maybe_greater_or_equal = find_bound_variant!(validators, greater_or_equal);
@@ -153,6 +153,62 @@ where
     }
 
     Ok(())
+}
+
+/// Validate the validators of a numeric newtype (integer, float, decimal):
+/// reject duplicates and check the lower/upper bound relationship.
+pub fn validate_numeric_validators<V>(validators: Vec<SpannedItem<V>>) -> Result<Vec<V>, syn::Error>
+where
+    V: NumericBoundValidator + Kinded,
+    <V as Kinded>::Kind: core::fmt::Display,
+    V::Bound: Clone + PartialOrd,
+{
+    validate_duplicates(&validators, |kind| {
+        format!(
+            "Duplicated validator `{kind}`.\nYou're a great engineer, but don't forget to take care of yourself!"
+        )
+    })?;
+
+    validate_numeric_bounds(&validators)?;
+
+    let validators: Vec<_> = validators.into_iter().map(|v| v.item).collect();
+    Ok(validators)
+}
+
+/// Validate the sanitizers of a numeric newtype (integer, float, decimal):
+/// reject duplicates.
+pub fn validate_numeric_sanitizers<S>(sanitizers: Vec<SpannedItem<S>>) -> Result<Vec<S>, syn::Error>
+where
+    S: Kinded,
+    <S as Kinded>::Kind: core::fmt::Display,
+{
+    validate_duplicates(&sanitizers, |kind| {
+        format!("Duplicated sanitizer `{kind}`.\nIt happens, don't worry. We still love you!")
+    })?;
+
+    let sanitizers: Vec<_> = sanitizers.into_iter().map(|s| s.item).collect();
+    Ok(sanitizers)
+}
+
+/// Validate the full guard (sanitizers + validators) of a numeric newtype.
+/// Shared by integer, float and decimal.
+pub fn validate_numeric_guard<S, V>(
+    raw_guard: RawGuard<SpannedItem<S>, SpannedItem<V>>,
+    type_name: &TypeName,
+) -> Result<Guard<S, V>, syn::Error>
+where
+    S: Kinded,
+    <S as Kinded>::Kind: core::fmt::Display,
+    V: NumericBoundValidator + Kinded,
+    <V as Kinded>::Kind: core::fmt::Display,
+    V::Bound: Clone + PartialOrd,
+{
+    validate_guard(
+        raw_guard,
+        type_name,
+        validate_numeric_validators,
+        validate_numeric_sanitizers,
+    )
 }
 
 pub fn validate_traits_from_xor_try_from(

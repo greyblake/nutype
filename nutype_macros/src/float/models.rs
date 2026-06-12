@@ -1,9 +1,13 @@
 use kinded::Kinded;
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 
-use crate::common::models::{
-    Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction, ValueOrExpr,
-    impl_numeric_bound_on_vec_of, impl_numeric_bound_validator,
+use crate::common::{
+    generate::numeric::{NumericSanitizerTokens, NumericValidatorTokens, NumericValidatorView},
+    models::{
+        Guard, RawGuard, SpannedItem, TypeTrait, TypedCustomFunction, ValueOrExpr,
+        define_numeric_inner_type, impl_numeric_bound_on_vec_of, impl_numeric_bound_validator,
+    },
 };
 
 // Sanitizer
@@ -34,6 +38,28 @@ pub enum FloatValidator<T> {
 
 impl_numeric_bound_validator!(FloatValidator);
 impl_numeric_bound_on_vec_of!(FloatValidator);
+
+impl<T: ToTokens> NumericValidatorTokens for FloatValidator<T> {
+    fn view(&self) -> NumericValidatorView<'_> {
+        match self {
+            FloatValidator::Greater(v) => NumericValidatorView::Greater(v),
+            FloatValidator::GreaterOrEqual(v) => NumericValidatorView::GreaterOrEqual(v),
+            FloatValidator::Less(v) => NumericValidatorView::Less(v),
+            FloatValidator::LessOrEqual(v) => NumericValidatorView::LessOrEqual(v),
+            FloatValidator::Predicate(f) => NumericValidatorView::Predicate(f),
+            FloatValidator::Finite => NumericValidatorView::Finite,
+        }
+    }
+}
+
+impl<T> NumericSanitizerTokens for FloatSanitizer<T> {
+    fn custom_fn(&self) -> Option<&dyn ToTokens> {
+        match self {
+            FloatSanitizer::With(f) => Some(f),
+            FloatSanitizer::_Phantom(_) => None,
+        }
+    }
+}
 
 pub type SpannedFloatValidator<T> = SpannedItem<FloatValidator<T>>;
 
@@ -81,42 +107,8 @@ pub type FloatGuard<T> = Guard<FloatSanitizer<T>, FloatValidator<T>>;
 
 pub trait FloatType {}
 
-macro_rules! define_float_inner_type {
-    ($($tp:ty => $variant:ident),*) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-        pub enum FloatInnerType {
-            $($variant),*
-        }
-
-        $(
-            impl FloatType for $tp {
-            }
-        )*
-
-        impl quote::ToTokens for FloatInnerType {
-            fn to_tokens(&self, token_stream: &mut TokenStream) {
-                let type_stream = match self {
-                    $(
-                        Self::$variant => quote::quote!($tp),
-                    )*
-                };
-                type_stream.to_tokens(token_stream);
-            }
-        }
-
-        impl ::core::fmt::Display for FloatInnerType {
-            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                match self {
-                    $(
-                        Self::$variant => stringify!($tp).fmt(f),
-                    )*
-                }
-            }
-        }
-    }
-}
-
-define_float_inner_type!(
+define_numeric_inner_type!(
+    FloatInnerType, FloatType,
     f32 => F32,
     f64 => F64
 );

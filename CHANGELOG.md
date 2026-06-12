@@ -3,6 +3,8 @@
 - **[FEATURE]** Friendlier error when a `#[nutype(...)]` attribute is mistyped: suggests the closest match (e.g. `validte` -> `validate`) and lists the available nutype attributes (see [#240](https://github.com/greyblake/nutype/issues/240)).
 - **[FIX]** Fix misleading error for value-type mismatches in validators (see [#241](https://github.com/greyblake/nutype/issues/241)).
 - **[FIX]** Improve rust-analyzer resilience: when `#[nutype(...)]` arguments fail to parse (e.g. while still being typed), emit a best-effort type skeleton alongside the error so the newtype stays resolvable and downstream completions keep working (see [#178](https://github.com/greyblake/nutype/issues/178)).
+- **[FIX]** Correct the validation error `Display` message for float newtypes: `less` now reads "The value must be less than ..." and `less_or_equal` reads "The value must be less or equal to ..." (the two were previously swapped). Integer and decimal were already correct.
+- **[INTERNAL]** Consolidate the integer, float and decimal backends onto a shared numeric code-generation and validation layer (`common/generate/numeric.rs` and shared helpers in `common/validate.rs`), removing a large amount of duplicated code. No change to generated code or public API.
 
 ### v0.7.0 - 2026-04-25
 - **[BREAKING]** Rename `derive_unsafe` to `derive_unchecked` (both the feature flag and the attribute).
