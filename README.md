@@ -509,6 +509,47 @@ pub struct Tag(String);
 Note that a trait cannot appear in both unconditional `derive` and `cfg_attr` `derive` at the same time.
 
 
+## Attribute passthrough
+
+Attributes on the struct and on the inner field are forwarded verbatim onto
+the generated type, so the compiler and third-party derives (via
+`derive_unchecked`) can read them, e.g. `#[repr(transparent)]`,
+`#[sqlx(transparent)]` or field-level garde validation:
+
+```rust,ignore
+#[nutype(
+    sanitize(trim),
+    derive(Debug, Clone),
+    derive_unchecked(garde::Validate),
+)]
+pub struct UserId(#[garde(length(min = 1))] String);
+```
+
+Exceptions: `#[derive(...)]` must go through `#[nutype(derive(...))]`,
+`#[serde(...)]` is handled by nutype itself (see below), and `#[cfg(...)]` is
+rejected on the inner field.
+
+nutype forwards attributes verbatim and cannot verify what they do: an
+attribute macro that rewrites the type can break nutype's guarantees, exactly
+like `derive_unchecked`.
+
+### Serde customization
+
+nutype generates its own `Serialize`/`Deserialize` impls and understands
+field-level `#[serde(with = "...")]`, `#[serde(serialize_with = "...")]`,
+`#[serde(deserialize_with = "...")]` and type-level `#[serde(transparent)]`
+natively. Sanitization and validation always run on deserialization, even
+with a custom `deserialize_with` function:
+
+```rust,ignore
+#[nutype(
+    validate(predicate = |v| !v.is_empty()),
+    derive(Debug, Serialize, Deserialize),
+)]
+pub struct InvitationToken(#[serde(with = "base64_codec")] Vec<u8>);
+```
+
+
 ## Constants
 
 You can mark a type with the `const_fn` flag. In that case, its `new` and `try_new` functions will be declared as `const`:
