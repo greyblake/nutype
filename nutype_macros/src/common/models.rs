@@ -923,3 +923,43 @@ macro_rules! impl_numeric_bound_on_vec_of {
 }
 
 pub(crate) use impl_numeric_bound_on_vec_of;
+
+/// Define the inner-type enum for a numeric kind (integer, float) together with
+/// its marker-trait impls, `ToTokens` and `Display`. Integer and float share
+/// the exact same shape, differing only in the enum name, the marker trait and
+/// the list of concrete types.
+macro_rules! define_numeric_inner_type {
+    ($enum_name:ident, $marker_trait:ident, $($tp:ty => $variant:ident),* $(,)?) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+        pub enum $enum_name {
+            $($variant),*
+        }
+
+        $(
+            impl $marker_trait for $tp {}
+        )*
+
+        impl ::quote::ToTokens for $enum_name {
+            fn to_tokens(&self, token_stream: &mut ::proc_macro2::TokenStream) {
+                let type_stream = match self {
+                    $(
+                        Self::$variant => ::quote::quote!($tp),
+                    )*
+                };
+                ::quote::ToTokens::to_tokens(&type_stream, token_stream);
+            }
+        }
+
+        impl ::core::fmt::Display for $enum_name {
+            fn fmt(&self, f: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                match self {
+                    $(
+                        Self::$variant => stringify!($tp).fmt(f),
+                    )*
+                }
+            }
+        }
+    };
+}
+
+pub(crate) use define_numeric_inner_type;
