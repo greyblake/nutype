@@ -1,0 +1,6 @@
+error: #[serde(transparent)] requires `Serialize` or `Deserialize` to be derived.
+       Add it with #[nutype(derive(Serialize, Deserialize))].
+ --> tests/ui/common/attrs/serde_transparent_requires_derive.rs:5:9
+  |
+5 | #[serde(transparent)]
+  |         ^^^^^^^^^^^

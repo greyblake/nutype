@@ -187,6 +187,12 @@ impl TypeTrait for DecimalDeriveTrait {
     fn is_default(&self) -> bool {
         self == &DecimalDeriveTrait::Default
     }
+    fn is_serde_serialize(&self) -> bool {
+        self == &DecimalDeriveTrait::SerdeSerialize
+    }
+    fn is_serde_deserialize(&self) -> bool {
+        self == &DecimalDeriveTrait::SerdeDeserialize
+    }
 }
 
 pub type DecimalRawGuard<T> = RawGuard<SpannedDecimalSanitizer<T>, SpannedDecimalValidator<T>>;

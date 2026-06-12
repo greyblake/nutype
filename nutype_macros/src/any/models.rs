@@ -60,6 +60,12 @@ impl TypeTrait for AnyDeriveTrait {
     fn is_default(&self) -> bool {
         self == &AnyDeriveTrait::Default
     }
+    fn is_serde_serialize(&self) -> bool {
+        self == &AnyDeriveTrait::SerdeSerialize
+    }
+    fn is_serde_deserialize(&self) -> bool {
+        self == &AnyDeriveTrait::SerdeDeserialize
+    }
 }
 
 pub type AnyRawGuard = RawGuard<SpannedAnySanitizer, SpannedAnyValidator>;

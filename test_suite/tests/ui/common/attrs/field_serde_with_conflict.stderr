@@ -1,0 +1,5 @@
+error: `serialize_with` cannot be combined with `with`.
+ --> tests/ui/common/attrs/field_serde_with_conflict.rs:6:41
+  |
+6 | pub struct Name(#[serde(with = "codec", serialize_with = "serialize_fn")] String);
+  |                                         ^^^^^^^^^^^^^^

@@ -27,7 +27,8 @@ use crate::common::{
         traits::GeneratedTraits,
     },
     models::{
-        ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName,
+        ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SerdeCustomization,
+        SpannedDeriveUnsafeTrait, TypeName,
     },
 };
 
@@ -74,6 +75,7 @@ where
         maybe_default_value: Option<syn::Expr>,
         guard: &DecimalGuard<T>,
         conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
+        serde_customization: &SerdeCustomization,
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
@@ -84,6 +86,7 @@ where
             maybe_default_value,
             guard,
             conditional_derives,
+            serde_customization,
         )
     }
 

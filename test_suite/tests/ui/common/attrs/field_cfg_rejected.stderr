@@ -1,0 +1,7 @@
+error: #[nutype] does not support `#[cfg(...)]` on the inner field:
+       it could remove the only field of the newtype and break the generated code.
+       Note: `#[cfg_attr(...)]` is supported and forwarded as is.
+ --> tests/ui/common/attrs/field_cfg_rejected.rs:6:17
+  |
+6 | pub struct Name(#[cfg(test)] String);
+  |                 ^

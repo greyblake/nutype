@@ -13,8 +13,8 @@ use self::traits::GeneratedTraits;
 
 use super::models::{
     ConditionalDeriveGroup, ConstFn, ConstructorVisibility, CustomFunction, ErrorTypePath,
-    GenerateParams, Guard, NewUnchecked, ParseErrorTypeName, SpannedDeriveUnsafeTrait, TypeName,
-    TypeTrait,
+    GenerateParams, Guard, NewUnchecked, ParseErrorTypeName, SerdeCustomization,
+    SpannedDeriveUnsafeTrait, TypeName, TypeTrait,
 };
 use crate::common::{
     generate::{new_unchecked::gen_new_unchecked, parse_error::gen_parse_error_name},
@@ -225,6 +225,7 @@ pub trait GenerateNewtype {
         maybe_default_value: Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
+        serde_customization: &SerdeCustomization,
     ) -> Result<GeneratedTraits, syn::Error>;
 
     fn gen_try_new(
@@ -419,7 +420,12 @@ pub trait GenerateNewtype {
             inner_type,
             generics,
             conditional_derives,
+            forwarded_attrs,
+            inner_field_attrs,
+            serde_customization,
         } = params;
+
+        validate_serde_customization(&serde_customization, &traits, &conditional_derives)?;
 
         let module_name = gen_module_name_for_type(&type_name);
         let implementation = Self::gen_implementation(
@@ -474,6 +480,7 @@ pub trait GenerateNewtype {
             maybe_default_value,
             &guard,
             &conditional_derives,
+            &serde_customization,
         )?;
 
         let reimports = gen_reimports(
@@ -505,7 +512,12 @@ pub trait GenerateNewtype {
                 #(#doc_attrs)*
                 #derive_transparent_traits
                 #conditional_derive_transparent_traits
-                pub struct #type_name #struct_generics (#inner_type) #struct_where_clause;
+                // Forwarded attributes come AFTER the derives: derive-helper
+                // attributes (e.g. `#[sqlx(transparent)]`, `#[display(...)]`)
+                // are only legal after the derive that introduces them
+                // (see the `legacy_derive_helpers` lint).
+                #(#forwarded_attrs)*
+                pub struct #type_name #struct_generics (#(#inner_field_attrs)* #inner_type) #struct_where_clause;
 
                 #implementation
                 #implement_traits
@@ -529,6 +541,60 @@ pub trait GenerateNewtype {
         guard: &Guard<Self::Sanitizer, Self::Validator>,
         traits: &HashSet<Self::TypedTrait>,
     ) -> TokenStream;
+}
+
+/// Serde customization requires the corresponding traits to be derived through
+/// `#[nutype(derive(...))]` (unconditionally or in a `cfg_attr` group),
+/// because nutype weaves the custom functions into its own generated impls.
+fn validate_serde_customization<TypedTrait: TypeTrait>(
+    serde_customization: &SerdeCustomization,
+    traits: &HashSet<TypedTrait>,
+    conditional_derives: &[ConditionalDeriveGroup<TypedTrait>],
+) -> Result<(), syn::Error> {
+    let has_serialize = traits.iter().any(|t| t.is_serde_serialize())
+        || conditional_derives
+            .iter()
+            .any(|group| group.typed_traits.iter().any(|t| t.is_serde_serialize()));
+    let has_deserialize = traits.iter().any(|t| t.is_serde_deserialize())
+        || conditional_derives
+            .iter()
+            .any(|group| group.typed_traits.iter().any(|t| t.is_serde_deserialize()));
+
+    if let Some(span) = serde_customization.transparent
+        && !has_serialize
+        && !has_deserialize
+    {
+        let msg = "#[serde(transparent)] requires `Serialize` or `Deserialize` to be derived.\n\
+             Add it with #[nutype(derive(Serialize, Deserialize))].";
+        return Err(syn::Error::new(span, msg));
+    }
+
+    if let Some(with) = &serde_customization.with
+        && !has_serialize
+        && !has_deserialize
+    {
+        let msg = "#[serde(with = ...)] on the inner field requires `Serialize` or `Deserialize` to be derived.\n\
+             Add it with #[nutype(derive(Serialize, Deserialize))].";
+        return Err(syn::Error::new(with.span(), msg));
+    }
+
+    if let Some(serialize_with) = &serde_customization.serialize_with
+        && !has_serialize
+    {
+        let msg = "#[serde(serialize_with = ...)] on the inner field requires `Serialize` to be derived.\n\
+             Add it with #[nutype(derive(Serialize))].";
+        return Err(syn::Error::new(serialize_with.span(), msg));
+    }
+
+    if let Some(deserialize_with) = &serde_customization.deserialize_with
+        && !has_deserialize
+    {
+        let msg = "#[serde(deserialize_with = ...)] on the inner field requires `Deserialize` to be derived.\n\
+             Add it with #[nutype(derive(Deserialize))].";
+        return Err(syn::Error::new(deserialize_with.span(), msg));
+    }
+
+    Ok(())
 }
 
 fn gen_fn_validate_custom<InnerType: ToTokens>(

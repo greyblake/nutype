@@ -7,7 +7,10 @@ use syn::Generics;
 
 use crate::common::{
     generate::generics::{SplitGenerics, add_bound_to_all_type_params},
-    models::{ConditionalDeriveGroup, ErrorTypePath, InnerType, ParseErrorTypeName, TypeName},
+    models::{
+        ConditionalDeriveGroup, ErrorTypePath, InnerType, ParseErrorTypeName, SerdeCustomization,
+        TypeName,
+    },
 };
 
 use super::parse_error::{gen_def_parse_error, gen_parse_error_name};
@@ -421,7 +424,14 @@ pub fn gen_impl_trait_from_str(
     }
 }
 
-pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics) -> TokenStream {
+pub fn gen_impl_trait_serde_serialize(
+    type_name: &TypeName,
+    generics: &Generics,
+    inner_type: impl Into<InnerType>,
+    serde_customization: &SerdeCustomization,
+) -> TokenStream {
+    let inner_type: InnerType = inner_type.into();
+
     // Turn `<T>` into `<T: Serialize>`
     let all_generics_with_serialize_bound =
         add_bound_to_all_type_params(generics, syn::parse_quote!(::serde::Serialize));
@@ -432,13 +442,66 @@ pub fn gen_impl_trait_serde_serialize(type_name: &TypeName, generics: &Generics)
     } = SplitGenerics::new(&all_generics_with_serialize_bound);
 
     let type_name_str = type_name.to_string();
+    let maybe_serialize_with = serde_customization.effective_serialize_with();
+
+    let body = match (serde_customization.is_transparent(), maybe_serialize_with) {
+        // Plain newtype framing (the default serde derive behavior).
+        (false, None) => quote! {
+            ::serde::ser::Serializer::serialize_newtype_struct(serializer, #type_name_str, &self.0)
+        },
+        // Transparent: serialize exactly as the inner value.
+        (true, None) => quote! {
+            ::serde::Serialize::serialize(&self.0, serializer)
+        },
+        // Transparent + custom function: the function gets the serializer directly.
+        (true, Some(serialize_with)) => quote! {
+            #serialize_with(&self.0, serializer)
+        },
+        // Newtype framing + custom function: mirror serde's own derive, which
+        // wraps the field in a private struct whose Serialize impl calls the
+        // custom function. This keeps the framing identical to a plain struct
+        // using `#[serde(serialize_with = ...)]`.
+        (false, Some(serialize_with)) => {
+            // The wrapper needs the type generics (the inner type may use them)
+            // plus a lifetime for the borrowed inner value.
+            let mut wrapper_generics = all_generics_with_serialize_bound.clone();
+            wrapper_generics
+                .params
+                .push(syn::parse_quote!('__nutype_sw));
+            let SplitGenerics {
+                impl_generics: wrapper_impl_generics,
+                type_generics: wrapper_type_generics,
+                where_clause: wrapper_where_clause,
+            } = SplitGenerics::new(&wrapper_generics);
+
+            quote! {
+                struct __SerializeWith #wrapper_impl_generics #wrapper_where_clause {
+                    value: &'__nutype_sw #inner_type,
+                }
+                impl #wrapper_impl_generics ::serde::Serialize for __SerializeWith #wrapper_type_generics #wrapper_where_clause {
+                    fn serialize<__S>(&self, serializer: __S) -> ::core::result::Result<__S::Ok, __S::Error>
+                    where
+                        __S: ::serde::Serializer
+                    {
+                        #serialize_with(self.value, serializer)
+                    }
+                }
+                ::serde::ser::Serializer::serialize_newtype_struct(
+                    serializer,
+                    #type_name_str,
+                    &__SerializeWith { value: &self.0 },
+                )
+            }
+        }
+    };
+
     quote! {
         impl #impl_generics ::serde::Serialize for #type_name #type_generics #where_clause {
             fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
             where
                 S: ::serde::Serializer
             {
-                ::serde::ser::Serializer::serialize_newtype_struct(serializer, #type_name_str, &self.0)
+                #body
             }
         }
     }
@@ -449,19 +512,36 @@ pub fn gen_impl_trait_serde_deserialize(
     type_generics: &Generics,
     inner_type: impl Into<InnerType>,
     maybe_error_type_name: Option<&ErrorTypePath>,
+    serde_customization: &SerdeCustomization,
 ) -> TokenStream {
     let inner_type: InnerType = inner_type.into();
-    let raw_value_to_result: TokenStream = if maybe_error_type_name.is_some() {
-        let type_name_str = type_name.to_string();
-        quote! {
-            #type_name::try_new(raw_value).map_err(|validation_error| {
-                // Add a hint about which type is causing the error,
-                <DE::Error as serde::de::Error>::custom(core::format_args!("{validation_error} Expected valid {}", #type_name_str))
-            })
+
+    // How a raw inner value becomes the newtype: ALWAYS through the
+    // constructor, so sanitization and validation run regardless of any custom
+    // deserialization function. `deserializer_generic` is the ident of the
+    // deserializer's generic parameter in the surrounding scope.
+    let raw_value_to_result = |deserializer_generic: TokenStream| -> TokenStream {
+        if maybe_error_type_name.is_some() {
+            let type_name_str = type_name.to_string();
+            quote! {
+                #type_name::try_new(raw_value).map_err(|validation_error| {
+                    // Add a hint about which type is causing the error,
+                    <#deserializer_generic::Error as serde::de::Error>::custom(core::format_args!("{validation_error} Expected valid {}", #type_name_str))
+                })
+            }
+        } else {
+            quote! {
+                Ok(#type_name::new(raw_value))
+            }
         }
-    } else {
-        quote! {
-            Ok(#type_name::new(raw_value))
+    };
+
+    // How the raw inner value is obtained from a deserializer:
+    // the custom function if given, the inner type's Deserialize otherwise.
+    let gen_deserialize_call = |deserializer: TokenStream| -> TokenStream {
+        match serde_customization.effective_deserialize_with() {
+            Some(deserialize_with) => quote!(#deserialize_with(#deserializer)),
+            None => quote!(<#inner_type as ::serde::Deserialize>::deserialize(#deserializer)),
         }
     };
 
@@ -499,41 +579,62 @@ pub fn gen_impl_trait_serde_deserialize(
         where_clause: visitor_where_clause,
     } = SplitGenerics::new(&all_generics);
 
-    quote! {
-        impl #all_impl_generics ::serde::Deserialize<'de> for #type_name #inner_type_generics #all_where_clause {
-            fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> ::core::result::Result<Self, D::Error> {
-                struct __Visitor #visitor_impl_generics #visitor_where_clause {
-                    marker: ::core::marker::PhantomData<#type_name #inner_type_generics>,
-                    lifetime: ::core::marker::PhantomData<&'de ()>,
+    if serde_customization.is_transparent() {
+        // Transparent: no newtype framing, deserialize exactly as the inner
+        // value (mirrors serde's own `#[serde(transparent)]`). No visitor is
+        // needed because there is no framing to negotiate.
+        let deserialize_call = gen_deserialize_call(quote!(deserializer));
+        let to_result = raw_value_to_result(quote!(D));
+        quote! {
+            impl #all_impl_generics ::serde::Deserialize<'de> for #type_name #inner_type_generics #all_where_clause {
+                fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> ::core::result::Result<Self, D::Error> {
+                    let raw_value: #inner_type = match #deserialize_call {
+                        Ok(val) => val,
+                        Err(err) => return Err(err)
+                    };
+                    #to_result
                 }
-
-                impl #all_impl_generics ::serde::de::Visitor<'de> for __Visitor #all_type_generics #all_where_clause {
-                    type Value = #type_name #inner_type_generics;
-
-                    fn expecting(&self, formatter: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
-                        write!(formatter, #expecting_str)
+            }
+        }
+    } else {
+        let deserialize_call = gen_deserialize_call(quote!(deserializer));
+        let to_result = raw_value_to_result(quote!(DE));
+        quote! {
+            impl #all_impl_generics ::serde::Deserialize<'de> for #type_name #inner_type_generics #all_where_clause {
+                fn deserialize<D: ::serde::Deserializer<'de>>(deserializer: D) -> ::core::result::Result<Self, D::Error> {
+                    struct __Visitor #visitor_impl_generics #visitor_where_clause {
+                        marker: ::core::marker::PhantomData<#type_name #inner_type_generics>,
+                        lifetime: ::core::marker::PhantomData<&'de ()>,
                     }
 
-                    fn visit_newtype_struct<DE>(self, deserializer: DE) -> ::core::result::Result<Self::Value, DE::Error>
-                    where
-                        DE: ::serde::Deserializer<'de>
-                    {
-                        let raw_value: #inner_type = match <#inner_type as ::serde::Deserialize>::deserialize(deserializer) {
-                            Ok(val) => val,
-                            Err(err) => return Err(err)
-                        };
-                        #raw_value_to_result
+                    impl #all_impl_generics ::serde::de::Visitor<'de> for __Visitor #all_type_generics #all_where_clause {
+                        type Value = #type_name #inner_type_generics;
+
+                        fn expecting(&self, formatter: &mut ::core::fmt::Formatter) -> ::core::fmt::Result {
+                            write!(formatter, #expecting_str)
+                        }
+
+                        fn visit_newtype_struct<DE>(self, deserializer: DE) -> ::core::result::Result<Self::Value, DE::Error>
+                        where
+                            DE: ::serde::Deserializer<'de>
+                        {
+                            let raw_value: #inner_type = match #deserialize_call {
+                                Ok(val) => val,
+                                Err(err) => return Err(err)
+                            };
+                            #to_result
+                        }
                     }
+
+                    ::serde::de::Deserializer::deserialize_newtype_struct(
+                        deserializer,
+                        #type_name_str,
+                        __Visitor {
+                            marker: Default::default(),
+                            lifetime: Default::default(),
+                        }
+                    )
                 }
-
-                ::serde::de::Deserializer::deserialize_newtype_struct(
-                    deserializer,
-                    #type_name_str,
-                    __Visitor {
-                        marker: Default::default(),
-                        lifetime: Default::default(),
-                    }
-                )
             }
         }
     }
