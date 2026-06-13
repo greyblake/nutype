@@ -1,0 +1,5 @@
+error: Expected a path (e.g. `my_module::my_function`), like in serde: expected identifier
+ --> tests/ui/common/attrs/field_serde_bad_path.rs:5:42
+  |
+5 | pub struct Name(#[serde(serialize_with = "99 not a path")] String);
+  |                                          ^^^^^^^^^^^^^^^

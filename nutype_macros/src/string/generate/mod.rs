@@ -15,8 +15,8 @@ use crate::{
             traits::GeneratedTraits,
         },
         models::{
-            ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait,
-            TypeName,
+            ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SerdeCustomization,
+            SpannedDeriveUnsafeTrait, TypeName,
         },
     },
     string::models::{RegexDef, StringInnerType, StringSanitizer, StringValidator},
@@ -213,6 +213,7 @@ impl GenerateNewtype for StringNewtype {
         maybe_default_value: Option<syn::Expr>,
         guard: &StringGuard,
         conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
+        serde_customization: &SerdeCustomization,
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
@@ -222,6 +223,7 @@ impl GenerateNewtype for StringNewtype {
             maybe_default_value,
             guard,
             conditional_derives,
+            serde_customization,
         )
     }
 

@@ -1,0 +1,6 @@
+error: #[nutype] does not support `#[schemars(...)]` attributes.
+       nutype generates its own implementation of `JsonSchema`, so there is no schemars derive that could read this attribute.
+ --> tests/ui/common/attrs/struct_schemars_rejected.rs:6:1
+  |
+6 | #[schemars(title = "Name")]
+  | ^

@@ -12,8 +12,8 @@ use crate::common::{
         GenerateNewtype, tests::gen_test_should_have_valid_default_value, traits::GeneratedTraits,
     },
     models::{
-        ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait, TypeName,
-        TypedCustomFunction,
+        ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SerdeCustomization,
+        SpannedDeriveUnsafeTrait, TypeName, TypedCustomFunction,
     },
 };
 
@@ -127,6 +127,7 @@ impl GenerateNewtype for AnyNewtype {
         maybe_default_value: Option<syn::Expr>,
         guard: &AnyGuard,
         conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
+        serde_customization: &SerdeCustomization,
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
@@ -137,6 +138,7 @@ impl GenerateNewtype for AnyNewtype {
             maybe_default_value,
             guard,
             conditional_derives,
+            serde_customization,
         )
     }
 

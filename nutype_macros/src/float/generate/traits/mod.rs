@@ -15,7 +15,7 @@ use crate::{
             gen_impl_trait_serde_deserialize, gen_impl_trait_serde_serialize,
             gen_impl_trait_try_from, process_conditional_derives, split_into_generatable_traits,
         },
-        models::{ConditionalDeriveGroup, SpannedDeriveUnsafeTrait, TypeName},
+        models::{ConditionalDeriveGroup, SerdeCustomization, SpannedDeriveUnsafeTrait, TypeName},
     },
     float::models::{FloatDeriveTrait, FloatGuard, FloatInnerType},
 };
@@ -145,6 +145,7 @@ pub fn gen_traits<T: ToTokens>(
     unsafe_traits: &[SpannedDeriveUnsafeTrait],
     guard: &FloatGuard<T>,
     conditional_derives: &[ConditionalDeriveGroup<FloatDeriveTrait>],
+    serde_customization: &SerdeCustomization,
 ) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
@@ -181,6 +182,7 @@ pub fn gen_traits<T: ToTokens>(
         maybe_default_value.clone(),
         irregular_traits,
         guard,
+        serde_customization,
     )?;
 
     let ConditionalTraits {
@@ -195,6 +197,7 @@ pub fn gen_traits<T: ToTokens>(
             maybe_default_value.clone(),
             irregular,
             guard,
+            serde_customization,
         )
     })?;
 
@@ -207,6 +210,7 @@ pub fn gen_traits<T: ToTokens>(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
 fn gen_implemented_traits<T: ToTokens>(
     type_name: &TypeName,
     generics: &Generics,
@@ -214,6 +218,7 @@ fn gen_implemented_traits<T: ToTokens>(
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<FloatIrregularTrait>,
     guard: &FloatGuard<T>,
+    serde_customization: &SerdeCustomization,
 ) -> Result<TokenStream, syn::Error> {
     let maybe_error_type_name = guard.maybe_error_type_path();
     impl_traits
@@ -242,12 +247,18 @@ fn gen_implemented_traits<T: ToTokens>(
                     Err(syn::Error::new(span, msg))
                 }
             },
-            FloatIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name, generics)),
+            FloatIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(
+                type_name,
+                generics,
+                inner_type,
+                serde_customization,
+            )),
             FloatIrregularTrait::SerdeDeserialize => Ok(gen_impl_trait_serde_deserialize(
                 type_name,
                 generics,
                 inner_type,
                 maybe_error_type_name,
+                serde_customization,
             )),
             FloatIrregularTrait::Eq => Ok(gen_impl_trait_eq(type_name)),
             FloatIrregularTrait::Ord => Ok(gen_impl_trait_ord(type_name)),

@@ -24,8 +24,8 @@ use crate::{
             traits::GeneratedTraits,
         },
         models::{
-            ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SpannedDeriveUnsafeTrait,
-            TypeName,
+            ConditionalDeriveGroup, ConstFn, ErrorTypePath, Guard, SerdeCustomization,
+            SpannedDeriveUnsafeTrait, TypeName,
         },
     },
     float::models::FloatInnerType,
@@ -75,6 +75,7 @@ where
         maybe_default_value: Option<syn::Expr>,
         guard: &FloatGuard<T>,
         conditional_derives: &[ConditionalDeriveGroup<Self::TypedTrait>],
+        serde_customization: &SerdeCustomization,
     ) -> Result<GeneratedTraits, syn::Error> {
         gen_traits(
             type_name,
@@ -85,6 +86,7 @@ where
             unsafe_traits,
             guard,
             conditional_derives,
+            serde_customization,
         )
     }
 

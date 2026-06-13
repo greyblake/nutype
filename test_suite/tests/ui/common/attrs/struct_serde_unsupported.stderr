@@ -1,0 +1,8 @@
+error: #[nutype] does not support this serde attribute on the type.
+       The only supported type-level serde attribute is `#[serde(transparent)]`.
+       To customize how the inner value is serialized, use the field-level attributes
+       `#[serde(with = "...")]`, `#[serde(serialize_with = "...")]` or `#[serde(deserialize_with = "...")]`.
+ --> tests/ui/common/attrs/struct_serde_unsupported.rs:6:9
+  |
+6 | #[serde(rename_all = "camelCase")]
+  |         ^^^^^^^^^^

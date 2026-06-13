@@ -89,6 +89,12 @@ impl TypeTrait for StringDeriveTrait {
     fn is_default(&self) -> bool {
         self == &Self::Default
     }
+    fn is_serde_serialize(&self) -> bool {
+        self == &Self::SerdeSerialize
+    }
+    fn is_serde_deserialize(&self) -> bool {
+        self == &Self::SerdeDeserialize
+    }
 }
 
 pub type StringRawGuard = RawGuard<SpannedStringSanitizer, SpannedStringValidator>;

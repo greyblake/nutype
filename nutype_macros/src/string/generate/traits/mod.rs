@@ -16,7 +16,10 @@ use crate::{
             gen_impl_trait_serde_serialize, gen_impl_trait_try_from, process_conditional_derives,
             split_into_generatable_traits,
         },
-        models::{ConditionalDeriveGroup, ErrorTypePath, SpannedDeriveUnsafeTrait, TypeName},
+        models::{
+            ConditionalDeriveGroup, ErrorTypePath, SerdeCustomization, SpannedDeriveUnsafeTrait,
+            TypeName,
+        },
     },
     string::models::{StringDeriveTrait, StringGuard, StringInnerType},
 };
@@ -160,6 +163,7 @@ pub fn gen_traits(
     maybe_default_value: Option<syn::Expr>,
     guard: &StringGuard,
     conditional_derives: &[ConditionalDeriveGroup<StringDeriveTrait>],
+    serde_customization: &SerdeCustomization,
 ) -> Result<GeneratedTraits, syn::Error> {
     let GeneratableTraits {
         transparent_traits,
@@ -179,6 +183,7 @@ pub fn gen_traits(
         maybe_default_value.clone(),
         irregular_traits,
         guard,
+        serde_customization,
     )?;
 
     let ConditionalTraits {
@@ -192,6 +197,7 @@ pub fn gen_traits(
             maybe_default_value.clone(),
             irregular,
             guard,
+            serde_customization,
         )
     })?;
 
@@ -210,6 +216,7 @@ fn gen_implemented_traits(
     maybe_default_value: Option<syn::Expr>,
     impl_traits: Vec<StringIrregularTrait>,
     guard: &StringGuard,
+    serde_customization: &SerdeCustomization,
 ) -> Result<TokenStream, syn::Error> {
     let inner_type = StringInnerType;
     let maybe_error_type_name = guard.maybe_error_type_path();
@@ -245,12 +252,18 @@ fn gen_implemented_traits(
                     Err(syn::Error::new(span, msg))
                 }
             },
-            StringIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(type_name, generics)),
+            StringIrregularTrait::SerdeSerialize => Ok(gen_impl_trait_serde_serialize(
+                type_name,
+                generics,
+                inner_type,
+                serde_customization,
+            )),
             StringIrregularTrait::SerdeDeserialize => Ok(gen_impl_trait_serde_deserialize(
                 type_name,
                 generics,
                 inner_type,
                 maybe_error_type_name,
+                serde_customization,
             )),
             StringIrregularTrait::ArbitraryArbitrary => {
                 arbitrary::gen_impl_trait_arbitrary(type_name, guard)

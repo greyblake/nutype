@@ -1,0 +1,5 @@
+error: Duplicated serde attribute `serialize_with`.
+ --> tests/ui/common/attrs/field_serde_duplicate_key.rs:5:60
+  |
+5 | pub struct Name(#[serde(serialize_with = "serialize_fn_a", serialize_with = "serialize_fn_b")] String);
+  |                                                            ^^^^^^^^^^^^^^

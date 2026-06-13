@@ -1,0 +1,41 @@
+error: use of deprecated struct `__nutype_OldName__::OldName`: use NewName instead
+ --> tests/ui/common/attrs/struct_attr_deprecated_forwarded.rs:9:12
+  |
+9 | pub struct OldName(String);
+  |            ^^^^^^^
+  |
+note: the lint level is defined here
+ --> tests/ui/common/attrs/struct_attr_deprecated_forwarded.rs:1:9
+  |
+1 | #![deny(deprecated)]
+  |         ^^^^^^^^^^
+
+error: use of deprecated struct `__nutype_OldName__::OldName`: use NewName instead
+  --> tests/ui/common/attrs/struct_attr_deprecated_forwarded.rs:12:13
+   |
+12 |     let _ = OldName::try_new("hello");
+   |             ^^^^^^^
+
+error: use of deprecated field `__nutype_OldName__::OldName::0`: use NewName instead
+ --> tests/ui/common/attrs/struct_attr_deprecated_forwarded.rs:7:1
+  |
+7 | #[nutype(derive(Debug))]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0599]: no associated function or constant named `try_new` found for struct `OldName` in the current scope
+  --> tests/ui/common/attrs/struct_attr_deprecated_forwarded.rs:12:22
+   |
+ 7 | #[nutype(derive(Debug))]
+   | ------------------------ associated function or constant `try_new` not found for this struct
+...
+12 |     let _ = OldName::try_new("hello");
+   |                      ^^^^^^^ associated function or constant not found in `OldName`
+   |
+note: if you're trying to build a new `OldName`, consider using `OldName::new` which returns `OldName`
+  --> tests/ui/common/attrs/struct_attr_deprecated_forwarded.rs:7:1
+   |
+ 7 | #[nutype(derive(Debug))]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)

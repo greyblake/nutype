@@ -184,6 +184,18 @@ pub struct Meta {
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
     pub generics: Generics,
+
+    /// Struct-level attributes that are forwarded verbatim onto the generated
+    /// struct (e.g. `#[repr(transparent)]`, `#[sqlx(transparent)]`).
+    pub forwarded_attrs: Vec<Attribute>,
+
+    /// Field-level attributes that are forwarded verbatim onto the generated
+    /// inner field (e.g. `#[garde(length(min = 1))]`).
+    pub inner_field_attrs: Vec<Attribute>,
+
+    /// Serde attributes consumed by nutype (never forwarded), see
+    /// [`SerdeCustomization`].
+    pub serde_customization: SerdeCustomization,
 }
 
 impl Meta {
@@ -194,6 +206,9 @@ impl Meta {
             inner_type,
             vis,
             generics,
+            forwarded_attrs,
+            inner_field_attrs,
+            serde_customization,
         } = self;
         let typed_meta = TypedMeta {
             doc_attrs,
@@ -201,6 +216,9 @@ impl Meta {
             generics,
             attrs,
             vis,
+            forwarded_attrs,
+            inner_field_attrs,
+            serde_customization,
         };
         (typed_meta, inner_type)
     }
@@ -218,6 +236,15 @@ pub struct TypedMeta {
     pub vis: syn::Visibility,
     pub doc_attrs: Vec<Attribute>,
     pub generics: Generics,
+
+    /// Struct-level attributes forwarded verbatim onto the generated struct.
+    pub forwarded_attrs: Vec<Attribute>,
+
+    /// Field-level attributes forwarded verbatim onto the generated inner field.
+    pub inner_field_attrs: Vec<Attribute>,
+
+    /// Serde attributes consumed by nutype (never forwarded).
+    pub serde_customization: SerdeCustomization,
 }
 
 /// Validated model, that represents precisely what needs to be generated.
@@ -535,6 +562,66 @@ impl Parse for SpannedDeriveUnsafeTrait {
 pub trait TypeTrait {
     fn is_from_str(&self) -> bool;
     fn is_default(&self) -> bool;
+    fn is_serde_serialize(&self) -> bool;
+    fn is_serde_deserialize(&self) -> bool;
+}
+
+/// Serde customization consumed by nutype from native serde attributes:
+/// field-level `#[serde(with = "..")]` / `#[serde(serialize_with = "..")]` /
+/// `#[serde(deserialize_with = "..")]` and struct-level `#[serde(transparent)]`.
+///
+/// nutype hand-writes its `Serialize`/`Deserialize` impls, so these attributes
+/// cannot be forwarded to a real serde derive; instead they are woven into the
+/// generated impls. Deserialization always still runs sanitization and
+/// validation, regardless of any custom function.
+#[derive(Debug, Default)]
+pub struct SerdeCustomization {
+    /// `#[serde(transparent)]` on the struct: drop the newtype framing and
+    /// serialize/deserialize exactly as the inner value.
+    pub transparent: Option<Span>,
+
+    /// `#[serde(with = "module")]` on the field.
+    pub with: Option<SpannedItem<Path>>,
+
+    /// `#[serde(serialize_with = "path")]` on the field.
+    pub serialize_with: Option<SpannedItem<Path>>,
+
+    /// `#[serde(deserialize_with = "path")]` on the field.
+    pub deserialize_with: Option<SpannedItem<Path>>,
+}
+
+impl SerdeCustomization {
+    pub fn is_transparent(&self) -> bool {
+        self.transparent.is_some()
+    }
+
+    /// The function to use for serialization, if any:
+    /// explicit `serialize_with`, or `<with_module>::serialize`.
+    pub fn effective_serialize_with(&self) -> Option<Path> {
+        self.serialize_with
+            .as_ref()
+            .map(|spanned| spanned.item.clone())
+            .or_else(|| {
+                self.with.as_ref().map(|spanned| {
+                    let module = &spanned.item;
+                    syn::parse_quote!(#module::serialize)
+                })
+            })
+    }
+
+    /// The function to use for deserialization, if any:
+    /// explicit `deserialize_with`, or `<with_module>::deserialize`.
+    pub fn effective_deserialize_with(&self) -> Option<Path> {
+        self.deserialize_with
+            .as_ref()
+            .map(|spanned| spanned.item.clone())
+            .or_else(|| {
+                self.with.as_ref().map(|spanned| {
+                    let module = &spanned.item;
+                    syn::parse_quote!(#module::deserialize)
+                })
+            })
+    }
 }
 
 /// The flag that indicates that a newtype will be generated with extra constructor,
@@ -621,6 +708,12 @@ pub struct GenerateParams<IT, Trait, Guard> {
     pub maybe_default_value: Option<syn::Expr>,
     /// Conditional derive groups, one per predicate.
     pub conditional_derives: Vec<ConditionalDeriveGroup<Trait>>,
+    /// Struct-level attributes forwarded verbatim onto the generated struct.
+    pub forwarded_attrs: Vec<Attribute>,
+    /// Field-level attributes forwarded verbatim onto the generated inner field.
+    pub inner_field_attrs: Vec<Attribute>,
+    /// Serde attributes consumed by nutype (never forwarded).
+    pub serde_customization: SerdeCustomization,
 }
 
 pub trait Newtype {
@@ -662,6 +755,9 @@ pub trait Newtype {
             attrs,
             vis,
             generics,
+            forwarded_attrs,
+            inner_field_attrs,
+            serde_customization,
         } = typed_meta;
         let Attributes {
             guard,
@@ -699,6 +795,9 @@ pub trait Newtype {
             maybe_default_value,
             inner_type,
             conditional_derives,
+            forwarded_attrs,
+            inner_field_attrs,
+            serde_customization,
         })?;
         Ok(generated_output)
     }

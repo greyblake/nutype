@@ -1,0 +1,7 @@
+error: Unsupported serde attribute on the inner field.
+       #[nutype] supports only `with`, `serialize_with` and `deserialize_with` here.
+       If you need support for more, please open an issue: https://github.com/greyblake/nutype/issues
+ --> tests/ui/common/attrs/field_serde_unknown_key.rs:6:25
+  |
+6 | pub struct Name(#[serde(rename = "name")] String);
+  |                         ^^^^^^

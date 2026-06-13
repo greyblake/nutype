@@ -1,0 +1,10 @@
+error: #[derive(..)] macro is not allowed to be used with #[nutype]. If you want to derive traits use `derive(..) attribute within #[nutype] macro:
+
+           #[nutype(
+               derive(Debug, Clone, AsRef)
+           )]
+
+ --> tests/ui/common/attrs/native_derive_rejected.rs:6:1
+  |
+6 | #[derive(Clone)]
+  | ^

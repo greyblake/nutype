@@ -1,0 +1,6 @@
+error: #[serde(serialize_with = ...)] on the inner field requires `Serialize` to be derived.
+       Add it with #[nutype(derive(Serialize))].
+ --> tests/ui/common/attrs/field_serde_requires_derive.rs:6:42
+  |
+6 | pub struct Name(#[serde(serialize_with = "serialize_fn")] String);
+  |                                          ^^^^^^^^^^^^^^

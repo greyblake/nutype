@@ -99,6 +99,12 @@ impl TypeTrait for IntegerDeriveTrait {
     fn is_default(&self) -> bool {
         self == &IntegerDeriveTrait::Default
     }
+    fn is_serde_serialize(&self) -> bool {
+        self == &IntegerDeriveTrait::SerdeSerialize
+    }
+    fn is_serde_deserialize(&self) -> bool {
+        self == &IntegerDeriveTrait::SerdeDeserialize
+    }
 }
 
 pub type IntegerRawGuard<T> = RawGuard<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;

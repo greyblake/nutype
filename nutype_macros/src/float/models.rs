@@ -100,6 +100,12 @@ impl TypeTrait for FloatDeriveTrait {
     fn is_default(&self) -> bool {
         self == &FloatDeriveTrait::Default
     }
+    fn is_serde_serialize(&self) -> bool {
+        self == &FloatDeriveTrait::SerdeSerialize
+    }
+    fn is_serde_deserialize(&self) -> bool {
+        self == &FloatDeriveTrait::SerdeDeserialize
+    }
 }
 
 pub type FloatRawGuard<T> = RawGuard<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;
