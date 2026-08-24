@@ -287,6 +287,7 @@ pub trait GenerateNewtype {
             #maybe_generated_validation_error
 
             impl #impl_generics #type_name #type_generics #where_clause {
+                #[inline]
                 #constructor_visibility #const_fn fn try_new(raw_value: #input_type) -> ::core::result::Result<Self, #error_type_path> {
                     #convert_raw_value_if_necessary
 
@@ -340,6 +341,7 @@ pub trait GenerateNewtype {
         // }
         quote!(
             impl #impl_generics #type_name #type_generics #where_clause {
+                #[inline]
                 #constructor_visibility #const_fn fn new(raw_value: #input_type) -> Self {
                     #convert_raw_value_if_necessary
                     Self(Self::__sanitize__(raw_value))

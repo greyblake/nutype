@@ -16,10 +16,48 @@ pub fn gen_new_unchecked(
                 /// Creates a value of type skipping the sanitization and validation
                 /// rules. Generally, you should avoid using `::new_unchecked()` without a real need.
                 /// Use `::new()` instead when it's possible.
+                #[inline]
                 #constructor_visibility #const_fn unsafe fn new_unchecked(inner_value: #inner_type) -> #type_name {
                     #type_name(inner_value)
                 }
             }
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::format_ident;
+
+    #[test]
+    fn new_unchecked_is_marked_inline() {
+        let type_name = TypeName::new(format_ident!("Foo"));
+        let inner_type = quote!(String);
+        let rendered = gen_new_unchecked(
+            &type_name,
+            inner_type,
+            NewUnchecked::On,
+            ConstFn::NoConst,
+            &ConstructorVisibility::Public,
+        )
+        .to_string();
+
+        let stripped: String = rendered.split_whitespace().collect();
+        assert!(stripped.contains("#[inline]pubunsafefnnew_unchecked"));
+    }
+
+    #[test]
+    fn off_generates_nothing() {
+        let type_name = TypeName::new(format_ident!("Foo"));
+        let rendered = gen_new_unchecked(
+            &type_name,
+            quote!(String),
+            NewUnchecked::Off,
+            ConstFn::NoConst,
+            &ConstructorVisibility::Public,
+        )
+        .to_string();
+        assert!(rendered.is_empty());
     }
 }

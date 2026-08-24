@@ -162,3 +162,66 @@ impl GenerateNewtype for AnyNewtype {
         }
     }
 }
+
+#[cfg(test)]
+mod inline_tests {
+    use super::*;
+    use crate::common::generate::gen_impl_into_inner;
+    use crate::common::models::{ConstructorVisibility, ErrorTypePath, Validation};
+    use quote::{format_ident, quote};
+    use syn::parse::Parser;
+
+    fn inner_type() -> AnyInnerType {
+        let field = syn::Field::parse_unnamed
+            .parse2(quote!(String))
+            .expect("field should parse");
+        AnyInnerType::new(field)
+    }
+
+    fn stripped(ts: TokenStream) -> String {
+        ts.to_string().split_whitespace().collect()
+    }
+
+    #[test]
+    fn new_is_marked_inline() {
+        let rendered = stripped(AnyNewtype::gen_new(
+            &TypeName::new(format_ident!("Foo")),
+            &Generics::default(),
+            &inner_type(),
+            &[],
+            ConstFn::NoConst,
+            &ConstructorVisibility::Public,
+        ));
+        assert!(rendered.contains("#[inline]pubfnnew"), "{rendered}");
+    }
+
+    #[test]
+    fn try_new_is_marked_inline() {
+        let error_path: syn::Path = syn::parse_quote!(FooError);
+        let validation = Validation::Standard {
+            validators: Vec::<AnyValidator>::new(),
+            error_type_path: ErrorTypePath::new(error_path),
+        };
+        let rendered = stripped(AnyNewtype::gen_try_new(
+            &TypeName::new(format_ident!("Foo")),
+            &Generics::default(),
+            &inner_type(),
+            &[],
+            &validation,
+            ConstFn::NoConst,
+            &ConstructorVisibility::Public,
+        ));
+        assert!(rendered.contains("#[inline]pubfntry_new"), "{rendered}");
+    }
+
+    #[test]
+    fn into_inner_stays_inline() {
+        let rendered = stripped(gen_impl_into_inner(
+            &TypeName::new(format_ident!("Foo")),
+            &Generics::default(),
+            inner_type(),
+            ConstFn::NoConst,
+        ));
+        assert!(rendered.contains("#[inline]pubfninto_inner"), "{rendered}");
+    }
+}
