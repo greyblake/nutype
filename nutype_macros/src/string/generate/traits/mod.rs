@@ -338,3 +338,51 @@ fn gen_impl_borrow_str_and_string(type_name: &TypeName) -> TokenStream {
         #impl_borrow_str
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Traits travel through a `BTreeSet`, so the declaration order of the
+    /// `StringDeriveTrait` variants determines the order in which traits are derived and
+    /// implemented in the generated code.
+    #[test]
+    fn traits_are_split_in_declaration_order() {
+        // Deliberately built in an order that matches neither the declaration order nor
+        // alphabetical order.
+        let input: BTreeSet<StringDeriveTrait> = [
+            StringDeriveTrait::Display,
+            StringDeriveTrait::Eq,
+            StringDeriveTrait::FromStr,
+            StringDeriveTrait::Debug,
+            StringDeriveTrait::Hash,
+            StringDeriveTrait::Clone,
+            StringDeriveTrait::AsRef,
+        ]
+        .into_iter()
+        .collect();
+
+        let GeneratableTraits {
+            transparent_traits,
+            irregular_traits,
+        } = split_into_generatable_traits(input);
+
+        assert_eq!(
+            transparent_traits,
+            vec![
+                StringTransparentTrait::Debug,
+                StringTransparentTrait::Clone,
+                StringTransparentTrait::Eq,
+                StringTransparentTrait::Hash,
+            ]
+        );
+        assert_eq!(
+            irregular_traits,
+            vec![
+                StringIrregularTrait::FromStr,
+                StringIrregularTrait::AsRef,
+                StringIrregularTrait::Display,
+            ]
+        );
+    }
+}

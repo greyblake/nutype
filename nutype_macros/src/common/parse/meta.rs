@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub fn parse_meta(token_stream: TokenStream) -> Result<Meta, syn::Error> {
-    let input: DeriveInput = syn::parse(token_stream.into())?;
+    let input: DeriveInput = syn::parse2(token_stream)?;
 
     let input_span = input.span();
     let DeriveInput {

@@ -15,6 +15,9 @@ mod integer;
 mod string;
 mod utils;
 
+#[cfg(test)]
+mod expansion_tests;
+
 use any::AnyNewtype;
 use common::{
     models::{InnerType, Newtype, TypedMeta},
