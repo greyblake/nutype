@@ -125,7 +125,7 @@
 //!
 //! Requirements:
 //! * `regex` feature of `nutype` is enabled.
-//! * You crate have to explicitly include `regex` as a dependency.
+//! * Your crate has to explicitly include `regex` as a dependency.
 //!
 //! There are a number of ways you can use regex.
 //!
