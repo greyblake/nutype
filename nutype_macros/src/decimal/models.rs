@@ -153,7 +153,10 @@ pub type SpannedDecimalValidator<T> = SpannedItem<DecimalValidator<T>>;
 // * no `ValuableValuable` (`rust_decimal::Decimal` does not implement `Valuable`),
 // * `ArbitraryArbitrary` is supported (requires the user to enable
 //   `rust_decimal/rust-fuzz`).
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+//
+// Note that the order in which the variants are declared here is the order
+// in which traits are derived and implemented in the generated code.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub enum DecimalDeriveTrait {
     // Standard
     Debug,

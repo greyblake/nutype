@@ -1,6 +1,6 @@
 pub mod traits;
 
-use std::collections::HashSet;
+use alloc::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
@@ -70,7 +70,7 @@ where
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
-        traits: HashSet<Self::TypedTrait>,
+        traits: BTreeSet<Self::TypedTrait>,
         unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &IntegerGuard<T>,
@@ -96,7 +96,7 @@ where
         _inner_type: &Self::InnerType,
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        _traits: &HashSet<Self::TypedTrait>,
+        _traits: &BTreeSet<Self::TypedTrait>,
     ) -> TokenStream {
         let test_lower_vs_upper = guard.standard_validators().and_then(|validators| {
             gen_test_should_have_consistent_lower_and_upper_boundaries(type_name, validators)

@@ -1,5 +1,4 @@
-use core::hash::Hash;
-use std::collections::HashSet;
+use alloc::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
@@ -47,7 +46,7 @@ pub struct GeneratableTraits<TransparentTrait, IrregularTrait> {
 }
 
 pub fn split_into_generatable_traits<InputTrait, TransparentTrait, IrregularTrait>(
-    input_traits: HashSet<InputTrait>,
+    input_traits: BTreeSet<InputTrait>,
 ) -> GeneratableTraits<TransparentTrait, IrregularTrait>
 where
     GeneratableTrait<TransparentTrait, IrregularTrait>: From<InputTrait>,
@@ -109,7 +108,7 @@ pub fn process_conditional_derives<InputTrait, TransparentTrait, IrregularTrait>
     gen_impl_traits: impl Fn(Vec<IrregularTrait>) -> Result<TokenStream, syn::Error>,
 ) -> Result<ConditionalTraits, syn::Error>
 where
-    InputTrait: Eq + Hash + Clone,
+    InputTrait: Ord + Clone,
     TransparentTrait: ToTokens,
     IrregularTrait: HasGeneratedParseError,
     GeneratableTrait<TransparentTrait, IrregularTrait>: From<InputTrait>,
@@ -121,7 +120,7 @@ where
     for group in conditional_derives {
         let pred = &group.predicate;
 
-        let cond_traits: HashSet<InputTrait> = group.typed_traits.iter().cloned().collect();
+        let cond_traits: BTreeSet<InputTrait> = group.typed_traits.iter().cloned().collect();
         let GeneratableTraits {
             transparent_traits: cond_transparent,
             irregular_traits: cond_irregular,

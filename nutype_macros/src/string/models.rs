@@ -53,7 +53,9 @@ pub enum RegexDef {
 
 // Traits
 //
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+// Note that the order in which the variants are declared here is the order
+// in which traits are derived and implemented in the generated code.
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum StringDeriveTrait {
     // Standard
     Debug,

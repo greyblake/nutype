@@ -1,4 +1,4 @@
-use core::hash::Hash;
+use alloc::collections::BTreeSet;
 use kinded::Kinded;
 use proc_macro2::Span;
 use std::collections::HashSet;
@@ -282,7 +282,7 @@ pub fn validate_all_derive_traits<TypedTrait>(
     convert: impl Fn(DeriveTrait, bool, Span) -> Result<TypedTrait, syn::Error>,
 ) -> Result<ValidatedDerives<TypedTrait>, syn::Error>
 where
-    TypedTrait: Eq + Hash + TypeTrait,
+    TypedTrait: Ord + TypeTrait,
 {
     // 0. Check for unconditional-vs-conditional duplicates
     check_cfg_attr_no_duplicates(&derive_traits, cfg_attr_entries)?;
@@ -302,7 +302,7 @@ where
     let unconditional = derive_traits
         .iter()
         .map(|st| convert(st.item, has_validation, st.span))
-        .collect::<Result<HashSet<_>, _>>()?;
+        .collect::<Result<BTreeSet<_>, _>>()?;
 
     // 4. Convert conditional traits (same conversion, per entry)
     let conditional = cfg_attr_entries

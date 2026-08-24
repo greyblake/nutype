@@ -1,7 +1,7 @@
 mod error;
 mod traits;
 
-use std::collections::HashSet;
+use alloc::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -122,7 +122,7 @@ impl GenerateNewtype for AnyNewtype {
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
-        traits: HashSet<Self::TypedTrait>,
+        traits: BTreeSet<Self::TypedTrait>,
         unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &AnyGuard,
@@ -148,7 +148,7 @@ impl GenerateNewtype for AnyNewtype {
         _inner_type: &Self::InnerType,
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        _traits: &HashSet<Self::TypedTrait>,
+        _traits: &BTreeSet<Self::TypedTrait>,
     ) -> TokenStream {
         let test_valid_default_value = gen_test_should_have_valid_default_value(
             type_name,

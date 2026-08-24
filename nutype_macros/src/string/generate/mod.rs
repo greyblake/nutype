@@ -2,7 +2,7 @@ pub mod error;
 pub mod tests;
 pub mod traits;
 
-use std::collections::HashSet;
+use alloc::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -208,7 +208,7 @@ impl GenerateNewtype for StringNewtype {
         type_name: &TypeName,
         generics: &Generics,
         _inner_type: &Self::InnerType,
-        traits: HashSet<Self::TypedTrait>,
+        traits: BTreeSet<Self::TypedTrait>,
         unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &StringGuard,
@@ -233,7 +233,7 @@ impl GenerateNewtype for StringNewtype {
         _inner_type: &Self::InnerType,
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        _traits: &HashSet<Self::TypedTrait>,
+        _traits: &BTreeSet<Self::TypedTrait>,
     ) -> TokenStream {
         let test_len_char_min_vs_max = guard.standard_validators().and_then(|validators| {
             tests::gen_test_should_have_consistent_len_char_boundaries(type_name, validators)

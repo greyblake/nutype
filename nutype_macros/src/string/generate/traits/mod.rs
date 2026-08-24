@@ -1,6 +1,6 @@
 pub mod arbitrary;
 
-use std::collections::HashSet;
+use alloc::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
@@ -158,7 +158,7 @@ impl ToTokens for StringTransparentTrait {
 pub fn gen_traits(
     type_name: &TypeName,
     generics: &Generics,
-    traits: HashSet<StringDeriveTrait>,
+    traits: BTreeSet<StringDeriveTrait>,
     unsafe_traits: &[SpannedDeriveUnsafeTrait],
     maybe_default_value: Option<syn::Expr>,
     guard: &StringGuard,

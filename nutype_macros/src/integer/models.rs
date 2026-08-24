@@ -63,7 +63,9 @@ pub type SpannedIntegerValidator<T> = SpannedItem<IntegerValidator<T>>;
 
 // Traits
 //
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+// Note that the order in which the variants are declared here is the order
+// in which traits are derived and implemented in the generated code.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
 pub enum IntegerDeriveTrait {
     // Standard
     Debug,

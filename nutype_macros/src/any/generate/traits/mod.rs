@@ -1,9 +1,9 @@
 pub mod arbitrary;
 pub mod into_iter;
 
+use alloc::collections::BTreeSet;
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
-use std::collections::HashSet;
 
 use crate::{
     any::models::{AnyDeriveTrait, AnyGuard, AnyInnerType},
@@ -128,7 +128,7 @@ pub fn gen_traits(
     type_name: &TypeName,
     generics: &syn::Generics,
     inner_type: &AnyInnerType,
-    traits: HashSet<AnyDeriveTrait>,
+    traits: BTreeSet<AnyDeriveTrait>,
     unsafe_traits: &[SpannedDeriveUnsafeTrait],
     maybe_default_value: Option<syn::Expr>,
     guard: &AnyGuard,
