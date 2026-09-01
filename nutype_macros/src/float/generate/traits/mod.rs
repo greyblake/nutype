@@ -1,5 +1,5 @@
 pub mod arbitrary;
-use std::collections::HashSet;
+use alloc::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
@@ -141,7 +141,7 @@ pub fn gen_traits<T: ToTokens>(
     generics: &Generics,
     inner_type: &FloatInnerType,
     maybe_default_value: Option<syn::Expr>,
-    traits: HashSet<FloatDeriveTrait>,
+    traits: BTreeSet<FloatDeriveTrait>,
     unsafe_traits: &[SpannedDeriveUnsafeTrait],
     guard: &FloatGuard<T>,
     conditional_derives: &[ConditionalDeriveGroup<FloatDeriveTrait>],

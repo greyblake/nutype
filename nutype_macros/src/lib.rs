@@ -4,6 +4,8 @@
 //!
 //! For more information please refer to [nutype](https://docs.rs/nutype) documentation.
 
+extern crate alloc;
+
 mod any;
 mod common;
 #[cfg(feature = "rust_decimal")]
@@ -12,6 +14,9 @@ mod float;
 mod integer;
 mod string;
 mod utils;
+
+#[cfg(test)]
+mod expansion_tests;
 
 use any::AnyNewtype;
 use common::{

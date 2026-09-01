@@ -6,8 +6,8 @@ pub mod parse_error;
 pub mod tests;
 pub mod traits;
 
+use alloc::collections::BTreeSet;
 use core::hash::Hash;
-use std::collections::HashSet;
 
 use self::traits::GeneratedTraits;
 
@@ -220,7 +220,7 @@ pub trait GenerateNewtype {
         type_name: &TypeName,
         generics: &Generics,
         inner_type: &Self::InnerType,
-        traits: HashSet<Self::TypedTrait>,
+        traits: BTreeSet<Self::TypedTrait>,
         unsafe_traits: &[SpannedDeriveUnsafeTrait],
         maybe_default_value: Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
@@ -541,7 +541,7 @@ pub trait GenerateNewtype {
         inner_type: &Self::InnerType,
         maybe_default_value: &Option<syn::Expr>,
         guard: &Guard<Self::Sanitizer, Self::Validator>,
-        traits: &HashSet<Self::TypedTrait>,
+        traits: &BTreeSet<Self::TypedTrait>,
     ) -> TokenStream;
 }
 
@@ -550,7 +550,7 @@ pub trait GenerateNewtype {
 /// because nutype weaves the custom functions into its own generated impls.
 fn validate_serde_customization<TypedTrait: TypeTrait>(
     serde_customization: &SerdeCustomization,
-    traits: &HashSet<TypedTrait>,
+    traits: &BTreeSet<TypedTrait>,
     conditional_derives: &[ConditionalDeriveGroup<TypedTrait>],
 ) -> Result<(), syn::Error> {
     let has_serialize = traits.iter().any(|t| t.is_serde_serialize())

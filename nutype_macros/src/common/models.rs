@@ -1,8 +1,8 @@
 mod error_type_path;
 
+use alloc::collections::BTreeSet;
 use core::{fmt::Debug, ops::Add};
 use kinded::Kinded;
-use std::collections::HashSet;
 use syn::Generics;
 
 use proc_macro2::{Span, TokenStream};
@@ -493,7 +493,7 @@ pub struct CfgAttrEntry {
 /// and conditional derive entries.
 pub struct ValidatedDerives<TypedTrait> {
     /// Typed traits from unconditional `derive(...)`.
-    pub unconditional: HashSet<TypedTrait>,
+    pub unconditional: BTreeSet<TypedTrait>,
 
     /// Typed traits from `cfg_attr(...)` entries, grouped by predicate.
     pub conditional: Vec<ValidatedCfgAttrDerives<TypedTrait>>,
@@ -696,7 +696,7 @@ impl ToTokens for ConstructorVisibility {
 pub struct GenerateParams<IT, Trait, Guard> {
     pub inner_type: IT,
     pub doc_attrs: Vec<Attribute>,
-    pub traits: HashSet<Trait>,
+    pub traits: BTreeSet<Trait>,
     pub unsafe_traits: Vec<SpannedDeriveUnsafeTrait>,
     pub vis: syn::Visibility,
     pub type_name: TypeName,

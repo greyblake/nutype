@@ -1,6 +1,6 @@
 mod arbitrary;
 
-use std::collections::HashSet;
+use alloc::collections::BTreeSet;
 
 use proc_macro2::TokenStream;
 use quote::{ToTokens, quote};
@@ -28,7 +28,7 @@ pub fn gen_traits<T: ToTokens>(
     type_name: &TypeName,
     generics: &Generics,
     inner_type: &IntegerInnerType,
-    traits: HashSet<IntegerDeriveTrait>,
+    traits: BTreeSet<IntegerDeriveTrait>,
     unsafe_traits: &[SpannedDeriveUnsafeTrait],
     maybe_default_value: Option<syn::Expr>,
     guard: &IntegerGuard<T>,
