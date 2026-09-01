@@ -9,6 +9,7 @@
 - **[FIX]** Improve rust-analyzer resilience: when `#[nutype(...)]` arguments fail to parse (e.g. while still being typed), emit a best-effort type skeleton alongside the error so the newtype stays resolvable and downstream completions keep working (see [#178](https://github.com/greyblake/nutype/issues/178)).
 - **[FIX]** Correct the validation error `Display` message for float newtypes: `less` now reads "The value must be less than ..." and `less_or_equal` reads "The value must be less or equal to ..." (the two were previously swapped). Integer and decimal were already correct.
 - **[INTERNAL]** Consolidate the integer, float and decimal backends onto a shared numeric code-generation and validation layer (`common/generate/numeric.rs` and shared helpers in `common/validate.rs`), removing a large amount of duplicated code. No change to generated code or public API.
+- **[IMPROVEMENT]** Mark the generated `new`, `try_new` and `new_unchecked` constructors with `#[inline]` so they can be inlined across crate boundaries, matching the existing `into_inner` (see [#237](https://github.com/greyblake/nutype/issues/237)).
 
 ### v0.7.0 - 2026-04-25
 - **[BREAKING]** Rename `derive_unsafe` to `derive_unchecked` (both the feature flag and the attribute).
