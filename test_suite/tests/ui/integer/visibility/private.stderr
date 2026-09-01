@@ -15,3 +15,8 @@ note: ...and refers to the struct `Percentage` which is defined here
  4 |     #[nutype(sanitize(with = |n: i32| n.clamp(0, 100)))]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
    = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: import `Percentage` directly
+   |
+13 -     encapsulated::Percentage::new(144);
+13 +     __nutype_Percentage__::Percentage(144);
+   |
