@@ -15,3 +15,8 @@ note: ...and refers to the enum `PercentageError` which is defined here
 4 |     #[nutype(validate(greater_or_equal = 0.0, less_or_equal = 100.0))]
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
   = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: import `PercentageError` directly
+  |
+8 - type TheError = encapsulated::PercentageError;
+8 + type TheError = __nutype_Percentage__::PercentageError;
+  |

@@ -15,3 +15,8 @@ note: ...and refers to the struct `Email` which is defined here
  4 |     #[nutype(sanitize(trim))]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
    = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: import `Email` directly
+   |
+13 -     encapsulated::Email::new("foo@bar.com");
+13 +     __nutype_Email__::Email("foo@bar.com");
+   |

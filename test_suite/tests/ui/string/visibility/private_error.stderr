@@ -15,3 +15,8 @@ note: ...and refers to the enum `NameError` which is defined here
 4 |     #[nutype(validate(not_empty))]
   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ you could import this directly
   = note: this error originates in the attribute macro `nutype` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: import `NameError` directly
+  |
+8 - type TheError = encapsulated::NameError;
+8 + type TheError = __nutype_Name__::NameError;
+  |
