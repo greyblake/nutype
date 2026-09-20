@@ -48,14 +48,14 @@ dependencies = [
 
 [[package]]
 name = "nutype"
-version = "0.8.0-beta.1"
+version = "0.8.0"
 dependencies = [
  "nutype_macros",
 ]
 
 [[package]]
 name = "nutype_macros"
-version = "0.8.0-beta.1"
+version = "0.8.0"
 dependencies = [
  "cfg-if",
  "kinded",
