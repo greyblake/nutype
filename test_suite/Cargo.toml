@@ -7,7 +7,10 @@ edition = "2021"
 
 [dependencies]
 nutype = { path = "../nutype"}
-trybuild = { version = "1.0.71", features = ["diff"] }
+# 1.0.119 is the first version that detects enabled crate features in the new
+# Cargo build-dir layout (default since Cargo 1.100). Older versions silently
+# build the UI fixtures with no features enabled.
+trybuild = { version = "1.0.119", features = ["diff"] }
 
 serde = { version = "1.0.150", optional = true }
 serde_json = { version = "1.0.89", optional = true }
