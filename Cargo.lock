@@ -223,6 +223,8 @@ dependencies = [
  "arbitrary",
  "derive_more",
  "nutype",
+ "schemars 1.2.1",
+ "serde_json",
 ]
 
 [[package]]

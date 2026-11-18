@@ -141,7 +141,7 @@ struct PartitionedStructAttrs {
     forwarded_attrs: Vec<Attribute>,
 }
 
-fn attr_first_segment_is(attr: &Attribute, name: &str) -> bool {
+pub(crate) fn attr_first_segment_is(attr: &Attribute, name: &str) -> bool {
     match attr.path().segments.first() {
         Some(path_segment) => path_segment.ident == name,
         None => false,
@@ -152,7 +152,7 @@ fn attr_first_segment_is(attr: &Attribute, name: &str) -> bool {
 /// * doc comments are kept separately (emitted first, as before);
 /// * `#[derive(...)]` has been intercepted earlier with a targeted error;
 /// * `#[serde(transparent)]` is consumed; any other serde key is rejected;
-/// * `#[schemars(...)]` is rejected (nutype hand-writes JsonSchema);
+/// * `#[schemars(...)]` is forwarded here and validated once derives are known;
 /// * everything else is forwarded verbatim onto the generated struct.
 ///
 /// Note: `#[cfg(...)]` never reaches this partition. rustc strips item-level
@@ -175,10 +175,6 @@ fn partition_struct_attrs(
             continue;
         } else if attr_first_segment_is(&attr, "serde") {
             parse_struct_level_serde_attr(&attr, serde_customization)?;
-        } else if attr_first_segment_is(&attr, "schemars") {
-            let msg = "#[nutype] does not support `#[schemars(...)]` attributes.\n\
-                 nutype generates its own implementation of `JsonSchema`, so there is no schemars derive that could read this attribute.";
-            return Err(syn::Error::new(attr.span(), msg));
         } else {
             forwarded_attrs.push(attr);
         }

@@ -22,7 +22,7 @@ use crate::common::{
 };
 use proc_macro2::{Punct, Spacing, TokenStream, TokenTree};
 use quote::{ToTokens, format_ident, quote};
-use syn::{Generics, Visibility};
+use syn::{Attribute, Generics, Visibility, spanned::Spanned};
 
 /// Inject an inner type into a closure, so compiler does not complain if the token stream matchers
 /// the expected closure pattern.
@@ -428,6 +428,12 @@ pub trait GenerateNewtype {
         } = params;
 
         validate_serde_customization(&serde_customization, &traits, &conditional_derives)?;
+        validate_schemars_attrs(
+            &forwarded_attrs,
+            &traits,
+            &unsafe_traits,
+            &conditional_derives,
+        )?;
 
         let module_name = gen_module_name_for_type(&type_name);
         let implementation = Self::gen_implementation(
@@ -594,6 +600,39 @@ fn validate_serde_customization<TypedTrait: TypeTrait>(
         let msg = "#[serde(deserialize_with = ...)] on the inner field requires `Deserialize` to be derived.\n\
              Add it with #[nutype(derive(Deserialize))].";
         return Err(syn::Error::new(deserialize_with.span(), msg));
+    }
+
+    Ok(())
+}
+
+fn validate_schemars_attrs<TypedTrait: TypeTrait>(
+    forwarded_attrs: &[Attribute],
+    traits: &BTreeSet<TypedTrait>,
+    unsafe_traits: &[SpannedDeriveUnsafeTrait],
+    conditional_derives: &[ConditionalDeriveGroup<TypedTrait>],
+) -> Result<(), syn::Error> {
+    let has_nutype_json_schema = traits.iter().any(|t| t.is_schemars_json_schema())
+        || conditional_derives.iter().any(|group| {
+            group
+                .typed_traits
+                .iter()
+                .any(|t| t.is_schemars_json_schema())
+        });
+    let has_derive_unchecked = !unsafe_traits.is_empty()
+        || conditional_derives
+            .iter()
+            .any(|group| !group.unchecked_traits.is_empty());
+
+    if has_derive_unchecked && !has_nutype_json_schema {
+        return Ok(());
+    }
+
+    for attr in forwarded_attrs {
+        if crate::common::parse::meta::attr_first_segment_is(attr, "schemars") {
+            let msg = "#[nutype] does not support `#[schemars(...)]` attributes.\n\
+                 nutype generates its own implementation of `JsonSchema`, so there is no schemars derive that could read this attribute.";
+            return Err(syn::Error::new(attr.span(), msg));
+        }
     }
 
     Ok(())
