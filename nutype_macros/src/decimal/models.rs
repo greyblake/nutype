@@ -196,6 +196,9 @@ impl TypeTrait for DecimalDeriveTrait {
     fn is_serde_deserialize(&self) -> bool {
         self == &DecimalDeriveTrait::SerdeDeserialize
     }
+    fn is_schemars_json_schema(&self) -> bool {
+        false
+    }
 }
 
 pub type DecimalRawGuard<T> = RawGuard<SpannedDecimalSanitizer<T>, SpannedDecimalValidator<T>>;

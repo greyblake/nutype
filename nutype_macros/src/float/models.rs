@@ -108,6 +108,9 @@ impl TypeTrait for FloatDeriveTrait {
     fn is_serde_deserialize(&self) -> bool {
         self == &FloatDeriveTrait::SerdeDeserialize
     }
+    fn is_schemars_json_schema(&self) -> bool {
+        self == &FloatDeriveTrait::SchemarsJsonSchema
+    }
 }
 
 pub type FloatRawGuard<T> = RawGuard<SpannedFloatSanitizer<T>, SpannedFloatValidator<T>>;

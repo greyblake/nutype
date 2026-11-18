@@ -68,6 +68,9 @@ impl TypeTrait for AnyDeriveTrait {
     fn is_serde_deserialize(&self) -> bool {
         self == &AnyDeriveTrait::SerdeDeserialize
     }
+    fn is_schemars_json_schema(&self) -> bool {
+        false
+    }
 }
 
 pub type AnyRawGuard = RawGuard<SpannedAnySanitizer, SpannedAnyValidator>;

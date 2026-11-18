@@ -151,3 +151,88 @@ fn conditional_derives_expansion_is_reproducible() {
         ),
     );
 }
+
+#[test]
+fn schemars_attr_rejected_without_derive_unchecked() {
+    let err = expand_nutype(
+        quote!(derive(Debug)),
+        quote!(
+            #[schemars(title = "Name")]
+            pub struct Name(String);
+        ),
+    )
+    .unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("#[nutype] does not support `#[schemars(...)]` attributes."),
+        "unexpected error: {err}"
+    );
+}
+
+#[cfg(feature = "schemars08")]
+#[test]
+fn schemars_attr_rejected_with_nutype_json_schema() {
+    let err = expand_nutype(
+        quote!(derive(Debug, JsonSchema)),
+        quote!(
+            #[schemars(title = "Name")]
+            pub struct Name(String);
+        ),
+    )
+    .unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("#[nutype] does not support `#[schemars(...)]` attributes."),
+        "unexpected error: {err}"
+    );
+}
+
+#[cfg(all(feature = "schemars08", feature = "derive_unchecked"))]
+#[test]
+fn schemars_attr_rejected_when_nutype_json_schema_and_derive_unchecked_combined() {
+    let err = expand_nutype(
+        quote!(derive(Debug, JsonSchema), derive_unchecked(Deref)),
+        quote!(
+            #[schemars(title = "Name")]
+            pub struct Name(String);
+        ),
+    )
+    .unwrap_err();
+    assert!(
+        err.to_string()
+            .contains("#[nutype] does not support `#[schemars(...)]` attributes."),
+        "unexpected error: {err}"
+    );
+}
+
+#[cfg(feature = "derive_unchecked")]
+#[test]
+fn schemars_attr_forwarded_with_derive_unchecked() {
+    let out = expand_nutype(
+        quote!(derive(Debug), derive_unchecked(JsonSchema)),
+        quote!(
+            #[schemars(title = "Name", transparent)]
+            pub struct Name(#[schemars(length(min = 1))] String);
+        ),
+    )
+    .expect("expansion with derive_unchecked(JsonSchema) should succeed")
+    .to_string();
+
+    assert!(out.contains("schemars"), "expected #[schemars] in {out}");
+    assert!(out.contains("title"));
+
+    let cond_out = expand_nutype(
+        quote!(
+            derive(Debug),
+            cfg_attr(feature = "schema", derive_unchecked(schemars::JsonSchema))
+        ),
+        quote!(
+            #[schemars(title = "Name")]
+            pub struct Name(String);
+        ),
+    )
+    .expect("expansion with conditional derive_unchecked should succeed")
+    .to_string();
+
+    assert!(cond_out.contains("schemars"));
+}

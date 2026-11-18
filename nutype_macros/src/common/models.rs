@@ -564,6 +564,7 @@ pub trait TypeTrait {
     fn is_default(&self) -> bool;
     fn is_serde_serialize(&self) -> bool;
     fn is_serde_deserialize(&self) -> bool;
+    fn is_schemars_json_schema(&self) -> bool;
 }
 
 /// Serde customization consumed by nutype from native serde attributes:

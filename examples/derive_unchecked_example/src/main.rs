@@ -51,4 +51,18 @@ mod tests {
 
         assert_eq!(Id::new(7).to_string(), "ID-7");
     }
+
+    #[test]
+    fn schemars_attr_reaches_unchecked_derive() {
+        use schemars::schema_for;
+
+        #[nutype(derive(Debug), derive_unchecked(schemars::JsonSchema))]
+        #[schemars(title = "CustomUserId", transparent)]
+        struct UserId(#[schemars(length(min = 3))] String);
+
+        let schema = serde_json::to_value(schema_for!(UserId)).unwrap();
+        assert_eq!(schema["title"], "CustomUserId");
+        assert_eq!(schema["type"], "string");
+        assert_eq!(schema["minLength"], 3);
+    }
 }

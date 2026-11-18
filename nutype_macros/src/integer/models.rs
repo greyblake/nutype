@@ -107,6 +107,9 @@ impl TypeTrait for IntegerDeriveTrait {
     fn is_serde_deserialize(&self) -> bool {
         self == &IntegerDeriveTrait::SerdeDeserialize
     }
+    fn is_schemars_json_schema(&self) -> bool {
+        self == &IntegerDeriveTrait::SchemarsJsonSchema
+    }
 }
 
 pub type IntegerRawGuard<T> = RawGuard<SpannedIntegerSanitizer<T>, SpannedIntegerValidator<T>>;

@@ -9,3 +9,7 @@ edition = "2024"
 arbitrary = { version = "1", features = ["derive"] }
 derive_more = { version = "2.0.1", features = ["deref", "deref_mut", "display"] }
 nutype = { path = "../../nutype", features = ["derive_unchecked"] }
+
+[dev-dependencies]
+schemars = "1"
+serde_json = "1"

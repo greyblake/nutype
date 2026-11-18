@@ -97,6 +97,9 @@ impl TypeTrait for StringDeriveTrait {
     fn is_serde_deserialize(&self) -> bool {
         self == &Self::SerdeDeserialize
     }
+    fn is_schemars_json_schema(&self) -> bool {
+        self == &Self::SchemarsJsonSchema
+    }
 }
 
 pub type StringRawGuard = RawGuard<SpannedStringSanitizer, SpannedStringValidator>;
